@@ -1,0 +1,9 @@
+{
+	"ImportPath": "nate-mlb",
+	"GoVersion": "go1.12",
+	"GodepVersion": "v80",
+	"Packages": [
+		"./..."
+	],
+	"Deps": []
+}
