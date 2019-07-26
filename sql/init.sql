@@ -78,7 +78,7 @@ INSERT INTO players (player_type, player_id, friend_id, display_order)
         , (1, 135, 6, 4) -- San Diego Padres
         , (1, 137, 6, 5) -- San Francisco Giants
 -- batters: (-- name_display_first_last)
-        , (2, 502110, 1, 1) -- J.D. Martine
+        , (2, 502110, 1, 1) -- J.D. Martinez
         , (2, 605141, 1, 2) -- Mookie Betts
         , (2, 608070, 1, 3) -- Jose Ramirez
         , (2, 547180, 2, 1) -- Bryce Harper
