@@ -2,13 +2,14 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
 	_ "github.com/lib/pq"
 )
 
-func getFriendPlayerInfo() FriendPlayerInfo {
+func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 	driverName := "postgres"
 	datasourceName := os.Getenv("DATABASE_URL")
 	db, err := sql.Open(driverName, datasourceName)
@@ -17,18 +18,31 @@ func getFriendPlayerInfo() FriendPlayerInfo {
 	}
 	defer db.Close()
 
-	return FriendPlayerInfo{
-		friends:     getFriends(db),
-		playerTypes: getPlayerTypes(db),
-		players:     getPlayers(db),
+	friends, err := getFriends(db)
+	if err != nil {
+		return FriendPlayerInfo{}, err
 	}
+	playerTypes, err := getPlayerTypes(db)
+	if err != nil {
+		return FriendPlayerInfo{}, err
+	}
+	players, err := getPlayers(db)
+	if err != nil {
+		return FriendPlayerInfo{}, err
+	}
+
+	return FriendPlayerInfo{
+		friends,
+		playerTypes,
+		players,
+	}, nil
 }
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
-func getFriends(db *sql.DB) []Friend {
+func getFriends(db *sql.DB) ([]Friend, error) {
 	rows, err := db.Query("SELECT id, name FROM friends ORDER BY display_order ASC")
 	if err != nil {
-		log.Fatalf("Error reading friends: %q", err)
+		return nil, fmt.Errorf("Error reading friends: %q", err)
 	}
 	defer rows.Close()
 
@@ -38,17 +52,17 @@ func getFriends(db *sql.DB) []Friend {
 		friends = append(friends, Friend{})
 		err = rows.Scan(&friends[i].id, &friends[i].name)
 		if err != nil {
-			log.Fatalf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("Problem reading data: %q", err)
 		}
 		i++
 	}
-	return friends
+	return friends, nil
 }
 
-func getPlayerTypes(db *sql.DB) []PlayerType {
+func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 	rows, err := db.Query("SELECT id, name FROM player_types")
 	if err != nil {
-		log.Fatalf("Error reading playerTypes: %q", err)
+		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}
 	defer rows.Close()
 
@@ -58,17 +72,17 @@ func getPlayerTypes(db *sql.DB) []PlayerType {
 		playerTypes = append(playerTypes, PlayerType{})
 		err = rows.Scan(&playerTypes[i].id, &playerTypes[i].name)
 		if err != nil {
-			log.Fatalf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("Problem reading data: %q", err)
 		}
 		i++
 	}
-	return playerTypes
+	return playerTypes, nil
 }
 
-func getPlayers(db *sql.DB) []Player {
+func getPlayers(db *sql.DB) ([]Player, error) {
 	rows, err := db.Query("SELECT player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
 	if err != nil {
-		log.Fatalf("Error reading playerTypes: %q", err)
+		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}
 	defer rows.Close()
 
@@ -78,11 +92,11 @@ func getPlayers(db *sql.DB) []Player {
 		players = append(players, Player{})
 		err = rows.Scan(&players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
 		if err != nil {
-			log.Fatalf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("Problem reading data: %q", err)
 		}
 		i++
 	}
-	return players
+	return players, nil
 }
 
 // FriendPlayerInfo contain all the pool items for each Friend.

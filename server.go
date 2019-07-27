@@ -6,8 +6,20 @@ import (
 )
 
 func serveRoot(w http.ResponseWriter, r *http.Request) {
-	friendPlayerInfo := getFriendPlayerInfo()
-	jsonOptput := fmt.Sprintf("%v", friendPlayerInfo)
+	friendPlayerInfo, err := getFriendPlayerInfo()
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	// jsonOptput := fmt.Sprintf("%v\n", friendPlayerInfo)
+
+	scoreCategory, err := getStats(friendPlayerInfo)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	jsonOptput := fmt.Sprintf("%v\n", scoreCategory)
+
 	// TODO: get stats on friendPlayerInfo
 	// TODO: format to template
 	w.Write([]byte(jsonOptput)) // TODO: stream
