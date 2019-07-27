@@ -1,6 +1,6 @@
 -- $ sudo -u postgres psql
 -- CREATE DATABASE nate_mlb_db;
--- CREATE user nate WITH ENCRYPTED PASSWORD 'Have19_each%Iowa';
+-- CREATE user nate WITH ENCRYPTED PASSWORD 'Have19_each+Iowa';
 -- GRANT ALL PRIVILEGES ON DATABASE nate_mlb_db to nate;
 -- $ \q
 -- $ PGPASSWORD=Have19_each%Iowa psql nate -h 127.0.0.1 -d nate_mlb_db
@@ -18,12 +18,12 @@ CREATE TABLE IF NOT EXISTS player_types
 
 CREATE TABLE IF NOT EXISTS players
 	( id SERIAL PRIMARY KEY
-	, player_type INT
+	, player_type_id INT
 	, player_id INT NOT NULL
 	, friend_id INT NOT NULL
 	, display_order INT DEFAULT 0
-	, UNIQUE (player_type, player_id, friend_id)
-	, FOREIGN KEY (player_type) REFERENCES player_types (id)
+	, UNIQUE (player_type_id, player_id, friend_id)
+	, FOREIGN KEY (player_type_id) REFERENCES player_types (id)
 	, FOREIGN KEY (friend_id) REFERENCES friends (id)
 	);
 

@@ -2,13 +2,9 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
+	"strconv"
 )
-
-func serveRoot(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, World! (nate-mlb) -jake\n"))
-}
 
 func main() {
 
@@ -17,6 +13,10 @@ func main() {
 		log.Fatal("Port not set.")
 	}
 
-	http.HandleFunc("/", serveRoot)
-	http.ListenAndServe(":"+port, nil)
+	portNumber, err := strconv.Atoi(port)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	startServer(portNumber)
 }
