@@ -20,7 +20,6 @@ func serveRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonOptput := fmt.Sprintf("%v\n", scoreCategory)
 
-	// TODO: get stats on friendPlayerInfo
 	// TODO: format to template
 	w.Write([]byte(jsonOptput)) // TODO: stream
 }

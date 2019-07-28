@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 	"sync"
 	"time"
 )
@@ -44,77 +45,102 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType) 
 
 func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType PlayerType) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	request, err := http.NewRequest("GET", "http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", nil)
-	if err != nil {
-		return scoreCategory, err
+	teamsJSON, err := requestTeamsJSON()
+	if err == nil {
+		playerScores := teamsJSON.getPlayerScores()
+		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
 	}
-	request.Header.Add("Accept", "application/json")
-	client := &http.Client{
-		Timeout: 1 * time.Second,
-	}
-	response, err := client.Do(request)
-	if err != nil {
-		return scoreCategory, err
-	}
-	defer response.Body.Close()
-
-	// Parse the response to Json
-	teamsJSON := TeamsJSON{}
-	err = json.NewDecoder(response.Body).Decode(&teamsJSON)
-	if err != nil {
-		return scoreCategory, err
-	}
-	// Create lookup map
-	teamWins := make(map[int]PlayerScore)
-	for _, record := range teamsJSON.Records {
-		for _, teamRecord := range record.TeamRecords {
-			teamWins[teamRecord.Team.ID] = PlayerScore{playerName: teamRecord.Team.Name, score: teamRecord.Wins}
-		}
-	}
-
-	// populate the FriendScores
-	friendScores := make([]FriendScore, len(friendPlayerInfo.friends))
-	friendScoresByID := make(map[int]FriendScore)
-	for i, friend := range friendPlayerInfo.friends {
-		friendScores[i] = FriendScore{friendName: friend.name, playerScores: []PlayerScore{}}
-		friendScoresByID[friend.id] = friendScores[i]
-	}
-	for _, player := range friendPlayerInfo.players {
-		if player.playerTypeID == teamPlayerType.id {
-			playerScore, ok := teamWins[player.playerID]
-			if !ok {
-				return scoreCategory, fmt.Errorf("No team wins for team id=%v", player.playerID)
-			}
-			friendScore, ok := friendScoresByID[player.friendID]
-			if !ok {
-				return scoreCategory, fmt.Errorf("No friend with id=%v", player.friendID)
-			}
-			// TODO: Not working correctly
-			playerScores := friendScore.playerScores
-			playerScores = append(playerScores, playerScore)
-			friendScore.playerScores = playerScores
-		}
-	}
-
-	// Caculate the actual scores
-	for _, friendScore := range friendScores {
-		winsSum := 0
-		for _, playerScore := range friendScore.playerScores {
-			winsSum += playerScore.score
-		}
-		friendScore.score = winsSum
-	}
-
-	scoreCategory.name = teamPlayerType.name
-	scoreCategory.friendScores = friendScores
-	return scoreCategory, nil
+	return scoreCategory, err
 }
 
 // TODO get all player score for a category in bulk
 // &player_id=%27605483%27
 func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, url string, scoreKey string) (ScoreCategory, error) {
-
+	// TODO
 	return ScoreCategory{}, nil
+}
+
+func requestTeamsJSON() (TeamsJSON, error) {
+	teamsJSON := TeamsJSON{}
+	request, err := http.NewRequest("GET", "http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", nil)
+	if err == nil {
+		request.Header.Add("Accept", "application/json")
+		client := &http.Client{
+			Timeout: 1 * time.Second,
+		}
+		response, err := client.Do(request)
+		if err == nil {
+			defer response.Body.Close()
+			err = json.NewDecoder(response.Body).Decode(&teamsJSON)
+		}
+	}
+	return teamsJSON, err
+}
+
+func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
+	playerScores := make(map[int]PlayerScore)
+	for _, record := range t.Records {
+		for _, teamRecord := range record.TeamRecords {
+			playerScores[teamRecord.Team.ID] = PlayerScore{
+				name:  teamRecord.Team.Name,
+				score: teamRecord.Wins,
+			}
+		}
+	}
+	return playerScores
+}
+
+func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
+	sc.name = playerType.name
+	sc.friendScores = make([]FriendScore, len(friendPlayerInfo.friends))
+	for i, friend := range friendPlayerInfo.friends {
+		friendScore, err := friend.compute(friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
+		if err == nil {
+			sc.friendScores[i] = friendScore
+		} else {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
+	friendScore := FriendScore{}
+
+	friendScore.name = f.name
+
+	friendScore.playerScores = []PlayerScore{}
+	for _, player := range friendPlayerInfo.players {
+		if f.id == player.friendID && playerType.id == player.playerTypeID {
+			if playerScore, ok := playerScores[player.playerID]; ok {
+				friendScore.playerScores = append(friendScore.playerScores, playerScore)
+			} else {
+				return friendScore, fmt.Errorf("No Player scor for id = %v", player.playerID)
+			}
+		}
+	}
+
+	score := 0
+	if onlySumTopTwoPlayerScores {
+		scores := make([]int, len(friendScore.playerScores))
+		for i, playerScore := range friendScore.playerScores {
+			scores[i] = playerScore.score
+		}
+		sort.Ints(scores) // ex: 1 2 3 4 5
+		if len(scores) >= 1 {
+			score += scores[len(scores)-1]
+			if len(scores) >= 2 {
+				score += scores[len(scores)-2]
+			}
+		}
+	} else {
+		for _, playerScore := range friendScore.playerScores {
+			score += playerScore.score
+		}
+	}
+	friendScore.score = score
+
+	return friendScore, nil
 }
 
 // ScoreCategory  contain the FriendScores for each PlayerType
@@ -125,15 +151,15 @@ type ScoreCategory struct {
 
 // FriendScore contain the scores for a Friend for a PlayerType
 type FriendScore struct {
-	friendName   string
+	name         string
 	playerScores []PlayerScore
 	score        int
 }
 
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
-	playerName string
-	score      int
+	name  string
+	score int
 }
 
 // TeamsJSON is used to unmarshal a wins request for all teams
