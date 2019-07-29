@@ -1,0 +1,10 @@
+{{ define "scoreCategory" }}
+<h2>{{ .Name }}</h2>
+<ul>
+    {{ range .FriendScores }}
+    <li>
+        {{ template "friendScore" . }}
+    </li>
+    {{ end }}
+</ul>
+{{ end }}
