@@ -1,11 +1,6 @@
 {{ define "title" }}Nate's MLB pool{{ end }}
-
 {{ define "content" }}
-<ul>
-    {{ range . }}
-    <li>
-        {{ template "scoreCategory" . }}
-    </li>
-    {{ end }}
-</ul>
+{{ range . }}
+{{- template "scoreCategory" . -}}
+{{ end }}
 {{ end }}
