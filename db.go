@@ -60,7 +60,7 @@ func getFriends(db *sql.DB) ([]Friend, error) {
 }
 
 func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
-	rows, err := db.Query("SELECT id, name FROM player_types")
+	rows, err := db.Query("SELECT id, name FROM player_types ORDER BY id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}

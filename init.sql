@@ -29,20 +29,20 @@ CREATE TABLE IF NOT EXISTS players
 
 INSERT INTO player_types (id, name)
 	VALUES
-		  (1, 'team')
-		, (2, 'batter')
-		, (3, 'pitcher')
-		;
+          (1, 'team')
+        , (2, 'hitter')
+        , (3, 'pitcher')
+        ;
 
 INSERT INTO friends (id, name, display_order)
 	VALUES
-		  (1, 'Bob', 1)
-		, (2, 'W', 2)
-		, (3, 'Nate', 3)
-		, (4, 'Sam', 4)
-		, (5, 'Steve', 5)
-		, (6, 'Mike', 6)
-		;
+          (1, 'Bob', 1)
+        , (2, 'W', 2)
+        , (3, 'Nate', 3)
+        , (4, 'Sam', 4)
+        , (5, 'Steve', 5)
+        , (6, 'Mike', 6)
+        ;
 
 INSERT INTO players (player_type, player_id, friend_id, display_order)
 	VALUES
@@ -77,7 +77,7 @@ INSERT INTO players (player_type, player_id, friend_id, display_order)
         , (1, 133, 6, 3) -- Oakland Athletics
         , (1, 135, 6, 4) -- San Diego Padres
         , (1, 137, 6, 5) -- San Francisco Giants
--- batters: (-- name_display_first_last)
+-- hitters: (-- name_display_first_last)
         , (2, 502110, 1, 1) -- J.D. Martinez
         , (2, 605141, 1, 2) -- Mookie Betts
         , (2, 608070, 1, 3) -- Jose Ramirez
@@ -85,7 +85,7 @@ INSERT INTO players (player_type, player_id, friend_id, display_order)
         , (2, 656555, 2, 2) -- Rhys Hoskins
         , (2, 660670, 2, 3) -- Ronald Acuna Jr.
         , (2, 545361, 3, 1) -- Mike Trout
-		, (2, 571448, 3, 2) -- Nolan Arenado
+        , (2, 571448, 3, 2) -- Nolan Arenado
         , (2, 592518, 3, 3) -- Manny Machado
         , (2, 501981, 4, 1) -- Khris Davis
         , (2, 608336, 4, 2) -- Joey Gallo
@@ -98,7 +98,7 @@ INSERT INTO players (player_type, player_id, friend_id, display_order)
         , (2, 502671, 6, 3) -- Paul Goldschmidt
 -- pitchers:
         , (3, 605483, 1, 1) -- Blake Snell
-        , (3, 622663, 1, 2) -- Luis Severino
+        --, (3, 622663, 1, 2) -- Luis Severino ???
         --, (3, , 1, 3) -- "Nats" ???
         , (3, 594798, 2, 1) -- Jacob deGrom
         , (3, 621111, 2, 2) -- Walker Buehler
@@ -115,5 +115,4 @@ INSERT INTO players (player_type, player_id, friend_id, display_order)
         , (3, 434378, 6, 1) -- Justin Verlander
         , (3, 543037, 6, 2) -- Gerrit Cole
         , (3, 545333, 6, 3) -- Trevor Bauer
-		;
-
+        ;
