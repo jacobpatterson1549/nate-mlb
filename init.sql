@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS players
 INSERT INTO player_types (id, name)
 	VALUES
           (1, 'team')
-        , (2, 'hitter')
-        , (3, 'pitcher')
+        , (2, 'hitting')
+        , (3, 'pitching')
         ;
 
 INSERT INTO friends (id, name, display_order)
