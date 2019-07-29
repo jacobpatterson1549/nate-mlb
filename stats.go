@@ -194,24 +194,12 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlay
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIds []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIds, ",")), ",", "%2C")
 	playerNamesJSON := PlayerNamesJSON{}
-	request, err := http.NewRequest("GET", playerNamesURL, nil)
+	err := requestJSON(playerNamesURL, &playerNamesJSON)
 	if err == nil {
-		request.Header.Add("Accept", "application/json")
-		client := &http.Client{
-			Timeout: 5 * time.Second,
+		for _, people := range playerNamesJSON.People {
+			pir.playerNames[people.ID] = people.FullName
 		}
-		response, err := client.Do(request)
-		if err == nil {
-			defer response.Body.Close()
-			err = json.NewDecoder(response.Body).Decode(&playerNamesJSON)
-			if err == nil {
-				for _, people := range playerNamesJSON.People {
-					pir.playerNames[people.ID] = people.FullName
-				}
-			}
-		}
-	}
-	if err != nil {
+	} else {
 		pir.hasError = true
 		pir.lastError = err
 	}
