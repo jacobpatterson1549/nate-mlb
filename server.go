@@ -1,27 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 func serveRoot(w http.ResponseWriter, r *http.Request) {
 	friendPlayerInfo, err := getFriendPlayerInfo()
+	if err == nil {
+		scoreCategories, err := getStats(friendPlayerInfo)
+		if err == nil {
+			jsonOptput, err := json.Marshal(scoreCategories)
+			if err == nil {
+				w.Write(jsonOptput)
+			}
+		}
+	}
+
 	if err != nil {
 		w.Write([]byte(err.Error()))
-		return
 	}
-	// jsonOptput := fmt.Sprintf("%v\n", friendPlayerInfo)
-
-	scoreCategory, err := getStats(friendPlayerInfo)
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
-	}
-	jsonOptput := fmt.Sprintf("%v\n", scoreCategory)
-
-	// TODO: format to template
-	w.Write([]byte(jsonOptput)) // TODO: stream
 }
 
 func startServer(portNumber int) {

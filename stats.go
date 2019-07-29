@@ -44,12 +44,14 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, 
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
 		return ScoreCategory{}, fmt.Errorf("Unknown playerType: %v", playerType.name)
+		// return ScoreCategory{}, nil
 	}
 }
 
 func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType PlayerType) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := requestTeamsJSON()
+	teamsJSON := TeamsJSON{}
+	err := requestJSON("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", &teamsJSON)
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
 		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
@@ -63,14 +65,14 @@ func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType Player
 	if playerInfoRequest.hasError {
 		return scoreCategory, playerInfoRequest.lastError
 	}
-	switch playerType.id {
-	case 2:
+	switch playerType.name {
+	case "hitter":
 		playerScores, err := playerInfoRequest.getHitterPlayerScores()
 		if err != nil {
 			return scoreCategory, err
 		}
 		return scoreCategory, scoreCategory.compute(friendPlayerInfo, playerType, playerScores, true)
-	case 3:
+	case "pitcher":
 		// TODO: sloppy
 		playerScores, err := playerInfoRequest.getPitcherPlayerScores()
 		if err != nil {
@@ -82,9 +84,8 @@ func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType Player
 	}
 }
 
-func requestTeamsJSON() (TeamsJSON, error) {
-	teamsJSON := TeamsJSON{}
-	request, err := http.NewRequest("GET", "http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", nil)
+func requestJSON(url string, v interface{}) error {
+	request, err := http.NewRequest("GET", url, nil)
 	if err == nil {
 		request.Header.Add("Accept", "application/json")
 		client := &http.Client{
@@ -93,10 +94,10 @@ func requestTeamsJSON() (TeamsJSON, error) {
 		response, err := client.Do(request)
 		if err == nil {
 			defer response.Body.Close()
-			err = json.NewDecoder(response.Body).Decode(&teamsJSON)
+			err = json.NewDecoder(response.Body).Decode(&v)
 		}
 	}
-	return teamsJSON, err
+	return err
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
@@ -104,8 +105,8 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 	for _, record := range t.Records {
 		for _, teamRecord := range record.TeamRecords {
 			playerScores[teamRecord.Team.ID] = PlayerScore{
-				name:  teamRecord.Team.Name,
-				score: teamRecord.Wins,
+				Name:  teamRecord.Team.Name,
+				Score: teamRecord.Wins,
 			}
 		}
 	}
@@ -113,12 +114,12 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 }
 
 func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
-	sc.name = playerType.name
-	sc.friendScores = make([]FriendScore, len(friendPlayerInfo.friends))
+	sc.Name = playerType.name
+	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.friends))
 	for i, friend := range friendPlayerInfo.friends {
 		friendScore, err := friend.compute(friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
 		if err == nil {
-			sc.friendScores[i] = friendScore
+			sc.FriendScores[i] = friendScore
 		} else {
 			return err
 		}
@@ -129,13 +130,13 @@ func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType P
 func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	friendScore := FriendScore{}
 
-	friendScore.name = f.name
+	friendScore.Name = f.name
 
-	friendScore.playerScores = []PlayerScore{}
+	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range friendPlayerInfo.players {
 		if f.id == player.friendID && playerType.id == player.playerTypeID {
 			if playerScore, ok := playerScores[player.playerID]; ok {
-				friendScore.playerScores = append(friendScore.playerScores, playerScore)
+				friendScore.PlayerScores = append(friendScore.PlayerScores, playerScore)
 			} else {
 				return friendScore, fmt.Errorf("No Player score for id = %v", player.playerID)
 			}
@@ -144,9 +145,9 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 
 	score := 0
 	if onlySumTopTwoPlayerScores {
-		scores := make([]int, len(friendScore.playerScores))
-		for i, playerScore := range friendScore.playerScores {
-			scores[i] = playerScore.score
+		scores := make([]int, len(friendScore.PlayerScores))
+		for i, playerScore := range friendScore.PlayerScores {
+			scores[i] = playerScore.Score
 		}
 		sort.Ints(scores) // ex: 1 2 3 4 5
 		if len(scores) >= 1 {
@@ -156,11 +157,11 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 			}
 		}
 	} else {
-		for _, playerScore := range friendScore.playerScores {
-			score += playerScore.score
+		for _, playerScore := range friendScore.PlayerScores {
+			score += playerScore.Score
 		}
 	}
-	friendScore.score = score
+	friendScore.Score = score
 
 	return friendScore, nil
 }
@@ -265,8 +266,8 @@ func (pir *PlayerInfoRequest) getHitterPlayerScores() (map[int]PlayerScore, erro
 				if name, ok := pir.playerNames[playerID]; ok {
 					splits := stats.Splits
 					playerScores[playerID] = PlayerScore{
-						name:  name,
-						score: splits[len(splits)-1].Stat.HomeRuns,
+						Name:  name,
+						Score: splits[len(splits)-1].Stat.HomeRuns,
 					}
 				} else {
 					return playerScores, fmt.Errorf("No name for player %v", playerID)
@@ -286,8 +287,8 @@ func (pir *PlayerInfoRequest) getPitcherPlayerScores() (map[int]PlayerScore, err
 				if name, ok := pir.playerNames[playerID]; ok {
 					splits := stats.Splits
 					playerScores[playerID] = PlayerScore{
-						name:  name,
-						score: splits[len(splits)-1].Stat.Wins,
+						Name:  name,
+						Score: splits[len(splits)-1].Stat.Wins,
 					}
 				} else {
 					return playerScores, fmt.Errorf("No name for player %v", playerID)
@@ -300,21 +301,21 @@ func (pir *PlayerInfoRequest) getPitcherPlayerScores() (map[int]PlayerScore, err
 
 // ScoreCategory  contain the FriendScores for each PlayerType
 type ScoreCategory struct {
-	name         string
-	friendScores []FriendScore
+	Name         string
+	FriendScores []FriendScore
 }
 
 // FriendScore contain the scores for a Friend for a PlayerType
 type FriendScore struct {
-	name         string
-	playerScores []PlayerScore
-	score        int
+	Name         string
+	PlayerScores []PlayerScore
+	Score        int
 }
 
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
-	name  string
-	score int
+	Name  string
+	Score int
 }
 
 // PlayerInfoRequest contains invormation about requests for hitter/pitcher names/stats
