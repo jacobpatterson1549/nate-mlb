@@ -9,12 +9,14 @@
         <h3 class="card-title">{{ .Name }}</h3>
         <div class="card-text">
             <ul class="list-group list-group-flush">
-                <table class="card-table table">{{ range .PlayerScores }}
+                <table class="card-table table">
+                    {{- range .PlayerScores }}
                     <tr>
                         <td>{{ .Name }}</td>
                         <td>{{ .Score }}</td>
                     </tr>
-                    {{ end }}</table>
+                    {{- end }}
+                </table>
             </ul>
             <h4 class="list-group-item">Value: {{ .Score }}</h4>
         </div>
