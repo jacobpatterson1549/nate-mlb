@@ -168,25 +168,25 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlay
 	pir.playerStats["pitching"] = make(map[int]int)
 
 	playerIDsSet := make(map[int]bool)
-	playerIDStrings := []string{}
+	playerIDstrings := []string{}
 	playerIDInts := []int{}
 	for _, player := range friendPlayerInfo.players {
 		if player.playerTypeID == 2 || player.playerTypeID == 3 {
 			if _, ok := playerIDsSet[player.playerID]; !ok {
 				playerIDsSet[player.playerID] = true
-				playerIDStrings = append(playerIDStrings, strconv.Itoa(player.playerID))
+				playerIDstrings = append(playerIDstrings, strconv.Itoa(player.playerID))
 				playerIDInts = append(playerIDInts, player.playerID)
 			}
 		}
 	}
 
 	pir.wg.Add(2)
-	go pir.requestPlayerNames(playerIDStrings)
+	go pir.requestPlayerNames(playerIDstrings)
 	go pir.requestPlayerStats(playerIDInts)
 }
 
-func (pir *PlayerInfoRequest) requestPlayerNames(playerIds []string) {
-	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIds, ",")), ",", "%2C")
+func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
+	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
 	playerNamesJSON := PlayerNamesJSON{}
 	err := requestJSON(playerNamesURL, &playerNamesJSON)
 	if err == nil {
@@ -204,18 +204,18 @@ func (pir *PlayerInfoRequest) addPlayerNames(playerNamesJSON PlayerNamesJSON) {
 	}
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStats(playerIds []int) {
+func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	wg.Add(len(playerIds))
-	for _, playerID := range playerIds {
+	wg.Add(len(playerIDs))
+	for _, playerID := range playerIDs {
 		go func(playerID int, mutex *sync.Mutex) {
 			pir.requestPlayerStat(playerID, mutex)
 			wg.Done()
 		}(playerID, &mutex)
 	}
 	wg.Wait()
-	pir.addMissingPlayerStats(playerIds)
+	pir.addMissingPlayerStats(playerIDs)
 	pir.wg.Done()
 }
 
@@ -253,11 +253,11 @@ func (pir *PlayerInfoRequest) addPlayerStats(playerID int, playerStatsJSON Playe
 	return nil
 }
 
-func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIds []int) {
+func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIDs []int) {
 	// Some players might not have played for the requested year for the position that was requested.
 	// If so, add a 0 as their stat.
 	// TODO: This bloats the playerStats map, but it is not a big deal for now.
-	for _, playerID := range playerIds {
+	for _, playerID := range playerIDs {
 		for _, playerStats := range pir.playerStats {
 			if _, ok := playerStats[playerID]; !ok {
 				playerStats[playerID] = 0
