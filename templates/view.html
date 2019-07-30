@@ -1,7 +1,6 @@
 {{ define "title" }}Nate's MLB pool{{ end }}
 
 {{ define "content" }}
-{{ range . }}
 <h2>{{ .Name }}</h2>
 {{ range .FriendScores }}
 <div class="card">
@@ -22,6 +21,5 @@
         </div>
     </div>
 </div>
-{{ end }}
 {{ end }}
 {{ end }}
