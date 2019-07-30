@@ -211,7 +211,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIds []int) {
 	wg.Add(len(playerIds))
 	for _, playerID := range playerIds {
 		go func(playerID int, mutex *sync.Mutex) {
-			go pir.requestPlayerStat(playerID, mutex)
+			pir.requestPlayerStat(playerID, mutex)
 			wg.Done()
 		}(playerID, &mutex)
 	}
