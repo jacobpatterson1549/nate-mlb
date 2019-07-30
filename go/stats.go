@@ -215,6 +215,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIds []int) {
 		}(playerID, &mutex)
 	}
 	wg.Wait()
+	pir.addMissingPlayerStats(playerIds)
 	pir.wg.Done()
 }
 
@@ -250,6 +251,19 @@ func (pir *PlayerInfoRequest) addPlayerStats(playerID int, playerStatsJSON Playe
 		}
 	}
 	return nil
+}
+
+func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIds []int) {
+	// Some players might not have played for the requested year for the position that was requested.
+	// If so, add a 0 as their stat.
+	// TODO: This bloats the playerStats map, but it is not a big deal for now.
+	for _, playerID := range playerIds {
+		for _, playerStats := range pir.playerStats {
+			if _, ok := playerStats[playerID]; !ok {
+				playerStats[playerID] = 0
+			}
+		}
+	}
 }
 
 func (s *Stat) getScore(groupDisplayName string) (int, error) {
