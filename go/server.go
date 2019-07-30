@@ -26,8 +26,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, err := template.ParseFiles(
-		"templates/main.html",
-		"templates/view.html",
+		"../templates/main.html",
+		"../templates/view.html",
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
