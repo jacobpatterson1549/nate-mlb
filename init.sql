@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS players
 
 INSERT INTO player_types (id, name)
 	VALUES
-          (1, 'team')
+          (1, 'teams')
         , (2, 'hitting')
         , (3, 'pitching')
         ;
@@ -44,7 +44,7 @@ INSERT INTO friends (id, name, display_order)
         , (6, 'Mike', 6)
         ;
 
-INSERT INTO players (player_type, player_id, friend_id, display_order)
+INSERT INTO players (player_type_id, player_id, friend_id, display_order)
 	VALUES
 -- teams: (-- name_display_full)
           (1, 111, 1, 1) -- Boston Red Sox
