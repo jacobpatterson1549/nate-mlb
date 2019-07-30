@@ -98,13 +98,13 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order)
         , (2, 502671, 6, 3) -- Paul Goldschmidt
 -- pitchers:
         , (3, 605483, 1, 1) -- Blake Snell
-        --, (3, 622663, 1, 2) -- Luis Severino ???
-        --, (3, , 1, 3) -- "Nats" ???
+        , (3, 622663, 1, 2) -- Luis Severino
+        , (3, 605400, 1, 3) -- Aaron Nola
         , (3, 594798, 2, 1) -- Jacob deGrom
         , (3, 621111, 2, 2) -- Walker Buehler
         , (3, 572020, 2, 3) -- James Paxton
-        , (3, 446372, 3, 1) -- Corey Kluber
-        , (3, 519242, 3, 2) -- Chris Sale
+        , (3, 453286, 3, 1) -- Max Scherzer
+        , (3, 519144, 3, 2) -- Rick Porcello
         , (3, 605400, 3, 3) -- Aaron Nola
         , (3, 446372, 4, 1) -- Corey Kluber
         , (3, 471911, 4, 2) -- Carlos Carrasco
