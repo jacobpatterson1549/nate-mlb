@@ -36,7 +36,7 @@ func getStats(friendPlayerInfo FriendPlayerInfo) ([]ScoreCategory, error) {
 
 func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	switch playerType.name {
-	case "team":
+	case "teams":
 		return getTeamScoreScategory(friendPlayerInfo, playerType)
 	case "hitting":
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
