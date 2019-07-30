@@ -280,7 +280,7 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 	return playerScores, nil
 }
 
-// ScoreCategory  contain the FriendScores for each PlayerType
+// ScoreCategory contain the FriendScores for each PlayerType
 type ScoreCategory struct {
 	Name         string
 	FriendScores []FriendScore
