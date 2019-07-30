@@ -129,8 +129,7 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 			if playerScore, ok := playerScores[player.playerID]; ok {
 				friendScore.PlayerScores = append(friendScore.PlayerScores, playerScore)
 			} else {
-				// TODO: Investigate why some player stats are not returned every time.
-				// return friendScore, fmt.Errorf("No Player score for id = %v, type = %v", player.playerID, playerType.name)
+				return friendScore, fmt.Errorf("No Player score for id = %v, type = %v", player.playerID, playerType.name)
 			}
 		}
 	}
