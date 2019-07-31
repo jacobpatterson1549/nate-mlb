@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func startServer(portNumber int) {
@@ -55,6 +56,9 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 		default:
 			pageNotFound(w)
 			return nil
+		}
+		if err == nil {
+			message = "Change made at: " + time.Now().String()
 		}
 	default:
 		pageNotFound(w)
