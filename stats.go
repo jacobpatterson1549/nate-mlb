@@ -11,7 +11,13 @@ import (
 	"time"
 )
 
-func getStats(friendPlayerInfo FriendPlayerInfo) ([]ScoreCategory, error) {
+func getStats() ([]ScoreCategory, error) {
+
+	friendPlayerInfo, err := getFriendPlayerInfo()
+	if err != nil {
+		return nil, err
+	}
+
 	numCategories := len(friendPlayerInfo.playerTypes)
 	scoreCategories := make([]ScoreCategory, numCategories)
 	var wg sync.WaitGroup
