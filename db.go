@@ -80,13 +80,6 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 }
 
 func getPlayers(db *sql.DB) ([]Player, error) {
-	// selectSQL := "SELECT player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order"
-	// create := func() interface{} { return Player{} }
-	// dest := func(player interface{}) []interface{} {
-	// 	return []interface{}{&player.playerTypeID, &player.playerID, &player.friendID}
-	// }
-	// p, error := selectRows(db, selectSQL, create, dest)
-	// return []Player{}, nil
 	rows, err := db.Query("SELECT player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
@@ -104,26 +97,6 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 		i++
 	}
 	return players, nil
-}
-
-func selectRows(db *sql.DB, selectSQL string, create func() interface{}, dest func(interface{}) []interface{}) ([]interface{}, error) {
-	rows, err := db.Query(selectSQL)
-	if err != nil {
-		return nil, fmt.Errorf("Error reading %T: %q", create(), err)
-	}
-	defer rows.Close()
-
-	data := make([]interface{}, 0)
-	i := 0
-	for rows.Next() {
-		data = append(data, create())
-		err = rows.Scan(dest(data[i]))
-		if err != nil {
-			return nil, fmt.Errorf("Problem reading data to create %T rows, row %q: %q", create(), i, err)
-		}
-		i++
-	}
-	return data, nil
 }
 
 // FriendPlayerInfo contain all the pool items for each Friend.
