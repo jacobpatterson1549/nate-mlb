@@ -51,6 +51,8 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 			err = adminSetFriends(body)
 		case "/admin/players":
 			err = adminSetPlayers(body)
+		case "/admin/cache":
+			err = adminClearCache(body)
 		default:
 			pageNotFound(w)
 			return nil

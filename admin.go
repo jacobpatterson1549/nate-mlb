@@ -39,6 +39,14 @@ func adminSetPlayers(b []byte) error {
 	return errors.New("Not implemented (TODO: set players)")
 }
 
+func adminClearCache(b []byte) error {
+	if len(b) != 0 {
+		return errors.New("No body expected")
+	}
+
+	return errors.New("Not implemented (TODO: clearCache)")
+}
+
 // PasswordReset cis the request to reset the admin password
 type PasswordReset struct {
 	CurrentPassword string `json:"old"`
