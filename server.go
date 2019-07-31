@@ -34,13 +34,11 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	var message string
-	var err error
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/admin":
 		message = ""
 	case r.Method == "POST":
-		var body []byte
-		body, err = ioutil.ReadAll(r.Body)
+		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			return err
 		}
@@ -57,15 +55,14 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 			pageNotFound(w)
 			return nil
 		}
-		if err == nil {
+		if err != nil {
+			message = err.Error()
+		} else {
 			message = "Change made at: " + time.Now().String()
 		}
 	default:
 		pageNotFound(w)
 		return nil
-	}
-	if err != nil {
-		message = err.Error()
 	}
 	return writeAdminTabs(w, message)
 }
