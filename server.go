@@ -42,25 +42,22 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 		if err != nil {
 			return err
 		}
-		switch r.RequestURI {
-		case "/admin/password":
-			err = adminSetPassword(body)
-		case "/admin/years":
-			err = adminSetYears(body)
-		case "/admin/friends":
-			err = adminSetFriends(body)
-		case "/admin/players":
-			err = adminSetPlayers(body)
-		case "/admin/cache":
-			err = adminClearCache(body)
-		default:
+		adminActions := map[string](func([]byte) error){
+			"/admin/password": adminSetPassword,
+			"/admin/years":    adminSetYears,
+			"/admin/friends":  adminSetFriends,
+			"/admin/players":  adminSetPlayers,
+			"/admin/cache":    adminClearCache,
+		}
+		if adminAction, ok := adminActions[r.RequestURI]; ok {
+			if err = adminAction(body); err != nil {
+				message = err.Error()
+			} else {
+				message = "Change made at: " + time.Now().String()
+			}
+		} else {
 			pageNotFound(w)
 			return nil
-		}
-		if err != nil {
-			message = err.Error()
-		} else {
-			message = "Change made at: " + time.Now().String()
 		}
 	default:
 		pageNotFound(w)
