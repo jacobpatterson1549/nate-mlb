@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func startServer(portNumber int) {
@@ -19,15 +21,53 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeScoreSategories(w)
-	case r.Method == "GET" && r.RequestURI == "/admin":
-		err = writeAdminTabs(w)
+	case strings.HasPrefix(r.RequestURI, "/admin"):
+		err = handleAdminPage(w, r)
 	default:
-		code := http.StatusNotFound
-		http.Error(w, http.StatusText(code), code)
+		pageNotFound(w)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
+	var message string
+	var err error
+	switch {
+	case r.Method == "GET" && r.RequestURI == "/admin":
+		message = ""
+	case r.Method == "POST":
+		var body []byte
+		body, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+		switch r.RequestURI {
+		case "/admin/password":
+			err = adminSetPassword(body)
+		case "/admin/years":
+			err = adminSetYears(body)
+		case "/admin/friends":
+			err = adminSetFriends(body)
+		case "/admin/players":
+			err = adminSetPlayers(body)
+		default:
+			pageNotFound(w)
+			return nil
+		}
+	default:
+		pageNotFound(w)
+		return nil
+	}
+	if err != nil {
+		message = err.Error()
+	}
+	return writeAdminTabs(w, message)
+}
+
+func pageNotFound(w http.ResponseWriter) {
+	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 }
 
 func writeScoreSategories(w http.ResponseWriter) error {
@@ -62,11 +102,12 @@ func writeScoreSategories(w http.ResponseWriter) error {
 	return renderTemplate(w, viewPage)
 }
 
-func writeAdminTabs(w http.ResponseWriter) error {
+func writeAdminTabs(w http.ResponseWriter, message string) error {
+
 	adminPage := Page{
 		Title:        "Nate's MLB [ADMIN MODE]",
 		Tabs:         []Tab{},
-		Message:      "", // TODO: include success/failure of previous POST here, if applicable
+		Message:      message,
 		templateName: "adminTabs",
 	}
 
