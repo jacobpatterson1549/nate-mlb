@@ -33,10 +33,10 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
-	var message string
+	message := ""
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/admin":
-		message = ""
+		message = "Enter password before submitting."
 	case r.Method == "POST":
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -55,11 +55,9 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 			} else {
 				message = "Change made at: " + time.Now().String()
 			}
-		} else {
-			pageNotFound(w)
-			return nil
 		}
-	default:
+	}
+	if len(message) == 0 {
 		pageNotFound(w)
 		return nil
 	}
