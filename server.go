@@ -49,7 +49,7 @@ func writeScoreSategories(w http.ResponseWriter) error {
 
 	tabs := make([]Tab, len(scoreCategories))
 	for i, sc := range scoreCategories {
-		tabs[i] = &sc
+		tabs[i] = sc
 	}
 
 	viewPage := Page{
@@ -99,6 +99,6 @@ type Tab interface {
 }
 
 // GetName implements the Tab interface for ScoreCategory
-func (sc *ScoreCategory) GetName() string {
+func (sc ScoreCategory) GetName() string {
 	return sc.Name
 }
