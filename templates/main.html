@@ -4,9 +4,9 @@
 <head>
   <base href="/">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="Description" content="mlb baseball statistic aggregation">
-  <title>{{ template "title" . }}</title>
+  <meta.GetName="viewport" content="width=device-width, initial-scale=1">
+  <meta.GetName="Description" content="mlb baseball statistic aggregation">
+  <title>{{ .Title }}</title>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
   </script>
@@ -24,17 +24,17 @@
 <body>
 
   <ul id="mainTabs" class="nav nav-tabs" role="tablist">
-    {{- range . }}
+    {{- range .Tabs }}
     <li class="nav-item active">
-      <a id="{{.Name}}-tab" class="nav-link" data-toggle="tab" href="#{{.Name}}" role="tab"
-        aria-controls="{{.Name}}">{{.Name}}</a>
+      <a id="{{.GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetName}}" role="tab"
+        aria-controls="{{.GetName}}">{{.GetName}}</a>
     </li>
     {{- end }}
   </ul>
 
   <div id="mainContent" class="tab-content">
-    {{- range . }}
-    <div id="{{.Name}}" class="tab-pane fade" role="tabpanel" aria-labelledby="{{.Name}}-tab">
+    {{- range .Tabs }}
+    <div id="{{.GetName}}" class="tab-pane fade" role="tabpanel" aria-labelledby="{{.GetName}}-tab">
       {{ template "content" . }}
     </div>
     {{ end -}}

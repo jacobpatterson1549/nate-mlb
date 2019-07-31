@@ -8,22 +8,23 @@ import (
 
 func startServer(portNumber int) {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", handleView)
-	http.HandleFunc("/admin", handleAdmin)
+	http.HandleFunc("/", handle)
 
 	addr := fmt.Sprintf(":%d", portNumber)
 	http.ListenAndServe(addr, nil)
 }
 
-func handleView(w http.ResponseWriter, r *http.Request) {
-	err := writeScoreSategories(w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+func handle(w http.ResponseWriter, r *http.Request) {
+	var err error
+	switch {
+	case r.Method == "GET" && r.RequestURI == "/":
+		err = writeScoreSategories(w)
+	case r.Method == "GET" && r.RequestURI == "/admin":
+		err = writeAdminTabs(w)
+	default:
+		code := http.StatusNotFound
+		http.Error(w, http.StatusText(code), code)
 	}
-}
-
-func handleAdmin(w http.ResponseWriter, r *http.Request) {
-	err := writeAdminTabs(w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -46,34 +47,58 @@ func writeScoreSategories(w http.ResponseWriter) error {
 		return err
 	}
 
-	template, err := template.ParseFiles(
-		"templates/main.html",
-		"templates/view.html",
-	)
-	if err != nil {
-		return err
+	tabs := make([]Tab, len(scoreCategories))
+	for i, sc := range scoreCategories {
+		tabs[i] = &sc
 	}
 
-	return template.Execute(w, scoreCategories)
+	viewPage := Page{
+		Title:        "Nate's MLB pool",
+		Tabs:         tabs,
+		Message:      "", // TODO: include etl date
+		templateName: "view",
+	}
+
+	return renderTemplate(w, viewPage)
 }
 
 func writeAdminTabs(w http.ResponseWriter) error {
-	adminTabs := []AdminTab{}
+	adminPage := Page{
+		Title:        "Nate's MLB [ADMIN MODE]",
+		Tabs:         []Tab{},
+		Message:      "", // TODO: include success/failure of previous POST here, if applicable
+		templateName: "adminTabs",
+	}
 
+	return renderTemplate(w, adminPage)
+}
+
+func renderTemplate(w http.ResponseWriter, p Page) error {
 	template, err := template.ParseFiles(
 		"templates/main.html",
-		"templates/adminTabs.html",
+		fmt.Sprintf("templates/%s.html", p.templateName),
 	)
 	if err != nil {
 		return err
 	}
 
-	return template.Execute(w, adminTabs)
+	return template.Execute(w, p)
 }
 
-// AdminTab contains information for the template on what to edit
-// TODO: Should share interface with ScoreCategory to have Name()::string function
-type AdminTab struct {
-	Name  string
-	TabID int
+// Page is a page that gets rendered by the main template
+type Page struct {
+	Title        string
+	Tabs         []Tab
+	Message      string
+	templateName string
+}
+
+// Tab is a tab which gets rendered by the main template
+type Tab interface {
+	GetName() string
+}
+
+// GetName implements the Tab interface for ScoreCategory
+func (sc *ScoreCategory) GetName() string {
+	return sc.Name
 }
