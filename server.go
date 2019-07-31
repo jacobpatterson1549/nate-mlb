@@ -9,6 +9,7 @@ import (
 func startServer(portNumber int) {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", handleView)
+	http.HandleFunc("/admin", handleAdmin)
 
 	addr := fmt.Sprintf(":%d", portNumber)
 	http.ListenAndServe(addr, nil)
@@ -19,7 +20,13 @@ func handleView(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
 
+func handleAdmin(w http.ResponseWriter, r *http.Request) {
+	err := writeAdminTabs(w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func writeScoreSategories(w http.ResponseWriter) error {
@@ -48,4 +55,25 @@ func writeScoreSategories(w http.ResponseWriter) error {
 	}
 
 	return template.Execute(w, scoreCategories)
+}
+
+func writeAdminTabs(w http.ResponseWriter) error {
+	adminTabs := []AdminTab{}
+
+	template, err := template.ParseFiles(
+		"templates/main.html",
+		"templates/adminTabs.html",
+	)
+	if err != nil {
+		return err
+	}
+
+	return template.Execute(w, adminTabs)
+}
+
+// AdminTab contains information for the template on what to edit
+// TODO: Should share interface with ScoreCategory to have Name()::string function
+type AdminTab struct {
+	Name  string
+	TabID int
 }
