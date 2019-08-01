@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 
 	_ "github.com/lib/pq"
@@ -119,13 +118,10 @@ func getKeyStoreValue(key string) (string, error) {
 }
 
 func setKeyStoreValue(key string, value string) error {
-	driverName := "postgres"
-	datasourceName := os.Getenv("DATABASE_URL")
-	db, err := sql.Open(driverName, datasourceName)
+	db, err := getDb()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	defer db.Close()
 
 	result, err := db.Exec("UPDATE key_store SET v = $1 WHERE k = $2", value, key)
 	if err != nil {
