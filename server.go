@@ -60,20 +60,20 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 }
 
 func writeView(w http.ResponseWriter) error {
-	scoreCategories, err := getStats()
+	es, err := getETLStats()
 	if err != nil {
 		return err
 	}
 
-	tabs := make([]Tab, len(scoreCategories))
-	for i, sc := range scoreCategories {
+	tabs := make([]Tab, len(es.Stats))
+	for i, sc := range es.Stats {
 		tabs[i] = sc
 	}
 
 	viewPage := Page{
 		Title:        "Nate's MLB pool",
 		Tabs:         tabs,
-		Message:      "", // TODO: include etl date
+		Message:      "Stats reset at midnight.",
 		templateName: "view",
 	}
 
