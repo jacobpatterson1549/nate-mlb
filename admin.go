@@ -7,7 +7,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func adminHashPassword(password string) (string, error) {
+func hashPassword(password string) (string, error) {
 	passwordBytes := []byte(password)
 	// salt and hash the password:
 	hash, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
@@ -17,7 +17,16 @@ func adminHashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-func adminSetPassword(r *http.Request) error {
+func handleAdminRequest(r *http.Request) error {
+	switch r.FormValue("action") {
+	case "password":
+		return setPassword(r)
+	default:
+		return errors.New("invalid admin action")
+	}
+}
+
+func setPassword(r *http.Request) error {
 	newPassword := r.FormValue("newPassword")
 	currentPassword := r.FormValue("currentPassword")
 
@@ -25,7 +34,7 @@ func adminSetPassword(r *http.Request) error {
 		return err
 	}
 
-	hashedPassword, err := adminHashPassword(newPassword)
+	hashedPassword, err := hashPassword(newPassword)
 	if err != nil {
 		return err
 	}

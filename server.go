@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -22,55 +21,42 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeView(w)
-	case strings.HasPrefix(r.RequestURI, "/admin"):
+	case r.Method == "GET" && r.URL.Path == "/admin/password":
+		err = handleHashPassword(w, r)
+	case (r.Method == "GET" || r.Method == "POST") && r.RequestURI == "/admin":
 		err = handleAdminPage(w, r)
 	default:
-		pageNotFound(w)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
-	message := ""
-	switch {
-	case r.Method == "GET" && r.RequestURI == "/admin":
-		message = "Enter password before submitting."
-	case r.Method == "GET" && r.URL.Path == "/admin/password":
-		if password, ok := r.URL.Query()["v"]; ok {
-			hashedPassword, err := adminHashPassword(password[0])
-			if err != nil {
-				return err
-			}
-			w.Write([]byte(hashedPassword))
-			return nil
+func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
+	if password, ok := r.URL.Query()["v"]; ok {
+		hashedPassword, err := hashPassword(password[0])
+		if err != nil {
+			return err
 		}
-		return errors.New("missing query param: v")
-	case r.Method == "POST":
-		adminActions := map[string](func(*http.Request) error){
-			"/admin/password": adminSetPassword,
-			// "/admin/friends":  adminSetFriends,
-			// "/admin/players":  adminSetPlayers,
-			// "/admin/cache":    adminClearCache,
-		}
-		if adminAction, ok := adminActions[r.RequestURI]; ok {
-			if err := adminAction(r); err != nil {
-				message = err.Error()
-			} else {
-				message = "Change made at: " + time.Now().String()
-			}
-		}
-	}
-	if len(message) == 0 {
-		pageNotFound(w)
+		w.Write([]byte(hashedPassword))
 		return nil
 	}
-	return writeAdminTabs(w, message)
+	return errors.New("missing query param: v")
 }
 
-func pageNotFound(w http.ResponseWriter) {
-	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
+	message := ""
+	if r.Method == "GET" && r.RequestURI == "/admin" {
+		message = "Enter password before submitting."
+	} else {
+		if err := handleAdminRequest(r); err != nil {
+			message = err.Error()
+		} else {
+			message = "Change made at: " + time.Now().String()
+		}
+	}
+	return writeAdminTabs(w, message)
 }
 
 func writeView(w http.ResponseWriter) error {
@@ -97,8 +83,8 @@ func writeView(w http.ResponseWriter) error {
 func writeAdminTabs(w http.ResponseWriter, message string) error {
 
 	tabs := []Tab{
-		AdminTab{Name: "Reset_Password", PostURL: "/admin/password"},
-		AdminTab{Name: "Clear_Cache", PostURL: "/admin/cache"},
+		AdminTab{Name: "Reset_Password", Action: "password"},
+		// AdminTab{Name: "Clear_Cache", Action: "cache"},
 	}
 
 	adminPage := Page{
@@ -139,8 +125,8 @@ type Tab interface {
 
 // AdminTab provides the lowest level of tab data
 type AdminTab struct {
-	Name    string
-	PostURL string
+	Name   string
+	Action string
 }
 
 // GetName implements the Tab interface for AdminTab
