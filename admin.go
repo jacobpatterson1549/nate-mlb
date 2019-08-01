@@ -18,16 +18,14 @@ func adminHashPassword(password string) (string, error) {
 }
 
 func adminSetPassword(r *http.Request) error {
-	pr := PasswordReset{
-		NewPassword:     r.FormValue("NewPassword"),
-		CurrentPassword: r.FormValue("currentPassword"),
-	}
+	newPassword := r.FormValue("newPassword")
+	currentPassword := r.FormValue("currentPassword")
 
-	if err := verifyPassword(pr.CurrentPassword); err != nil {
+	if err := verifyPassword(currentPassword); err != nil {
 		return err
 	}
 
-	hashedPassword, err := adminHashPassword(pr.NewPassword)
+	hashedPassword, err := adminHashPassword(newPassword)
 	if err != nil {
 		return err
 	}
@@ -45,10 +43,4 @@ func verifyPassword(password string) error {
 		return errors.New("Incorrect Password")
 	}
 	return err
-}
-
-// PasswordReset cis the request to reset the admin password
-type PasswordReset struct {
-	CurrentPassword string `json:"old"`
-	NewPassword     string `json:"new"`
 }
