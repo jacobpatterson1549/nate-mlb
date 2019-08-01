@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -49,18 +48,14 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 		}
 		return errors.New("missing query param: v")
 	case r.Method == "POST":
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			return err
-		}
-		adminActions := map[string](func([]byte) error){
+		adminActions := map[string](func(*http.Request) error){
 			"/admin/password": adminSetPassword,
 			// "/admin/friends":  adminSetFriends,
 			// "/admin/players":  adminSetPlayers,
 			// "/admin/cache":    adminClearCache,
 		}
 		if adminAction, ok := adminActions[r.RequestURI]; ok {
-			if err = adminAction(body); err != nil {
+			if err := adminAction(r); err != nil {
 				message = err.Error()
 			} else {
 				message = "Change made at: " + time.Now().String()
@@ -101,9 +96,14 @@ func writeView(w http.ResponseWriter) error {
 
 func writeAdminTabs(w http.ResponseWriter, message string) error {
 
+	tabs := []Tab{
+		AdminTab{Name: "Reset_Password", PostURL: "/admin/password"},
+		AdminTab{Name: "Clear_Cache", PostURL: "/admin/cache"},
+	}
+
 	adminPage := Page{
 		Title:        "Nate's MLB pool [ADMIN MODE]",
-		Tabs:         []Tab{},
+		Tabs:         tabs,
 		Message:      message,
 		templateName: "adminTabs",
 	}
@@ -133,17 +133,19 @@ type Page struct {
 
 // Tab is a tab which gets rendered by the main template
 type Tab interface {
+	// TODO: this is also used as the id.  It must not have spaces
 	GetName() string
 }
 
-// GenericTab provides the lowest level of tab data
-type GenericTab struct {
-	Name string
+// AdminTab provides the lowest level of tab data
+type AdminTab struct {
+	Name    string
+	PostURL string
 }
 
-// GetName implements the Tab interface for GenericTab
-func (g GenericTab) GetName() string {
-	return g.Name
+// GetName implements the Tab interface for AdminTab
+func (at AdminTab) GetName() string {
+	return at.Name
 }
 
 // GetName implements the Tab interface for ScoreCategory

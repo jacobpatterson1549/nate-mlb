@@ -113,7 +113,7 @@ func getKeyStoreValue(key string) (string, error) {
 	}
 	defer db.Close()
 
-	row := db.QueryRow("SELECT v FROM key_store WHERE k = :key", sql.Named("key", key))
+	row := db.QueryRow("SELECT v FROM key_store WHERE k = $1", key)
 	err = row.Scan(&v)
 	return v, err // TODO: Can `return v, row.Scan(&v)` be used?
 }
@@ -127,7 +127,7 @@ func setKeyStoreValue(key string, value string) error {
 	}
 	defer db.Close()
 
-	result, err := db.Exec("UPDATE key_store SET v = :value WHERE k = :key", sql.Named("key", key), sql.Named("v", value))
+	result, err := db.Exec("UPDATE key_store SET v = $1 WHERE k = $2", value, key)
 	if err != nil {
 		return err
 	}

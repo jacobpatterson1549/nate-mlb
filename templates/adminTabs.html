@@ -1,2 +1,17 @@
 {{ define "content" }}
+<form action="{{.PostURL}}" method="POST">
+    {{ if (eq .Name "Reset_Password") }}
+    <div class="form-group">
+        <label for="newPassword">New Password</label>
+        <input id="newPassword" name="newPassword" type="password" class="form-control" required>
+    </div>
+    {{ end }}
+
+    <div class="form-group">
+        <label for="currentPassword">Current Password</label>
+        <input id="currentPassword" name="currentPassword" type="password" class="form-control" required>
+    </div>
+
+    <button class="btn btn-primary">Submit</button>
+</form>
 {{ end }}

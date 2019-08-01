@@ -1,8 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
+	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,14 +16,13 @@ func adminHashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-func adminSetPassword(b []byte) error {
-	pr := PasswordReset{}
-	err := json.Unmarshal(b, &pr)
-	if err != nil {
-		return err
+func adminSetPassword(r *http.Request) error {
+	pr := PasswordReset{
+		NewPassword:     r.FormValue("NewPassword"),
+		CurrentPassword: r.FormValue("currentPassword"),
 	}
 
-	if err = verifyPassword(pr.CurrentPassword); err != nil {
+	if err := verifyPassword(pr.CurrentPassword); err != nil {
 		return err
 	}
 
@@ -34,28 +32,6 @@ func adminSetPassword(b []byte) error {
 	}
 
 	return setKeyStoreValue("admin", hashedPassword)
-}
-
-func adminSetFriends(b []byte) error {
-	friends := []string{}
-	err := json.Unmarshal(b, &friends)
-	if err != nil {
-		return err
-	}
-
-	return errors.New("Not implemented (TODO: set friends)")
-}
-
-func adminSetPlayers(b []byte) error {
-	return errors.New("Not implemented (TODO: set players)")
-}
-
-func adminClearCache(b []byte) error {
-	if len(b) != 0 {
-		return errors.New("No body expected")
-	}
-
-	return errors.New("Not implemented (TODO: clearCache)")
 }
 
 func verifyPassword(password string) error {
