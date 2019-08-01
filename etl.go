@@ -13,9 +13,12 @@ func getETLStats() (EtlStats, error) {
 	if err != nil {
 		return es, err
 	}
-	err = json.Unmarshal([]byte(etlStatsJSON), &es)
-	if err != nil {
-		return es, err
+
+	if len(etlStatsJSON) > 0 {
+		err = json.Unmarshal([]byte(etlStatsJSON), &es)
+		if err != nil {
+			return es, err
+		}
 	}
 
 	currentTime := time.Now()

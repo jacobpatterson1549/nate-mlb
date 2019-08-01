@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS key_store
 INSERT INTO key_store (k, v)
         VALUES
           ('admin', 'invalid_hssh_value')
-          ('etl', '{}')
+          ('etl', '')
         ;
 
 INSERT INTO player_types (id, name)

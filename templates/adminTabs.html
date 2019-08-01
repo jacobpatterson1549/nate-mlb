@@ -7,6 +7,10 @@
     </div>
     {{ end }}
 
+    {{ if (eq .Name "Clear_Cache") }}
+    <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
+    {{ end }}
+
     <div class="form-group">
         <label for="currentPassword">Current Password</label>
         <input id="currentPassword" name="currentPassword" type="password" class="form-control" required>

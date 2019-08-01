@@ -21,6 +21,8 @@ func handleAdminRequest(r *http.Request) error {
 	switch r.FormValue("action") {
 	case "password":
 		return setPassword(r)
+	case "cache":
+		return clearCache(r)
 	default:
 		return errors.New("invalid admin action")
 	}
@@ -40,6 +42,15 @@ func setPassword(r *http.Request) error {
 	}
 
 	return setKeyStoreValue("admin", hashedPassword)
+}
+
+func clearCache(r *http.Request) error {
+	currentPassword := r.FormValue("currentPassword")
+	if err := verifyPassword(currentPassword); err != nil {
+		return err
+	}
+
+	return setKeyStoreValue("etl", "")
 }
 
 func verifyPassword(password string) error {

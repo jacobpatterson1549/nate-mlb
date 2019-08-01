@@ -73,7 +73,7 @@ func writeView(w http.ResponseWriter) error {
 	viewPage := Page{
 		Title:        "Nate's MLB pool",
 		Tabs:         tabs,
-		Message:      "Stats reset at midnight.",
+		Message:      fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", es.EtlTime.String()),
 		templateName: "view",
 	}
 
@@ -84,7 +84,7 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 
 	tabs := []Tab{
 		AdminTab{Name: "Reset_Password", Action: "password"},
-		// AdminTab{Name: "Clear_Cache", Action: "cache"},
+		AdminTab{Name: "Clear_Cache", Action: "cache"},
 	}
 
 	adminPage := Page{
