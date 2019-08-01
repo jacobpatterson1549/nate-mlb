@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -39,7 +40,11 @@ func verifyPassword(password string) error {
 	if err != nil {
 		return err
 	}
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return errors.New("Incorrect Password")
+	}
+	return err
 }
 
 // PasswordReset cis the request to reset the admin password
