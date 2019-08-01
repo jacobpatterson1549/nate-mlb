@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS players
 	, FOREIGN KEY (friend_id) REFERENCES friends (id)
 	);
 
+CREATE TABLE IF NOT EXISTS key_store
+	( k VARCHAR(20) PRIMARY KEY
+        , v TEXT
+        );
+
+INSERT INTO key_store (k, v)
+        VALUES
+          ('admin', 'invalid_hssh_value')
+        ;
+
 INSERT INTO player_types (id, name)
 	VALUES
           (1, 'teams')

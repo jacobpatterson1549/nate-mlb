@@ -3,7 +3,19 @@ package main
 import (
 	"encoding/json"
 	"errors"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+func adminHashPassword(password string) (string, error) {
+	passwordBytes := []byte(password)
+	// salt and hash the password:
+	hash, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
 
 func adminSetPassword(b []byte) error {
 	pr := PasswordReset{}
@@ -12,17 +24,16 @@ func adminSetPassword(b []byte) error {
 		return err
 	}
 
-	return errors.New("Not implemented (TODO: set password)")
-}
+	if err = verifyPassword(pr.CurrentPassword); err != nil {
+		return err
+	}
 
-func adminSetYears(b []byte) error {
-	y := Years{}
-	err := json.Unmarshal(b, &y)
+	hashedPassword, err := adminHashPassword(pr.NewPassword)
 	if err != nil {
 		return err
 	}
 
-	return errors.New("Not implemented (TODO: set years)")
+	return setKeyStoreValue("admin", hashedPassword)
 }
 
 func adminSetFriends(b []byte) error {
@@ -47,14 +58,16 @@ func adminClearCache(b []byte) error {
 	return errors.New("Not implemented (TODO: clearCache)")
 }
 
+func verifyPassword(password string) error {
+	hashedPassword, err := getKeyStoreValue("admin")
+	if err != nil {
+		return err
+	}
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+
 // PasswordReset cis the request to reset the admin password
 type PasswordReset struct {
 	CurrentPassword string `json:"old"`
 	NewPassword     string `json:"new"`
-}
-
-// Years is the request to update the years for different pools
-type Years struct {
-	Years       []int `json:"years"`
-	DisplayYear int   `json:"display"`
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -37,6 +38,16 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/admin":
 		message = "Enter password before submitting."
+	case r.Method == "GET" && r.URL.Path == "/admin/password":
+		if password, ok := r.URL.Query()["v"]; ok {
+			hashedPassword, err := adminHashPassword(password[0])
+			if err != nil {
+				return err
+			}
+			w.Write([]byte(hashedPassword))
+			return nil
+		}
+		return errors.New("missing query param: v")
 	case r.Method == "POST":
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -44,10 +55,9 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 		}
 		adminActions := map[string](func([]byte) error){
 			"/admin/password": adminSetPassword,
-			"/admin/years":    adminSetYears,
-			"/admin/friends":  adminSetFriends,
-			"/admin/players":  adminSetPlayers,
-			"/admin/cache":    adminClearCache,
+			// "/admin/friends":  adminSetFriends,
+			// "/admin/players":  adminSetPlayers,
+			// "/admin/cache":    adminClearCache,
 		}
 		if adminAction, ok := adminActions[r.RequestURI]; ok {
 			if err = adminAction(body); err != nil {
@@ -124,6 +134,16 @@ type Page struct {
 // Tab is a tab which gets rendered by the main template
 type Tab interface {
 	GetName() string
+}
+
+// GenericTab provides the lowest level of tab data
+type GenericTab struct {
+	Name string
+}
+
+// GetName implements the Tab interface for GenericTab
+func (g GenericTab) GetName() string {
+	return g.Name
 }
 
 // GetName implements the Tab interface for ScoreCategory

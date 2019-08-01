@@ -9,33 +9,38 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func getFriendPlayerInfo() (FriendPlayerInfo, error) {
+func getDb() (*sql.DB, error) {
 	driverName := "postgres"
 	datasourceName := os.Getenv("DATABASE_URL")
-	db, err := sql.Open(driverName, datasourceName)
+	return sql.Open(driverName, datasourceName)
+}
+
+func getFriendPlayerInfo() (FriendPlayerInfo, error) {
+	fpi := FriendPlayerInfo{}
+
+	db, err := getDb()
 	if err != nil {
-		log.Fatal(err)
+		return fpi, nil
 	}
 	defer db.Close()
 
 	friends, err := getFriends(db)
 	if err != nil {
-		return FriendPlayerInfo{}, err
+		return fpi, err
 	}
 	playerTypes, err := getPlayerTypes(db)
 	if err != nil {
-		return FriendPlayerInfo{}, err
+		return fpi, err
 	}
 	players, err := getPlayers(db)
 	if err != nil {
-		return FriendPlayerInfo{}, err
+		return fpi, err
 	}
 
-	return FriendPlayerInfo{
-		friends,
-		playerTypes,
-		players,
-	}, nil
+	fpi.friends = friends
+	fpi.playerTypes = playerTypes
+	fpi.players = players
+	return fpi, nil
 }
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
@@ -92,11 +97,49 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 		players = append(players, Player{})
 		err = rows.Scan(&players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
 		if err != nil {
-			return nil, fmt.Errorf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("problem reading data: %q", err)
 		}
 		i++
 	}
 	return players, nil
+}
+
+func getKeyStoreValue(key string) (string, error) {
+	var v string
+
+	db, err := getDb()
+	if err != nil {
+		return v, nil
+	}
+	defer db.Close()
+
+	row := db.QueryRow("SELECT v FROM key_store WHERE k = :key", sql.Named("key", key))
+	err = row.Scan(&v)
+	return v, err // TODO: Can `return v, row.Scan(&v)` be used?
+}
+
+func setKeyStoreValue(key string, value string) error {
+	driverName := "postgres"
+	datasourceName := os.Getenv("DATABASE_URL")
+	db, err := sql.Open(driverName, datasourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	result, err := db.Exec("UPDATE key_store SET v = :value WHERE k = :key", sql.Named("key", key), sql.Named("v", value))
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return fmt.Errorf("expected to updated 1 row, but updated %d", rows)
+	}
+
+	return nil
 }
 
 // FriendPlayerInfo contain all the pool items for each Friend.
