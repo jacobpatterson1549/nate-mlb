@@ -12,12 +12,13 @@
     {{- if (eq .Action "friend-names") }}
     <fieldset>
         <legend>Friend Names</legend>
-        {{ range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
+        {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
         <div class="form-group">
             <label for="friend-name-{{$index}}">{{$friendScore.Name}}</label>
-            <input id="friend-name-{{$index}}" name="friend-name-{{$index}}" class="form-control" required value="{{$friendScore.Name}}">
+            <input id="friend-name-{{$index}}" name="friend-name-{{$index}}" class="form-control" required
+                value="{{$friendScore.Name}}">
         </div>
-        {{ end }}
+        {{- end -}}
     </fieldset>
     <input name="friend-count" type="hidden" value="{{ len (index .ScoreCategories 0).FriendScores }}">
     {{ end -}}
