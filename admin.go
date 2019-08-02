@@ -7,16 +7,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func hashPassword(password string) (string, error) {
-	passwordBytes := []byte(password)
-	// salt and hash the password:
-	hash, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
-}
-
 func handleAdminRequest(r *http.Request) error {
 	switch r.FormValue("action") {
 	case "password":
@@ -51,6 +41,15 @@ func clearCache(r *http.Request) error {
 	}
 
 	return setKeyStoreValue("etl", "")
+}
+
+func hashPassword(password string) (string, error) {
+	passwordBytes := []byte(password)
+	hash, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }
 
 func verifyPassword(password string) error {
