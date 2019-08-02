@@ -44,12 +44,11 @@ func clearCache(r *http.Request) error {
 }
 
 func hashPassword(password string) (string, error) {
-	passwordBytes := []byte(password)
-	hash, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
 	}
-	return string(hash), nil
+	return string(hashedPassword), nil
 }
 
 func verifyPassword(password string) error {
