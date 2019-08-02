@@ -1,21 +1,33 @@
 {{ define "content" }}
-<form method="POST">
-    {{ if (eq .Name "Reset_Password") }}
+<form method="POST" id="{{.Action}}-form">
+    {{ if (eq .Action "password") }}
     <div class="form-group">
         <label for="newPassword">New Password</label>
         <input id="newPassword" name="newPassword" type="password" class="form-control" required>
     </div>
     {{ end }}
 
-    {{ if (eq .Name "Clear_Cache") }}
+    {{ if (eq .Action "cache") }}
     <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
     {{ end }}
 
+    {{ if (eq .Action "names") }}
+    <fieldset>
+        <legend>Friend Names</legend>
+        {{ range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
+        <div class="form-group">
+            <label for="friend-name-{{$index}}">{{$friendScore.Name}}</label>
+            <input id="friend-name-{{$index}}" name="friend-name-{{$index}}" class="form-control" required value="{{$friendScore.Name}}">
+        </div>
+        {{ end }}
+    </fieldset>
+    {{ end }}
+
     <div class="form-group">
-        <label for="currentPassword">Current Password</label>
-        <input id="currentPassword" name="currentPassword" type="password" class="form-control" required>
+        <label for="{{.Action}}-currentPassword">Current Password</label>
+        <input id="{{.Action}}-currentPassword" name="{{.Action}}-currentPassword" type="password" class="form-control" required>
     </div>
-    <input type="hidden" name="action" value="{{.Action}}">
-    <button class="btn btn-primary">Submit</button>
+    <input type="hidden" name="{{.Action}}-action" value="{{.Action}}">
+    <button class="btn btn-primary" form="{{.Action}}-form" value="Submit">Submit</button>
 </form>
 {{ end }}

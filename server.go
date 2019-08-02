@@ -81,10 +81,15 @@ func writeView(w http.ResponseWriter) error {
 }
 
 func writeAdminTabs(w http.ResponseWriter, message string) error {
+	es, err := getETLStats()
+	if err != nil {
+		return err
+	}
 
 	tabs := []Tab{
 		AdminTab{Name: "Reset_Password", Action: "password"},
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
+		AdminTab{Name: "Friends_Names", Action: "names", ScoreCategories: es.Stats},
 	}
 
 	adminPage := Page{
@@ -125,8 +130,9 @@ type Tab interface {
 
 // AdminTab provides the lowest level of tab data
 type AdminTab struct {
-	Name   string
-	Action string
+	Name            string
+	Action          string
+	ScoreCategories []ScoreCategory
 }
 
 // GetName implements the Tab interface for AdminTab
