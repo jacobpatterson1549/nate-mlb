@@ -127,15 +127,59 @@ func setKeyStoreValue(key string, value string) error {
 	if err != nil {
 		return err
 	}
-	rows, err := result.RowsAffected()
+	return expectSingleRowUpdated(result)
+}
+
+func expectSingleRowUpdated(r sql.Result) error {
+	rows, err := r.RowsAffected()
+	if err == nil && rows != 1 {
+		return fmt.Errorf("expected to updated 1 row, but updated %d", rows)
+	}
+	return err
+}
+
+func setFriendNames(friendNames []string) error {
+	db, err := getDb()
+	if err != nil {
+		return nil
+	}
+	defer db.Close()
+
+	friends, err := getFriends(db)
 	if err != nil {
 		return err
 	}
-	if rows != 1 {
-		return fmt.Errorf("expected to updated 1 row, but updated %d", rows)
+	if len(friends) != len(friendNames) {
+		return fmt.Errorf("expected to %d friends, but got %d", len(friends), len(friendNames))
 	}
 
-	return nil
+	updateNames := make(map[int]string)
+	for i, name := range friendNames {
+		if friends[i].name != name {
+			updateNames[friends[i].id] = name
+		}
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	for id, name := range updateNames {
+		if err == nil {
+			result, err := tx.Exec("UPDATE friends SET name = $1 WHERE id = $2", name, id)
+			if err == nil {
+				err = expectSingleRowUpdated(result)
+			}
+		}
+	}
+	if err == nil {
+		err = tx.Commit()
+	} else {
+		if err2 := tx.Rollback(); err2 != nil {
+			err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
+		}
+	}
+
+	return err
 }
 
 // FriendPlayerInfo contain all the pool items for each Friend.

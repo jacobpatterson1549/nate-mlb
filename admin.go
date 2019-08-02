@@ -64,7 +64,11 @@ func updateFriendNames(r *http.Request) error {
 		friendNames[i] = r.FormValue(fmt.Sprintf("friend-name-%d", i))
 	}
 
-	return errors.New("TOOD: save friend names")
+	err = setFriendNames(friendNames)
+	if err == nil {
+		err = setKeyStoreValue("etl", "")
+	}
+	return err
 }
 
 func hashPassword(password string) (string, error) {
