@@ -1,17 +1,15 @@
 {{ define "content" }}
 <form method="POST" id="{{.Action}}-form">
-    {{ if (eq .Action "password") }}
+    {{- if (eq .Action "password") }}
     <div class="form-group">
         <label for="newPassword">New Password</label>
         <input id="newPassword" name="newPassword" type="password" class="form-control" required>
     </div>
-    {{ end }}
-
-    {{ if (eq .Action "cache") }}
+    {{ end -}}
+    {{- if (eq .Action "cache") }}
     <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
-    {{ end }}
-
-    {{ if (eq .Action "names") }}
+    {{ end -}}
+    {{- if (eq .Action "friend-names") }}
     <fieldset>
         <legend>Friend Names</legend>
         {{ range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
@@ -21,13 +19,13 @@
         </div>
         {{ end }}
     </fieldset>
-    {{ end }}
-
+    <input name="friend-count" type="hidden" value="{{ len (index .ScoreCategories 0).FriendScores }}">
+    {{ end -}}
     <div class="form-group">
         <label for="{{.Action}}-currentPassword">Current Password</label>
-        <input id="{{.Action}}-currentPassword" name="{{.Action}}-currentPassword" type="password" class="form-control" required>
+        <input id="{{.Action}}-currentPassword" name="currentPassword" type="password" class="form-control" required>
     </div>
-    <input type="hidden" name="{{.Action}}-action" value="{{.Action}}">
+    <input name="action" type="hidden" value="{{.Action}}">
     <button class="btn btn-primary" form="{{.Action}}-form" value="Submit">Submit</button>
 </form>
 {{ end }}

@@ -2,17 +2,22 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 func handleAdminRequest(r *http.Request) error {
-	switch r.FormValue("action") {
+	action := r.FormValue("action")
+	switch action {
 	case "password":
 		return setPassword(r)
 	case "cache":
 		return clearCache(r)
+	case "friend-names":
+		return updateFriendNames(r)
 	default:
 		return errors.New("invalid admin action")
 	}
@@ -41,6 +46,25 @@ func clearCache(r *http.Request) error {
 	}
 
 	return setKeyStoreValue("etl", "")
+}
+
+func updateFriendNames(r *http.Request) error {
+	currentPassword := r.FormValue("currentPassword")
+	if err := verifyPassword(currentPassword); err != nil {
+		return err
+	}
+
+	friendCount := r.FormValue("friend-count")
+	friendCountI, err := strconv.Atoi(friendCount)
+	if err != nil {
+		return fmt.Errorf("Expected number for friend-count, but got %q", friendCount)
+	}
+	friendNames := make([]string, friendCountI)
+	for i := 0; i < friendCountI; i++ {
+		friendNames[i] = r.FormValue(fmt.Sprintf("friend-name-%d", i))
+	}
+
+	return errors.New("TOOD: save friend names")
 }
 
 func hashPassword(password string) (string, error) {
