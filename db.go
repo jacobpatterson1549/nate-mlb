@@ -84,7 +84,7 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 }
 
 func getPlayers(db *sql.DB) ([]Player, error) {
-	rows, err := db.Query("SELECT player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
+	rows, err := db.Query("SELECT id, player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}
@@ -94,7 +94,7 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
+		err = rows.Scan(&players[i].id, &players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %q", err)
 		}
@@ -203,6 +203,7 @@ type PlayerType struct {
 
 // Player maps a player (of a a specific PlayerType) to a Friend.
 type Player struct {
+	id           int
 	playerTypeID int
 	playerID     int
 	friendID     int

@@ -103,6 +103,7 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 		for _, teamRecord := range record.TeamRecords {
 			playerScores[teamRecord.Team.ID] = PlayerScore{
 				PlayerName: teamRecord.Team.Name,
+				PlayerID:   teamRecord.Team.ID,
 				Score:      teamRecord.Wins,
 			}
 		}
@@ -134,7 +135,13 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 	for _, player := range friendPlayerInfo.players {
 		if f.id == player.friendID && playerType.id == player.playerTypeID {
 			if playerScore, ok := playerScores[player.playerID]; ok {
-				friendScore.PlayerScores = append(friendScore.PlayerScores, playerScore)
+				playerScoreWithID := PlayerScore{
+					PlayerName: playerScore.PlayerName,
+					PlayerID:   playerScore.PlayerID,
+					ID:         player.id,
+					Score:      playerScore.Score,
+				}
+				friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
 			} else {
 				return friendScore, fmt.Errorf("No Player score for id = %v, type = %v", player.playerID, playerType.name)
 			}
@@ -290,7 +297,11 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 		if k == groupDisplayName {
 			for playerID, score := range v {
 				if name, ok := pir.playerNames[playerID]; ok {
-					playerScores[playerID] = PlayerScore{PlayerName: name, Score: score}
+					playerScores[playerID] = PlayerScore{
+						PlayerName: name,
+						PlayerID:   playerID,
+						Score:      score,
+					}
 				} else {
 					return playerScores, fmt.Errorf("No player name for player %v", playerID)
 				}
@@ -317,6 +328,8 @@ type FriendScore struct {
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
 	PlayerName string
+	PlayerID   int
+	ID         int
 	Score      int
 }
 
