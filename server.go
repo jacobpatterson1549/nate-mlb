@@ -100,9 +100,9 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 	}
 
 	tabs := []Tab{
-		AdminTab{Name: "Reset_Password", Action: "password"},
+		AdminTab{Name: "Friends", Action: "friends", ScoreCategories: es.Stats},
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
-		AdminTab{Name: "Friends_Names", Action: "friend-names", ScoreCategories: es.Stats},
+		AdminTab{Name: "Reset_Password", Action: "password"},
 	}
 
 	adminPage := Page{

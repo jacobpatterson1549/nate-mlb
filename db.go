@@ -44,7 +44,7 @@ func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
 func getFriends(db *sql.DB) ([]Friend, error) {
-	rows, err := db.Query("SELECT id, name FROM friends ORDER BY display_order ASC")
+	rows, err := db.Query("SELECT id, display_order, name FROM friends ORDER BY display_order ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading friends: %q", err)
 	}
@@ -54,7 +54,7 @@ func getFriends(db *sql.DB) ([]Friend, error) {
 	i := 0
 	for rows.Next() {
 		friends = append(friends, Friend{})
-		err = rows.Scan(&friends[i].id, &friends[i].name)
+		err = rows.Scan(&friends[i].id, &friends[i].displayOrder, &friends[i].name)
 		if err != nil {
 			return nil, fmt.Errorf("Problem reading data: %q", err)
 		}
@@ -127,10 +127,10 @@ func setKeyStoreValue(key string, value string) error {
 	if err != nil {
 		return err
 	}
-	return expectSingleRowUpdated(result)
+	return expectSingleRowAffected(result)
 }
 
-func expectSingleRowUpdated(r sql.Result) error {
+func expectSingleRowAffected(r sql.Result) error {
 	rows, err := r.RowsAffected()
 	if err == nil && rows != 1 {
 		return fmt.Errorf("expected to updated 1 row, but updated %d", rows)
@@ -138,7 +138,7 @@ func expectSingleRowUpdated(r sql.Result) error {
 	return err
 }
 
-func setFriendNames(friendNames []string) error {
+func setFriends(f []Friend) error {
 	db, err := getDb()
 	if err != nil {
 		return nil
@@ -149,25 +149,46 @@ func setFriendNames(friendNames []string) error {
 	if err != nil {
 		return err
 	}
-	if len(friends) != len(friendNames) {
-		return fmt.Errorf("expected to %d friends, but got %d", len(friends), len(friendNames))
+	currentFriends := make(map[int]Friend)
+	for _, friend := range friends {
+		currentFriends[friend.id] = friend
 	}
 
-	updateNames := make(map[int]string)
-	for i, name := range friendNames {
-		if friends[i].name != name {
-			updateNames[friends[i].id] = name
+	insertFriends := []Friend{}
+	updateFriends := []Friend{}
+	for i, friend := range f {
+		friend.displayOrder = i
+		switch {
+		case friend.id == 0:
+			insertFriends = append(insertFriends, friend)
+		case friend.displayOrder != currentFriends[friend.id].displayOrder || friend.name != currentFriends[friend.id].name:
+			updateFriends = append(updateFriends, friend)
 		}
 	}
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	for id, name := range updateNames {
+	for _, friend := range insertFriends {
 		if err == nil {
-			result, err := tx.Exec("UPDATE friends SET name = $1 WHERE id = $2", name, id)
+			result, err := tx.Exec(
+				"INSERT INTO friends (display_order, name) VALUES ($1, $2)",
+				friend.displayOrder,
+				friend.name)
 			if err == nil {
-				err = expectSingleRowUpdated(result)
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	for _, friend := range updateFriends {
+		if err == nil {
+			result, err := tx.Exec(
+				"UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
+				friend.displayOrder,
+				friend.name,
+				friend.id)
+			if err == nil {
+				err = expectSingleRowAffected(result)
 			}
 		}
 	}
@@ -191,8 +212,9 @@ type FriendPlayerInfo struct {
 
 // Friend contains the name of the person in the pool.
 type Friend struct {
-	id   int
-	name string
+	id           int
+	displayOrder int
+	name         string
 }
 
 // PlayerType contain a name of a pool item.

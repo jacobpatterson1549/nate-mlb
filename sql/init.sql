@@ -47,6 +47,7 @@ INSERT INTO player_types (id, name)
 
 INSERT INTO friends (id, name, display_order)
 	VALUES
+        -- TODO: the code sets display orders as 0-based.  Change these to start display order with zero
           (1, 'Bob', 1)
         , (2, 'W', 2)
         , (3, 'Nate', 3)

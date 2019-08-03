@@ -16,8 +16,8 @@ func handleAdminRequest(r *http.Request) error {
 		return setPassword(r)
 	case "cache":
 		return clearCache(r)
-	case "friend-names":
-		return updateFriendNames(r)
+	case "friends":
+		return updateFriends(r)
 	default:
 		return errors.New("invalid admin action")
 	}
@@ -48,7 +48,7 @@ func clearCache(r *http.Request) error {
 	return setKeyStoreValue("etl", "")
 }
 
-func updateFriendNames(r *http.Request) error {
+func updateFriends(r *http.Request) error {
 	currentPassword := r.FormValue("currentPassword")
 	if err := verifyPassword(currentPassword); err != nil {
 		return err
@@ -59,12 +59,21 @@ func updateFriendNames(r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("Expected number for friend-count, but got %q", friendCount)
 	}
-	friendNames := make([]string, friendCountI)
+	friends := make([]Friend, friendCountI)
 	for i := 0; i < friendCountI; i++ {
-		friendNames[i] = r.FormValue(fmt.Sprintf("friend-name-%d", i))
+		id := r.FormValue(fmt.Sprintf("friend-id-%d", i))
+		name := r.FormValue(fmt.Sprintf("friend-name-%d", i))
+		idI, err := strconv.Atoi(id)
+		if err != nil {
+			return fmt.Errorf("Expected number for friend-id-%q, but got %q", i, id)
+		}
+		friends[i] = Friend{
+			id:   idI,
+			name: name,
+		}
 	}
 
-	err = setFriendNames(friendNames)
+	err = setFriends(friends)
 	if err == nil {
 		err = setKeyStoreValue("etl", "")
 	}

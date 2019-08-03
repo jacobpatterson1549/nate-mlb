@@ -9,7 +9,7 @@
     {{- if (eq .Action "cache") }}
     <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
     {{ end -}}
-    {{- if (eq .Action "friend-names") }}
+    {{- if (eq .Action "friends") }}
     <fieldset>
         <legend>Friend Names</legend>
         {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
