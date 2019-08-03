@@ -14,9 +14,10 @@
         <legend>Friend Names</legend>
         {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
         <div class="form-group">
-            <label for="friend-name-{{$index}}">{{$friendScore.Name}}</label>
+            <label for="friend-name-{{$index}}">{{$friendScore.FriendName}}</label>
             <input id="friend-name-{{$index}}" name="friend-name-{{$index}}" class="form-control" required
-                value="{{$friendScore.Name}}">
+                value="{{$friendScore.FriendName}}">
+            <input name="friend-id-{{$index}}" type="hidden" value="{{$friendScore.FriendID}}">
         </div>
         {{- end -}}
     </fieldset>

@@ -102,8 +102,8 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 	for _, record := range t.Records {
 		for _, teamRecord := range record.TeamRecords {
 			playerScores[teamRecord.Team.ID] = PlayerScore{
-				Name:  teamRecord.Team.Name,
-				Score: teamRecord.Wins,
+				PlayerName: teamRecord.Team.Name,
+				Score:      teamRecord.Wins,
 			}
 		}
 	}
@@ -127,7 +127,8 @@ func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType P
 func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	friendScore := FriendScore{}
 
-	friendScore.Name = f.name
+	friendScore.FriendName = f.name
+	friendScore.FriendID = f.id
 
 	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range friendPlayerInfo.players {
@@ -289,7 +290,7 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 		if k == groupDisplayName {
 			for playerID, score := range v {
 				if name, ok := pir.playerNames[playerID]; ok {
-					playerScores[playerID] = PlayerScore{Name: name, Score: score}
+					playerScores[playerID] = PlayerScore{PlayerName: name, Score: score}
 				} else {
 					return playerScores, fmt.Errorf("No player name for player %v", playerID)
 				}
@@ -307,15 +308,16 @@ type ScoreCategory struct {
 
 // FriendScore contain the scores for a Friend for a PlayerType
 type FriendScore struct {
-	Name         string
+	FriendName   string
+	FriendID     int
 	PlayerScores []PlayerScore
 	Score        int
 }
 
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
-	Name  string
-	Score int
+	PlayerName string
+	Score      int
 }
 
 // PlayerInfoRequest contains invormation about requests for hitter/pitcher names/stats
