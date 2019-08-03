@@ -23,6 +23,15 @@
 
 <body>
 
+  <nav id="navbar" class="navbar navbar-nav navbar-expand-sm navbar-light bg-light">
+    <div class="navbar-nav">
+      <a class="nav-item nav-link navbar-brand" href="/">Stats</span></a>
+      <a class="nav-item nav-link" href="/admin">Admin</a>
+    </div>
+  </nav>
+
+  <br/>
+
   <ul id="mainTabs" class="nav nav-tabs" role="tablist">
     {{- range .Tabs }}
     <li class="nav-item active">
@@ -45,6 +54,7 @@
   <script>
     $(function () {
       $('#mainTabs li:first-child a').tab('show')
+      $('#navbar a[href="' + this.location.pathname + '"]').addClass('active')
     })
   </script>
 
