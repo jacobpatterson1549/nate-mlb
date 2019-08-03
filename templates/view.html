@@ -8,16 +8,14 @@
                 <div class="card-body">
                     <h3 class="card-title">{{ .FriendName }}</h3>
                     <div class="card-text">
-                        <ul class="list-group list-group-flush">
-                            <table class="card-table table">
-                                {{- range .PlayerScores }}
-                                <tr>
-                                    <td>{{ .PlayerName }}</td>
-                                    <td>{{ .Score }}</td>
-                                </tr>
-                                {{- end }}
-                            </table>
-                        </ul>
+                        <table class="card-table table">
+                            {{- range .PlayerScores }}
+                            <tr>
+                                <td>{{ .PlayerName }}</td>
+                                <td>{{ .Score }}</td>
+                            </tr>
+                            {{- end }}
+                        </table>
                         <h4 class="list-group-item">Value: {{ .Score }}</h4>
                     </div>
                 </div>
