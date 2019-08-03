@@ -21,6 +21,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeView(w)
+	case r.Method == "GET" && r.RequestURI == "/about":
+		err = writeAbout(w)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
 	case (r.Method == "GET" || r.Method == "POST") && r.RequestURI == "/admin":
@@ -80,6 +82,17 @@ func writeView(w http.ResponseWriter) error {
 	return renderTemplate(w, viewPage)
 }
 
+func writeAbout(w http.ResponseWriter) error {
+	adminPage := Page{
+		Title:        "About Nate's MLB",
+		Tabs:         []Tab{AboutTab{}},
+		Message:      "", // TODO: updated info?
+		templateName: "about",
+	}
+
+	return renderTemplate(w, adminPage)
+}
+
 func writeAdminTabs(w http.ResponseWriter, message string) error {
 	es, err := getETLStats()
 	if err != nil {
@@ -128,7 +141,7 @@ type Tab interface {
 	GetName() string
 }
 
-// AdminTab provides the lowest level of tab data
+// AdminTab provides tabs with admin tasks.
 type AdminTab struct {
 	Name            string
 	Action          string
@@ -143,4 +156,12 @@ func (at AdminTab) GetName() string {
 // GetName implements the Tab interface for ScoreCategory
 func (sc ScoreCategory) GetName() string {
 	return sc.Name
+}
+
+// AboutTab provides a constant tab with about information
+type AboutTab struct{}
+
+// GetName implements the Tab interface for AdminTab
+func (at AboutTab) GetName() string {
+	return "About"
 }
