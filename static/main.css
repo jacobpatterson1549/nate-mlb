@@ -16,7 +16,7 @@ h4 {
 
 label {
     display: inline-block;
-    width: 8rem;
+    width: 5rem;
     text-align: right;
     margin-right: 1rem;
 }
@@ -31,5 +31,9 @@ html {
 }
 
 i {
+    margin-right: 1rem;
+}
+
+button {
     margin-right: 1rem;
 }

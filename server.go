@@ -73,10 +73,10 @@ func writeView(w http.ResponseWriter) error {
 	}
 
 	viewPage := Page{
-		Title:        "Nate's MLB pool",
-		Tabs:         tabs,
-		Message:      fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", es.EtlTime.String()),
-		templateName: "view",
+		Title:         "Nate's MLB pool",
+		Tabs:          tabs,
+		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", es.EtlTime.String()),
+		templateNames: []string{"view"},
 	}
 
 	return renderTemplate(w, viewPage)
@@ -84,10 +84,10 @@ func writeView(w http.ResponseWriter) error {
 
 func writeAbout(w http.ResponseWriter) error {
 	adminPage := Page{
-		Title:        "About Nate's MLB",
-		Tabs:         []Tab{AboutTab{}},
-		Message:      "", // TODO: updated info?
-		templateName: "about",
+		Title:         "About Nate's MLB",
+		Tabs:          []Tab{AboutTab{}},
+		Message:       "", // TODO: updated info?
+		templateNames: []string{"about"},
 	}
 
 	return renderTemplate(w, adminPage)
@@ -106,20 +106,22 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 	}
 
 	adminPage := Page{
-		Title:        "Nate's MLB pool [ADMIN MODE]",
-		Tabs:         tabs,
-		Message:      message,
-		templateName: "adminTabs",
+		Title:         "Nate's MLB pool [ADMIN MODE]",
+		Tabs:          tabs,
+		Message:       message,
+		templateNames: []string{"adminTabs", "friendsForm"},
 	}
 
 	return renderTemplate(w, adminPage)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
-	template, err := template.ParseFiles(
-		"templates/main.html",
-		fmt.Sprintf("templates/%s.html", p.templateName),
-	)
+	templateNames := make([]string, len(p.templateNames)+1)
+	templateNames[0] = "templates/main.html"
+	for i, templateName := range p.templateNames {
+		templateNames[i+1] = fmt.Sprintf("templates/%s.html", templateName)
+	}
+	template, err := template.ParseFiles(templateNames...)
 	if err != nil {
 		return err
 	}
@@ -129,10 +131,10 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 
 // Page is a page that gets rendered by the main template
 type Page struct {
-	Title        string
-	Tabs         []Tab
-	Message      string
-	templateName string
+	Title         string
+	Tabs          []Tab
+	Message       string
+	templateNames []string
 }
 
 // Tab is a tab which gets rendered by the main template

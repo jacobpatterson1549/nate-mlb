@@ -138,7 +138,7 @@ func expectSingleRowAffected(r sql.Result) error {
 	return err
 }
 
-func setFriends(f []Friend) error {
+func setFriends(futureFriends []Friend) error {
 	db, err := getDb()
 	if err != nil {
 		return nil
@@ -155,16 +155,19 @@ func setFriends(f []Friend) error {
 	}
 
 	insertFriends := []Friend{}
+	deleteFriendIDs := []int{}
 	updateFriends := []Friend{}
-	for i, friend := range f {
-		friend.displayOrder = i
+	for _, friend := range futureFriends {
 		switch {
 		case friend.id == 0:
 			insertFriends = append(insertFriends, friend)
+		case currentFriends[friend.id] == Friend{}:
+			deleteFriendIDs = append(deleteFriendIDs, friend.id)
 		case friend.displayOrder != currentFriends[friend.id].displayOrder || friend.name != currentFriends[friend.id].name:
 			updateFriends = append(updateFriends, friend)
 		}
 	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -175,6 +178,16 @@ func setFriends(f []Friend) error {
 				"INSERT INTO friends (display_order, name) VALUES ($1, $2)",
 				friend.displayOrder,
 				friend.name)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	for _, friendID := range deleteFriendIDs {
+		if err == nil {
+			result, err := tx.Exec(
+				"DELETE FROM friends WHERE id = $1",
+				friendID)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}

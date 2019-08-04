@@ -10,18 +10,7 @@
     <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
     {{ end -}}
     {{- if (eq .Action "friends") }}
-    <fieldset>
-        <legend>Friend Names</legend>
-        {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
-        <div class="form-group">
-            <label for="friend-name-{{$index}}">{{$friendScore.FriendName}}</label>
-            <input id="friend-name-{{$index}}" name="friend-name-{{$index}}" class="form-control" required
-                value="{{$friendScore.FriendName}}">
-            <input name="friend-id-{{$index}}" type="hidden" value="{{$friendScore.FriendID}}">
-        </div>
-        {{- end -}}
-    </fieldset>
-    <input name="friend-count" type="hidden" value="{{ len (index .ScoreCategories 0).FriendScores }}">
+    {{ template "friendsForm" . }}
     {{ end -}}
     <div class="form-group">
         <label for="{{.Action}}-currentPassword">Current Password</label>

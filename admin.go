@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"golang.org/x/crypto/bcrypt"
@@ -54,26 +55,28 @@ func updateFriends(r *http.Request) error {
 		return err
 	}
 
-	friendCount := r.FormValue("friend-count")
-	friendCountI, err := strconv.Atoi(friendCount)
-	if err != nil {
-		return fmt.Errorf("Expected number for friend-count, but got %q", friendCount)
-	}
-	friends := make([]Friend, friendCountI)
-	for i := 0; i < friendCountI; i++ {
-		id := r.FormValue(fmt.Sprintf("friend-id-%d", i))
-		name := r.FormValue(fmt.Sprintf("friend-name-%d", i))
-		idI, err := strconv.Atoi(id)
-		if err != nil {
-			return fmt.Errorf("Expected number for friend-id-%q, but got %q", i, id)
-		}
-		friends[i] = Friend{
-			id:   idI,
-			name: name,
+	friends := []Friend{}
+	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
+	for k, v := range r.Form {
+		if idMatches := re.FindStringSubmatch(k); len(idMatches) > 0 {
+			friendIDi, err := strconv.Atoi(idMatches[1])
+			if err != nil {
+				return err
+			}
+			friendDisplayOrderI, err := strconv.Atoi(v[0])
+			if err != nil {
+				return err
+			}
+			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
+			friends = append(friends, Friend{
+				id:           friendIDi,
+				displayOrder: friendDisplayOrderI,
+				name:         friendName,
+			})
 		}
 	}
 
-	err = setFriends(friends)
+	err := setFriends(friends)
 	if err == nil {
 		err = setKeyStoreValue("etl", "")
 	}
