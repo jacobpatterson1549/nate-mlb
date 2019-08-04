@@ -25,7 +25,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		err = writeAbout(w)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
-	case (r.Method == "GET" || r.Method == "POST") && r.RequestURI == "/admin":
+	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
 		err = handleAdminPage(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -48,17 +48,23 @@ func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
 }
 
 func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
-	message := ""
-	if r.Method == "GET" && r.RequestURI == "/admin" {
-		message = "Enter password before submitting."
-	} else {
-		if err := handleAdminRequest(r); err != nil {
-			message = err.Error()
+	var message string
+	if r.Method == "GET" {
+		if queryMessages, ok := r.URL.Query()["message"]; ok {
+			message = queryMessages[0]
 		} else {
-			message = "Change made at: " + time.Now().String()
+			message = "Enter password before submitting."
 		}
+		return writeAdminTabs(w, message)
 	}
-	return writeAdminTabs(w, message)
+	if err := handleAdminRequest(r); err != nil {
+		message = err.Error()
+	} else {
+		message = "Change made at: " + time.Now().String()
+	}
+	// prevent the post from being made again on refresh
+	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
+	return nil
 }
 
 func writeView(w http.ResponseWriter) error {
