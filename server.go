@@ -115,7 +115,7 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 		Title:         "Nate's MLB pool [ADMIN MODE]",
 		Tabs:          tabs,
 		Message:       message,
-		templateNames: []string{"adminTabs", "friendsForm"},
+		templateNames: []string{"adminTabs", "friendsForm", "playersForm"},
 	}
 
 	return renderTemplate(w, adminPage)

@@ -84,7 +84,7 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 }
 
 func getPlayers(db *sql.DB) ([]Player, error) {
-	rows, err := db.Query("SELECT id, player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
+	rows, err := db.Query("SELECT id, display_order, player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}
@@ -94,7 +94,7 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].id, &players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
+		err = rows.Scan(&players[i].id, &players[i].displayOrder, &players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %q", err)
 		}
@@ -209,6 +209,83 @@ func setFriends(futureFriends []Friend) error {
 	}
 	if err == nil {
 		err = tx.Commit()
+	} else if err2 := tx.Rollback(); err2 != nil {
+		err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
+	}
+
+	return err
+}
+
+func setPlayers(futurePlayers []Player) error {
+	db, err := getDb()
+	if err != nil {
+		return nil
+	}
+	defer db.Close()
+
+	players, err := getPlayers(db)
+	if err != nil {
+		return err
+	}
+	previousPlayers := make(map[int]Player)
+	for _, player := range players {
+		previousPlayers[player.id] = player
+	}
+
+	insertPlayers := []Player{}
+	updatePlayers := []Player{}
+	for _, player := range futurePlayers {
+		previousPlayer, ok := previousPlayers[player.id]
+		if !ok {
+			insertPlayers = append(insertPlayers, player)
+		} else if player.displayOrder != previousPlayer.displayOrder { // can only update display order
+			updatePlayers = append(updatePlayers, player)
+		}
+		delete(previousPlayers, player.id)
+	}
+	deletePlayers := previousPlayers
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	var result sql.Result
+	for _, player := range insertPlayers {
+		if err == nil {
+			result, err = tx.Exec(
+				"INSERT INTO players (display_order, playerTypeID, playerID, friendID) VALUES ($1, $2, $3, $4)",
+				player.displayOrder,
+				player.playerTypeID,
+				player.playerID,
+				player.friendID)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	for _, player := range updatePlayers {
+		if err == nil {
+			result, err = tx.Exec(
+				"UPDATE players SET display_order = $1 WHERE id = $2",
+				player.displayOrder,
+				player.id)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	for playerID := range deletePlayers {
+		if err == nil {
+			result, err = tx.Exec(
+				"DELETE FROM players WHERE id = $1",
+				playerID)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	if err == nil {
+		err = tx.Commit()
 	} else {
 		if err2 := tx.Rollback(); err2 != nil {
 			err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
@@ -241,6 +318,7 @@ type PlayerType struct {
 // Player maps a player (of a a specific PlayerType) to a Friend.
 type Player struct {
 	id           int
+	displayOrder int
 	playerTypeID int
 	playerID     int
 	friendID     int
