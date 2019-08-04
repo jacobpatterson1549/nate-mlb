@@ -4,10 +4,11 @@
     <div>
         {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
         <div class="form-group" id="friend-{{$friendScore.FriendID}}">
-            <input id="friend-{{$friendScore.FriendID}}-display-order" name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
+            <input id="friend-{{$friendScore.FriendID}}-display-order"
+                name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
             <label for="friend-{{$friendScore.FriendID}}-name">{{$friendScore.FriendName}}</label>
-            <input id="friend-{{$friendScore.FriendID}}-name" name="friend-{{$friendScore.FriendID}}-name" class="form-control" required
-                value="{{$friendScore.FriendName}}">
+            <input id="friend-{{$friendScore.FriendID}}-name" name="friend-{{$friendScore.FriendID}}-name"
+                class="form-control" required value="{{$friendScore.FriendName}}">
             <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
             <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
@@ -18,38 +19,66 @@
 <button class="btn btn-secondary" type="button" title="Add Friend" onclick="addFriend()">Add Friend</button>
 <script>
     function moveFriendUp() {
-        friend1 = event.target.parentNode;
-        friend2 = event.target.parentNode.previousElementSibling;
+        var friend1 = event.target.parentNode;
+        var friend2 = event.target.parentNode.previousElementSibling;
         if (friend2) {
-            friends = friend1.parentNode
+            var friends = friend1.parentNode
             friends.insertBefore(friend1, friend2);
             changeFriendDisplayOrder(friend1.id, -1);
             changeFriendDisplayOrder(friend2.id, +1);
         }
     }
+
     function moveFriendDown() {
-        friend1 = event.target.parentNode;
-        friend2 = event.target.parentNode.nextElementSibling;
+        var friend1 = event.target.parentNode;
+        var friend2 = event.target.parentNode.nextElementSibling;
         if (friend2) {
-            friends = friend1.parentNode
+            var friends = friend1.parentNode
             friends.insertBefore(friend2, friend1);
             changeFriendDisplayOrder(friend2.id, -1);
             changeFriendDisplayOrder(friend1.id, +1);
         }
     }
+
     function removeFriend() {
-        friend = $(event.target.parentNode);
+        var friend = $(event.target.parentNode);
         friend.remove();
     }
+
     function addFriend() {
-        // var friends = event.previousElementSibling;
-        console.log('TODO: add friend');
+        var friendsParent = event.target.previousElementSibling.lastElementChild;
+        var maxFriendId = 0
+        // get max friend If from friends
+        var friendElements = friendsParent.children;
+        for (var i = 0; i < friendElements.length; i++) {
+            var friendElement = friendElements[i]
+            var friendElementId = friendElement.id.substring('friend-'.length);
+            if (friendElementId > maxFriendId) {
+                maxFriendId = friendElementId;
+            }
+        }
+        // chreate the new friend
+        var newFriend = document.createElement('div');
+        var newFriendId = parseInt(maxFriendId) + 1;
+        var newFriendDisplayOrder = friendElements.length;
+        newFriend.setAttribute('class', 'form-group');
+        newFriend.setAttribute('id', 'friend-' + newFriendId);
+        newFriend.innerHTML = '<input id="friend-' + newFriendId + '-display-order" name="friend-' + newFriendId +
+            '-display-order" value="' + newFriendDisplayOrder + '" type="hidden">' +
+            '<label for="friend-' + newFriendId + '}-name">[New]</label>' +
+            '<input id="friend-' + newFriendId + '-name" name="friend-' + newFriendId +
+            '-name" class="form-control" required>' +
+            '<button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>' +
+            '<button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>' +
+            '<button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>';
+        friendsParent.appendChild(newFriend);
     }
+
     function changeFriendDisplayOrder(friendID, delta) {
-        friend = document.getElementById(friendID)
-        friendDisplayOrderId = friend.id + '-display-order'
-        friendDisplayOrderElement = document.getElementById(friendDisplayOrderId)
-        friendDisplayOrder = friendDisplayOrderElement.getAttribute('value');
+        var friend = document.getElementById(friendID)
+        var friendDisplayOrderId = friend.id + '-display-order'
+        var friendDisplayOrderElement = document.getElementById(friendDisplayOrderId)
+        var friendDisplayOrder = friendDisplayOrderElement.getAttribute('value');
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
 </script>

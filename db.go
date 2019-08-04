@@ -149,32 +149,34 @@ func setFriends(futureFriends []Friend) error {
 	if err != nil {
 		return err
 	}
-	currentFriends := make(map[int]Friend)
+	previousFriends := make(map[int]Friend)
 	for _, friend := range friends {
-		currentFriends[friend.id] = friend
+		previousFriends[friend.id] = friend
 	}
 
 	insertFriends := []Friend{}
-	deleteFriendIDs := []int{}
 	updateFriends := []Friend{}
 	for _, friend := range futureFriends {
-		switch {
-		case friend.id == 0:
+		previousFriend, ok := previousFriends[friend.id]
+		if !ok {
 			insertFriends = append(insertFriends, friend)
-		case currentFriends[friend.id] == Friend{}:
-			deleteFriendIDs = append(deleteFriendIDs, friend.id)
-		case friend.displayOrder != currentFriends[friend.id].displayOrder || friend.name != currentFriends[friend.id].name:
-			updateFriends = append(updateFriends, friend)
+		} else {
+			if friend.displayOrder != previousFriend.displayOrder || friend.name != previousFriend.name {
+				updateFriends = append(updateFriends, friend)
+			}
 		}
+		delete(previousFriends, friend.id)
 	}
+	deleteFriends := previousFriends
 
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
+	var result sql.Result
 	for _, friend := range insertFriends {
 		if err == nil {
-			result, err := tx.Exec(
+			result, err = tx.Exec(
 				"INSERT INTO friends (display_order, name) VALUES ($1, $2)",
 				friend.displayOrder,
 				friend.name)
@@ -183,23 +185,23 @@ func setFriends(futureFriends []Friend) error {
 			}
 		}
 	}
-	for _, friendID := range deleteFriendIDs {
+	for _, friend := range updateFriends {
 		if err == nil {
-			result, err := tx.Exec(
-				"DELETE FROM friends WHERE id = $1",
-				friendID)
+			result, err = tx.Exec(
+				"UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
+				friend.displayOrder,
+				friend.name,
+				friend.id)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
 		}
 	}
-	for _, friend := range updateFriends {
+	for friendID := range deleteFriends {
 		if err == nil {
-			result, err := tx.Exec(
-				"UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
-				friend.displayOrder,
-				friend.name,
-				friend.id)
+			result, err = tx.Exec(
+				"DELETE FROM friends WHERE id = $1",
+				friendID)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
