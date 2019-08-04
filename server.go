@@ -60,7 +60,7 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	if err := handleAdminRequest(r); err != nil {
 		message = err.Error()
 	} else {
-		message = "Change made at: " + time.Now().String()
+		message = fmt.Sprintf("Change made at: %s.", formatTime(time.Now()))
 	}
 	// prevent the post from being made again on refresh
 	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
@@ -81,7 +81,7 @@ func writeView(w http.ResponseWriter) error {
 	viewPage := Page{
 		Title:         "Nate's MLB pool",
 		Tabs:          tabs,
-		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", es.EtlTime.String()),
+		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", formatTime(es.EtlTime)),
 		templateNames: []string{"view"},
 	}
 
@@ -133,6 +133,10 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	}
 
 	return template.Execute(w, p)
+}
+
+func formatTime(t time.Time) string {
+	return t.Format(time.RFC1123Z)
 }
 
 // Page is a page that gets rendered by the main template
