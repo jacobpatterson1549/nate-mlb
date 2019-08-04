@@ -21,8 +21,8 @@
     function moveFriendUp() {
         var friend1 = event.target.parentNode;
         var friend2 = event.target.parentNode.previousElementSibling;
-        if (friend2) {
-            var friends = friend1.parentNode
+        if (friend2 != null) {
+            var friends = friend1.parentNode;
             friends.insertBefore(friend1, friend2);
             changeFriendDisplayOrder(friend1.id, -1);
             changeFriendDisplayOrder(friend2.id, +1);
@@ -32,8 +32,8 @@
     function moveFriendDown() {
         var friend1 = event.target.parentNode;
         var friend2 = event.target.parentNode.nextElementSibling;
-        if (friend2) {
-            var friends = friend1.parentNode
+        if (friend2 != null) {
+            var friends = friend1.parentNode;
             friends.insertBefore(friend2, friend1);
             changeFriendDisplayOrder(friend2.id, -1);
             changeFriendDisplayOrder(friend1.id, +1);
@@ -41,14 +41,19 @@
     }
 
     function removeFriend() {
-        var friend = $(event.target.parentNode);
-        friend.remove();
+        var removeFriend = event.target.parentNode;
+        for (var friend = document.getElementById(removeFriend.id).nextElementSibling;
+                friend != null;
+                friend = document.getElementById(friend.id).nextElementSibling) {
+            changeFriendDisplayOrder(friend.id, -1);
+        }
+        removeFriend.remove();
     }
 
     function addFriend() {
         var friendsParent = event.target.previousElementSibling.lastElementChild;
         var maxFriendId = 0
-        // get max friend If from friends
+        // get max friend ID from friends
         var friendElements = friendsParent.children;
         for (var i = 0; i < friendElements.length; i++) {
             var friendElement = friendElements[i]
@@ -57,7 +62,7 @@
                 maxFriendId = friendElementId;
             }
         }
-        // chreate the new friend
+        // cheate the new friend
         var newFriend = document.createElement('div');
         var newFriendId = parseInt(maxFriendId) + 1;
         var newFriendDisplayOrder = friendElements.length;
@@ -75,9 +80,9 @@
     }
 
     function changeFriendDisplayOrder(friendID, delta) {
-        var friend = document.getElementById(friendID)
-        var friendDisplayOrderId = friend.id + '-display-order'
-        var friendDisplayOrderElement = document.getElementById(friendDisplayOrderId)
+        var friend = document.getElementById(friendID);
+        var friendDisplayOrderId = friend.id + '-display-order';
+        var friendDisplayOrderElement = document.getElementById(friendDisplayOrderId);
         var friendDisplayOrder = friendDisplayOrderElement.getAttribute('value');
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
