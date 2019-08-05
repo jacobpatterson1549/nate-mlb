@@ -106,7 +106,9 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 	}
 
 	tabs := []Tab{
+		AdminTab{Name: "Players", Action: "players", ScoreCategories: es.Stats},
 		AdminTab{Name: "Friends", Action: "friends", ScoreCategories: es.Stats},
+		// TODO: use .Action attribute on ui for id purposes so .Name can contain spaces
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
 		AdminTab{Name: "Reset_Password", Action: "password"},
 	}

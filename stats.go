@@ -113,6 +113,7 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 
 func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.name
+	sc.PlayerTypeID = playerType.id
 	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.friends))
 	for i, friend := range friendPlayerInfo.friends {
 		friendScore, err := friend.compute(friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
@@ -314,6 +315,7 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 // ScoreCategory contain the FriendScores for each PlayerType
 type ScoreCategory struct {
 	Name         string
+	PlayerTypeID int
 	FriendScores []FriendScore
 }
 

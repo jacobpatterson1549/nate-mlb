@@ -12,6 +12,9 @@
     {{- if (eq .Action "friends") }}
     {{ template "friendsForm" . }}
     {{ end -}}
+    {{- if (eq .Action "players") }}
+    {{ template "playersForm" . }}
+    {{ end -}}
     <div class="form-group">
         <label for="{{.Action}}-currentPassword">Current Password</label>
         <input id="{{.Action}}-currentPassword" name="currentPassword" type="password" class="form-control" required>

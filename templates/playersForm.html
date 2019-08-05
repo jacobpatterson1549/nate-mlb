@@ -1,0 +1,105 @@
+{{ define "playersForm" }}
+<fieldset>
+    <legend>Players</legend>
+    <div>
+        <!-- TODO: option selects for playerType, friend (.PlayerTypeID, .FriendID), hide most of these from-groups. -->
+        {{- range .ScoreCategories -}}
+        <div class="player-id">
+            <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
+            <p>[PlayerTypeID {{.PlayerTypeID}}]</p>
+            {{- range .FriendScores -}}
+            <div>
+                <input class="friend-id" value="{{.FriendID}}" type="hidden">
+                <p>[FriendID {{.FriendID}}]</p>
+                {{- range $index, $playerScore := .PlayerScores }}
+                <div class="form-group" id="player-{{$playerScore.ID}}">
+                    <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
+                        value="{{$index}}" type="hidden">
+                    <input name="player-{{$playerScore.ID}}-player-id" value="{{$playerScore.PlayerID}}" type="hidden">
+                    <span>{{$playerScore.PlayerName}}</span>
+                    <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
+                    <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
+                    <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
+                </div>
+                {{- end -}}
+            </div>
+            {{- end -}}
+        </div>
+        {{- end -}}
+    </div>
+</fieldset>
+<button class="btn btn-secondary" type="button" title="Add Player" onclick="addPlayer()" disabled>Add Player</button>
+<script>
+    function movePlayerUp() {
+        var player1 = event.target.parentNode;
+        var player2 = event.target.parentNode.previousElementSibling;
+        if (player2 != null) {
+            var players = player1.parentNode;
+            players.insertBefore(player1, player2);
+            changePlayerDisplayOrder(player1.id, -1);
+            changePlayerDisplayOrder(player2.id, +1);
+        }
+    }
+
+    function movePlayerDown() {
+        var player1 = event.target.parentNode;
+        var player2 = event.target.parentNode.nextElementSibling;
+        if (player2 != null) {
+            var players = player1.parentNode;
+            players.insertBefore(player2, player1);
+            changePlayerDisplayOrder(player2.id, -1);
+            changePlayerDisplayOrder(player1.id, +1);
+        }
+    }
+
+    function removePlayer() {
+        var removePlayer = event.target.parentNode;
+        for (var player = document.getElementById(removePlayer.id).nextElementSibling; player != null; player = document
+            .getElementById(player.id).nextElementSibling) {
+            changePlayerDisplayOrder(player.id, -1);
+        }
+        removePlayer.remove();
+    }
+
+    function addPlayer() {
+        var playersParent = event.target.previousElementSibling.lastElementChild;
+        var maxID = 0
+        // get max player ID from players
+        var playerElements = playersParent.children;
+        for (var i = 0; i < playerElements.length; i++) {
+            var playerElement = playerElements[i]
+            var playerElementId = playerElement.id.substring('player-'.length);
+            if (playerElementId > maxID) {
+                maxID = playerElementId;
+            }
+        }
+        // create the new player
+        var newPlayer = document.createElement('div');
+        var newID = parseInt(maxID) + 1;
+        var newPlayerDisplayOrder = playerElements.length;
+        var playerTypeID =  playersParent.parentNode.parentNode.getElementsByClassName('friend-id')[i].getAttribute('value');
+        var friendID = playersParent.parentNode.getElementsByClassName('friend-id')[i].getAttribute('value');
+        newPlayer.setAttribute('class', 'form-group');
+        newPlayer.setAttribute('id', 'player-' + newID);
+        newPlayer.innerHTML = '<input id="player-' + newID + '-display-order" name="player-' + newID +
+            '-display-order" value="' + newPlayerDisplayOrder + '" type="hidden">' +
+            '<input name="player-' + newID + '-player-id" value="-1" type="hidden">' + // TODO
+            '<span>[NEW]</span>' + // TODO
+            '<input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden"' +
+            '<input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden"' +
+            '<button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>' +
+            '<button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>' +
+            '<button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>';
+        alert('TODO: test me (and add modal for playerID input)');
+        playersParent.appendChild(newPlayer);
+    }
+
+    function changePlayerDisplayOrder(playerID, delta) {
+        var player = document.getElementById(playerID);
+        var playerDisplayOrderId = player.id + '-display-order';
+        var playerDisplayOrderElement = document.getElementById(playerDisplayOrderId);
+        var playerDisplayOrder = playerDisplayOrderElement.getAttribute('value');
+        playerDisplayOrderElement.setAttribute('value', parseInt(playerDisplayOrder) + delta);
+    }
+</script>
+{{ end }}

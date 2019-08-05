@@ -11,17 +11,17 @@ import (
 )
 
 func handleAdminRequest(r *http.Request) error {
-	action := r.FormValue("action")
-	switch action {
-	case "password":
-		return setPassword(r)
-	case "cache":
-		return clearCache(r)
-	case "friends":
-		return updateFriends(r)
-	default:
-		return errors.New("invalid admin action")
+	actionParam := r.FormValue("action")
+	actions := map[string](func(*http.Request) error){
+		"password": setPassword,
+		"cache":    clearCache,
+		"friends":  updateFriends,
+		"players":  updatePlayers,
 	}
+	if action, ok := actions[actionParam]; ok {
+		return action(r)
+	}
+	return errors.New("invalid admin action")
 }
 
 func setPassword(r *http.Request) error {
@@ -77,10 +77,66 @@ func updateFriends(r *http.Request) error {
 	}
 
 	err := setFriends(friends)
-	if err == nil {
-		err = setKeyStoreValue("etl", "")
+	if err != nil {
+		return err
 	}
-	return err
+	return setKeyStoreValue("etl", "")
+}
+
+func updatePlayers(r *http.Request) error {
+	currentPassword := r.FormValue("currentPassword")
+	if err := verifyPassword(currentPassword); err != nil {
+		return err
+	}
+
+	players := []Player{}
+	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
+	for k, v := range r.Form {
+		if idMatches := re.FindStringSubmatch(k); len(idMatches) > 0 {
+			ID, err := strconv.Atoi(idMatches[1])
+			if err != nil {
+				return err
+			}
+			playerDisplayOrderI, err := strconv.Atoi(v[0])
+			if err != nil {
+				return err
+			}
+			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-type-id", ID))
+			playerTypeIDI := 0
+			if len(playerTypeID) > 0 {
+				playerTypeIDI, err = strconv.Atoi(playerTypeID)
+				if err != nil {
+					return err
+				}
+			}
+			playerID := r.Form.Get(fmt.Sprintf("player-%d-player-id", ID))
+			playerIDI, err := strconv.Atoi(playerID)
+			if err != nil {
+				return err
+			}
+			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", ID))
+			friendIDI := 0
+			if len(friendID) > 0 {
+				friendIDI, err = strconv.Atoi(playerID)
+				if err != nil {
+					return err
+				}
+			}
+			players = append(players, Player{
+				id:           ID,
+				displayOrder: playerDisplayOrderI,
+				playerTypeID: playerTypeIDI, // only needed for new Players
+				playerID:     playerIDI,
+				friendID:     friendIDI, // only needed for new Players
+			})
+		}
+	}
+
+	err := setPlayers(players)
+	if err != nil {
+		return err
+	}
+	return setKeyStoreValue("etl", "")
 }
 
 func hashPassword(password string) (string, error) {
