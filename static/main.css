@@ -15,7 +15,7 @@ h4 {
 }
 
 label {
-    display: inline-block;
+    display: inline-block; /* TODO: wrap in class 'form-inline' instead */
     width: 6rem;
     text-align: right;
     margin-right: 1rem;
