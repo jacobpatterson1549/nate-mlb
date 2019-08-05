@@ -85,14 +85,14 @@ func searchPlayerNames(playerNamePrefix string) ([]PlayerSearchResult, error) {
 
 func (row Row) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
-	birthDateStr := row.BirthDate               // TODO: format yyyy-mm-dd
+	birthDate := row.BirthDate[:10]             // YYYY-MM-DD
 	playerID, err := strconv.Atoi(row.PlayerID) // all players must have valid ids, ignore bad ids
 	if err != nil {
 		return psr, err
 	}
 	return PlayerSearchResult{
 		Name:     row.PlayerName,
-		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDateStr),
+		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
 		PlayerID: playerID,
 	}, nil
 }
