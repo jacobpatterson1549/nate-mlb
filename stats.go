@@ -55,8 +55,7 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, 
 
 func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType PlayerType) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON := TeamsJSON{}
-	err := requestJSON("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", &teamsJSON)
+	teamsJSON, err := requestTeamsJSON()
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
 		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
@@ -95,6 +94,11 @@ func requestJSON(url string, v interface{}) error {
 	defer response.Body.Close()
 
 	return json.NewDecoder(response.Body).Decode(&v)
+}
+
+func requestTeamsJSON() (TeamsJSON, error) {
+	teamsJSON := TeamsJSON{}
+	return teamsJSON, requestJSON("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", &teamsJSON)
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
