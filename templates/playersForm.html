@@ -59,11 +59,6 @@
                     <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
                 </div>
                 <div id="player-search-results"></div>
-                <!-- <label for="player-id-input">Player ID</label>
-                <input id="player-id-input" class="form-control">
-                <br />
-                <label for="player-name-input">Player Name</label>
-                <input id="player-name-input" class="form-control"> -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -214,7 +209,6 @@
             searchError(new Error(this.responseText));
             return;
         }
-
         var playerSearchResults = JSON.parse(this.responseText);
         if (playerSearchResults.length == 0) {
             searchError(new Error('No results'));
@@ -228,7 +222,7 @@
             var row = document.createElement('tr');
             row.innerHTML = '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
                 '<td>' + playerSearchResult.Name + '</td>' +
-                '<td>' + playerSearchResult.Description + '</td>' +
+                '<td>' + playerSearchResult.Details + '</td>' +
                 '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
             playerSearchResultsBody.appendChild(row)
         }
@@ -238,7 +232,7 @@
             ' <tr>' +
             ' <th>Add?</th>' +
             ' <th>Name</th>' +
-            ' <th>Description</th>' +
+            ' <th>Details</th>' +
             ' </tr>' +
             ' </thead>';
         playerSearchResultsTable.appendChild(playerSearchResultsBody);
