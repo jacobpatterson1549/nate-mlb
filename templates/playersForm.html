@@ -1,16 +1,28 @@
 {{ define "playersForm" }}
+{{- if .ScoreCategories -}}
 <fieldset>
     <legend>Players</legend>
-    <div>
-        <!-- TODO: option selects for playerType, friend (.PlayerTypeID, .FriendID), hide most of these from-groups. -->
+    <label for="select-player-type">Player Type</label>
+    <select id="select-player-type" class="custom-select" onchange="refreshVisibleFriendScores()">
         {{- range .ScoreCategories -}}
-        <div class="player-id">
+        <option value="{{.PlayerTypeID}}">{{.Name}}</option>
+        {{- end -}}
+    </select>
+    <br/>
+    <label for="select-friend">Friend</label>
+    <select id="select-friend" class="custom-select" onchange="refreshVisibleFriendScores()">
+        {{- range (index .ScoreCategories 0).FriendScores }}
+        <option value="{{.FriendID}}">{{.FriendName}}</option>
+        {{- end -}}
+    </select>
+    <br/>
+    <div>
+        {{- range .ScoreCategories -}}
+        <div class="score-category"><!-- <p>[PlayerTypeID {{.PlayerTypeID}}]</p> -->
             <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
-            <p>[PlayerTypeID {{.PlayerTypeID}}]</p>
             {{- range .FriendScores -}}
-            <div>
+            <div class="friend-score"><!-- <p>[FriendID {{.FriendID}}]</p> -->
                 <input class="friend-id" value="{{.FriendID}}" type="hidden">
-                <p>[FriendID {{.FriendID}}]</p>
                 {{- range $index, $playerScore := .PlayerScores }}
                 <div class="form-group" id="player-{{$playerScore.ID}}">
                     <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
@@ -77,7 +89,8 @@
         var newPlayer = document.createElement('div');
         var newID = parseInt(maxID) + 1;
         var newPlayerDisplayOrder = playerElements.length;
-        var playerTypeID =  playersParent.parentNode.parentNode.getElementsByClassName('friend-id')[i].getAttribute('value');
+        var playerTypeID = playersParent.parentNode.parentNode.getElementsByClassName('friend-id')[i].getAttribute(
+            'value');
         var friendID = playersParent.parentNode.getElementsByClassName('friend-id')[i].getAttribute('value');
         newPlayer.setAttribute('class', 'form-group');
         newPlayer.setAttribute('id', 'player-' + newID);
@@ -101,5 +114,28 @@
         var playerDisplayOrder = playerDisplayOrderElement.getAttribute('value');
         playerDisplayOrderElement.setAttribute('value', parseInt(playerDisplayOrder) + delta);
     }
+
+    function refreshVisibleFriendScores() {
+        var playerTypeID = document.getElementById('select-player-type').value;
+        var friendID = document.getElementById('select-friend').value
+        var scoreCategories = document.getElementsByClassName('score-category');
+        for (var i = 0; i < scoreCategories.length; i++) {
+            var scoreCategory = scoreCategories[i];
+            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].getAttribute('value');
+            var friendScores = scoreCategory.getElementsByClassName('friend-score');
+            for (var j = 0; j < friendScores.length; j++) {
+                var friendScore = friendScores[j];
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value')
+                if (playerTypeID === currentPlayerTypeID && friendID == currentFriendID) {
+                    friendScore.classList.remove('player-hidden');
+                } else {
+                    friendScore.classList.add('player-hidden');
+                }
+            }
+        }
+        console.log("playerTypeID: " + playerTypeID + " friendID: " + friendID);
+    }
+    refreshVisibleFriendScores(); // initialize visible friend score to first one.
 </script>
+{{- end -}}
 {{ end }}
