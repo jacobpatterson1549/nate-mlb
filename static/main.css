@@ -46,3 +46,8 @@ button {
 .player-hidden {
     display: none;
 }
+
+.player-name {
+    display: inline-block;
+    width: 10rem;
+}
