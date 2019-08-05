@@ -48,22 +48,27 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Player Search</h5>
+                <h5 class="modal-title" id="addPlayerModalTitle">Player Search</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
             <div class="modal-body">
-                <label for="player-id-input">Player ID</label>
+                <div class="form-inline">
+                    <input class="form-control" type="search" id="player-search" placeholder="Search">
+                    <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
+                </div>
+                <div id="player-search-results"></div>
+                <!-- <label for="player-id-input">Player ID</label>
                 <input id="player-id-input" class="form-control">
                 <br />
                 <label for="player-name-input">Player Name</label>
-                <input id="player-name-input" class="form-control">
+                <input id="player-name-input" class="form-control"> -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="addPlayer()">Add
-                    Player</button>
+                <button id="modal-add-player-button" type="button" class="btn btn-outline-primary" data-dismiss="modal"
+                    onclick="addPlayer()" disabled>Add Player</button>
             </div>
         </div>
     </div>
@@ -103,8 +108,18 @@
     function addPlayer() {
         var playerTypeID = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
-        var playerID = document.getElementById('player-id-input').value;
-        var playerName = document.getElementById('player-name-input').value;
+        var playerID = null;
+        var playerName = null;
+        var playerSearchResultsBody = document.getElementById('player-search-results-body');
+        var rows = playerSearchResultsBody.children
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            if (row.children[0].firstChild.checked) {
+                playerID = row.children[3].value;
+                playerName = row.children[1].innerText;
+                break;
+            }
+        }
         // determine where to add the player
         var maxID = 0;
         var playersParent = null;
@@ -172,7 +187,7 @@
             var friendScores = scoreCategory.getElementsByClassName('friend-score');
             for (var j = 0; j < friendScores.length; j++) {
                 var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value');
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value'); // TODO: use .value for all of these
                 if (playerTypeID === currentPlayerTypeID && friendID == currentFriendID) {
                     friendScore.classList.remove('player-hidden');
                 } else {
@@ -181,6 +196,72 @@
             }
         }
     }
+
+    function searchPlayers() {
+        setNewPlayerSelected(false);
+        var playerTypeID = document.getElementById('select-player-type').value;
+        var query = document.getElementById('player-search').value;
+        var url = '/admin/search?q=' + query + '&pt=' + playerTypeID;
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.onload = searchSuccess;
+        httpRequest.onerror = searchError;
+        httpRequest.open('GET', url, true);
+        httpRequest.send();
+    }
+
+    function searchSuccess() {
+        if (this.status != 200) {
+            searchError(new Error(this.responseText));
+            return;
+        }
+
+        var playerSearchResults = JSON.parse(this.responseText);
+        if (playerSearchResults.length == 0) {
+            searchError(new Error('No results'));
+            return;
+        }
+
+        var playerSearchResultsBody = document.createElement('tbody');
+        playerSearchResultsBody.setAttribute('id', 'player-search-results-body')
+        for (var i = 0; i < playerSearchResults.length; i++) {
+            var playerSearchResult = playerSearchResults[i];
+            var row = document.createElement('tr');
+            row.innerHTML = '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
+                '<td>' + playerSearchResult.Name + '</td>' +
+                '<td>' + playerSearchResult.Description + '</td>' +
+                '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
+            playerSearchResultsBody.appendChild(row)
+        }
+        var playerSearchResultsTable = document.createElement('table')
+        playerSearchResultsTable.classList.add('table');
+        playerSearchResultsTable.innerHTML = '<thead>' +
+            ' <tr>' +
+            ' <th>Add?</th>' +
+            ' <th>Name</th>' +
+            ' <th>Description</th>' +
+            ' </tr>' +
+            ' </thead>';
+        playerSearchResultsTable.appendChild(playerSearchResultsBody);
+
+        var playerSearchResultsDiv = document.getElementById('player-search-results')
+        playerSearchResultsDiv.innerHTML = '';
+        playerSearchResultsDiv.appendChild(playerSearchResultsTable);
+    }
+
+    function searchError(err) {
+        var playerSearchResults = document.getElementById('player-search-results');
+        playerSearchResults.innerHTML = err;
+    }
+
+    function setNewPlayerSelected(isSelected) {
+        var addPlayerButton = document.getElementById('modal-add-player-button');
+        if (isSelected) {
+            addPlayerButton.removeAttribute('disabled');
+        } else {
+            addPlayerButton.setAttribute('disabled', null);
+        }
+    }
+
     refreshVisibleFriendScores(); // initialize visible friend score to first one.
 </script>
 {{- end -}}

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -17,18 +19,22 @@ func startServer(portNumber int) {
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
-	var err error
-	switch {
-	case r.Method == "GET" && r.RequestURI == "/":
-		err = writeView(w)
-	case r.Method == "GET" && r.RequestURI == "/about":
-		err = writeAbout(w)
-	case r.Method == "GET" && r.URL.Path == "/admin/password":
-		err = handleHashPassword(w, r)
-	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
-		err = handleAdminPage(w, r)
-	default:
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	err := r.ParseForm()
+	if err == nil {
+		switch {
+		case r.Method == "GET" && r.RequestURI == "/":
+			err = writeView(w)
+		case r.Method == "GET" && r.RequestURI == "/about":
+			err = writeAbout(w)
+		case r.Method == "GET" && r.URL.Path == "/admin/password":
+			err = handleHashPassword(w, r)
+		case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
+			err = handleAdminPage(w, r)
+		case r.Method == "GET" && r.URL.Path == "/admin/search":
+			err = handlePlayerSearch(w, r)
+		default:
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		}
 	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -36,27 +42,28 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
-	if password, ok := r.URL.Query()["v"]; ok {
-		hashedPassword, err := hashPassword(password[0])
-		if err != nil {
-			return err
-		}
-		w.Write([]byte(hashedPassword))
-		return nil
+	password := r.Form.Get("v")
+	if len(password) == 0 {
+		return errors.New("missing query param: v")
 	}
-	return errors.New("missing query param: v")
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+	w.Write([]byte(hashedPassword))
+	return nil
 }
 
 func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
-	var message string
 	if r.Method == "GET" {
-		if queryMessages, ok := r.URL.Query()["message"]; ok {
-			message = queryMessages[0]
-		} else {
+		message := r.Form.Get("message")
+		if len(message) == 0 {
 			message = "Enter password before submitting."
 		}
 		return writeAdminTabs(w, message)
 	}
+
+	var message string
 	if err := handleAdminRequest(r); err != nil {
 		message = err.Error()
 	} else {
@@ -65,6 +72,27 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	// prevent the post from being made again on refresh
 	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
 	return nil
+}
+
+func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
+	searchQuery := r.Form.Get("q")
+	if len(searchQuery) == 0 {
+		return errors.New("missing search query param: q")
+	}
+	playerTypeID := r.Form.Get("pt")
+	if len(playerTypeID) == 0 {
+		return errors.New("missing player type query param: pt")
+	}
+	playerTypeIDI, err := strconv.Atoi(playerTypeID)
+	if err != nil {
+		return err
+	}
+
+	playerSearchResult, err := searchPlayers(playerTypeIDI, searchQuery)
+	if err != nil {
+		return nil
+	}
+	return json.NewEncoder(w).Encode(playerSearchResult)
 }
 
 func writeView(w http.ResponseWriter) error {
