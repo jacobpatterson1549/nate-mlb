@@ -121,11 +121,11 @@
         var scoreCategories = document.getElementsByClassName('score-category');
         for (var i = 0; i < scoreCategories.length; i++) {
             var scoreCategory = scoreCategories[i];
-            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].getAttribute('value');
+            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].value;
             var friendScores = scoreCategory.getElementsByClassName('friend-score');
             for (var j = 0; j < friendScores.length; j++) {
                 var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value')
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].value;
                 if (playerTypeID == currentPlayerTypeID && friendID == currentFriendID) {
                     if (playersParent != null) {
                         throw 'multyple friendScores with playerTypeID=' + playerTypeID + ", friendID=" + friendID;
@@ -168,7 +168,7 @@
         var player = document.getElementById(playerID);
         var playerDisplayOrderId = player.id + '-display-order';
         var playerDisplayOrderElement = document.getElementById(playerDisplayOrderId);
-        var playerDisplayOrder = playerDisplayOrderElement.getAttribute('value');
+        var playerDisplayOrder = playerDisplayOrderElement.value
         playerDisplayOrderElement.setAttribute('value', parseInt(playerDisplayOrder) + delta);
     }
 
@@ -178,11 +178,11 @@
         var scoreCategories = document.getElementsByClassName('score-category');
         for (var i = 0; i < scoreCategories.length; i++) {
             var scoreCategory = scoreCategories[i];
-            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].getAttribute('value');
+            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].value
             var friendScores = scoreCategory.getElementsByClassName('friend-score');
             for (var j = 0; j < friendScores.length; j++) {
                 var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value'); // TODO: use .value for all of these
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].value;
                 if (playerTypeID === currentPlayerTypeID && friendID == currentFriendID) {
                     friendScore.classList.remove('player-hidden');
                 } else {
