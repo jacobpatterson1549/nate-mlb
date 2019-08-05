@@ -17,13 +17,11 @@
     </select>
     <br />
     <div>
-        {{- range .ScoreCategories -}}
+        {{- range .ScoreCategories }}
         <div class="score-category">
-            <!-- <p>[PlayerTypeID {{.PlayerTypeID}}]</p> -->
             <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
             {{- range .FriendScores -}}
             <div class="friend-score">
-                <!-- <p>[FriendID {{.FriendID}}]</p> -->
                 <input class="friend-id" value="{{.FriendID}}" type="hidden">
                 {{- range $index, $playerScore := .PlayerScores }}
                 <div class="form-group player-score" id="player-{{$playerScore.ID}}">
@@ -37,9 +35,9 @@
                 </div>
                 {{- end -}}
             </div>
-            {{- end -}}
+            {{ end -}}
         </div>
-        {{- end -}}
+        {{ end -}}
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
@@ -146,13 +144,13 @@
         newPlayer.setAttribute('id', 'player-' + newID);
         newPlayer.innerHTML = '<input id="player-' + newID + '-display-order" name="player-' + newID +
             '-display-order" value="' + newPlayerDisplayOrder + '" type="hidden">' +
-            '<input name="player-' + newID + '-player-id" value="' + playerID + '" type="hidden">' +
-            '<span class="player-name">' + playerName + '</span>' +
-            '<button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>' +
-            '<button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>' +
-            '<button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>' +
-            '<input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden">' +
-            '<input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden">';
+            ' <input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden">' +
+            ' <input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden">' +
+            ' <input name="player-' + newID + '-player-id" value="' + playerID + '" type="hidden">' +
+            ' <span class="player-name">' + playerName + '</span>' +
+            ' <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>' +
+            ' <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>' +
+            ' <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>';
         playersParent.appendChild(newPlayer);
     }
 

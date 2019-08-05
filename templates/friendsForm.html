@@ -69,14 +69,15 @@
         var newFriendDisplayOrder = friendElements.length;
         newFriend.setAttribute('class', 'form-group');
         newFriend.setAttribute('id', 'friend-' + newFriendId);
+        newFriend.add
         newFriend.innerHTML = '<input id="friend-' + newFriendId + '-display-order" name="friend-' + newFriendId +
             '-display-order" value="' + newFriendDisplayOrder + '" type="hidden">' +
-            '<label for="friend-' + newFriendId + '}-name">[New]</label>' +
-            '<input id="friend-' + newFriendId + '-name" name="friend-' + newFriendId +
-            '-name" class="form-control" required>' +
-            '<button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>' +
-            '<button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>' +
-            '<button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>';
+            ' <label for="friend-' + newFriendId + '}-name">[New]</label>' +
+            ' <input id="friend-' + newFriendId + '-name" name="friend-' + newFriendId +
+            ' -name" class="form-control" required>' +
+            ' <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>' +
+            ' <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>' +
+            ' <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>';
         friendsParent.appendChild(newFriend);
     }
 
