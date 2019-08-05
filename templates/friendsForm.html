@@ -1,4 +1,5 @@
 {{ define "friendsForm" }}
+{{- if .ScoreCategories -}}
 <fieldset>
     <legend>Friends</legend>
     <div>
@@ -87,4 +88,5 @@
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
 </script>
+{{- end -}}
 {{ end }}
