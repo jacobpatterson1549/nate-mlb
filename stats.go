@@ -76,10 +76,10 @@ func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType Player
 	return scoreCategory, err
 }
 
-func requestJSON(url string, v interface{}) error {
+func request(url string) (*http.Response, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	request.Header.Add("Accept", "application/json")
@@ -87,12 +87,15 @@ func requestJSON(url string, v interface{}) error {
 		Timeout: 5 * time.Second,
 	}
 
-	response, err := client.Do(request)
+	return client.Do(request)
+}
+
+func requestJSON(url string, v interface{}) error {
+	response, err := request(url)
 	if err != nil {
 		return err
 	}
 	defer response.Body.Close()
-
 	return json.NewDecoder(response.Body).Decode(&v)
 }
 

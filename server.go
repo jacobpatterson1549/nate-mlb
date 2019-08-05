@@ -90,7 +90,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 
 	playerSearchResult, err := searchPlayers(playerTypeIDI, searchQuery)
 	if err != nil {
-		return nil
+		return err
 	}
 	return json.NewEncoder(w).Encode(playerSearchResult)
 }

@@ -223,7 +223,7 @@
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
             var row = document.createElement('tr');
-            row.innerHTML = '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
+            row.innerHTML = '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' + // TODO: make checked if only one row
                 '<td>' + playerSearchResult.Name + '</td>' +
                 '<td>' + playerSearchResult.Details + '</td>' +
                 '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
