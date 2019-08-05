@@ -8,23 +8,25 @@
         <option value="{{.PlayerTypeID}}">{{.Name}}</option>
         {{- end -}}
     </select>
-    <br/>
+    <br />
     <label for="select-friend">Friend</label>
     <select id="select-friend" class="custom-select" onchange="refreshVisibleFriendScores()">
         {{- range (index .ScoreCategories 0).FriendScores }}
         <option value="{{.FriendID}}">{{.FriendName}}</option>
         {{- end -}}
     </select>
-    <br/>
+    <br />
     <div>
         {{- range .ScoreCategories -}}
-        <div class="score-category"><!-- <p>[PlayerTypeID {{.PlayerTypeID}}]</p> -->
+        <div class="score-category">
+            <!-- <p>[PlayerTypeID {{.PlayerTypeID}}]</p> -->
             <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
             {{- range .FriendScores -}}
-            <div class="friend-score"><!-- <p>[FriendID {{.FriendID}}]</p> -->
+            <div class="friend-score">
+                <!-- <p>[FriendID {{.FriendID}}]</p> -->
                 <input class="friend-id" value="{{.FriendID}}" type="hidden">
                 {{- range $index, $playerScore := .PlayerScores }}
-                <div class="form-group" id="player-{{$playerScore.ID}}">
+                <div class="form-group player-score" id="player-{{$playerScore.ID}}">
                     <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
                         value="{{$index}}" type="hidden">
                     <input name="player-{{$playerScore.ID}}-player-id" value="{{$playerScore.PlayerID}}" type="hidden">
@@ -40,7 +42,34 @@
         {{- end -}}
     </div>
 </fieldset>
-<button class="btn btn-secondary" type="button" title="Add Player" onclick="addPlayer()" disabled>Add Player</button>
+<button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
+    <span>Add Player...</span>
+</button>
+<div class="modal fade" id="addPlayerModal" tabindex="-1" role="dialog" aria-labelledby="addPlayerModalTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Player Search</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="player-id-input">Player ID</label>
+                <input id="player-id-input" class="form-control">
+                <br />
+                <label for="player-name-input">Player Name</label>
+                <input id="player-name-input" class="form-control">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="addPlayer()">Add
+                    Player</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     function movePlayerUp() {
         var player1 = event.target.parentNode;
@@ -74,36 +103,56 @@
     }
 
     function addPlayer() {
-        var playersParent = event.target.previousElementSibling.lastElementChild;
-        var maxID = 0
-        // get max player ID from players
-        var playerElements = playersParent.children;
-        for (var i = 0; i < playerElements.length; i++) {
-            var playerElement = playerElements[i]
-            var playerElementId = playerElement.id.substring('player-'.length);
-            if (playerElementId > maxID) {
-                maxID = playerElementId;
+        var playerTypeID = document.getElementById('select-player-type').value;
+        var friendID = document.getElementById('select-friend').value;
+        var playerID = document.getElementById('player-id-input').value;
+        var playerName = document.getElementById('player-name-input').value;
+        // determine where to add the player
+        var maxID = 0;
+        var playersParent = null;
+        var scoreCategories = document.getElementsByClassName('score-category');
+        for (var i = 0; i < scoreCategories.length; i++) {
+            var scoreCategory = scoreCategories[i];
+            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].getAttribute('value');
+            var friendScores = scoreCategory.getElementsByClassName('friend-score');
+            for (var j = 0; j < friendScores.length; j++) {
+                var friendScore = friendScores[j];
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value')
+                if (playerTypeID == currentPlayerTypeID && friendID == currentFriendID) {
+                    if (playersParent != null) {
+                        throw 'multyple friendScores with playerTypeID=' + playerTypeID + ", friendID=" + friendID;
+                    }
+                    playersParent = friendScore;
+                }
+                // get max id from players
+                var playerScores = friendScore.getElementsByClassName('player-score');
+                for (var k = 0; k < playerScores.length; k++) {
+                    var playerElement = playerScores[i]
+                    var playerElementId = parseInt(playerElement.id.substring('player-'.length));
+                    if (playerElementId > maxID) {
+                        maxID = playerElementId;
+                    }
+                }
             }
+        }
+        if (playersParent == null) {
+            return;
         }
         // create the new player
         var newPlayer = document.createElement('div');
         var newID = parseInt(maxID) + 1;
-        var newPlayerDisplayOrder = playerElements.length;
-        var playerTypeID = playersParent.parentNode.parentNode.getElementsByClassName('friend-id')[i].getAttribute(
-            'value');
-        var friendID = playersParent.parentNode.getElementsByClassName('friend-id')[i].getAttribute('value');
+        var newPlayerDisplayOrder = playersParent.getElementsByClassName('player-score').length;
         newPlayer.setAttribute('class', 'form-group');
         newPlayer.setAttribute('id', 'player-' + newID);
         newPlayer.innerHTML = '<input id="player-' + newID + '-display-order" name="player-' + newID +
             '-display-order" value="' + newPlayerDisplayOrder + '" type="hidden">' +
-            '<input name="player-' + newID + '-player-id" value="-1" type="hidden">' + // TODO
-            '<span class="player-name">[NEW]</span>' + // TODO
-            '<input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden"' +
-            '<input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden"' +
+            '<input name="player-' + newID + '-player-id" value="' + playerID + '" type="hidden">' +
+            '<span class="player-name">' + playerName + '</span>' +
             '<button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>' +
             '<button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>' +
-            '<button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>';
-        alert('TODO: test me (and add modal for playerID input)');
+            '<button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>' +
+            '<input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden">' +
+            '<input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden">';
         playersParent.appendChild(newPlayer);
     }
 
@@ -117,7 +166,7 @@
 
     function refreshVisibleFriendScores() {
         var playerTypeID = document.getElementById('select-player-type').value;
-        var friendID = document.getElementById('select-friend').value
+        var friendID = document.getElementById('select-friend').value;
         var scoreCategories = document.getElementsByClassName('score-category');
         for (var i = 0; i < scoreCategories.length; i++) {
             var scoreCategory = scoreCategories[i];
@@ -125,7 +174,7 @@
             var friendScores = scoreCategory.getElementsByClassName('friend-score');
             for (var j = 0; j < friendScores.length; j++) {
                 var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value')
+                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].getAttribute('value');
                 if (playerTypeID === currentPlayerTypeID && friendID == currentFriendID) {
                     friendScore.classList.remove('player-hidden');
                 } else {
@@ -133,7 +182,6 @@
                 }
             }
         }
-        console.log("playerTypeID: " + playerTypeID + " friendID: " + friendID);
     }
     refreshVisibleFriendScores(); // initialize visible friend score to first one.
 </script>

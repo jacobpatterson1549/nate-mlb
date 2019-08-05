@@ -117,7 +117,7 @@ func updatePlayers(r *http.Request) error {
 			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", ID))
 			friendIDI := 0
 			if len(friendID) > 0 {
-				friendIDI, err = strconv.Atoi(playerID)
+				friendIDI, err = strconv.Atoi(friendID)
 				if err != nil {
 					return err
 				}

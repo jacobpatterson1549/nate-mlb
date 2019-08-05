@@ -253,7 +253,7 @@ func setPlayers(futurePlayers []Player) error {
 	for _, player := range insertPlayers {
 		if err == nil {
 			result, err = tx.Exec(
-				"INSERT INTO players (display_order, playerTypeID, playerID, friendID) VALUES ($1, $2, $3, $4)",
+				"INSERT INTO players (display_order, player_type_id, player_id, friend_id) VALUES ($1, $2, $3, $4)",
 				player.displayOrder,
 				player.playerTypeID,
 				player.playerID,
