@@ -87,14 +87,14 @@ func (row Row) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
 	birthDate := row.BirthDate[:10]             // YYYY-MM-DD
 	playerID, err := strconv.Atoi(row.PlayerID) // all players must have valid ids, ignore bad ids
-	if err != nil {
-		return psr, err
+	if err == nil {
+		psr = PlayerSearchResult{
+			Name:     row.PlayerName,
+			Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
+			PlayerID: playerID,
+		}
 	}
-	return PlayerSearchResult{
-		Name:     row.PlayerName,
-		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
-		PlayerID: playerID,
-	}, nil
+	return psr, nil
 }
 
 // PlayerSearchResult contains information about the result for a searched player.
