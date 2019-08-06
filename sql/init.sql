@@ -12,8 +12,9 @@ CREATE TABLE IF NOT EXISTS friends
 	);
 
 CREATE TABLE IF NOT EXISTS player_types
-	( id SERIAL PRIMARY KEY
+	( id INT PRIMARY KEY
 	, name VARCHAR(20) UNIQUE NOT NULL
+        , description TEXT
 	);
 
 CREATE TABLE IF NOT EXISTS players
@@ -38,11 +39,11 @@ INSERT INTO key_store (k, v)
           ('etl', '')
         ;
 
-INSERT INTO player_types (id, name)
+INSERT INTO player_types (id, name, description)
 	VALUES
-          (1, 'teams')
-        , (2, 'hitting')
-        , (3, 'pitching')
+          (1, 'teams', 'sum of team wins')
+        , (2, 'hitting' 'sum of top two batters'' home run counts')
+        , (3, 'pitching', 'sum of top two pitchers'' win counts')
         ;
 
 INSERT INTO friends (id, name, display_order)

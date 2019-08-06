@@ -64,7 +64,7 @@ func getFriends(db *sql.DB) ([]Friend, error) {
 }
 
 func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
-	rows, err := db.Query("SELECT id, name FROM player_types ORDER BY id ASC")
+	rows, err := db.Query("SELECT id, name, description FROM player_types ORDER BY id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
 	}
@@ -74,7 +74,7 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 	i := 0
 	for rows.Next() {
 		playerTypes = append(playerTypes, PlayerType{})
-		err = rows.Scan(&playerTypes[i].id, &playerTypes[i].name)
+		err = rows.Scan(&playerTypes[i].id, &playerTypes[i].name, &playerTypes[i].description)
 		if err != nil {
 			return nil, fmt.Errorf("Problem reading data: %q", err)
 		}
@@ -311,8 +311,9 @@ type Friend struct {
 
 // PlayerType contain a name of a pool item.
 type PlayerType struct {
-	id   int
-	name string
+	id          int
+	name        string
+	description string
 }
 
 // Player maps a player (of a a specific PlayerType) to a Friend.
