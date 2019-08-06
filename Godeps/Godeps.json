@@ -20,6 +20,14 @@
 			"ImportPath": "github.com/lib/pq/scram",
 			"Comment": "v1.2.0",
 			"Rev": "3427c32cb71afc948325f299f040e53c1dd78979"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "4def268fd1a49955bfb3dda92fe3db4f924f2285"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 		}
 	]
 }
