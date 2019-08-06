@@ -48,7 +48,6 @@ INSERT INTO player_types (id, name, description)
 
 INSERT INTO friends (id, name, display_order)
 	VALUES
-        -- TODO: the code sets display orders as 0-based.  Change these to start display order with zero
           (1, 'Bob',   0)
         , (2, 'W',     1)
         , (3, 'Nate',  2)
@@ -57,75 +56,76 @@ INSERT INTO friends (id, name, display_order)
         , (6, 'Mike',  5)
         ;
 
+
 INSERT INTO players (player_type_id, player_id, friend_id, display_order)
 	VALUES
 -- teams: (-- name_display_full)
-          (1, 111, 1, 1) -- Boston Red Sox
-        , (1, 112, 1, 2) -- Chicago Cubs
-        , (1, 142, 1, 3) -- Minnesota Twins
-        , (1, 136, 1, 4) -- Seattle Mariners
-        , (1, 118, 1, 5) -- Kansas City Royal
-        , (1, 147, 2, 1) -- New York Yankees
-        , (1, 143, 2, 2) -- Philadelphia Phillies
-        , (1, 115, 2, 3) -- Colorado Rockies
-        , (1, 134, 2, 4) -- Pittsburgh Pirates
-        , (1, 146, 2, 5) -- Miami Marlins
-        , (1, 158, 3, 1) -- Milwaukee Brewers
-        , (1, 138, 3, 2) -- St. Louis Cardinals
-        , (1, 108, 3, 3) -- Los Angeles Angels
-        , (1, 145, 3, 4) -- Chicago White Sox
-        , (1, 137, 3, 5) -- San Francisco Giants
-        , (1, 117, 4, 1) -- Houston Astros
-        , (1, 139, 4, 2) -- Tampa Bay Rays
-        , (1, 121, 4, 3) -- New York Mets
-        , (1, 141, 4, 4) -- Toronto Blue Jays
-        , (1, 137, 4, 5) -- San Francisco Giants
-        , (1, 119, 5, 1) -- Los Angeles Dodgers
-        , (1, 144, 5, 2) -- Atlanta Braves
-        , (1, 109, 5, 3) -- Arizona Diamondbacks
-        , (1, 113, 5, 4) -- Cincinnati Reds
-        , (1, 116, 5, 5) -- Detroit Tigers
-        , (1, 114, 6, 1) -- Cleveland Indians
-        , (1, 120, 6, 2) -- Washington Nationals
-        , (1, 133, 6, 3) -- Oakland Athletics
-        , (1, 135, 6, 4) -- San Diego Padres
-        , (1, 137, 6, 5) -- San Francisco Giants
+          (1, 111, 1, 0) -- Boston Red Sox
+        , (1, 112, 1, 1) -- Chicago Cubs
+        , (1, 142, 1, 2) -- Minnesota Twins
+        , (1, 136, 1, 3) -- Seattle Mariners
+        , (1, 118, 1, 4) -- Kansas City Royal
+        , (1, 147, 2, 0) -- New York Yankees
+        , (1, 143, 2, 1) -- Philadelphia Phillies
+        , (1, 115, 2, 2) -- Colorado Rockies
+        , (1, 134, 2, 3) -- Pittsburgh Pirates
+        , (1, 146, 2, 4) -- Miami Marlins
+        , (1, 158, 3, 0) -- Milwaukee Brewers
+        , (1, 138, 3, 1) -- St. Louis Cardinals
+        , (1, 108, 3, 2) -- Los Angeles Angels
+        , (1, 145, 3, 3) -- Chicago White Sox
+        , (1, 137, 3, 4) -- San Francisco Giants
+        , (1, 117, 4, 0) -- Houston Astros
+        , (1, 139, 4, 1) -- Tampa Bay Rays
+        , (1, 121, 4, 2) -- New York Mets
+        , (1, 141, 4, 3) -- Toronto Blue Jays
+        , (1, 137, 4, 4) -- San Francisco Giants
+        , (1, 119, 5, 0) -- Los Angeles Dodgers
+        , (1, 144, 5, 1) -- Atlanta Braves
+        , (1, 109, 5, 2) -- Arizona Diamondbacks
+        , (1, 113, 5, 3) -- Cincinnati Reds
+        , (1, 116, 5, 4) -- Detroit Tigers
+        , (1, 114, 6, 0) -- Cleveland Indians
+        , (1, 120, 6, 1) -- Washington Nationals
+        , (1, 133, 6, 2) -- Oakland Athletics
+        , (1, 135, 6, 3) -- San Diego Padres
+        , (1, 137, 6, 4) -- San Francisco Giants
 -- hitters: (-- name_display_first_last)
-        , (2, 502110, 1, 1) -- J.D. Martinez
-        , (2, 605141, 1, 2) -- Mookie Betts
-        , (2, 608070, 1, 3) -- Jose Ramirez
-        , (2, 547180, 2, 1) -- Bryce Harper
-        , (2, 656555, 2, 2) -- Rhys Hoskins
-        , (2, 660670, 2, 3) -- Ronald Acuna Jr.
-        , (2, 545361, 3, 1) -- Mike Trout
-        , (2, 571448, 3, 2) -- Nolan Arenado
-        , (2, 592518, 3, 3) -- Manny Machado
-        , (2, 501981, 4, 1) -- Khris Davis
-        , (2, 608336, 4, 2) -- Joey Gallo
-        , (2, 596019, 4, 3) -- Francisco Lindor
-        , (2, 519317, 5, 1) -- Giancarlo Stanton
-        , (2, 429665, 5, 2) -- Edwin Encarnacion
-        , (2, 592885, 5, 3) -- Christian Yelich
-        , (2, 592450, 6, 1) -- Aaron Judge
-        , (2, 596115, 6, 2) -- Trevor Story
-        , (2, 502671, 6, 3) -- Paul Goldschmidt
+        , (2, 502110, 1, 0) -- J.D. Martinez
+        , (2, 605141, 1, 1) -- Mookie Betts
+        , (2, 608070, 1, 2) -- Jose Ramirez
+        , (2, 547180, 2, 0) -- Bryce Harper
+        , (2, 656555, 2, 1) -- Rhys Hoskins
+        , (2, 660670, 2, 2) -- Ronald Acuna Jr.
+        , (2, 545361, 3, 0) -- Mike Trout
+        , (2, 571448, 3, 1) -- Nolan Arenado
+        , (2, 592518, 3, 2) -- Manny Machado
+        , (2, 501981, 4, 0) -- Khris Davis
+        , (2, 608336, 4, 1) -- Joey Gallo
+        , (2, 596019, 4, 2) -- Francisco Lindor
+        , (2, 519317, 5, 0) -- Giancarlo Stanton
+        , (2, 429665, 5, 1) -- Edwin Encarnacion
+        , (2, 592885, 5, 2) -- Christian Yelich
+        , (2, 592450, 6, 0) -- Aaron Judge
+        , (2, 596115, 6, 1) -- Trevor Story
+        , (2, 502671, 6, 2) -- Paul Goldschmidt
 -- pitchers:
-        , (3, 605483, 1, 1) -- Blake Snell
-        , (3, 622663, 1, 2) -- Luis Severino
-        , (3, 605400, 1, 3) -- Aaron Nola
-        , (3, 594798, 2, 1) -- Jacob deGrom
-        , (3, 621111, 2, 2) -- Walker Buehler
-        , (3, 572020, 2, 3) -- James Paxton
-        , (3, 453286, 3, 1) -- Max Scherzer
-        , (3, 519144, 3, 2) -- Rick Porcello
-        , (3, 605400, 3, 3) -- Aaron Nola
-        , (3, 446372, 4, 1) -- Corey Kluber
-        , (3, 471911, 4, 2) -- Carlos Carrasco
-        , (3, 452657, 4, 3) -- Jon Lester
-        , (3, 519242, 5, 1) -- Chris Sale
-        , (3, 456034, 5, 2) -- David Price
-        , (3, 592789, 5, 3) -- Noah Syndergaard
-        , (3, 434378, 6, 1) -- Justin Verlander
-        , (3, 543037, 6, 2) -- Gerrit Cole
-        , (3, 545333, 6, 3) -- Trevor Bauer
+        , (3, 605483, 1, 0) -- Blake Snell
+        , (3, 622663, 1, 1) -- Luis Severino
+        , (3, 605400, 1, 2) -- Aaron Nola
+        , (3, 594798, 2, 0) -- Jacob deGrom
+        , (3, 621111, 2, 1) -- Walker Buehler
+        , (3, 572020, 2, 2) -- James Paxton
+        , (3, 453286, 3, 0) -- Max Scherzer
+        , (3, 519144, 3, 1) -- Rick Porcello
+        , (3, 605400, 3, 2) -- Aaron Nola
+        , (3, 446372, 4, 0) -- Corey Kluber
+        , (3, 471911, 4, 1) -- Carlos Carrasco
+        , (3, 452657, 4, 2) -- Jon Lester
+        , (3, 519242, 5, 0) -- Chris Sale
+        , (3, 456034, 5, 1) -- David Price
+        , (3, 592789, 5, 2) -- Noah Syndergaard
+        , (3, 434378, 6, 0) -- Justin Verlander
+        , (3, 543037, 6, 1) -- Gerrit Cole
+        , (3, 545333, 6, 2) -- Trevor Bauer
         ;
