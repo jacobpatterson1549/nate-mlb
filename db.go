@@ -200,7 +200,7 @@ func setYears(activeYear int, years []int) error {
 	for year := range deleteYears {
 		if err == nil {
 			result, err = tx.Exec(
-				"DELETE FROM stats WHERE year = %1",
+				"DELETE FROM stats WHERE year = $1",
 				year)
 			if err == nil {
 				err = expectSingleRowAffected(result)
@@ -218,11 +218,11 @@ func setYears(activeYear int, years []int) error {
 		}
 	}
 	// remove active year
-	if len(years) > 0 && err == nil {
+	if err == nil && len(years) > 0 {
 		result, err = tx.Exec("UPDATE stats SET active = NULL WHERE active")
 	}
 	// set active year
-	if len(years) > 0 && err == nil {
+	if err == nil && len(years) > 0 {
 		// TODO: make "func affectOneRow(tx *sql.Tx, sql string) error" function
 		result, err = tx.Exec(
 			"UPDATE stats SET active = TRUE WHERE year = $1",
