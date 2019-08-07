@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -37,7 +38,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 	}
 }
 
@@ -132,10 +134,25 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 	if err != nil {
 		return err
 	}
+	years, err := getYears()
+	if err != nil {
+		return err
+	}
+
+	scoreCategoriesData := make([]interface{}, len(es.ScoreCategories))
+	for i, sc := range es.ScoreCategories {
+		scoreCategoriesData[i] = sc
+	}
+	friendsData := scoreCategoriesData
+	yearsData := make([]interface{}, len(years))
+	for i, year := range years {
+		yearsData[i] = year
+	}
 
 	tabs := []Tab{
-		AdminTab{Name: "Players", Action: "players", ScoreCategories: es.ScoreCategories},
-		AdminTab{Name: "Friends", Action: "friends", ScoreCategories: es.ScoreCategories},
+		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
+		AdminTab{Name: "Friends", Action: "friends", Data: friendsData}, // TODO: return just friends
+		AdminTab{Name: "Years", Action: "years", Data: yearsData},
 		// TODO: use .Action attribute on ui for id purposes so .Name can contain spaces
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
 		AdminTab{Name: "Reset_Password", Action: "password"},
@@ -145,7 +162,7 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 		Title:         "Nate's MLB pool [ADMIN MODE]",
 		Tabs:          tabs,
 		Message:       message,
-		templateNames: []string{"adminTabs", "friendsForm", "playersForm"},
+		templateNames: []string{"adminTabs", "playersForm", "friendsForm", "yearsForm"},
 	}
 
 	return renderTemplate(w, adminPage)
@@ -157,12 +174,11 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	for i, templateName := range p.templateNames {
 		templateNames[i+1] = fmt.Sprintf("templates/%s.html", templateName)
 	}
-	template, err := template.ParseFiles(templateNames...)
+	t, err := template.ParseFiles(templateNames...)
 	if err != nil {
 		return err
 	}
-
-	return template.Execute(w, p)
+	return t.Execute(w, p)
 }
 
 func formatTime(t time.Time) string {
@@ -185,9 +201,9 @@ type Tab interface {
 
 // AdminTab provides tabs with admin tasks.
 type AdminTab struct {
-	Name            string
-	Action          string
-	ScoreCategories []ScoreCategory
+	Name   string
+	Action string
+	Data   []interface{} // each template knows what data to expect
 }
 
 // GetName implements the Tab interface for AdminTab

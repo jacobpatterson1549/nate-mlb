@@ -1,9 +1,10 @@
 {{ define "friendsForm" }}
-{{- if .ScoreCategories -}}
+{{- if .Data -}}
+{{- with $scoreCategories := .Data -}}
 <fieldset>
     <legend>Friends</legend>
     <div>
-        {{- range $index, $friendScore := (index .ScoreCategories 0).FriendScores }}
+        {{- range $index, $friendScore := (index $scoreCategories 0).FriendScores }}
         <div class="form-group" id="friend-{{$friendScore.FriendID}}">
             <input id="friend-{{$friendScore.FriendID}}-display-order"
                 name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
@@ -89,5 +90,6 @@
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
 </script>
+{{- end -}}
 {{- end -}}
 {{ end }}

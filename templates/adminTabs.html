@@ -15,11 +15,14 @@
     {{- if (eq .Action "players") }}
     {{ template "playersForm" . }}
     {{ end -}}
+    {{- if (eq .Action "years") }}
+    {{ template "yearsForm" . }}
+    {{ end -}}
     <div class="form-group">
         <label for="{{.Action}}-currentPassword">Current Password</label>
         <input id="{{.Action}}-currentPassword" name="currentPassword" type="password" class="form-control" required>
     </div>
     <input name="action" type="hidden" value="{{.Action}}">
-    <button class="btn btn-primary" form="{{.Action}}-form" value="Submit">Submit</button>
+    <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button" value="Submit">Submit</button>
 </form>
 {{ end }}

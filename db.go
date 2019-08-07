@@ -119,28 +119,41 @@ func getActiveYear() (int, error) {
 	return activeYear, err
 }
 
-func getYears() ([]int, error) {
+func getYears() ([]Year, error) {
+	years := []Year{}
+
 	db, err := getDb()
 	if err != nil {
-		return nil, err
+		return years, err
 	}
 	defer db.Close()
 
-	rows, err := db.Query("SELECT year FROM stats ORDER BY year ASC")
+	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
 	if err != nil {
-		return nil, fmt.Errorf("Error reading years: %q", err)
+		return years, fmt.Errorf("Error reading years: %q", err)
 	}
 	defer rows.Close()
 
-	years := []int{}
+	activeYearFound := false
+	var active sql.NullBool
 	i := 0
 	for rows.Next() {
-		years = append(years, 0)
-		err = rows.Scan(&years[i])
+		years = append(years, Year{})
+		err = rows.Scan(&years[i].Value, &active)
 		if err != nil {
-			return nil, fmt.Errorf("Problem reading data: %q", err)
+			return years, fmt.Errorf("Problem reading data: %q", err)
+		}
+		if active.Valid && active.Bool {
+			if activeYearFound {
+				return years, errors.New("multiple active years in db")
+			}
+			activeYearFound = true
+			years[i].Active = true
 		}
 		i++
+	}
+	if !activeYearFound && len(years) > 0 {
+		return years, errors.New("no active year in db")
 	}
 	return years, nil
 }
@@ -153,7 +166,7 @@ func setYears(activeYear int, years []int) error {
 	}
 	currentYearsMap := make(map[int]bool)
 	for _, year := range currentYears {
-		currentYearsMap[year] = true
+		currentYearsMap[year.Value] = true
 	}
 
 	insertYears := []int{}
@@ -168,7 +181,7 @@ func setYears(activeYear int, years []int) error {
 			insertYears = append(insertYears, year)
 		}
 	}
-	if !activeYearPresent {
+	if len(years) > 0 && !activeYearPresent {
 		return fmt.Errorf("active year %d not present in years: %q", activeYear, years)
 	}
 	deleteYears := currentYearsMap
@@ -205,19 +218,16 @@ func setYears(activeYear int, years []int) error {
 		}
 	}
 	// remove active year
-	if err != nil {
-		result, err = tx.Exec("UPDATE stats SET active = false WHERE active")
-		if err == nil {
-			err = expectSingleRowAffected(result)
-		}
+	if len(years) > 0 && err == nil {
+		result, err = tx.Exec("UPDATE stats SET active = NULL WHERE active")
 	}
 	// set active year
-	if err != nil {
-		// TOOD: make "func affectOneRow(tx *sql.Tx, sql string) error" function
+	if len(years) > 0 && err == nil {
+		// TODO: make "func affectOneRow(tx *sql.Tx, sql string) error" function
 		result, err = tx.Exec(
 			"UPDATE stats SET active = TRUE WHERE year = $1",
 			activeYear)
-		if err == nil {
+		if err != nil {
 			err = expectSingleRowAffected(result)
 		}
 	}
@@ -490,6 +500,12 @@ type FriendPlayerInfo struct {
 	friends     []Friend
 	playerTypes []PlayerType
 	players     []Player
+}
+
+// Year contains a year that has been set for stats and whether it is active
+type Year struct {
+	Value  int
+	Active bool
 }
 
 // Friend contains the name of the person in the pool.

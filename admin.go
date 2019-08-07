@@ -17,6 +17,7 @@ func handleAdminRequest(r *http.Request) error {
 		"cache":    clearCache,
 		"friends":  updateFriends,
 		"players":  updatePlayers,
+		"years":    updateYears,
 	}
 	if action, ok := actions[actionParam]; ok {
 		return action(r)
@@ -137,6 +138,34 @@ func updatePlayers(r *http.Request) error {
 		return err
 	}
 	return nullEtlJSON()
+}
+
+func updateYears(r *http.Request) error {
+	currentPassword := r.FormValue("currentPassword")
+	if err := verifyPassword(currentPassword); err != nil {
+		return err
+	}
+
+	activeYear := r.Form.Get("active-year")
+	if len(activeYear) == 0 {
+		return errors.New("missing value for active-year")
+	}
+	activeYearI, err := strconv.Atoi(activeYear)
+	if err != nil {
+		return err
+	}
+	years := r.Form["year"]
+	yearsI := make([]int, len(years))
+	for i, year := range years {
+		yearI, err := strconv.Atoi(year)
+		if err != nil {
+			return err
+		}
+		yearsI[i] = yearI
+	}
+
+	// calling getEtlStats() will update the cache if needed (no player/friend data has changed)
+	return setYears(activeYearI, yearsI)
 }
 
 func hashPassword(password string) (string, error) {
