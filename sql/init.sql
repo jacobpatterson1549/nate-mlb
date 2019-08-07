@@ -33,10 +33,20 @@ CREATE TABLE IF NOT EXISTS key_store
         , v TEXT
         );
 
+CREATE TABLE IF NOT EXISTS stats
+        ( year INT PRIMARY KEY
+        , active BOOLEAN
+        , etl_timestamp TIMESTAMP
+        , etl_json TEXT
+        , CONSTRAINT active_true_or_null CHECK (active)
+        , CONSTRAINT active_only_one UNIQUE (active)
+        );
+
+INSERT INTO stats (year) VALUES (2019);
+
 INSERT INTO key_store (k, v)
         VALUES
-          ('admin', 'invalid_hssh_value')
-          ('etl', '')
+          ('admin', 'invalid_hash_value')
         ;
 
 INSERT INTO player_types (id, name, description)
@@ -55,7 +65,6 @@ INSERT INTO friends (id, name, display_order)
         , (5, 'Steve', 4)
         , (6, 'Mike',  5)
         ;
-
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order)
 	VALUES

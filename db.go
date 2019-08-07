@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -40,6 +43,193 @@ func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 	fpi.playerTypes = playerTypes
 	fpi.players = players
 	return fpi, nil
+}
+
+func getEtlStats() (EtlStats, error) {
+	var es EtlStats
+
+	db, err := getDb()
+	if err != nil {
+		return es, nil
+	}
+	defer db.Close()
+
+	var year int
+	var etlJSON sql.NullString
+	row := db.QueryRow("SELECT year, etl_json FROM stats WHERE active")
+	err = row.Scan(&year, &etlJSON)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			err = errors.New("no active year")
+		}
+		return es, err
+	}
+	fetchStats := true
+	currentTime := time.Now()
+	if etlJSON.Valid {
+		err = json.Unmarshal([]byte(etlJSON.String), &es)
+		if err != nil {
+			return es, err
+		}
+		fetchStats = es.isStale(currentTime)
+	}
+	if fetchStats {
+		scoreCategories, err := getStats()
+		if err != nil {
+			return es, err
+		}
+		es.ScoreCategories = scoreCategories
+		es.EtlTime = currentTime
+		etlJSON, err := json.Marshal(es)
+		if err != nil {
+			return es, err
+		}
+		result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE year = $2", etlJSON, year)
+		if err != nil {
+			return es, err
+		}
+		err = expectSingleRowAffected(result)
+	}
+	return es, err
+}
+
+func nullEtlJSON() error {
+	db, err := getDb()
+	if err == nil {
+		defer db.Close()
+		_, err = db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
+	}
+	return err
+}
+
+func getActiveYear() (int, error) {
+	var activeYear int
+
+	db, err := getDb()
+	if err != nil {
+		return activeYear, nil
+	}
+	defer db.Close()
+
+	row := db.QueryRow("SELECT year FROM stats WHERE activeYear")
+	err = row.Scan(&activeYear)
+	if err == sql.ErrNoRows {
+		err = errors.New("no active year")
+	}
+	return activeYear, err
+}
+
+func getYears() ([]int, error) {
+	db, err := getDb()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	rows, err := db.Query("SELECT year FROM stats ORDER BY year ASC")
+	if err != nil {
+		return nil, fmt.Errorf("Error reading years: %q", err)
+	}
+	defer rows.Close()
+
+	years := []int{}
+	i := 0
+	for rows.Next() {
+		years = append(years, 0)
+		err = rows.Scan(&years[i])
+		if err != nil {
+			return nil, fmt.Errorf("Problem reading data: %q", err)
+		}
+		i++
+	}
+	return years, nil
+}
+
+func setYears(activeYear int, years []int) error {
+	// TODO: use same db connection for getting existing years, updating/inserting/deleting ones
+	currentYears, err := getYears()
+	if err != nil {
+		return err
+	}
+	currentYearsMap := make(map[int]bool)
+	for _, year := range currentYears {
+		currentYearsMap[year] = true
+	}
+
+	insertYears := []int{}
+	activeYearPresent := false
+	for _, year := range years {
+		if year == activeYear {
+			activeYearPresent = true
+		}
+		if _, ok := currentYearsMap[year]; ok {
+			delete(currentYearsMap, year) // no need to update
+		} else {
+			insertYears = append(insertYears, year)
+		}
+	}
+	if !activeYearPresent {
+		return fmt.Errorf("active year %d not present in years: %q", activeYear, years)
+	}
+	deleteYears := currentYearsMap
+
+	db, err := getDb()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	var result sql.Result
+	for year := range deleteYears {
+		if err == nil {
+			result, err = tx.Exec(
+				"DELETE FROM stats WHERE year = %1",
+				year)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	for _, year := range insertYears {
+		if err == nil {
+			result, err = tx.Exec(
+				"INSERT INTO stats (year) VALUES ($1)",
+				year)
+			if err == nil {
+				err = expectSingleRowAffected(result)
+			}
+		}
+	}
+	// remove active year
+	if err != nil {
+		result, err = tx.Exec("UPDATE stats SET active = false WHERE active")
+		if err == nil {
+			err = expectSingleRowAffected(result)
+		}
+	}
+	// set active year
+	if err != nil {
+		// TOOD: make "func affectOneRow(tx *sql.Tx, sql string) error" function
+		result, err = tx.Exec(
+			"UPDATE stats SET active = TRUE WHERE year = $1",
+			activeYear)
+		if err == nil {
+			err = expectSingleRowAffected(result)
+		}
+	}
+	if err == nil {
+		err = tx.Commit()
+	} else {
+		if err2 := tx.Rollback(); err2 != nil {
+			err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
+		}
+	}
+
+	return err
 }
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
@@ -323,4 +513,16 @@ type Player struct {
 	playerTypeID int
 	playerID     int
 	friendID     int
+}
+
+// EtlStats contain some score categories that were stored at a specific time
+type EtlStats struct {
+	ScoreCategories []ScoreCategory
+	EtlTime         time.Time
+}
+
+func (es *EtlStats) isStale(currentTime time.Time) bool {
+	previousMidnight := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, currentTime.Location())
+
+	return es.EtlTime.Before(previousMidnight)
 }

@@ -96,13 +96,13 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 }
 
 func writeView(w http.ResponseWriter) error {
-	es, err := getETLStats()
+	es, err := getEtlStats()
 	if err != nil {
 		return err
 	}
 
-	tabs := make([]Tab, len(es.Stats))
-	for i, sc := range es.Stats {
+	tabs := make([]Tab, len(es.ScoreCategories))
+	for i, sc := range es.ScoreCategories {
 		tabs[i] = sc
 	}
 
@@ -128,14 +128,14 @@ func writeAbout(w http.ResponseWriter) error {
 }
 
 func writeAdminTabs(w http.ResponseWriter, message string) error {
-	es, err := getETLStats()
+	es, err := getEtlStats()
 	if err != nil {
 		return err
 	}
 
 	tabs := []Tab{
-		AdminTab{Name: "Players", Action: "players", ScoreCategories: es.Stats},
-		AdminTab{Name: "Friends", Action: "friends", ScoreCategories: es.Stats},
+		AdminTab{Name: "Players", Action: "players", ScoreCategories: es.ScoreCategories},
+		AdminTab{Name: "Friends", Action: "friends", ScoreCategories: es.ScoreCategories},
 		// TODO: use .Action attribute on ui for id purposes so .Name can contain spaces
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
 		AdminTab{Name: "Reset_Password", Action: "password"},

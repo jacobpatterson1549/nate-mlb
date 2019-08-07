@@ -46,7 +46,7 @@ func clearCache(r *http.Request) error {
 		return err
 	}
 
-	return setKeyStoreValue("etl", "")
+	return nullEtlJSON()
 }
 
 func updateFriends(r *http.Request) error {
@@ -80,7 +80,7 @@ func updateFriends(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return setKeyStoreValue("etl", "")
+	return nullEtlJSON()
 }
 
 func updatePlayers(r *http.Request) error {
@@ -136,7 +136,7 @@ func updatePlayers(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return setKeyStoreValue("etl", "")
+	return nullEtlJSON()
 }
 
 func hashPassword(password string) (string, error) {
