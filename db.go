@@ -308,7 +308,7 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 	return players, nil
 }
 
-func getKeyStoreValue(key string) (string, error) {
+func getUserPassword(username string) (string, error) {
 	var v string
 
 	db, err := getDb()
@@ -317,18 +317,18 @@ func getKeyStoreValue(key string) (string, error) {
 	}
 	defer db.Close()
 
-	row := db.QueryRow("SELECT v FROM key_store WHERE k = $1", key)
+	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
 	err = row.Scan(&v)
 	return v, err // TODO: Can `return v, row.Scan(&v)` be used?
 }
 
-func setKeyStoreValue(key string, value string) error {
+func setUserPassword(username, password string) error {
 	db, err := getDb()
 	if err != nil {
 		return err
 	}
 
-	result, err := db.Exec("UPDATE key_store SET v = $1 WHERE k = $2", value, key)
+	result, err := db.Exec("UPDATE users SET password = $1 WHERE username = $2", password, username)
 	if err != nil {
 		return err
 	}

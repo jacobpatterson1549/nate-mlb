@@ -13,7 +13,7 @@ import (
 func handleAdminRequest(r *http.Request) error {
 	actionParam := r.FormValue("action")
 	actions := map[string](func(*http.Request) error){
-		"password": setPassword,
+		"password": resetPassword,
 		"cache":    clearCache,
 		"friends":  updateFriends,
 		"players":  updatePlayers,
@@ -25,25 +25,21 @@ func handleAdminRequest(r *http.Request) error {
 	return errors.New("invalid admin action")
 }
 
-func setPassword(r *http.Request) error {
-	newPassword := r.FormValue("newPassword")
-	currentPassword := r.FormValue("currentPassword")
-
-	if err := verifyPassword(currentPassword); err != nil {
+func resetPassword(r *http.Request) error {
+	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
+	newPassword := r.FormValue("newPassword")
 	hashedPassword, err := hashPassword(newPassword)
 	if err != nil {
 		return err
 	}
-
-	return setKeyStoreValue("admin", hashedPassword)
+	return setUserPassword("admin", hashedPassword)
 }
 
 func clearCache(r *http.Request) error {
-	currentPassword := r.FormValue("currentPassword")
-	if err := verifyPassword(currentPassword); err != nil {
+	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
@@ -51,8 +47,7 @@ func clearCache(r *http.Request) error {
 }
 
 func updateFriends(r *http.Request) error {
-	currentPassword := r.FormValue("currentPassword")
-	if err := verifyPassword(currentPassword); err != nil {
+	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
@@ -85,8 +80,7 @@ func updateFriends(r *http.Request) error {
 }
 
 func updatePlayers(r *http.Request) error {
-	currentPassword := r.FormValue("currentPassword")
-	if err := verifyPassword(currentPassword); err != nil {
+	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
@@ -141,8 +135,7 @@ func updatePlayers(r *http.Request) error {
 }
 
 func updateYears(r *http.Request) error {
-	currentPassword := r.FormValue("currentPassword")
-	if err := verifyPassword(currentPassword); err != nil {
+	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
@@ -176,8 +169,10 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func verifyPassword(password string) error {
-	hashedPassword, err := getKeyStoreValue("admin")
+func verifyUserPassword(r *http.Request) error {
+	username := r.FormValue("username")
+	password := r.FormValue("currentPassword")
+	hashedPassword, err := getUserPassword(username)
 	if err != nil {
 		return err
 	}

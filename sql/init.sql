@@ -28,7 +28,7 @@ CREATE TABLE player_types
         , description TEXT
 	);
 
-CREATE TABLE  players
+CREATE TABLE players
 	( id SERIAL PRIMARY KEY
 	, player_type_id INT
 	, player_id INT NOT NULL
@@ -41,9 +41,9 @@ CREATE TABLE  players
         , FOREIGN KEY (year) REFERENCES stats (year) ON DELETE CASCADE
 	);
 
-CREATE TABLE  key_store
-	( k VARCHAR(20) PRIMARY KEY
-        , v TEXT
+CREATE TABLE users
+	( username VARCHAR(20) PRIMARY KEY
+        , password TEXT
         );
 
 INSERT INTO stats (year, active) VALUES (2019, TRUE);
@@ -140,7 +140,7 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
         ;
 SELECT setVal('players_id_seq', COALESCE((SELECT MAX(id)+1 FROM players), 1));
 
-INSERT INTO key_store (k, v)
+INSERT INTO users (username, password)
         VALUES
           ('admin', 'invalid_hash_value')
         ;
