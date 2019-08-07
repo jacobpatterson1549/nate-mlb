@@ -517,8 +517,8 @@ type Player struct {
 
 // EtlStats contain some score categories that were stored at a specific time
 type EtlStats struct {
-	ScoreCategories []ScoreCategory
 	EtlTime         time.Time
+	ScoreCategories []ScoreCategory
 }
 
 func (es *EtlStats) isStale(currentTime time.Time) bool {
