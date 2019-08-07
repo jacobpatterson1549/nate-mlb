@@ -244,7 +244,7 @@ func setYears(activeYear int, years []int) error {
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
 func getFriends(db *sql.DB) ([]Friend, error) {
-	rows, err := db.Query("SELECT id, display_order, name FROM friends ORDER BY display_order ASC")
+	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading friends: %q", err)
 	}
@@ -284,9 +284,9 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 }
 
 func getPlayers(db *sql.DB) ([]Player, error) {
-	rows, err := db.Query("SELECT id, display_order, player_type_id, player_id, friend_id FROM players ORDER BY player_type_id, friend_id, display_order")
+	rows, err := db.Query("SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.active ORDER BY p.player_type_id, p.friend_id, p.display_order")
 	if err != nil {
-		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
+		return nil, fmt.Errorf("Error reading players: %q", err)
 	}
 	defer rows.Close()
 
@@ -377,7 +377,7 @@ func setFriends(futureFriends []Friend) error {
 	for _, friend := range insertFriends {
 		if err == nil {
 			result, err = tx.Exec(
-				"INSERT INTO friends (display_order, name) VALUES ($1, $2)",
+				"INSERT INTO friends (display_order, name, year) SELECT ($1, $2, year) FROM stats AS s WHERE s.active",
 				friend.displayOrder,
 				friend.name)
 			if err == nil {
@@ -453,7 +453,7 @@ func setPlayers(futurePlayers []Player) error {
 	for _, player := range insertPlayers {
 		if err == nil {
 			result, err = tx.Exec(
-				"INSERT INTO players (display_order, player_type_id, player_id, friend_id) VALUES ($1, $2, $3, $4)",
+				"INSERT INTO players (display_order, player_type_id, player_id, friend_id) SELECT ($1, $2, $3, $4, year) FROM stats AS s WHERE s.active",
 				player.displayOrder,
 				player.playerTypeID,
 				player.playerID,
