@@ -1,5 +1,15 @@
 {{ define "content" }}
 <form method="POST" id="{{.Action}}-form">
+    <div class="form-group">
+        <label for="{{.Action}}-username">Username Password</label>
+        <input id="{{.Action}}-username" name="username" type="text" autocomplete="username" class="form-control"
+            required>
+    </div>
+    <div class="form-group">
+        <label for="{{.Action}}-password">Password</label>
+        <input id="{{.Action}}-password" name="password" type="password" autocomplete="current-password"
+            class="form-control" required>
+    </div>
     {{- if (eq .Action "password") }}
     <div class="form-group">
         <label for="newPassword">New Password</label>
@@ -19,17 +29,6 @@
     {{- if (eq .Action "years") }}
     {{ template "yearsForm" . }}
     {{ end -}}
-
-    <div class="form-group">
-        <label for="{{.Action}}-username">Current Password</label>
-        <input id="{{.Action}}-username" name="username" type="text" autocomplete="username"
-            class="form-control" required>
-    </div>
-    <div class="form-group">
-        <label for="{{.Action}}-password">Current Password</label>
-        <input id="{{.Action}}-password" name="password" type="password" autocomplete="current-password"
-            class="form-control" required>
-    </div>
     <input name="action" type="hidden" value="{{.Action}}">
     <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
         value="Submit">Submit</button>
