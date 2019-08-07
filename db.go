@@ -38,10 +38,15 @@ func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 	if err != nil {
 		return fpi, err
 	}
+	activeYear, err := getActiveYear()
+	if err != nil {
+		return fpi, err
+	}
 
 	fpi.friends = friends
 	fpi.playerTypes = playerTypes
 	fpi.players = players
+	fpi.year = activeYear
 	return fpi, nil
 }
 
@@ -111,7 +116,7 @@ func getActiveYear() (int, error) {
 	}
 	defer db.Close()
 
-	row := db.QueryRow("SELECT year FROM stats WHERE activeYear")
+	row := db.QueryRow("SELECT year FROM stats WHERE active")
 	err = row.Scan(&activeYear)
 	if err == sql.ErrNoRows {
 		err = errors.New("no active year")
@@ -377,7 +382,7 @@ func setFriends(futureFriends []Friend) error {
 	for _, friend := range insertFriends {
 		if err == nil {
 			result, err = tx.Exec(
-				"INSERT INTO friends (display_order, name, year) SELECT ($1, $2, year) FROM stats AS s WHERE s.active",
+				"INSERT INTO friends (display_order, name, year) SELECT $1, $2, year FROM stats AS s WHERE s.active",
 				friend.displayOrder,
 				friend.name)
 			if err == nil {
@@ -453,7 +458,7 @@ func setPlayers(futurePlayers []Player) error {
 	for _, player := range insertPlayers {
 		if err == nil {
 			result, err = tx.Exec(
-				"INSERT INTO players (display_order, player_type_id, player_id, friend_id) SELECT ($1, $2, $3, $4, year) FROM stats AS s WHERE s.active",
+				"INSERT INTO players (display_order, player_type_id, player_id, friend_id) SELECT $1, $2, $3, $4, year FROM stats AS s WHERE s.active",
 				player.displayOrder,
 				player.playerTypeID,
 				player.playerID,
@@ -500,6 +505,7 @@ type FriendPlayerInfo struct {
 	friends     []Friend
 	playerTypes []PlayerType
 	players     []Player
+	year        int
 }
 
 // Year contains a year that has been set for stats and whether it is active

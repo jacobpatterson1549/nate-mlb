@@ -55,7 +55,7 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, 
 
 func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType PlayerType) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := requestTeamsJSON()
+	teamsJSON, err := requestTeamsJSON(friendPlayerInfo.year)
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
 		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
@@ -99,9 +99,9 @@ func requestJSON(url string, v interface{}) error {
 	return json.NewDecoder(response.Body).Decode(&v)
 }
 
-func requestTeamsJSON() (TeamsJSON, error) {
+func requestTeamsJSON(year int) (TeamsJSON, error) {
 	teamsJSON := TeamsJSON{}
-	return teamsJSON, requestJSON("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103%2C104&season=2019", &teamsJSON)
+	return teamsJSON, requestJSON(strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C"), &teamsJSON)
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
@@ -205,7 +205,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlay
 
 	pir.wg.Add(2)
 	go pir.requestPlayerNames(playerIDstrings)
-	go pir.requestPlayerStats(playerIDInts)
+	go pir.requestPlayerStats(playerIDInts, friendPlayerInfo.year)
 }
 
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
@@ -227,13 +227,13 @@ func (pir *PlayerInfoRequest) addPlayerNames(playerNamesJSON PlayerNamesJSON) {
 	}
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int) {
+func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	wg.Add(len(playerIDs))
 	for _, playerID := range playerIDs {
 		go func(playerID int, mutex *sync.Mutex) {
-			pir.requestPlayerStat(playerID, mutex)
+			pir.requestPlayerStat(playerID, year, mutex)
 			wg.Done()
 		}(playerID, &mutex)
 	}
@@ -242,8 +242,8 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int) {
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, mutex *sync.Mutex) {
-	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=2019&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID), ",", "%2C")
+func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
+	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStatsJSON := PlayerStatsJSON{}
 	err := requestJSON(playerStatsURL, &playerStatsJSON)
 

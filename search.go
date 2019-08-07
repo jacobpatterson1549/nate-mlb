@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func searchPlayers(playerTypeID int, playerNamePrefix string) ([]PlayerSearchResult, error) {
@@ -21,7 +22,11 @@ func searchPlayers(playerTypeID int, playerNamePrefix string) ([]PlayerSearchRes
 
 func searchTeams(query string) ([]PlayerSearchResult, error) {
 	teamSearchResults := []PlayerSearchResult{}
-	teamsJSON, err := requestTeamsJSON()
+	activeYear, err := getActiveYear()
+	if err != nil {
+		return teamSearchResults, err
+	}
+	teamsJSON, err := requestTeamsJSON(activeYear)
 	if err != nil {
 		return teamSearchResults, err
 	}
@@ -44,7 +49,16 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 
 func searchPlayerNames(playerNamePrefix string) ([]PlayerSearchResult, error) {
 	playerSearchResults := []PlayerSearchResult{}
-	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&sport_code='mlb'&active_sw='Y'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix), "'", "%27")
+	currentYear := time.Now().Year()
+	activeYear, err := getActiveYear()
+	if err != nil {
+		return playerSearchResults, err
+	}
+	activePlayers := "Y"
+	if currentYear != activeYear {
+		activePlayers = "N"
+	}
+	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	response, err := request(url)
 	if err != nil {
 		return playerSearchResults, err
