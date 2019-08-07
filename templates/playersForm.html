@@ -136,7 +136,7 @@
                 // get max id from players
                 var playerScores = friendScore.getElementsByClassName('player-score');
                 for (var k = 0; k < playerScores.length; k++) {
-                    var playerElement = playerScores[i]
+                    var playerElement = playerScores[k]
                     var playerElementId = parseInt(playerElement.id.substring('player-'.length));
                     if (playerElementId > maxID) {
                         maxID = playerElementId;
