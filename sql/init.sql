@@ -57,7 +57,7 @@ INSERT INTO friends (id, name, display_order, year)
         , (5, 'Steve', 4, 2019)
         , (6, 'Mike',  5, 2019)
         ;
-nate_mlb_db=> SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id) FROM friends), 1));
+SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id)+1 FROM friends), 1));
 
 INSERT INTO player_types (id, name, description)
 	VALUES
@@ -138,7 +138,7 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
         , (3, 543037, 6, 1, 2019) -- Gerrit Cole
         , (3, 545333, 6, 2, 2019) -- Trevor Bauer
         ;
-nate_mlb_db=> SELECT setVal('players_id_seq', COALESCE((SELECT MAX(id) FROM players), 1));
+SELECT setVal('players_id_seq', COALESCE((SELECT MAX(id)+1 FROM players), 1));
 
 INSERT INTO key_store (k, v)
         VALUES
