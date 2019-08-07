@@ -171,7 +171,7 @@ func hashPassword(password string) (string, error) {
 
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
-	password := r.FormValue("currentPassword")
+	password := r.FormValue("password")
 	hashedPassword, err := getUserPassword(username)
 	if err != nil {
 		return err
