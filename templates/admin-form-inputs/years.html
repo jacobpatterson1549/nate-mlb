@@ -5,10 +5,10 @@
     <legend>Years</legend>
     <div id="years">
         {{range $years}}
-        <div class="form-group" id="year-{{.Value}}">
-            <input type="radio" name="active-year" id="year-{{.Value}}-active" value="{{.Value}}"
+        <div class="form-check" id="year-{{.Value}}">
+            <input class="form-check-input" type="radio" name="active-year" id="year-{{.Value}}-active" value="{{.Value}}"
                 {{if .Active}}checked{{end}}>
-            <label for="year">{{.Value}}</label>
+            <label class="form-check-label" for="year-{{.Value}}-active">{{.Value}}</label>
             <input type="hidden" name="year" id="year-{{.Value}}-value" value="{{.Value}}">
             <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
         </div>
@@ -38,9 +38,9 @@
         }
         newYear.classList.add('form-group');
         newYear.id = "year-" + newYear;
-        newYear.innerHTML = '<input type="radio" name="active-year" id="year-' + year + '-active" value="' + year +
+        newYear.innerHTML = '<input class="form-check-input" type="radio" name="active-year" id="year-' + year + '-active" value="' + year +
             '" checked>' +
-            ' <label for="year">' + year + '</label>' +
+            ' <label class="form-check-label" for="year">' + year + '</label>' +
             ' <input type="hidden" name="year" id="year-' + year + '-value" value="' + year + '">' +
             ' <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>';
         yearsParent.appendChild(newYear);

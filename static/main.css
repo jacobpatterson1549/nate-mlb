@@ -15,15 +15,20 @@ h4 {
 }
 
 label {
-    display: inline-block; /* TODO: wrap in class 'form-inline' instead */
     width: 6rem;
-    text-align: right;
-    margin-right: 1rem;
 }
 
-input.form-control {
+.form-control {
     display: inline-block;
     width: 6rem;
+}
+
+nav, #main-tabs, .form-check, fieldset + button, form {
+    margin-bottom: 1rem;
+}
+
+.btn-primary {
+    display: block;
 }
 
 html {
@@ -32,11 +37,6 @@ html {
 
 i {
     margin-right: .5rem;
-}
-
-.custom-select {
-    width: 10rem;
-    margin: .5rem;
 }
 
 .player-hidden {
