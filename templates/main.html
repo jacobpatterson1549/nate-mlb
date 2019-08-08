@@ -1,5 +1,4 @@
 <!doctype html>
-
 <html lang="en">
 
 <head>
@@ -7,8 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="Description" content="mlb baseball statistic aggregation">
-  <title>{{ .Title }}</title>
-  <!-- Bootstrap -->
+  <title>{{.Title}}</title>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
   </script>
@@ -20,12 +18,10 @@
   </script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <!-- Additional Styling -->
   <link rel="stylesheet" type="text/css" href="/static/main.css" />
 </head>
 
 <body>
-
   <nav class="navbar navbar-expand-sm navbar-light bg-light">
     <a class="navbar-brand" href="/">Stats</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -43,37 +39,30 @@
       </ul>
     </div>
   </nav>
-
   <br />
-
   <ul id="mainTabs" class="nav nav-tabs" role="tablist">
-    {{- range .Tabs }}
+    {{range .Tabs}}
     <li class="nav-item">
       <a id="{{.GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetName}}" role="tab"
         aria-controls="{{.GetName}}">{{.GetName}}</a>
     </li>
-    {{- end }}
+    {{end}}
   </ul>
-
   <br />
-
   <div id="mainContent" class="tab-content" role="main">
-    {{- range .Tabs }}
+    {{-range .Tabs}}
     <div id="{{.GetName}}" class="tab-pane fade" role="tabpanel" aria-labelledby="{{.GetName}}-tab">
-      {{ template "content" . }}
+      {{template "content" .}}
     </div>
-    {{ end -}}
+    {{end}}
   </div>
-
-  <p id="message" role="contentinfo">{{ .Message }}</p>
-
+  <p id="message" role="contentinfo">{{.Message}}</p>
   <script>
     $(function () {
       $('#mainTabs li:first-child a').tab('show')
       $('#navbar a[href="' + this.location.pathname + '"]').addClass('active')
     })
   </script>
-
 </body>
 
 </html>

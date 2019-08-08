@@ -1,30 +1,30 @@
-{{- define "players" -}}
-{{- if .Data -}}
-{{- with $scoreCategories := .Data -}}
+{{define "players"}}
+{{if .Data}}
+{{with $scoreCategories := .Data}}
 <fieldset>
     <legend>Players</legend>
     <label for="select-player-type">Player Type</label>
     <select id="select-player-type" class="custom-select" onchange="refreshVisibleFriendScores()">
-        {{- range $scoreCategories -}}
+        {{range $scoreCategories}}
         <option value="{{.PlayerTypeID}}">{{.Name}}</option>
-        {{- end -}}
+        {{end}}
     </select>
     <br />
     <label for="select-friend">Friend</label>
     <select id="select-friend" class="custom-select" onchange="refreshVisibleFriendScores()">
-        {{- range (index $scoreCategories 0).FriendScores -}}
+        {{range (index $scoreCategories 0).FriendScores}}
         <option value="{{.FriendID}}">{{.FriendName}}</option>
-        {{- end -}}
+        {{end}}
     </select>
     <br />
     <div>
-        {{- range $scoreCategories -}}
+        {{range $scoreCategories}}
         <div class="score-category">
             <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
-            {{- range .FriendScores -}}
+            {{range .FriendScores}}
             <div class="friend-score">
                 <input class="friend-id" value="{{.FriendID}}" type="hidden">
-                {{- range $index, $playerScore := .PlayerScores -}}
+                {{range $index, $playerScore := .PlayerScores}}
                 <div class="form-group player-score" id="player-{{$playerScore.ID}}">
                     <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
                         value="{{$index}}" type="hidden">
@@ -34,11 +34,11 @@
                     <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
                     <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
                 </div>
-                {{- end -}}
+                {{end}}
             </div>
-            {{- end -}}
+            {{end}}
         </div>
-        {{- end -}}
+        {{end}}
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
@@ -270,6 +270,6 @@
 
     refreshVisibleFriendScores(); // initialize visible friend score to first one.
 </script>
-{{- end -}}
-{{- end -}}
-{{- end -}}
+{{end}}
+{{end}}
+{{end}}

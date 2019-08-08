@@ -1,27 +1,27 @@
-{{ define "content" }}
-<h2>{{ .Description }}</h2>
+{{define "content"}}
+<h2>{{.Description}}</h2>
 <div class="container">
     <div class="row">
-        {{ range .FriendScores }}
+        {{range .FriendScores}}
         <div class="col-sm m-2">
             <div class="card">
                 <div class="card-body">
-                    <h3 class="card-title">{{ .FriendName }}</h3>
+                    <h3 class="card-title">{{.FriendName}}</h3>
                     <div class="card-text">
                         <table class="card-table table">
-                            {{- range .PlayerScores }}
+                            {{range .PlayerScores}}
                             <tr>
-                                <td>{{ .PlayerName }}</td>
-                                <td>{{ .Score }}</td>
+                                <td>{{.PlayerName}}</td>
+                                <td>{{.Score}}</td>
                             </tr>
-                            {{- end }}
+                            {{end}}
                         </table>
-                        <h4 class="list-group-item">Value: {{ .Score }}</h4>
+                        <h4 class="list-group-item">Value: {{.Score}}</h4>
                     </div>
                 </div>
             </div>
         </div>
-        {{ end }}
+        {{end}}
     </div>
 </div>
-{{ end }}
+{{end}}
