@@ -11,6 +11,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// IDs of constant db enums
+const (
+	playerTypeTeam     = 1
+	playerTypeHitting  = 2
+	playerTypePitching = 3
+)
+
 func getDb() (*sql.DB, error) {
 	driverName := "postgres"
 	datasourceName := os.Getenv("DATABASE_URL")

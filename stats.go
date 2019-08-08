@@ -41,12 +41,12 @@ func getStats() ([]ScoreCategory, error) {
 }
 
 func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
-	switch playerType.name {
-	case "teams":
+	switch playerType.id {
+	case playerTypeTeam:
 		return getTeamScoreScategory(friendPlayerInfo, playerType)
-	case "hitting":
+	case playerTypeHitting:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
-	case "pitching":
+	case playerTypePitching:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
 		return ScoreCategory{}, fmt.Errorf("Unknown playerType: %v", playerType.name)
@@ -290,6 +290,8 @@ func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIDs []int) {
 }
 
 func (s *Stat) getScore(groupDisplayName string) (int, error) {
+	// TODO: make seperate requests for pitchers and hitters, and key in on (Stat)function()int
+	// (these strings are in the data, so they must be switched on)
 	switch groupDisplayName {
 	case "hitting":
 		return s.HomeRuns, nil
