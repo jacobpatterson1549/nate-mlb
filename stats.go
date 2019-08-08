@@ -157,25 +157,17 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 		}
 	}
 
-	score := 0
-	if onlySumTopTwoPlayerScores {
-		scores := make([]int, len(friendScore.PlayerScores))
-		for i, playerScore := range friendScore.PlayerScores {
-			scores[i] = playerScore.Score
-		}
-		sort.Ints(scores) // ex: 1 2 3 4 5
-		if len(scores) >= 1 {
-			score += scores[len(scores)-1]
-			if len(scores) >= 2 {
-				score += scores[len(scores)-2]
-			}
-		}
-	} else {
-		for _, playerScore := range friendScore.PlayerScores {
-			score += playerScore.Score
-		}
+	scores := make([]int, len(friendScore.PlayerScores))
+	for i, playerScore := range friendScore.PlayerScores {
+		scores[i] = playerScore.Score
 	}
-	friendScore.Score = score
+	if onlySumTopTwoPlayerScores && len(scores) > 2 {
+		sort.Ints(scores) // ex: 1 2 3 4 5
+		scores = scores[len(scores)-2:]
+	}
+	for _, score := range scores {
+		friendScore.Score += score
+	}
 
 	return friendScore, nil
 }
