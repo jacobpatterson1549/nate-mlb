@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -166,9 +167,8 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
 		AdminTab{Name: "Friends", Action: "friends", Data: friendsData}, // TODO: return just friends
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
-		// TODO: use .Action attribute on ui for id purposes so .Name can contain spaces
-		AdminTab{Name: "Clear_Cache", Action: "cache"},
-		AdminTab{Name: "Reset_Password", Action: "password"},
+		AdminTab{Name: "Clear Cache", Action: "cache"},
+		AdminTab{Name: "Reset Password", Action: "password"},
 	}
 	tabs := make([]Tab, len(adminTabs))
 	templateNames := make([]string, len(adminTabs)+1)
@@ -212,8 +212,8 @@ type Page struct {
 
 // Tab is a tab which gets rendered by the main template
 type Tab interface {
-	// TODO: this is also used as the id.  It must not have spaces
 	GetName() string
+	GetID() string
 }
 
 // AdminTab provides tabs with admin tasks.
@@ -228,9 +228,19 @@ func (at AdminTab) GetName() string {
 	return at.Name
 }
 
+// GetID implements the Tab interface for AdminTab
+func (at AdminTab) GetID() string {
+	return strings.ReplaceAll(at.GetName(), " ", "-")
+}
+
 // GetName implements the Tab interface for ScoreCategory
 func (sc ScoreCategory) GetName() string {
 	return sc.Name
+}
+
+// GetID implements the Tab interface for ScoreCategory
+func (sc ScoreCategory) GetID() string {
+	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }
 
 // AboutTab provides a constant tab with about information
@@ -238,6 +248,11 @@ type AboutTab struct{}
 
 // GetName implements the Tab interface for AdminTab
 func (at AboutTab) GetName() string {
+	return "About"
+}
+
+// GetID implements the Tab interface for AdminTab
+func (at AboutTab) GetID() string {
 	return "About"
 }
 
