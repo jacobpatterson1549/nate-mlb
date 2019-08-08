@@ -58,11 +58,48 @@
     </div>
     {{end}}
   </div>
-  <p id="message" role="contentinfo">{{.Message}}</p>
+  <div role="contentinfo">
+    {{if .TimesMessageJSON}}
+    <p id="times-message"></p>
+    {{end}}
+    <p id="page-load-message"></p>
+  </div>
   <script>
+    function twoDigits(num) {
+      return num < 10 ? "0" + num : num;
+    }
+    function formatDate(utcDate) {
+      var localDate = new Date(utcDate);
+      var year = localDate.getFullYear()
+      var month = localDate.getMonth() + 1;
+      var date = localDate.getDate();
+      var hours = localDate.getHours();
+      var minutes = localDate.getMinutes();
+      var seconds = localDate.getSeconds();
+      return twoDigits(year) + "/" +
+        twoDigits(month) + "/" +
+        twoDigits(date) + " " +
+        twoDigits(hours) + ":" +
+        twoDigits(minutes) + ":" +
+        twoDigits(seconds);
+    }
     $(function () {
       $('#mainTabs li:first-child a').tab('show')
       $('#navbar a[href="' + this.location.pathname + '"]').addClass('active')
+      if ("{{.TimesMessageJSON}}".length > 0) {
+        var timesMessage = jQuery.parseJSON("{{.TimesMessageJSON}}");
+        var messages = timesMessage.Messages;
+        var times = timesMessage.Times;
+        var formattedMessage = ""
+        for (var i = 0; i < messages.length; i++) {
+          formattedMessage += messages[i];
+          if (times && i < times.length) {
+            formattedMessage += formatDate(times[i]);
+          }
+        }
+        $('#times-message').text(formattedMessage)
+      }
+      $('#page-load-message').text('Page loaded at ' + formatDate("{{.PageLoadTime}}"))
     })
   </script>
 </body>

@@ -69,7 +69,7 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	if err := handleAdminRequest(r); err != nil {
 		message = err.Error()
 	} else {
-		message = fmt.Sprintf("Change made at: %s.", formatTime(time.Now()))
+		message = "Change made."
 	}
 	// prevent the post from being made again on refresh
 	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
@@ -107,12 +107,16 @@ func writeStatsPage(w http.ResponseWriter) error {
 	for i, sc := range es.ScoreCategories {
 		tabs[i] = sc
 	}
-
+	timesMessage := TimesMessage{
+		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
+		Times:    []time.Time{es.EtlRefreshTime, es.EtlTime},
+	}
 	viewPage := Page{
-		Title:         "Nate's MLB pool",
-		Tabs:          tabs,
-		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", formatTime(es.EtlTime)),
-		templateNames: []string{"templates/stats.html"},
+		Title:            "Nate's MLB pool",
+		Tabs:             tabs,
+		TimesMessageJSON: timesMessage.toJSON(),
+		templateNames:    []string{"templates/stats.html"},
+		PageLoadTime:     getUtcTime(),
 	}
 
 	return renderTemplate(w, viewPage)
@@ -120,10 +124,11 @@ func writeStatsPage(w http.ResponseWriter) error {
 
 func writeAboutPage(w http.ResponseWriter) error {
 	adminPage := Page{
-		Title:         "About Nate's MLB",
-		Tabs:          []Tab{AboutTab{}},
-		Message:       "", // TODO: updated info?
+		Title: "About Nate's MLB",
+		Tabs:  []Tab{AboutTab{}},
+		// TimesMessage:       "", // TODO: updated info (last deploy time)?
 		templateNames: []string{"templates/about.html"},
+		PageLoadTime:  getUtcTime(),
 	}
 
 	return renderTemplate(w, adminPage)
@@ -164,11 +169,13 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		tabs[i] = adminTab
 		templateNames[i+1] = fmt.Sprintf("templates/admin-form-inputs/%s.html", adminTab.Action)
 	}
+	timesMessage := TimesMessage{Messages: []string{message}}
 	adminPage := Page{
-		Title:         "Nate's MLB pool [ADMIN MODE]",
-		Tabs:          tabs,
-		Message:       message,
-		templateNames: templateNames,
+		Title:            "Nate's MLB pool [ADMIN MODE]",
+		Tabs:             tabs,
+		TimesMessageJSON: timesMessage.toJSON(),
+		templateNames:    templateNames,
+		PageLoadTime:     getUtcTime(),
 	}
 	return renderTemplate(w, adminPage)
 }
@@ -192,10 +199,11 @@ func formatTime(t time.Time) string {
 
 // Page is a page that gets rendered by the main template
 type Page struct {
-	Title         string
-	Tabs          []Tab
-	Message       string
-	templateNames []string
+	Title            string
+	Tabs             []Tab
+	TimesMessageJSON string
+	templateNames    []string
+	PageLoadTime     time.Time
 }
 
 // Tab is a tab which gets rendered by the main template
@@ -227,4 +235,23 @@ type AboutTab struct{}
 // GetName implements the Tab interface for AdminTab
 func (at AboutTab) GetName() string {
 	return "About"
+}
+
+// TimesMessage contains times to insert between messages
+type TimesMessage struct {
+	Messages []string
+	Times    []time.Time
+}
+
+func (tm *TimesMessage) toJSON() string {
+	if len(tm.Times) > len(tm.Messages) {
+		log.Printf("Must have at least as many Messages as Times.  Found %q.\n", tm)
+		return "[Invalid TimesMessag]"
+	}
+	b, err := json.Marshal(tm)
+	if err != nil {
+		log.Println(err)
+		b = []byte{}
+	}
+	return string(b)
 }

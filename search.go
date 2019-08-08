@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func searchPlayers(playerTypeID int, playerNamePrefix string) ([]PlayerSearchResult, error) {
@@ -49,7 +48,7 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 
 func searchPlayerNames(playerNamePrefix string) ([]PlayerSearchResult, error) {
 	playerSearchResults := []PlayerSearchResult{}
-	currentYear := time.Now().Year()
+	currentYear := getUtcTime().Year()
 	activeYear, err := getActiveYear()
 	if err != nil {
 		return playerSearchResults, err

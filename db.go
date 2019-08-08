@@ -77,7 +77,7 @@ func getEtlStats() (EtlStats, error) {
 		return es, err
 	}
 	fetchStats := true
-	currentTime := time.Now()
+	currentTime := getUtcTime()
 	if etlJSON.Valid {
 		err = json.Unmarshal([]byte(etlJSON.String), &es)
 		if err != nil {
@@ -507,6 +507,21 @@ func setPlayers(futurePlayers []Player) error {
 	return err
 }
 
+func getUtcTime() time.Time {
+	return time.Now().UTC()
+}
+
+// SETS EtlRefreshTime and determines if it before the current time
+func (es *EtlStats) isStale(currentTime time.Time) bool {
+	previousHonoluluMidnight := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 10, 0, 0, 0, currentTime.Location())
+	if previousHonoluluMidnight.After(currentTime) {
+		previousHonoluluMidnight = previousHonoluluMidnight.Add(-24 * time.Hour)
+	}
+	es.EtlRefreshTime = previousHonoluluMidnight
+
+	return es.EtlTime.Before(es.EtlRefreshTime)
+}
+
 // FriendPlayerInfo contain all the pool items for each Friend.
 type FriendPlayerInfo struct {
 	friends     []Friend
@@ -547,11 +562,6 @@ type Player struct {
 // EtlStats contain some score categories that were stored at a specific time
 type EtlStats struct {
 	EtlTime         time.Time
+	EtlRefreshTime  time.Time
 	ScoreCategories []ScoreCategory
-}
-
-func (es *EtlStats) isStale(currentTime time.Time) bool {
-	previousMidnight := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, currentTime.Location())
-
-	return es.EtlTime.Before(previousMidnight)
 }
