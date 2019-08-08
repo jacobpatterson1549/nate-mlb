@@ -325,8 +325,7 @@ func getUserPassword(username string) (string, error) {
 	defer db.Close()
 
 	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
-	err = row.Scan(&v)
-	return v, err // TODO: Can `return v, row.Scan(&v)` be used?
+	return v, row.Scan(&v)
 }
 
 func setUserPassword(username, password string) error {
