@@ -12,6 +12,7 @@ CREATE TABLE stats
         , etl_json TEXT
         , CONSTRAINT active_true_or_null CHECK (active)
         , CONSTRAINT active_only_one UNIQUE (active)
+        , CONSTRAINT valid_year CHECK (year >= 2000 AND year <= 3000)
         );
 
 CREATE TABLE friends
