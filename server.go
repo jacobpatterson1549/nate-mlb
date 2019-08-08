@@ -123,12 +123,20 @@ func writeStatsPage(w http.ResponseWriter) error {
 }
 
 func writeAboutPage(w http.ResponseWriter) error {
+	lastDeploy, err := getLastDeploy()
+	if err != nil {
+		return err
+	}
+	timesMessage := TimesMessage{
+		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
+		Times:    []time.Time{lastDeploy.Time},
+	}
 	adminPage := Page{
-		Title: "About Nate's MLB",
-		Tabs:  []Tab{AboutTab{}},
-		// TimesMessage:       "", // TODO: updated info (last deploy time)?
-		templateNames: []string{"templates/about.html"},
-		PageLoadTime:  getUtcTime(),
+		Title:            "About Nate's MLB",
+		Tabs:             []Tab{AboutTab{}},
+		TimesMessageJSON: timesMessage.toJSON(),
+		templateNames:    []string{"templates/about.html"},
+		PageLoadTime:     getUtcTime(),
 	}
 
 	return renderTemplate(w, adminPage)
@@ -191,10 +199,6 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 		return err
 	}
 	return t.Execute(w, p)
-}
-
-func formatTime(t time.Time) string {
-	return t.Format(time.RFC1123Z)
 }
 
 // Page is a page that gets rendered by the main template
