@@ -50,7 +50,7 @@
   </ul>
   <br />
   <div id="mainContent" class="tab-content" role="main">
-    {{-range .Tabs}}
+    {{range .Tabs}}
     <div id="{{.GetName}}" class="tab-pane fade" role="tabpanel" aria-labelledby="{{.GetName}}-tab">
       {{template "content" .}}
     </div>
