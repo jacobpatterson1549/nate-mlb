@@ -40,14 +40,16 @@
     </div>
   </nav>
   <br />
-  <ul id="mainTabs" class="nav nav-tabs" role="tablist">
-    {{range .Tabs}}
-    <li class="nav-item">
-      <a id="{{.GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetName}}" role="tab"
-        aria-controls="{{.GetName}}">{{.GetName}}</a>
-    </li>
-    {{end}}
-  </ul>
+  <div id="mainTabs" role="tablist">
+    <ul class="nav nav-tabs">
+      {{range .Tabs}}
+      <li class="nav-item">
+        <a id="{{.GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetName}}" role="tab"
+          aria-controls="{{.GetName}}">{{.GetName}}</a>
+      </li>
+      {{end}}
+    </ul>
+  </div>
   <br />
   <div id="mainContent" class="tab-content" role="main">
     {{range .Tabs}}
