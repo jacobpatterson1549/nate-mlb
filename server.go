@@ -24,9 +24,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		switch {
 		case r.Method == "GET" && r.RequestURI == "/":
-			err = writeView(w)
+			err = writeStatsPage(w)
 		case r.Method == "GET" && r.RequestURI == "/about":
-			err = writeAbout(w)
+			err = writeAboutPage(w)
 		case r.Method == "GET" && r.URL.Path == "/admin/password":
 			err = handleHashPassword(w, r)
 		case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
@@ -62,7 +62,7 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 		if len(message) == 0 {
 			message = "Enter password before submitting."
 		}
-		return writeAdminTabs(w, message)
+		return writeAdminPage(w, message)
 	}
 
 	var message string
@@ -97,7 +97,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(playerSearchResult)
 }
 
-func writeView(w http.ResponseWriter) error {
+func writeStatsPage(w http.ResponseWriter) error {
 	es, err := getEtlStats()
 	if err != nil {
 		return err
@@ -112,13 +112,13 @@ func writeView(w http.ResponseWriter) error {
 		Title:         "Nate's MLB pool",
 		Tabs:          tabs,
 		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", formatTime(es.EtlTime)),
-		templateNames: []string{"templates/view.html"},
+		templateNames: []string{"templates/stats.html"},
 	}
 
 	return renderTemplate(w, viewPage)
 }
 
-func writeAbout(w http.ResponseWriter) error {
+func writeAboutPage(w http.ResponseWriter) error {
 	adminPage := Page{
 		Title:         "About Nate's MLB",
 		Tabs:          []Tab{AboutTab{}},
@@ -129,7 +129,7 @@ func writeAbout(w http.ResponseWriter) error {
 	return renderTemplate(w, adminPage)
 }
 
-func writeAdminTabs(w http.ResponseWriter, message string) error {
+func writeAdminPage(w http.ResponseWriter, message string) error {
 	es, err := getEtlStats()
 	if err != nil {
 		return err
