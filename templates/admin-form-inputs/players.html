@@ -1,4 +1,4 @@
-{{ define "playersForm" }}
+{{- define "players" -}}
 {{- if .Data -}}
 {{- with $scoreCategories := .Data -}}
 <fieldset>
@@ -12,19 +12,19 @@
     <br />
     <label for="select-friend">Friend</label>
     <select id="select-friend" class="custom-select" onchange="refreshVisibleFriendScores()">
-        {{- range (index $scoreCategories 0).FriendScores }}
+        {{- range (index $scoreCategories 0).FriendScores -}}
         <option value="{{.FriendID}}">{{.FriendName}}</option>
         {{- end -}}
     </select>
     <br />
     <div>
-        {{- range $scoreCategories }}
+        {{- range $scoreCategories -}}
         <div class="score-category">
             <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
             {{- range .FriendScores -}}
             <div class="friend-score">
                 <input class="friend-id" value="{{.FriendID}}" type="hidden">
-                {{- range $index, $playerScore := .PlayerScores }}
+                {{- range $index, $playerScore := .PlayerScores -}}
                 <div class="form-group player-score" id="player-{{$playerScore.ID}}">
                     <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
                         value="{{$index}}" type="hidden">
@@ -36,9 +36,9 @@
                 </div>
                 {{- end -}}
             </div>
-            {{ end -}}
+            {{- end -}}
         </div>
-        {{ end -}}
+        {{- end -}}
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
@@ -224,7 +224,8 @@
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
             var row = document.createElement('tr');
-            row.innerHTML = '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
+            row.innerHTML =
+                '<td><input type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
                 '<td>' + playerSearchResult.Name + '</td>' +
                 '<td>' + playerSearchResult.Details + '</td>' +
                 '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
@@ -271,4 +272,4 @@
 </script>
 {{- end -}}
 {{- end -}}
-{{ end }}
+{{- end -}}

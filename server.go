@@ -112,7 +112,7 @@ func writeView(w http.ResponseWriter) error {
 		Title:         "Nate's MLB pool",
 		Tabs:          tabs,
 		Message:       fmt.Sprintf("Stats reset on first load after midnight.  Last load: %s.", formatTime(es.EtlTime)),
-		templateNames: []string{"view"},
+		templateNames: []string{"templates/view.html"},
 	}
 
 	return renderTemplate(w, viewPage)
@@ -123,7 +123,7 @@ func writeAbout(w http.ResponseWriter) error {
 		Title:         "About Nate's MLB",
 		Tabs:          []Tab{AboutTab{}},
 		Message:       "", // TODO: updated info?
-		templateNames: []string{"about"},
+		templateNames: []string{"templates/about.html"},
 	}
 
 	return renderTemplate(w, adminPage)
@@ -149,7 +149,7 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 		yearsData[i] = year
 	}
 
-	tabs := []Tab{
+	adminTabs := []AdminTab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
 		AdminTab{Name: "Friends", Action: "friends", Data: friendsData}, // TODO: return just friends
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
@@ -157,14 +157,19 @@ func writeAdminTabs(w http.ResponseWriter, message string) error {
 		AdminTab{Name: "Clear_Cache", Action: "cache"},
 		AdminTab{Name: "Reset_Password", Action: "password"},
 	}
-
+	tabs := make([]Tab, len(adminTabs))
+	templateNames := make([]string, len(adminTabs)+1)
+	templateNames[0] = "templates/admin.html"
+	for i, adminTab := range adminTabs {
+		tabs[i] = adminTab
+		templateNames[i+1] = fmt.Sprintf("templates/admin-form-inputs/%s.html", adminTab.Action)
+	}
 	adminPage := Page{
 		Title:         "Nate's MLB pool [ADMIN MODE]",
 		Tabs:          tabs,
 		Message:       message,
-		templateNames: []string{"adminTabs", "playersForm", "friendsForm", "yearsForm"},
+		templateNames: templateNames,
 	}
-
 	return renderTemplate(w, adminPage)
 }
 
@@ -172,7 +177,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	templateNames := make([]string, len(p.templateNames)+1)
 	templateNames[0] = "templates/main.html"
 	for i, templateName := range p.templateNames {
-		templateNames[i+1] = fmt.Sprintf("templates/%s.html", templateName)
+		templateNames[i+1] = templateName
 	}
 	t, err := template.ParseFiles(templateNames...)
 	if err != nil {

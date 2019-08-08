@@ -1,10 +1,10 @@
-{{ define "friendsForm" }}
+{{- define "friends" -}}
 {{- if .Data -}}
 {{- with $scoreCategories := .Data -}}
 <fieldset>
     <legend>Friends</legend>
     <div>
-        {{- range $index, $friendScore := (index $scoreCategories 0).FriendScores }}
+        {{- range $index, $friendScore := (index $scoreCategories 0).FriendScores -}}
         <div class="form-group" id="friend-{{$friendScore.FriendID}}">
             <input id="friend-{{$friendScore.FriendID}}-display-order"
                 name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
@@ -44,9 +44,8 @@
 
     function removeFriend() {
         var removeFriend = event.target.parentNode;
-        for (var friend = document.getElementById(removeFriend.id).nextElementSibling;
-                friend != null;
-                friend = document.getElementById(friend.id).nextElementSibling) {
+        for (var friend = document.getElementById(removeFriend.id).nextElementSibling; friend != null; friend = document
+            .getElementById(friend.id).nextElementSibling) {
             changeFriendDisplayOrder(friend.id, -1);
         }
         removeFriend.remove();
@@ -92,4 +91,4 @@
 </script>
 {{- end -}}
 {{- end -}}
-{{ end }}
+{{- end -}}

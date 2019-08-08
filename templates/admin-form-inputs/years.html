@@ -1,10 +1,10 @@
-{{ define "yearsForm" }}
+{{- define "years" -}}
 {{- if .Data -}}
 {{- with $years := .Data -}}
 <fieldset>
     <legend>Years</legend>
     <div id="years">
-        {{- range $years }}
+        {{- range $years -}}
         <div class="form-group" id="year-{{.Value}}">
             <input type="radio" name="active-year" id="year-{{.Value}}-active" value="{{.Value}}" {{if .Active}}checked{{end}}>
             <label for="year">{{.Value}}</label>
@@ -53,4 +53,4 @@
 </script>
 
 {{- end -}}
-{{ end }}
+{{- end -}}

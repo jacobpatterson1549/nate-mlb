@@ -1,4 +1,4 @@
-{{ define "content" }}
+{{- define "content" -}}
 <form method="POST" id="{{.Action}}-form">
     <div class="form-group">
         <label for="{{.Action}}-username">Username Password</label>
@@ -10,27 +10,23 @@
         <input id="{{.Action}}-password" name="password" type="password" autocomplete="current-password"
             class="form-control" required>
     </div>
-    {{- if (eq .Action "password") }}
-    <div class="form-group">
-        <label for="newPassword">New Password</label>
-        <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" class="form-control"
-            required>
-    </div>
-    {{ end -}}
-    {{- if (eq .Action "cache") }}
-    <p>Clearing the cache forces stats to be reloaded from the data sources.</p>
-    {{ end -}}
-    {{- if (eq .Action "friends") }}
-    {{ template "friendsForm" . }}
-    {{ end -}}
-    {{- if (eq .Action "players") }}
-    {{ template "playersForm" . }}
-    {{ end -}}
-    {{- if (eq .Action "years") }}
-    {{ template "yearsForm" . }}
-    {{ end -}}
+    {{- if (eq .Action "players") -}}
+    {{- template "players" . -}}
+    {{- end -}}
+    {{- if (eq .Action "friends") -}}
+    {{- template "friends" . }}
+    {{- end -}}
+    {{- if (eq .Action "years") -}}
+    {{- template "years" . -}}
+    {{- end -}}
+    {{- if (eq .Action "password") -}}
+    {{- template "password" . -}}
+    {{- end -}}
+    {{- if (eq .Action "cache") -}}
+    {{- template "cache" . -}}
+    {{- end -}}
     <input name="action" type="hidden" value="{{.Action}}">
     <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
         value="Submit">Submit</button>
 </form>
-{{ end }}
+{{- end -}}
