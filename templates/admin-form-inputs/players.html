@@ -4,14 +4,14 @@
 <fieldset>
     <legend>Players</legend>
     <label for="select-player-type">Player Type</label>
-    <select id="select-player-type" class="custom-select" onchange="refreshVisibleFriendScores()">
+    <select id="select-player-type" class="form-control" onchange="refreshVisibleFriendScores()">
         {{range $scoreCategories}}
         <option value="{{.PlayerTypeID}}">{{.Name}}</option>
         {{end}}
     </select>
     <br />
     <label for="select-friend">Friend</label>
-    <select id="select-friend" class="custom-select" onchange="refreshVisibleFriendScores()">
+    <select id="select-friend" class="form-control" onchange="refreshVisibleFriendScores()">
         {{range (index $scoreCategories 0).FriendScores}}
         <option value="{{.FriendID}}">{{.FriendName}}</option>
         {{end}}
