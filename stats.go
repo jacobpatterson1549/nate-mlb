@@ -163,6 +163,7 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 		sort.Ints(scores) // ex: 1 2 3 4 5
 		scores = scores[len(scores)-2:]
 	}
+	friendScore.Score = 0
 	for _, score := range scores {
 		friendScore.Score += score
 	}
