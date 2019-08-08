@@ -44,9 +44,7 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, 
 	switch playerType.id {
 	case playerTypeTeam:
 		return getTeamScoreScategory(friendPlayerInfo, playerType)
-	case playerTypeHitting:
-		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
-	case playerTypePitching:
+	case playerTypeHitting, playerTypePitching:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
 		return ScoreCategory{}, fmt.Errorf("Unknown playerType: %v", playerType.name)
