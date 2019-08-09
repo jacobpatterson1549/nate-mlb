@@ -1,59 +1,68 @@
 {{define "years"}}
-{{if .Data}}
-{{with $years := .Data}}
 <fieldset>
     <legend>Years</legend>
     <div id="years">
-        {{range $years}}
-        <div class="form-check" id="year-{{.Value}}">
-            <input class="form-check-input" type="radio" name="active-year" id="year-{{.Value}}-active"
-                value="{{.Value}}" {{if .Active}}checked{{end}}>
-            <label class="form-check-label" for="year-{{.Value}}-active">{{.Value}}</label>
-            <input type="hidden" name="year" id="year-{{.Value}}-value" value="{{.Value}}">
-            <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
-        </div>
-        {{end}}
+        <template id="year-template">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="active-year"></input>
+                <label class="form-check-label"></label>
+                <input type="hidden" name="year">
+                <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
+            </div>
+        </template>
     </div>
 </fieldset>
-<button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
+<button class="btn btn-secondary" type="button" title="Add Year" onclick="createYear()">Add Year</button>
 <input id="add-year-input" class="form-control" type="number" min="2000" max="3000" , step="1">
-{{end}}
 <script>
     function removeYear() {
         var year = event.target.parentNode;
         year.remove();
-        validateYears();
     }
 
-    function addYear() {
+    function createYear() {
         var yearsParent = document.getElementById('years');
         var year = document.getElementById('add-year-input').value;
         var newYear = document.createElement('div');
         var years = yearsParent.children;
-        for (var i = 0; i < years.length; i++) {
-            var yearNum = years[i].children[2].value;
-            if (yearNum === year) {
+        for (var i = 1; i < years.length; i++) {
+            var yearI = years[i].children[2].value;
+            if (yearI === year) {
                 return;
             }
         }
-        newYear.classList.add('form-group');
-        newYear.id = "year-" + newYear;
-        newYear.innerHTML = '<input class="form-check-input" type="radio" name="active-year" id="year-' + year +
-            '-active" value="' + year +
-            '" checked>' +
-            ' <label class="form-check-label" for="year">' + year + '</label>' +
-            ' <input type="hidden" name="year" id="year-' + year + '-value" value="' + year + '">' +
-            ' <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>';
-        yearsParent.appendChild(newYear);
+        addYear(year, true);
     }
 
-    function setCurrentYear() {
-        var now = new Date();
-        var currentYear = now.getYear() + 1900; // :-p
-        document.getElementById('add-year-input').value = currentYear;
+    function addYear(yearNum, active) {
+        var clone;
+        if ('content' in document.createElement('template')) {
+            var template = document.querySelector("#year-template");
+            clone = document.importNode(template.content, true);
+            var newYear = clone.children[0];
+            newYear.id = 'year-' + yearNum;
+            newYear.children[0].id = 'year-' + yearNum + '-active';
+            newYear.children[0].value = yearNum;
+            if (active == "true") {
+                newYear.children[0].checked = true;
+            }
+            newYear.children[1].for = 'year-' + yearNum + '-active';
+            newYear.children[1].innerText = yearNum;
+            newYear.children[2].id = 'year-' + yearNum + '-value';
+            newYear.children[2].value = yearNum;
+            var years = document.querySelector("#years");
+        } else {
+            clone = document.createElement('p');
+            clone.innerText = 'cannot create year ' + year;
+        }
+        years.appendChild(clone);
     }
-    setCurrentYear();
+
+    document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 </script>
-
+{{range .Data}}
+<script>
+    addYear("{{.Value}}", "{{.Active}}");
+</script>
 {{end}}
 {{end}}
