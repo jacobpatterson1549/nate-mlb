@@ -9,8 +9,9 @@
             <input id="friend-{{$friendScore.FriendID}}-display-order"
                 name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
             <label class="form-label" for="friend-{{$friendScore.FriendID}}-name">{{$friendScore.FriendName}}</label>
-            <input class="form-control" id="friend-{{$friendScore.FriendID}}-name" name="friend-{{$friendScore.FriendID}}-name"
-                class="form-control" required value="{{$friendScore.FriendName}}">
+            <input class="form-control" id="friend-{{$friendScore.FriendID}}-name"
+                name="friend-{{$friendScore.FriendID}}-name" class="form-control" required
+                value="{{$friendScore.FriendName}}">
             <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
             <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
