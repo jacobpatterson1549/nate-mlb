@@ -18,5 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	startServer(portNumber)
+	err = runServer(portNumber)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

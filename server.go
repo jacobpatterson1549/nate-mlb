@@ -12,12 +12,16 @@ import (
 	"time"
 )
 
-func startServer(portNumber int) {
+func runServer(portNumber int) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", handle)
 
 	addr := fmt.Sprintf(":%d", portNumber)
-	http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, nil)
+	if err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
