@@ -13,7 +13,7 @@ import (
 
 // IDs of constant db enums
 const (
-	playerTypeTeam     = 1
+	playerTypeTeam     = 1 // TODO: Make PlayerId and enum type
 	playerTypeHitting  = 2
 	playerTypePitching = 3
 )

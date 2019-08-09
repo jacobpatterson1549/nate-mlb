@@ -99,7 +99,8 @@ func requestJSON(url string, v interface{}) error {
 
 func requestTeamsJSON(year int) (TeamsJSON, error) {
 	teamsJSON := TeamsJSON{}
-	return teamsJSON, requestJSON(strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C"), &teamsJSON)
+	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
+	return teamsJSON, requestJSON(url, &teamsJSON)
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
@@ -123,11 +124,10 @@ func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType P
 	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.friends))
 	for i, friend := range friendPlayerInfo.friends {
 		friendScore, err := friend.compute(friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
-		if err == nil {
-			sc.FriendScores[i] = friendScore
-		} else {
+		if err != nil {
 			return err
 		}
+		sc.FriendScores[i] = friendScore
 	}
 	return nil
 }
@@ -141,17 +141,17 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range friendPlayerInfo.players {
 		if f.id == player.friendID && playerType.id == player.playerTypeID {
-			if playerScore, ok := playerScores[player.playerID]; ok {
-				playerScoreWithID := PlayerScore{
-					PlayerName: playerScore.PlayerName,
-					PlayerID:   playerScore.PlayerID,
-					ID:         player.id,
-					Score:      playerScore.Score,
-				}
-				friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
-			} else {
+			playerScore, ok := playerScores[player.playerID]
+			if !ok {
 				return friendScore, fmt.Errorf("No Player score for id = %v, type = %v", player.playerID, playerType.name)
 			}
+			playerScoreWithID := PlayerScore{
+				PlayerName: playerScore.PlayerName,
+				PlayerID:   playerScore.PlayerID,
+				ID:         player.id,
+				Score:      playerScore.Score,
+			}
+			friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
 		}
 	}
 
@@ -298,14 +298,14 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 	for k, v := range pir.playerStats {
 		if k == groupDisplayName {
 			for playerID, score := range v {
-				if name, ok := pir.playerNames[playerID]; ok {
-					playerScores[playerID] = PlayerScore{
-						PlayerName: name,
-						PlayerID:   playerID,
-						Score:      score,
-					}
-				} else {
+				name, ok := pir.playerNames[playerID]
+				if !ok {
 					return playerScores, fmt.Errorf("No player name for player %v", playerID)
+				}
+				playerScores[playerID] = PlayerScore{
+					PlayerName: name,
+					PlayerID:   playerID,
+					Score:      score,
 				}
 			}
 		}
