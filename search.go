@@ -13,7 +13,7 @@ func searchPlayers(playerTypeID int, playerNamePrefix string, activePlayersOnly 
 	switch {
 	case playerTypeID == 1:
 		return searchTeams(playerNamePrefix)
-	case playerTypeID == 2 || playerTypeID == 3:
+	case playerTypeID == 2, playerTypeID == 3:
 		return searchPlayerNames(playerNamePrefix, activePlayersOnly)
 	default:
 		return []PlayerSearchResult{}, fmt.Errorf("cannot search for playerTypeID %d", playerTypeID)
@@ -134,7 +134,7 @@ type PlayerSearchSingleJSON struct {
 
 // Row contains the results of a player search for a single player
 type Row struct {
-	Position     string `json:"position"`
+	Position     string `json:"position"` // TODO: only return pitchers when playerType=3, not pitchers when playertype=2
 	BirthCountry string `json:"birth_country"`
 	BirthDate    string `json:"birth_date"`
 	TeamAbbrev   string `json:"team_abbrev"`
