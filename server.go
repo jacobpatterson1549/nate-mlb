@@ -161,7 +161,13 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 	for i, sc := range es.ScoreCategories {
 		scoreCategoriesData[i] = sc
 	}
-	friendsData := scoreCategoriesData
+	var friendsData []interface{}
+	if len(es.ScoreCategories) > 0 {
+		friendsData = make([]interface{}, len(es.ScoreCategories[0].FriendScores))
+		for i, fs := range es.ScoreCategories[0].FriendScores {
+			friendsData[i] = fs
+		}
+	}
 	yearsData := make([]interface{}, len(years))
 	for i, year := range years {
 		yearsData[i] = year
@@ -169,7 +175,7 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 
 	adminTabs := []AdminTab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
-		AdminTab{Name: "Friends", Action: "friends", Data: friendsData}, // TODO: return just friends
+		AdminTab{Name: "Friends", Action: "friends", Data: friendsData},
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
 		AdminTab{Name: "Clear Cache", Action: "cache"},
 		AdminTab{Name: "Reset Password", Action: "password"},

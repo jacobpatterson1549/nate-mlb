@@ -1,10 +1,10 @@
 {{define "friends"}}
 {{if .Data}}
-{{with $scoreCategories := .Data}}
+{{with $friendScores := .Data}}
 <fieldset>
     <legend>Friends</legend>
     <div>
-        {{range $index, $friendScore := (index $scoreCategories 0).FriendScores}}
+        {{range $index, $friendScore := $friendScores}}
         <div class="form-group" id="friend-{{$friendScore.FriendID}}">
             <input id="friend-{{$friendScore.FriendID}}-display-order"
                 name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
