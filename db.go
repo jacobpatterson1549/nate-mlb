@@ -18,32 +18,33 @@ const (
 	playerTypePitching = 3
 )
 
-func getDb() (*sql.DB, error) {
+var (
+	db *sql.DB
+)
+
+// InitDB initializes the pointer to the database
+func InitDB() error {
 	driverName := "postgres"
 	if datasourceName, ok := os.LookupEnv("DATABASE_URL"); ok {
-		return sql.Open(driverName, datasourceName)
+		var err error
+		db, err = sql.Open(driverName, datasourceName)
+		return err
 	}
-	return nil, errors.New("DATABASE_URL environment variable not set")
+	return errors.New("DATABASE_URL environment variable not set")
 }
 
 func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 	fpi := FriendPlayerInfo{}
 
-	db, err := getDb()
-	if err != nil {
-		return fpi, nil
-	}
-	defer db.Close()
-
-	friends, err := getFriends(db)
+	friends, err := getFriends()
 	if err != nil {
 		return fpi, err
 	}
-	playerTypes, err := getPlayerTypes(db)
+	playerTypes, err := getPlayerTypes()
 	if err != nil {
 		return fpi, err
 	}
-	players, err := getPlayers(db)
+	players, err := getPlayers()
 	if err != nil {
 		return fpi, err
 	}
@@ -61,12 +62,7 @@ func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 
 func getEtlStats() (EtlStats, error) {
 	var es EtlStats
-
-	db, err := getDb()
-	if err != nil {
-		return es, nil
-	}
-	defer db.Close()
+	var err error
 
 	var year int
 	var etlJSON sql.NullString
@@ -108,25 +104,15 @@ func getEtlStats() (EtlStats, error) {
 }
 
 func nullEtlJSON() error {
-	db, err := getDb()
-	if err == nil {
-		defer db.Close()
-		_, err = db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
-	}
+	_, err := db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
 	return err
 }
 
 func getActiveYear() (int, error) {
 	var activeYear int
 
-	db, err := getDb()
-	if err != nil {
-		return activeYear, nil
-	}
-	defer db.Close()
-
 	row := db.QueryRow("SELECT year FROM stats WHERE active")
-	err = row.Scan(&activeYear)
+	err := row.Scan(&activeYear)
 	if err == sql.ErrNoRows {
 		err = errors.New("no active year")
 	}
@@ -135,12 +121,6 @@ func getActiveYear() (int, error) {
 
 func getYears() ([]Year, error) {
 	years := []Year{}
-
-	db, err := getDb()
-	if err != nil {
-		return years, err
-	}
-	defer db.Close()
 
 	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
 	if err != nil {
@@ -173,7 +153,6 @@ func getYears() ([]Year, error) {
 }
 
 func setYears(activeYear int, years []int) error {
-	// TODO: use same db connection for getting existing years, updating/inserting/deleting ones
 	currentYears, err := getYears()
 	if err != nil {
 		return err
@@ -199,12 +178,6 @@ func setYears(activeYear int, years []int) error {
 		return fmt.Errorf("active year %d not present in years: %q", activeYear, years)
 	}
 	deleteYears := currentYearsMap
-
-	db, err := getDb()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -257,7 +230,7 @@ func setYears(activeYear int, years []int) error {
 }
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
-func getFriends(db *sql.DB) ([]Friend, error) {
+func getFriends() ([]Friend, error) {
 	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading friends: %q", err)
@@ -277,7 +250,7 @@ func getFriends(db *sql.DB) ([]Friend, error) {
 	return friends, nil
 }
 
-func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
+func getPlayerTypes() ([]PlayerType, error) {
 	rows, err := db.Query("SELECT id, name, description FROM player_types ORDER BY id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
@@ -297,7 +270,7 @@ func getPlayerTypes(db *sql.DB) ([]PlayerType, error) {
 	return playerTypes, nil
 }
 
-func getPlayers(db *sql.DB) ([]Player, error) {
+func getPlayers() ([]Player, error) {
 	rows, err := db.Query("SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.active ORDER BY p.player_type_id, p.friend_id, p.display_order")
 	if err != nil {
 		return nil, fmt.Errorf("Error reading players: %q", err)
@@ -319,23 +292,11 @@ func getPlayers(db *sql.DB) ([]Player, error) {
 
 func getUserPassword(username string) (string, error) {
 	var v string
-
-	db, err := getDb()
-	if err != nil {
-		return v, nil
-	}
-	defer db.Close()
-
 	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
 	return v, row.Scan(&v)
 }
 
 func setUserPassword(username, password string) error {
-	db, err := getDb()
-	if err != nil {
-		return err
-	}
-
 	result, err := db.Exec("UPDATE users SET password = $1 WHERE username = $2", password, username)
 	if err != nil {
 		return err
@@ -352,13 +313,7 @@ func expectSingleRowAffected(r sql.Result) error {
 }
 
 func setFriends(futureFriends []Friend) error {
-	db, err := getDb()
-	if err != nil {
-		return nil
-	}
-	defer db.Close()
-
-	friends, err := getFriends(db)
+	friends, err := getFriends()
 	if err != nil {
 		return err
 	}
@@ -430,13 +385,7 @@ func setFriends(futureFriends []Friend) error {
 }
 
 func setPlayers(futurePlayers []Player) error {
-	db, err := getDb()
-	if err != nil {
-		return nil
-	}
-	defer db.Close()
-
-	players, err := getPlayers(db)
+	players, err := getPlayers()
 	if err != nil {
 		return err
 	}

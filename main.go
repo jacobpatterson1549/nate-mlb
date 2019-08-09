@@ -8,6 +8,11 @@ import (
 
 func main() {
 
+	err := InitDB()
+	if err != nil {
+		log.Fatal("Could not set database ", err)
+	}
+
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		log.Fatal("PORT environment variable not set")
