@@ -23,7 +23,12 @@ label {
     width: 6rem;
 }
 
-nav, #main-tabs, .form-check, fieldset + button, form, select {
+nav,
+#main-tabs,
+.form-check,
+fieldset+button,
+form,
+select {
     margin-bottom: 1rem;
 }
 
