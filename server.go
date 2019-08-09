@@ -94,8 +94,10 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	activePlayersOnly := r.Form.Get("apo")
+	activePlayersOnlyB := activePlayersOnly == "true"
 
-	playerSearchResult, err := searchPlayers(playerTypeIDI, searchQuery)
+	playerSearchResult, err := searchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}

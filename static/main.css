@@ -21,7 +21,6 @@ label {
 .form-control {
     display: inline-block;
     width: 6rem;
-    margin-right: 1rem;
 }
 
 nav, #main-tabs, .form-check, fieldset + button, form, select {
