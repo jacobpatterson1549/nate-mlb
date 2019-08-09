@@ -5,6 +5,8 @@
 -- $ \q
 -- $ PGPASSWORD=Have19_each%Iowa psql nate -h 127.0.0.1 -d nate_mlb_db
 
+ --DROP TABLE stats, friends, player_types, players, users;
+
 CREATE TABLE stats
         ( year INT PRIMARY KEY
         , active BOOLEAN
