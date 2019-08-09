@@ -168,11 +168,10 @@ func setYears(activeYear int, years []int) error {
 		if year == activeYear {
 			activeYearPresent = true
 		}
-		if _, ok := currentYearsMap[year]; ok {
-			delete(currentYearsMap, year) // no need to update
-		} else {
+		if _, ok := currentYearsMap[year]; !ok {
 			insertYears = append(insertYears, year)
 		}
+		delete(currentYearsMap, year)
 	}
 	if len(years) > 0 && !activeYearPresent {
 		return fmt.Errorf("active year %d not present in years: %q", activeYear, years)
@@ -207,10 +206,11 @@ func setYears(activeYear int, years []int) error {
 	// remove active year
 	if err == nil && len(years) > 0 {
 		result, err = tx.Exec("UPDATE stats SET active = NULL WHERE active")
+		// TODO: no need to expecet 1 row because no years may be present, but still need to rollback on error
 	}
 	// set active year
 	if err == nil && len(years) > 0 {
-		// TODO: make "func affectOneRow(tx *sql.Tx, sql string) error" function
+		// TODO: make "func affectOneRow(tx *sql.Tx, sql string) error" function to make rollback
 		result, err = tx.Exec(
 			"UPDATE stats SET active = TRUE WHERE year = $1",
 			activeYear)
@@ -328,10 +328,8 @@ func setFriends(futureFriends []Friend) error {
 		previousFriend, ok := previousFriends[friend.id]
 		if !ok {
 			insertFriends = append(insertFriends, friend)
-		} else {
-			if friend.displayOrder != previousFriend.displayOrder || friend.name != previousFriend.name {
-				updateFriends = append(updateFriends, friend)
-			}
+		} else if friend.displayOrder != previousFriend.displayOrder || friend.name != previousFriend.name {
+			updateFriends = append(updateFriends, friend)
 		}
 		delete(previousFriends, friend.id)
 	}

@@ -54,11 +54,10 @@ func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("missing query param: v")
 	}
 	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		return err
+	if err == nil {
+		w.Write([]byte(hashedPassword))
 	}
-	w.Write([]byte(hashedPassword))
-	return nil
+	return err
 }
 
 func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
@@ -134,6 +133,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
+
 	timesMessage := TimesMessage{
 		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
@@ -206,6 +206,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	for i, templateName := range p.templateNames {
 		templateNames[i+1] = templateName
 	}
+
 	t, err := template.ParseFiles(templateNames...)
 	if err != nil {
 		return err

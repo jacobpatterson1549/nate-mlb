@@ -14,12 +14,8 @@ func getLastDeploy() (Deploy, error) {
 	lastDeploy := Deploy{}
 	err := requestJSON(url, &grd)
 	if err == nil && len(grd) > 0 {
-		t, err := time.Parse(time.RFC3339, grd[0].Time)
-		if err != nil {
-			return lastDeploy, err
-		}
 		lastDeploy.Version = grd[0].Version
-		lastDeploy.Time = t
+		lastDeploy.Time, err = time.Parse(time.RFC3339, grd[0].Time)
 	}
 	return lastDeploy, err
 }

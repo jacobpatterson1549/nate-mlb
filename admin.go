@@ -10,16 +10,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func handleAdminRequest(r *http.Request) error {
-	actionParam := r.FormValue("action")
-	actions := map[string](func(*http.Request) error){
+var (
+	adminActions = map[string](func(*http.Request) error){
 		"password": resetPassword,
 		"cache":    clearCache,
 		"friends":  updateFriends,
 		"players":  updatePlayers,
 		"years":    updateYears,
 	}
-	if action, ok := actions[actionParam]; ok {
+)
+
+func handleAdminRequest(r *http.Request) error {
+	actionParam := r.FormValue("action")
+	if action, ok := adminActions[actionParam]; ok {
 		return action(r)
 	}
 	return errors.New("invalid admin action")
@@ -54,8 +57,8 @@ func updateFriends(r *http.Request) error {
 	friends := []Friend{}
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
-		if idMatches := re.FindStringSubmatch(k); len(idMatches) > 0 {
-			friendIDi, err := strconv.Atoi(idMatches[1])
+		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
+			friendIDi, err := strconv.Atoi(matches[1])
 			if err != nil {
 				return err
 			}
@@ -97,8 +100,8 @@ func updatePlayers(r *http.Request) error {
 				return err
 			}
 			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-type-id", ID))
-			playerTypeIDI := 0
-			if len(playerTypeID) > 0 {
+			var playerTypeIDI int
+			if len(playerTypeID) > 0 { // not specified when updating existing player
 				playerTypeIDI, err = strconv.Atoi(playerTypeID)
 				if err != nil {
 					return err
@@ -110,8 +113,8 @@ func updatePlayers(r *http.Request) error {
 				return err
 			}
 			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", ID))
-			friendIDI := 0
-			if len(friendID) > 0 {
+			var friendIDI int
+			if len(friendID) > 0 { // not specified when updating existing player
 				friendIDI, err = strconv.Atoi(friendID)
 				if err != nil {
 					return err
@@ -120,9 +123,9 @@ func updatePlayers(r *http.Request) error {
 			players = append(players, Player{
 				id:           ID,
 				displayOrder: playerDisplayOrderI,
-				playerTypeID: playerTypeIDI, // only needed for new Players
+				playerTypeID: playerTypeIDI,
 				playerID:     playerIDI,
-				friendID:     friendIDI, // only needed for new Players
+				friendID:     friendIDI,
 			})
 		}
 	}
@@ -157,16 +160,13 @@ func updateYears(r *http.Request) error {
 		yearsI[i] = yearI
 	}
 
-	// calling getEtlStats() will update the cache if needed (no player/friend data has changed)
+	// (does not forcefully update cache if active year changed)
 	return setYears(activeYearI, yearsI)
 }
 
 func hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
+	return string(hashedPassword), err
 }
 
 func verifyUserPassword(r *http.Request) error {
