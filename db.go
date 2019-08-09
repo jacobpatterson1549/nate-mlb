@@ -20,8 +20,10 @@ const (
 
 func getDb() (*sql.DB, error) {
 	driverName := "postgres"
-	datasourceName := os.Getenv("DATABASE_URL")
-	return sql.Open(driverName, datasourceName)
+	if datasourceName, ok := os.LookupEnv("DATABASE_URL"); ok {
+		return sql.Open(driverName, datasourceName)
+	}
+	return nil, errors.New("DATABASE_URL environment variable not set")
 }
 
 func getFriendPlayerInfo() (FriendPlayerInfo, error) {

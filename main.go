@@ -8,9 +8,9 @@ import (
 
 func main() {
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("Port not set.")
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		log.Fatal("PORT environment variable not set")
 	}
 
 	portNumber, err := strconv.Atoi(port)
