@@ -1,20 +1,20 @@
-{{define "players"}}
+{{- define "players" -}}
 <fieldset>
     <legend>Players</legend>
     <div class="form-group">
         <label for="select-player-type">Player Type</label>
         <select id="select-player-type" class="form-control custom-select" onchange="refreshVisiblePlayers()">
-            {{range .Data}}
-            <option value="{{.PlayerTypeID}}">{{.Name}}</option>
-            {{end}}
+            {{- range .Data -}}
+            <option value="{{- .PlayerTypeID -}}">{{- .Name -}}</option>
+            {{- end -}}
         </select>
     </div>
     <div class="form-group">
         <label for="select-friend">Friend</label>
         <select id="select-friend" class="form-control custom-select" onchange="refreshVisiblePlayers()">
-            {{range (index .Data 0).FriendScores}}
-            <option value="{{.FriendID}}">{{.FriendName}}</option>
-            {{end}}
+            {{- range (index .Data 0).FriendScores -}}
+            <option value="{{- .FriendID -}}">{{- .FriendName -}}</option>
+            {{- end -}}
         </select>
     </div>
     <template id="player-template">
@@ -265,13 +265,13 @@
             addPlayerButton.setAttribute('disabled', null);
         }
     }
-    {{range $scoreCategory := .Data}}
-    {{range $friendScore := $scoreCategory.FriendScores}}
-    {{range $index, $playerScore := $friendScore.PlayerScores}}
-    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.PlayerID}}, {{$index}}, {{$scoreCategory.PlayerTypeID}}, {{$friendScore.FriendID}});
-    {{end}}
-    {{end}}
-    {{end}}
+    {{- range $scoreCategory := .Data -}}
+    {{- range $friendScore := $scoreCategory.FriendScores -}}
+    {{- range $index, $playerScore := $friendScore.PlayerScores -}}
+    createPlayer({{- $playerScore.ID -}}, {{- $playerScore.PlayerName -}}, {{- $playerScore.PlayerID -}}, {{- $index -}}, {{- $scoreCategory.PlayerTypeID -}}, {{- $friendScore.FriendID -}});
+    {{- end -}}
+    {{- end -}}
+    {{- end -}}
     refreshVisiblePlayers(); // initialize visible player scores to first friendScore.
 </script>
-{{end}}
+{{- end -}}

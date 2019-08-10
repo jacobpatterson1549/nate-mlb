@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="Description" content="mlb baseball statistic aggregation">
-  <title>{{.Title}}</title>
+  <title>{{- .Title -}}</title>
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
   </script>
@@ -41,24 +41,24 @@
   </nav>
   <div id="main-tabs" role="tablist">
     <ul class="nav nav-tabs">
-      {{range .Tabs}}
+      {{- range .Tabs -}}
       <li class="nav-item">
-        <a id="{{.GetID}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID}}" role="tab">{{.GetName}}</a>
+        <a id="{{- .GetID -}}-tab" class="nav-link" data-toggle="tab" href="#{{- .GetID -}}" role="tab">{{- .GetName -}}</a>
       </li>
-      {{end}}
+      {{- end -}}
     </ul>
   </div>
   <div id="main-content" class="tab-content" role="main">
-    {{range .Tabs}}
-    <div id="{{.GetID}}" class="tab-pane fade" role="tabpanel">
-      {{template "content" .}}
+    {{- range .Tabs -}}
+    <div id="{{- .GetID -}}" class="tab-pane fade" role="tabpanel">
+      {{- template "content" . -}}
     </div>
-    {{end}}
+    {{- end -}}
   </div>
   <div role="contentinfo">
-    {{if .TimesMessageJSON}}
+    {{- if .TimesMessageJSON -}}
     <p id="times-message"></p>
-    {{end}}
+    {{- end -}}
     <p id="page-load-message"></p>
   </div>
   <script>
@@ -84,8 +84,8 @@
     $(function () {
       $('#main-tabs li:first-child a').tab('show')
       $('#navbar a[href="' + this.location.pathname + '"]').addClass('active')
-      if ("{{.TimesMessageJSON}}".length > 0) {
-        var timesMessage = jQuery.parseJSON("{{.TimesMessageJSON}}");
+      if ("{{- .TimesMessageJSON -}}".length > 0) {
+        var timesMessage = jQuery.parseJSON("{{- .TimesMessageJSON -}}");
         var messages = timesMessage.Messages;
         var times = timesMessage.Times;
         var formattedMessage = ""
@@ -97,7 +97,7 @@
         }
         $('#times-message').text(formattedMessage)
       }
-      $('#page-load-message').text('Page loaded at ' + formatDate("{{.PageLoadTime}}"))
+      $('#page-load-message').text('Page loaded at ' + formatDate("{{- .PageLoadTime -}}"))
     })
   </script>
 </body>

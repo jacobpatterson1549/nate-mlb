@@ -1,4 +1,4 @@
-{{define "friends"}}
+{{- define "friends" -}}
 <fieldset>
     <legend>Friends</legend>
     <template id="friend-template">
@@ -85,9 +85,9 @@
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
 
-    {{range $index, $friendScore := .Data}}
-        createFriend("{{$friendScore.FriendID}}", "{{$friendScore.FriendName}}", "{{$index}}",
-            "{{$friendScore.FriendName}}");
-    {{end}}
+    {{- range $index, $friendScore := .Data -}}
+        createFriend("{{- $friendScore.FriendID -}}", "{{- $friendScore.FriendName -}}", "{{- $index -}}",
+            "{{- $friendScore.FriendName -}}");
+    {{- end -}}
 </script>
-{{end}}
+{{- end -}}
