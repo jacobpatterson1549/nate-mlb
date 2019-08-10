@@ -17,6 +17,9 @@
                             id="active-players-only" checked>
                         <label class="form-check-label" for="active-players-only">Active Players Only</label>
                     </div>
+                    <template id="player-search-results-template">
+                        <legend>PlayerSearchResults</legend>
+                    </template>
                     <template id="player-search-result-template">
                         <div class="form-check">
                             <input class="psr-radio form-check-input" type="radio" name="psr-selected" id="psr-0"
@@ -29,7 +32,7 @@
                             <input class="psr-player-name" value="?" type="hidden">
                         </div>
                     </template>
-                    <fieldset id="player-search-results"></fieldset>
+                    <div id="results"></div>
                     <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
                 </div>
                 <div class="modal-footer">
@@ -57,8 +60,8 @@
     }
 
     function refreshVisiblePlayers2() {
-        var playerSearchResultsDiv = document.getElementById('player-search-results')
-        playerSearchResultsDiv.innerHTML = '';
+        var resultsDiv = document.getElementById('results')
+        resultsDiv.innerHTML = '';
     }
 
     function searchPlayers() {
@@ -85,31 +88,34 @@
             return;
         }
 
-        var playerSearchResultsDiv = document.getElementById('player-search-results')
-        playerSearchResultsDiv.innerHTML = '';
+        var template = document.getElementById("player-search-results-template");
+        var playerSearchResultsDiv = document.importNode(template.content, true);
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
-            var template = document.getElementById("player-search-result-template");
-            var clone = document.importNode(template.content, true);
-            var psr = clone.querySelector('.form-check');
+            var template2 = document.getElementById("player-search-result-template");
+            var playerSerchResultDiv = document.importNode(template2.content, true);
+            var psr = playerSerchResultDiv.querySelector('.form-check');
             psr.querySelector('.psr-radio').id = 'psr-' + playerSearchResult.PlayerID;
             psr.querySelector('.psr-label').htmlFor = 'psr-' + playerSearchResult.PlayerID;
             psr.querySelector('.psr-label-name').innerText = playerSearchResult.Name;
             psr.querySelector('.psr-label-details').innerText = playerSearchResult.Details;
             psr.querySelector('.psr-player-id').value = playerSearchResult.PlayerID;
             psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
-            playerSearchResultsDiv.appendChild(clone);
+            playerSearchResultsDiv.appendChild(playerSerchResultDiv);
         }
         if (playerSearchResults.length == 1) {
             var psr = playerSearchResultsDiv.querySelector('.form-check');
             psr.querySelector('.psr-radio').checked = true;
             setNewPlayerSelected(true);
         }
+        var resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+        resultsDiv.appendChild(playerSearchResultsDiv);
     }
 
     function searchError(err) {
-        var playerSearchResults = document.getElementById('player-search-results');
-        playerSearchResults.innerHTML = err;
+        var resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = err;
     }
 
     function setNewPlayerSelected(isSelected) {
