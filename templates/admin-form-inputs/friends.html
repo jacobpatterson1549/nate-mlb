@@ -72,10 +72,9 @@
         friend.querySelector('.friend-name-input').id = 'friend-' + id + '-name';
         friend.querySelector('.friend-name-input').name = 'friend-' + id + '-name';
         friend.querySelector('.friend-name-input').value = name;
-        friend.querySelector('.friend-display-order').id = 'friend-' + id + '-display-order';
         friend.querySelector('.friend-display-order').name = 'friend-' + id + '-display-order';
         friend.querySelector('.friend-display-order').value = displayOrder;
-        var friends = document.querySelector("#friends");
+        var friends = document.getElementById("friends");
         friends.appendChild(clone);
     }
 

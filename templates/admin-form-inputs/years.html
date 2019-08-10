@@ -46,7 +46,7 @@
         newYear.querySelector('.year-label').htmlFor = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-label').innerText = yearNum;
         newYear.querySelector('.year-input').value = yearNum;
-        var years = document.querySelector("#years");
+        var years = document.getElementById("years");
         years.appendChild(clone);
     }
 
