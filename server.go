@@ -183,11 +183,12 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		AdminTab{Name: "Reset Password", Action: "password"},
 	}
 	tabs := make([]Tab, len(adminTabs))
-	templateNames := make([]string, len(adminTabs)+1)
+	templateNames := make([]string, len(adminTabs)+2)
 	templateNames[0] = "templates/admin.html"
+	templateNames[1] = fmt.Sprintf("templates/admin-form-inputs/player-search.html")
 	for i, adminTab := range adminTabs {
 		tabs[i] = adminTab
-		templateNames[i+1] = fmt.Sprintf("templates/admin-form-inputs/%s.html", adminTab.Action)
+		templateNames[i+2] = fmt.Sprintf("templates/admin-form-inputs/%s.html", adminTab.Action)
 	}
 	timesMessage := TimesMessage{Messages: []string{message}}
 	adminPage := Page{

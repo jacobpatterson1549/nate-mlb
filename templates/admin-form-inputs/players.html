@@ -35,36 +35,7 @@
 <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
     <span>Add Player...</span>
 </button>
-<div class="modal fade" id="addPlayerModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addPlayerModalTitle">Player Search</h5>
-                <button type="button" class="close" data-dismiss="modal">×</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form">
-                    <div class="form-group">
-                        <input class="form-control" type="search" id="player-search" placeholder="Search">
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="active-players-only"
-                            id="active-players-only" checked>
-                        <label class="form-check-label" for="active-players-only">Active Players Only</label>
-                    </div>
-                    <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
-                </div>
-                <div id="player-search-results"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button id="modal-add-player-button" type="button" class="btn btn-outline-primary" data-dismiss="modal"
-                    onclick="addPlayer()" disabled>Add Player</button>
-            </div>
-        </div>
-    </div>
-</div>
+{{- template "player-search" . -}}
 <script>
     function movePlayerUp() {
         var player1 = event.target.parentNode;
@@ -97,23 +68,9 @@
         removePlayer.remove();
     }
 
-    function addPlayer() {
+    function addPlayer(playerName, playerID) {
         var playerTypeID = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
-        var playerID = null;
-        var playerName = null;
-        var playerSearchResultsBody = document.getElementById('player-search-results-body');
-        var rows = playerSearchResultsBody.children
-        // TODO: move player search into seperate template file?
-        for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            if (row.children[0].firstChild.checked) {
-                playerID = row.children[3].value;
-                playerName = row.children[1].innerText;
-                break;
-            }
-        }
-        // determine where to add the player
         var maxID = 0;
         var maxDisplayOrder = 0;
         var players = document.getElementById('players');
@@ -131,7 +88,6 @@
                 }
             }
         }
-        // create the new player
         createPlayer(maxID + 1, playerName, playerID, maxDisplayOrder + 1, playerTypeID, friendID);
     }
 
@@ -187,84 +143,9 @@
                 player.classList.add('player-hidden');
             }
         }
-        // clear the search results
-        var playerSearchResultsDiv = document.getElementById('player-search-results')
-        playerSearchResultsDiv.innerHTML = '';
+        refreshVisiblePlayers2();
     }
 
-    function searchPlayers() {
-        setNewPlayerSelected(false);
-        var playerTypeID = document.getElementById('select-player-type').value;
-        var activePlayersOnly = document.getElementById("active-players-only").checked;
-        var query = document.getElementById('player-search').value;
-        var url = '/admin/search?q=' + query + '&pt=' + playerTypeID + '&apo=' + activePlayersOnly;
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.onload = searchSuccess;
-        httpRequest.onerror = searchError;
-        httpRequest.open('GET', url, true);
-        httpRequest.send();
-    }
-
-    function searchSuccess() {
-        if (this.status != 200) {
-            searchError(new Error(this.responseText));
-            return;
-        }
-        var playerSearchResults = JSON.parse(this.responseText);
-        if (playerSearchResults.length == 0) {
-            searchError(new Error('No results'));
-            return;
-        }
-
-        var playerSearchResultsBody = document.createElement('tbody');
-        playerSearchResultsBody.setAttribute('id', 'player-search-results-body')
-        for (var i = 0; i < playerSearchResults.length; i++) {
-            var playerSearchResult = playerSearchResults[i];
-            var row = document.createElement('tr');
-            // TODO: use template for player search
-            row.innerHTML =
-                '<td><input class="form-check-input" type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
-                '<td>' + playerSearchResult.Name + '</td>' +
-                '<td>' + playerSearchResult.Details + '</td>' +
-                '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
-            playerSearchResultsBody.appendChild(row)
-        }
-        if (playerSearchResultsBody.children.length == 1) {
-            var firstRow = playerSearchResultsBody.children[0]
-            var firstTd = firstRow.children[0];
-            var radioInput = firstTd.children[0];
-            radioInput.setAttribute('checked', null);
-            setNewPlayerSelected(true);
-        }
-        var playerSearchResultsTable = document.createElement('table')
-        playerSearchResultsTable.classList.add('table');
-        playerSearchResultsTable.innerHTML = '<thead>' +
-            ' <tr>' +
-            ' <th>Add?</th>' +
-            ' <th>Name</th>' +
-            ' <th>Details</th>' +
-            ' </tr>' +
-            ' </thead>';
-        playerSearchResultsTable.appendChild(playerSearchResultsBody);
-
-        var playerSearchResultsDiv = document.getElementById('player-search-results')
-        playerSearchResultsDiv.innerHTML = '';
-        playerSearchResultsDiv.appendChild(playerSearchResultsTable);
-    }
-
-    function searchError(err) {
-        var playerSearchResults = document.getElementById('player-search-results');
-        playerSearchResults.innerHTML = err;
-    }
-
-    function setNewPlayerSelected(isSelected) {
-        var addPlayerButton = document.getElementById('modal-add-player-button');
-        if (isSelected) {
-            addPlayerButton.removeAttribute('disabled');
-        } else {
-            addPlayerButton.setAttribute('disabled', null);
-        }
-    }
     {{- range $scoreCategory := .Data -}}
     {{- range $friendScore := $scoreCategory.FriendScores -}}
     {{- range $index, $playerScore := $friendScore.PlayerScores -}}
