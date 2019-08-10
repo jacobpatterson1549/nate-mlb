@@ -1,44 +1,33 @@
 {{define "players"}}
-{{if .Data}}
-{{with $scoreCategories := .Data}}
 <fieldset>
     <legend>Players</legend>
     <label for="select-player-type">Player Type</label>
-    <select id="select-player-type" class="form-control custom-select" onchange="refreshVisibleFriendScores()">
-        {{range $scoreCategories}}
+    <select id="select-player-type" class="form-control custom-select" onchange="refreshVisiblePlayers()">
+        {{range .Data}}
         <option value="{{.PlayerTypeID}}">{{.Name}}</option>
         {{end}}
     </select>
     <br />
     <label for="select-friend">Friend</label>
-    <select id="select-friend" class="form-control custom-select" onchange="refreshVisibleFriendScores()">
-        {{range (index $scoreCategories 0).FriendScores}}
+    <select id="select-friend" class="form-control custom-select" onchange="refreshVisiblePlayers()">
+        {{range (index .Data 0).FriendScores}}
         <option value="{{.FriendID}}">{{.FriendName}}</option>
         {{end}}
     </select>
-    <br />
-    <div>
-        {{range $scoreCategories}}
-        <div class="score-category">
-            <input class="player-type-id" value="{{.PlayerTypeID}}" type="hidden">
-            {{range .FriendScores}}
-            <div class="friend-score">
-                <input class="friend-id" value="{{.FriendID}}" type="hidden">
-                {{range $index, $playerScore := .PlayerScores}}
-                <div class="form-group player-score" id="player-{{$playerScore.ID}}">
-                    <input id="player-{{$playerScore.ID}}-display-order" name="player-{{$playerScore.ID}}-display-order"
-                        value="{{$index}}" type="hidden">
-                    <input name="player-{{$playerScore.ID}}-player-id" value="{{$playerScore.PlayerID}}" type="hidden">
-                    <label class="forrm-label">{{$playerScore.PlayerName}}</label>
-                    <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
-                    <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
-                    <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
-                </div>
-                {{end}}
-            </div>
-            {{end}}
+    <br /><!-- TODO: remove ALL br elements -->
+    <template id="player-template"><!-- TODO: move other templates above/below parent div (fix moveUp/down) -->
+        <div class="form-group" id="player-0" data-player-type-id="0" data-friend-id="0">
+            <label class="player-name-label forrm-label">?</label>
+            <input class="player-player-id" name="player-0-player-id" value="?" type="hidden" required>
+            <input class="player-display-order" name="player-0-display-order" value="?" type="hidden">
+            <input class="player-player-type-id" name="player-0-player-type-id" value="?" type="hidden">
+            <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
+            <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
+            <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
+            <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
         </div>
-        {{end}}
+    </template>
+    <div id="players">
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
@@ -113,6 +102,7 @@
         var playerName = null;
         var playerSearchResultsBody = document.getElementById('player-search-results-body');
         var rows = playerSearchResultsBody.children
+        // TODO: move player search into seperate template file?
         for (var i = 0; i < rows.length; i++) {
             var row = rows[i];
             if (row.children[0].firstChild.checked) {
@@ -123,77 +113,76 @@
         }
         // determine where to add the player
         var maxID = 0;
-        var playersParent = null;
-        var scoreCategories = document.getElementsByClassName('score-category');
-        for (var i = 0; i < scoreCategories.length; i++) {
-            var scoreCategory = scoreCategories[i];
-            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].value;
-            var friendScores = scoreCategory.getElementsByClassName('friend-score');
-            for (var j = 0; j < friendScores.length; j++) {
-                var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].value;
-                if (playerTypeID == currentPlayerTypeID && friendID == currentFriendID) {
-                    if (playersParent != null) {
-                        throw 'multyple friendScores with playerTypeID=' + playerTypeID + ", friendID=" + friendID;
-                    }
-                    playersParent = friendScore;
-                }
-                // get max id from players
-                var playerScores = friendScore.getElementsByClassName('player-score');
-                for (var k = 0; k < playerScores.length; k++) {
-                    var playerElement = playerScores[k]
-                    var playerElementId = parseInt(playerElement.id.substring('player-'.length));
-                    if (playerElementId > maxID) {
-                        maxID = playerElementId;
-                    }
+        var maxDisplayOrder = 0;
+        var players = document.getElementById('players');
+        var playerElements = players.getElementsByClassName('form-group')
+        for (var i = 0; i < playerElements.length; i++) {
+            var player = playerElements[i];
+            var ID = parseInt(player.id.substring('player-'.length)); // TOOD: substring HACK!
+            if (ID > maxID) {
+                maxID = ID;
+            }
+            if (!player.classList.contains('player-hidden')) {
+                var playerDisplayOrder = parseInt(player.querySelector('.player-display-order').value);
+                if (playerDisplayOrder > maxDisplayOrder) {
+                    maxDisplayOrder = playerDisplayOrder;
                 }
             }
         }
-        if (playersParent == null) {
-            return;
-        }
         // create the new player
-        var newPlayer = document.createElement('div');
-        var newID = parseInt(maxID) + 1;
-        var newPlayerDisplayOrder = playersParent.getElementsByClassName('player-score').length;
-        newPlayer.setAttribute('class', 'form-group');
-        newPlayer.setAttribute('id', 'player-' + newID);
-        newPlayer.innerHTML = '<input id="player-' + newID + '-display-order" name="player-' + newID +
-            '-display-order" value="' + newPlayerDisplayOrder + '" type="hidden">' +
-            ' <input name=player-' + newID + '-type-id value="' + playerTypeID + '" type="hidden">' +
-            ' <input name=player-' + newID + '-friend-id value="' + friendID + '" type="hidden">' +
-            ' <input name="player-' + newID + '-player-id" value="' + playerID + '" type="hidden">' +
-            ' <label class="form-label">' + playerName + '</label>' +
-            ' <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>' +
-            ' <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>' +
-            ' <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>';
-        playersParent.appendChild(newPlayer);
+        createPlayer(maxID + 1, playerName, playerID, maxDisplayOrder + 1, playerTypeID, friendID);
+    }
+
+    function createPlayer(id, playerName, playerID, displayOrder, playerTypeID, friendID) {
+        var template = document.getElementById("player-template");
+        var clone = document.importNode(template.content, true);
+        var player = clone.querySelector('.form-group');
+        player.id = 'player-' + id;
+        player.querySelector('.player-name-label').innerText = playerName;
+        player.querySelector('.player-player-id').name = 'player-' + id + '-player-id';
+        player.querySelector('.player-player-id').value = playerID;
+        player.querySelector('.player-display-order').name = 'player-' + id + '-display-order';
+        player.querySelector('.player-display-order').value = displayOrder;
+        player.querySelector('.player-player-type-id').name = 'player-' + id + '-player-type-id';
+        player.querySelector('.player-player-type-id').value = playerTypeID;
+        player.querySelector('.player-friend-id').name = 'player-' + id + '-friend-id';
+        player.querySelector('.player-friend-id').value = friendID;
+        var players = document.getElementById("players");
+        var friendScores = players.querySelector('#player-type-id-' + playerTypeID);
+        if (friendScores == null) {
+            friendScores = document.createElement('div');
+            friendScores.id = 'player-type-id-' + playerTypeID;
+            players.appendChild(friendScores);
+        }
+        var playerScores = friendScores.querySelector('#friend-id-' + friendID);
+        if (playerScores == null) {
+            playerScores = document.createElement('div');
+            playerScores.id = 'friend-id-' + friendID;
+            friendScores.appendChild(playerScores);
+        }
+        playerScores.appendChild(clone);
     }
 
     function changePlayerDisplayOrder(playerID, delta) {
         var player = document.getElementById(playerID);
-        var playerDisplayOrderId = player.id + '-display-order';
-        var playerDisplayOrderElement = document.getElementById(playerDisplayOrderId);
-        var playerDisplayOrder = playerDisplayOrderElement.value
+        var playerDisplayOrderElement = player.querySelector('.player-display-order')
+        var playerDisplayOrder = playerDisplayOrderElement.value;
         playerDisplayOrderElement.setAttribute('value', parseInt(playerDisplayOrder) + delta);
     }
 
-    function refreshVisibleFriendScores() {
+    function refreshVisiblePlayers() {
         var playerTypeID = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
-        var scoreCategories = document.getElementsByClassName('score-category');
-        for (var i = 0; i < scoreCategories.length; i++) {
-            var scoreCategory = scoreCategories[i];
-            var currentPlayerTypeID = scoreCategory.getElementsByClassName('player-type-id')[0].value
-            var friendScores = scoreCategory.getElementsByClassName('friend-score');
-            for (var j = 0; j < friendScores.length; j++) {
-                var friendScore = friendScores[j];
-                var currentFriendID = friendScore.getElementsByClassName('friend-id')[0].value;
-                if (playerTypeID === currentPlayerTypeID && friendID == currentFriendID) {
-                    friendScore.classList.remove('player-hidden');
-                } else {
-                    friendScore.classList.add('player-hidden');
-                }
+        var players = document.getElementById('players');
+        var playerElements = players.getElementsByClassName('form-group')
+        for (var i = 0; i < playerElements.length; i++) {
+            var player = playerElements[i];
+            var currentPlayerTypeID = player.querySelector('.player-player-type-id').value;
+            var currentFriendID = player.querySelector('.player-friend-id').value;
+            if (playerTypeID === currentPlayerTypeID && friendID === currentFriendID) {
+                player.classList.remove('player-hidden');
+            } else {
+                player.classList.add('player-hidden');
             }
         }
         // clear the search results
@@ -230,6 +219,7 @@
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
             var row = document.createElement('tr');
+            // TODO: use template for player search
             row.innerHTML =
                 '<td><input class="form-check-input" type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
                 '<td>' + playerSearchResult.Name + '</td>' +
@@ -273,9 +263,13 @@
             addPlayerButton.setAttribute('disabled', null);
         }
     }
-
-    refreshVisibleFriendScores(); // initialize visible friend score to first one.
+    {{range $scoreCategory := .Data}}
+    {{range $friendScore := $scoreCategory.FriendScores}}
+    {{range $index, $playerScore := $friendScore.PlayerScores}}
+    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.PlayerID}}, {{$index}}, {{$scoreCategory.PlayerTypeID}}, {{$friendScore.FriendID}});
+    {{end}}
+    {{end}}
+    {{end}}
+    refreshVisiblePlayers(); // initialize visible player scores to first friendScore.
 </script>
-{{end}}
-{{end}}
 {{end}}

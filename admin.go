@@ -99,7 +99,7 @@ func updatePlayers(r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-type-id", ID))
+			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-player-type-id", ID))
 			var playerTypeIDI int
 			if len(playerTypeID) > 0 { // not specified when updating existing player
 				playerTypeIDI, err = strconv.Atoi(playerTypeID)
