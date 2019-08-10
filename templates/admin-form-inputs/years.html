@@ -1,15 +1,15 @@
 {{define "years"}}
 <fieldset>
     <legend>Years</legend>
+    <template id="year-template">
+        <div class="form-check" id="year-0">
+            <input class="year-radio form-check-input" type="radio" name="year-active" id="year-0-active">
+            <label class="year-label form-check-label" for="year-0-active">?</label>
+            <input class="year-input" type="hidden" name="year" value="?">
+            <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
+        </div>
+    </template>
     <div id="years">
-        <template id="year-template">
-            <div class="form-check" id="year-0">
-                <input class="year-radio form-check-input" type="radio" name="year-active" id="year-0-active">
-                <label class="year-label form-check-label" for="year-0-active">?</label>
-                <input class="year-input" type="hidden" name="year" value="?">
-                <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
-            </div>
-        </template>
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
