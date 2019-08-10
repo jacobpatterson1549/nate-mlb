@@ -4,7 +4,6 @@
     <div id="friends">
         <template id="friend-template">
             <div class="form-group">
-                <!-- TODO: do this for years -->
                 <label class="friend-name-label form-label"></label>
                 <input class="friend-name-input form-control" class="form-control" required>
                 <input class="friend-display-order" type="hidden">
@@ -64,7 +63,7 @@
     }
 
     function createFriend(id, name, displayOrder, nameLabel) {
-        var template = document.querySelector("#friend-template");
+        var template = document.getElementById("friend-template");
         var clone = document.importNode(template.content, true);
         var friend = clone.querySelector('.form-group');
         friend.id = 'friend-' + id;

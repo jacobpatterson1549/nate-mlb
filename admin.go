@@ -142,9 +142,9 @@ func updateYears(r *http.Request) error {
 		return err
 	}
 
-	activeYear := r.Form.Get("active-year")
+	activeYear := r.Form.Get("year-active")
 	if len(activeYear) == 0 {
-		return errors.New("missing value for active-year")
+		return errors.New("missing value for year-active")
 	}
 	activeYearI, err := strconv.Atoi(activeYear)
 	if err != nil {
