@@ -17,28 +17,40 @@
                             id="active-players-only" checked>
                         <label class="form-check-label" for="active-players-only">Active Players Only</label>
                     </div>
+                    <template id="player-search-result-template">
+                        <div class="form-check">
+                            <input class="psr-radio form-check-input" type="radio" name="psr-selected" id="psr-0"
+                                onchange="setNewPlayerSelected(true)">
+                            <label class="psr-label form-check-label" for="psr-0">
+                                <strong class="psr-label-name">?</strong>
+                                <span class="psr-label-details">?</span>
+                            </label>
+                            <input class="psr-player-id" value="?" type="hidden">
+                            <input class="psr-player-name" value="?" type="hidden">
+                        </div>
+                    </template>
+                    <fieldset id="player-search-results"></fieldset>
                     <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
                 </div>
-                <div id="player-search-results"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button id="modal-add-player-button" type="button" class="btn btn-outline-primary" data-dismiss="modal"
-                    onclick="addPlayer2()" disabled>Add Player</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
+                        data-dismiss="modal" onclick="addPlayer2()" disabled>Add Player</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script>
     function addPlayer2() {
-        var playerSearchResultsBody = document.getElementById('player-search-results-body');
-        var rows = playerSearchResultsBody.children
-        for (var i = 0; i < rows.length; i++) {
-            var row = rows[i];
-            if (row.children[0].firstChild.checked) {
-                var playerID = row.children[3].value;
-                var playerName = row.children[1].innerText;
-                addPlayer(playerName, playerID)
+        var playerSearchResults = document.getElementById('player-search-results');
+        playerSearchResults = playerSearchResults.getElementsByClassName('form-check');
+        for (var i = 0; i < playerSearchResults.length; i++) {
+            var psr = playerSearchResults[i];
+            if (psr.querySelector('.psr-radio').checked) {
+                var playerID = psr.querySelector('.psr-player-id').value;
+                var playerName = psr.querySelector('.psr-player-name').value;
+                addPlayer(playerName, playerID);
                 return;
             }
         }
@@ -73,40 +85,26 @@
             return;
         }
 
-        var playerSearchResultsBody = document.createElement('tbody');
-        playerSearchResultsBody.id = 'player-search-results-body';
-        for (var i = 0; i < playerSearchResults.length; i++) {
-            var playerSearchResult = playerSearchResults[i];
-            var row = document.createElement('tr');
-            // TODO: use template for player search
-            row.innerHTML =
-                '<td><input class="form-check-input" type="radio" name="selectedPlayer" onchange="setNewPlayerSelected(true)"></td>' +
-                '<td>' + playerSearchResult.Name + '</td>' +
-                '<td>' + playerSearchResult.Details + '</td>' +
-                '<input type="hidden" value="' + playerSearchResult.PlayerID + '">';
-            playerSearchResultsBody.appendChild(row)
-        }
-        if (playerSearchResultsBody.children.length == 1) {
-            var firstRow = playerSearchResultsBody.children[0]
-            var firstTd = firstRow.children[0];
-            var radioInput = firstTd.children[0];
-            radioInput.checked = true;
-            setNewPlayerSelected(true);
-        }
-        var playerSearchResultsTable = document.createElement('table')
-        playerSearchResultsTable.classList.add('table');
-        playerSearchResultsTable.innerHTML = '<thead>' +
-            ' <tr>' +
-            ' <th>Add?</th>' +
-            ' <th>Name</th>' +
-            ' <th>Details</th>' +
-            ' </tr>' +
-            ' </thead>';
-        playerSearchResultsTable.appendChild(playerSearchResultsBody);
-
         var playerSearchResultsDiv = document.getElementById('player-search-results')
         playerSearchResultsDiv.innerHTML = '';
-        playerSearchResultsDiv.appendChild(playerSearchResultsTable);
+        for (var i = 0; i < playerSearchResults.length; i++) {
+            var playerSearchResult = playerSearchResults[i];
+            var template = document.getElementById("player-search-result-template");
+            var clone = document.importNode(template.content, true);
+            var psr = clone.querySelector('.form-check');
+            psr.querySelector('.psr-radio').id = 'psr-' + playerSearchResult.PlayerID;
+            psr.querySelector('.psr-label').htmlFor = 'psr-' + playerSearchResult.PlayerID;
+            psr.querySelector('.psr-label-name').innerText = playerSearchResult.Name;
+            psr.querySelector('.psr-label-details').innerText = playerSearchResult.Details;
+            psr.querySelector('.psr-player-id').value = playerSearchResult.PlayerID;
+            psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
+            playerSearchResultsDiv.appendChild(clone);
+        }
+        if (playerSearchResults.length == 1) {
+            var psr = playerSearchResultsDiv.querySelector('.form-check');
+            psr.querySelector('.psr-radio').checked = true;
+            setNewPlayerSelected(true);
+        }
     }
 
     function searchError(err) {
