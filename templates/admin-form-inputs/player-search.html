@@ -116,11 +116,7 @@
 
     function setNewPlayerSelected(isSelected) {
         var addPlayerButton = document.getElementById('modal-add-player-button');
-        if (isSelected) {
-            addPlayerButton.removeAttribute('disabled');
-        } else {
-            addPlayerButton.setAttribute('disabled', null);
-        }
+        addPlayerButton.disabled = !isSelected;
     }
 </script>
 {{- end -}}
