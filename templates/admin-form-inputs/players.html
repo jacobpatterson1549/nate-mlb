@@ -125,7 +125,7 @@
         var player = document.getElementById(playerID);
         var playerDisplayOrderElement = player.querySelector('.player-display-order')
         var playerDisplayOrder = playerDisplayOrderElement.value;
-        playerDisplayOrderElement.setAttribute('value', parseInt(playerDisplayOrder) + delta);
+        playerDisplayOrderElement.value = parseInt(playerDisplayOrder) + delta;
     }
 
     function refreshVisiblePlayers() {

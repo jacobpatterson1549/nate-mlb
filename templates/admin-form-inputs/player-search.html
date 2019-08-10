@@ -74,7 +74,7 @@
         }
 
         var playerSearchResultsBody = document.createElement('tbody');
-        playerSearchResultsBody.setAttribute('id', 'player-search-results-body')
+        playerSearchResultsBody.id = 'player-search-results-body';
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
             var row = document.createElement('tr');
@@ -90,7 +90,7 @@
             var firstRow = playerSearchResultsBody.children[0]
             var firstTd = firstRow.children[0];
             var radioInput = firstTd.children[0];
-            radioInput.setAttribute('checked', null);
+            radioInput.checked = true;
             setNewPlayerSelected(true);
         }
         var playerSearchResultsTable = document.createElement('table')

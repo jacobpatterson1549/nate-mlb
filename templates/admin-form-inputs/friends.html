@@ -82,7 +82,7 @@
         var friend = document.getElementById(friendID);
         var friendDisplayOrderElement = friend.querySelector('.friend-display-order')
         var friendDisplayOrder = friendDisplayOrderElement.value;
-        friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
+        friendDisplayOrderElement.value = parseInt(friendDisplayOrder) + delta;
     }
 
     {{- range $index, $friendScore := .Data -}}
