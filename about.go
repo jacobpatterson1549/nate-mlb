@@ -13,11 +13,17 @@ func getLastDeploy() (Deploy, error) {
 	grd := []GithubRepoDeploymentJSON{}
 	lastDeploy := Deploy{}
 	err := requestJSON(url, &grd)
-	if err == nil && len(grd) > 0 {
-		lastDeploy.Version = grd[0].Version
-		lastDeploy.Time, err = time.Parse(time.RFC3339, grd[0].Time)
+	if err != nil {
+		return lastDeploy, err
 	}
-	return lastDeploy, err
+	if len(grd) > 0 {
+		lastDeploy.Time, err = time.Parse(time.RFC3339, grd[0].Time)
+		if err != nil {
+			return lastDeploy, fmt.Errorf("problem parsing %v into date: %v", grd[0].Time, err)
+		}
+		lastDeploy.Version = grd[0].Version
+	}
+	return lastDeploy, nil
 }
 
 // GithubRepoDeploymentJSON is used to unmarshal information about a github repository

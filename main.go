@@ -20,7 +20,7 @@ func main() {
 
 	portNumber, err := strconv.Atoi(port)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("PORT (%v) invalid as number: %v", port, err)
 	}
 
 	err = runServer(portNumber)

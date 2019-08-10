@@ -25,12 +25,16 @@ var (
 // InitDB initializes the pointer to the database
 func InitDB() error {
 	driverName := "postgres"
-	if datasourceName, ok := os.LookupEnv("DATABASE_URL"); ok {
-		var err error
-		db, err = sql.Open(driverName, datasourceName)
-		return err
+	datasourceName, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
+		return errors.New("DATABASE_URL environment variable not set")
 	}
-	return errors.New("DATABASE_URL environment variable not set")
+	var err error
+	db, err = sql.Open(driverName, datasourceName)
+	if err != nil {
+		return fmt.Errorf("problem opening database %v", err)
+	}
+	return nil
 }
 
 func getFriendPlayerInfo() (FriendPlayerInfo, error) {
@@ -72,14 +76,14 @@ func getEtlStats() (EtlStats, error) {
 		if err == sql.ErrNoRows {
 			err = errors.New("no active year")
 		}
-		return es, err
+		return es, fmt.Errorf("problem getting stats: %v", err)
 	}
 	fetchStats := true
 	currentTime := getUtcTime()
 	if etlJSON.Valid {
 		err = json.Unmarshal([]byte(etlJSON.String), &es)
 		if err != nil {
-			return es, err
+			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
 		}
 		fetchStats = es.isStale(currentTime)
 	}
@@ -92,11 +96,11 @@ func getEtlStats() (EtlStats, error) {
 		es.EtlTime = currentTime
 		etlJSON, err := json.Marshal(es)
 		if err != nil {
-			return es, err
+			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
 		}
 		result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE year = $2", etlJSON, year)
 		if err != nil {
-			return es, err
+			return es, fmt.Errorf("problem saving stats for year %v: %v", year, err)
 		}
 		err = expectSingleRowAffected(result)
 	}
@@ -105,7 +109,10 @@ func getEtlStats() (EtlStats, error) {
 
 func nullEtlJSON() error {
 	_, err := db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
-	return err
+	if err != nil {
+		return fmt.Errorf("problem clearing saved stats: %v", err)
+	}
+	return nil
 }
 
 func getActiveYear() (int, error) {
@@ -114,9 +121,12 @@ func getActiveYear() (int, error) {
 	row := db.QueryRow("SELECT year FROM stats WHERE active")
 	err := row.Scan(&activeYear)
 	if err == sql.ErrNoRows {
-		err = errors.New("no active year")
+		return activeYear, errors.New("no active year")
 	}
-	return activeYear, err
+	if err != nil {
+		return activeYear, fmt.Errorf("problem getting active year: %v", err)
+	}
+	return activeYear, nil
 }
 
 func getYears() ([]Year, error) {
@@ -124,7 +134,7 @@ func getYears() ([]Year, error) {
 
 	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
 	if err != nil {
-		return years, fmt.Errorf("Error reading years: %q", err)
+		return years, fmt.Errorf("problem reading years: %v", err)
 	}
 	defer rows.Close()
 
@@ -135,7 +145,7 @@ func getYears() ([]Year, error) {
 		years = append(years, Year{})
 		err = rows.Scan(&years[i].Value, &active)
 		if err != nil {
-			return years, fmt.Errorf("Problem reading data: %q", err)
+			return years, fmt.Errorf("problem reading data: %v", err)
 		}
 		if active.Valid && active.Bool {
 			if activeYearFound {
@@ -174,13 +184,13 @@ func setYears(activeYear int, years []int) error {
 		delete(currentYearsMap, year)
 	}
 	if len(years) > 0 && !activeYearPresent {
-		return fmt.Errorf("active year %d not present in years: %q", activeYear, years)
+		return fmt.Errorf("active year %v not present in years: %v", activeYear, years)
 	}
 	deleteYears := currentYearsMap
 
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("problem starting transaction: %v", err)
 	}
 	var result sql.Result
 	for year := range deleteYears {
@@ -218,22 +228,24 @@ func setYears(activeYear int, years []int) error {
 			err = expectSingleRowAffected(result)
 		}
 	}
-	if err == nil {
-		err = tx.Commit()
-	} else {
+	if err != nil {
 		if err2 := tx.Rollback(); err2 != nil {
-			err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
+			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
 		}
+	} else {
+		err = tx.Commit()
 	}
-
-	return err
+	if err != nil {
+		return fmt.Errorf("problem saving years: %v", err)
+	}
+	return nil
 }
 
 // TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
 func getFriends() ([]Friend, error) {
 	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
-		return nil, fmt.Errorf("Error reading friends: %q", err)
+		return nil, fmt.Errorf("problem reading friends: %v", err)
 	}
 	defer rows.Close()
 
@@ -243,7 +255,7 @@ func getFriends() ([]Friend, error) {
 		friends = append(friends, Friend{})
 		err = rows.Scan(&friends[i].id, &friends[i].displayOrder, &friends[i].name)
 		if err != nil {
-			return nil, fmt.Errorf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
 		i++
 	}
@@ -253,7 +265,7 @@ func getFriends() ([]Friend, error) {
 func getPlayerTypes() ([]PlayerType, error) {
 	rows, err := db.Query("SELECT id, name, description FROM player_types ORDER BY id ASC")
 	if err != nil {
-		return nil, fmt.Errorf("Error reading playerTypes: %q", err)
+		return nil, fmt.Errorf("problem reading playerTypes: %v", err)
 	}
 	defer rows.Close()
 
@@ -263,7 +275,7 @@ func getPlayerTypes() ([]PlayerType, error) {
 		playerTypes = append(playerTypes, PlayerType{})
 		err = rows.Scan(&playerTypes[i].id, &playerTypes[i].name, &playerTypes[i].description)
 		if err != nil {
-			return nil, fmt.Errorf("Problem reading data: %q", err)
+			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
 		i++
 	}
@@ -273,7 +285,7 @@ func getPlayerTypes() ([]PlayerType, error) {
 func getPlayers() ([]Player, error) {
 	rows, err := db.Query("SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.active ORDER BY p.player_type_id, p.friend_id, p.display_order")
 	if err != nil {
-		return nil, fmt.Errorf("Error reading players: %q", err)
+		return nil, fmt.Errorf("problem reading players: %v", err)
 	}
 	defer rows.Close()
 
@@ -283,7 +295,7 @@ func getPlayers() ([]Player, error) {
 		players = append(players, Player{})
 		err = rows.Scan(&players[i].id, &players[i].displayOrder, &players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading data: %q", err)
+			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
 		i++
 	}
@@ -293,13 +305,17 @@ func getPlayers() ([]Player, error) {
 func getUserPassword(username string) (string, error) {
 	var v string
 	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
-	return v, row.Scan(&v)
+	err := row.Scan(&v)
+	if err != nil {
+		return v, fmt.Errorf("problem getting password for user %v: %v", username, err)
+	}
+	return v, nil
 }
 
 func setUserPassword(username, password string) error {
 	result, err := db.Exec("UPDATE users SET password = $1 WHERE username = $2", password, username)
 	if err != nil {
-		return err
+		return fmt.Errorf("problem updating password for user %v: %v", username, err)
 	}
 	return expectSingleRowAffected(result)
 }
@@ -337,7 +353,7 @@ func setFriends(futureFriends []Friend) error {
 
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("problem starting transaction: %v", err)
 	}
 	var result sql.Result
 	for _, friend := range insertFriends {
@@ -373,13 +389,17 @@ func setFriends(futureFriends []Friend) error {
 			}
 		}
 	}
-	if err == nil {
+	if err != nil {
+		if err2 := tx.Rollback(); err2 != nil {
+			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
+		}
+	} else {
 		err = tx.Commit()
-	} else if err2 := tx.Rollback(); err2 != nil {
-		err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
 	}
-
-	return err
+	if err != nil {
+		return fmt.Errorf("problem saving friends: %v", err)
+	}
+	return nil
 }
 
 func setPlayers(futurePlayers []Player) error {
@@ -407,7 +427,7 @@ func setPlayers(futurePlayers []Player) error {
 
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("problem starting transaction: %v", err)
 	}
 	var result sql.Result
 	for _, player := range insertPlayers {
@@ -444,15 +464,17 @@ func setPlayers(futurePlayers []Player) error {
 			}
 		}
 	}
-	if err == nil {
-		err = tx.Commit()
-	} else {
+	if err != nil {
 		if err2 := tx.Rollback(); err2 != nil {
-			err = fmt.Errorf("Error: %s, ROLLBACK ERROR: %s", err.Error(), err2.Error())
+			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
 		}
+	} else {
+		err = tx.Commit()
 	}
-
-	return err
+	if err != nil {
+		return fmt.Errorf("problem saving players: %v", err)
+	}
+	return nil
 }
 
 func getUtcTime() time.Time {

@@ -60,11 +60,11 @@ func updateFriends(r *http.Request) error {
 		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
 			friendIDi, err := strconv.Atoi(matches[1])
 			if err != nil {
-				return err
+				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
 			}
 			friendDisplayOrderI, err := strconv.Atoi(v[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("problem converting friend display order '%v' to number: %v", v[0], err)
 			}
 			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
 			friends = append(friends, Friend{
@@ -90,34 +90,34 @@ func updatePlayers(r *http.Request) error {
 	players := []Player{}
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
-		if idMatches := re.FindStringSubmatch(k); len(idMatches) > 0 {
-			ID, err := strconv.Atoi(idMatches[1])
+		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
+			ID, err := strconv.Atoi(matches[1])
 			if err != nil {
-				return err
+				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
 			}
 			playerDisplayOrderI, err := strconv.Atoi(v[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("problem converting player display order '%v' to number: %v", v[0], err)
 			}
 			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-player-type-id", ID))
 			var playerTypeIDI int
 			if len(playerTypeID) > 0 { // not specified when updating existing player
 				playerTypeIDI, err = strconv.Atoi(playerTypeID)
 				if err != nil {
-					return err
+					return fmt.Errorf("problem converting player type id '%v' to number: %v", playerTypeID, err)
 				}
 			}
 			playerID := r.Form.Get(fmt.Sprintf("player-%d-player-id", ID))
 			playerIDI, err := strconv.Atoi(playerID)
 			if err != nil {
-				return err
+				return fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
 			}
 			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", ID))
 			var friendIDI int
 			if len(friendID) > 0 { // not specified when updating existing player
 				friendIDI, err = strconv.Atoi(friendID)
 				if err != nil {
-					return err
+					return fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
 				}
 			}
 			players = append(players, Player{
@@ -148,14 +148,14 @@ func updateYears(r *http.Request) error {
 	}
 	activeYearI, err := strconv.Atoi(activeYear)
 	if err != nil {
-		return err
+		return fmt.Errorf("problem converting active year (%v) to number: %v", activeYear, err)
 	}
 	years := r.Form["year"]
 	yearsI := make([]int, len(years))
 	for i, year := range years {
 		yearI, err := strconv.Atoi(year)
 		if err != nil {
-			return err
+			return fmt.Errorf("problem converting year (%v) to number: %v", year, err)
 		}
 		yearsI[i] = yearI
 	}
@@ -166,7 +166,10 @@ func updateYears(r *http.Request) error {
 
 func hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(hashedPassword), err
+	if err != nil {
+		return "", fmt.Errorf("problem hashing password: %v", err)
+	}
+	return string(hashedPassword), nil
 }
 
 func verifyUserPassword(r *http.Request) error {
@@ -180,5 +183,8 @@ func verifyUserPassword(r *http.Request) error {
 	if err == bcrypt.ErrMismatchedHashAndPassword {
 		return errors.New("Incorrect Password")
 	}
-	return err
+	if err != nil {
+		return fmt.Errorf("problem verifying password: %v", err)
+	}
+	return nil
 }

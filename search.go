@@ -64,24 +64,25 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	// sometimes the rows are '[]Row' and sometimes it is 'Row' (a singular row) -- so this hack must exist.  read the body, try to prase it twice
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return playerSearchResults, err
+		return playerSearchResults, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
 	}
 	psmj := PlayerSearchMultipleJSON{}
 	err = json.Unmarshal(b, &psmj)
 	if err != nil {
+		// ignore the error
 		pssj := PlayerSearchSingleJSON{}
 		err = json.Unmarshal(b, &pssj)
 		if err != nil {
-			return playerSearchResults, err
+			return playerSearchResults, fmt.Errorf("problem reading json when requesting %v: %v", url, err)
 		}
-		psr, err := pssj.SearchPlayerAll.QueryResults.Row.toPlayerSearchResult()
+		psr, err := pssj.SearchPlayerAll.QueryResults.PlayerBio.toPlayerSearchResult()
 		if err != nil {
 			return playerSearchResults, err
 		}
 		playerSearchResults = append(playerSearchResults, psr)
 	} else {
-		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.Rows))
-		for i, row := range psmj.SearchPlayerAll.QueryResults.Rows {
+		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
+		for i, row := range psmj.SearchPlayerAll.QueryResults.PlayerBios {
 			psr, err := row.toPlayerSearchResult()
 			if err != nil {
 				return playerSearchResults, err
@@ -93,16 +94,18 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	return playerSearchResults, nil
 }
 
-func (row Row) toPlayerSearchResult() (PlayerSearchResult, error) {
+func (row PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
 	birthDate := row.BirthDate[:10]             // YYYY-MM-DD
 	playerID, err := strconv.Atoi(row.PlayerID) // all players must have valid ids, ignore bad ids
-	if err == nil {
-		psr = PlayerSearchResult{
-			Name:     row.PlayerName,
-			Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
-			PlayerID: playerID,
-		}
+	if err != nil {
+		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, row, err)
+	}
+
+	psr = PlayerSearchResult{
+		Name:     row.PlayerName,
+		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
+		PlayerID: playerID,
 	}
 	return psr, nil
 }
@@ -118,7 +121,7 @@ type PlayerSearchResult struct {
 type PlayerSearchMultipleJSON struct {
 	SearchPlayerAll struct {
 		QueryResults struct {
-			Rows []Row `json:"row"`
+			PlayerBios []PlayerBio `json:"row"`
 		} `json:"queryResults"`
 	} `json:"search_player_all"`
 }
@@ -127,13 +130,13 @@ type PlayerSearchMultipleJSON struct {
 type PlayerSearchSingleJSON struct {
 	SearchPlayerAll struct {
 		QueryResults struct {
-			Row Row `json:"row"`
+			PlayerBio PlayerBio `json:"row"`
 		} `json:"queryResults"`
 	} `json:"search_player_all"`
 }
 
-// Row contains the results of a player search for a single player
-type Row struct {
+// PlayerBio contains the results of a player search for a single player
+type PlayerBio struct {
 	Position     string `json:"position"`
 	BirthCountry string `json:"birth_country"`
 	BirthDate    string `json:"birth_date"`

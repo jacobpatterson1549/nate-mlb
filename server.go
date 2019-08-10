@@ -19,7 +19,7 @@ func runServer(portNumber int) error {
 	addr := fmt.Sprintf(":%d", portNumber)
 	err := http.ListenAndServe(addr, nil)
 	if err != http.ErrServerClosed {
-		return err
+		return fmt.Errorf("server stopped unexpectedly: %v", err)
 	}
 	return nil
 }
@@ -43,7 +43,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if err != nil {
-		log.Println(err)
+		log.Printf("server error: %q", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 	}
 }
@@ -54,9 +54,10 @@ func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("missing query param: v")
 	}
 	hashedPassword, err := hashPassword(password)
-	if err == nil {
-		w.Write([]byte(hashedPassword))
+	if err != nil {
+		return err
 	}
+	_, err = w.Write([]byte(hashedPassword))
 	return err
 }
 
@@ -91,16 +92,20 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 	}
 	playerTypeIDI, err := strconv.Atoi(playerTypeID)
 	if err != nil {
-		return err
+		return fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
 	}
 	activePlayersOnly := r.Form.Get("apo")
 	activePlayersOnlyB := activePlayersOnly == "true"
 
-	playerSearchResult, err := searchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
+	playerSearchResults, err := searchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(w).Encode(playerSearchResult)
+	err = json.NewEncoder(w).Encode(playerSearchResults)
+	if err != nil {
+		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %v", playerSearchResults, err)
+	}
+	return nil
 }
 
 func writeStatsPage(w http.ResponseWriter) error {
@@ -212,7 +217,11 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	if err != nil {
 		return err
 	}
-	return t.Execute(w, p)
+	err = t.Execute(w, p)
+	if err != nil {
+		return fmt.Errorf("problem rendering templates (%v): %v", templateNames, err)
+	}
+	return nil
 }
 
 // Page is a page that gets rendered by the main template
@@ -278,12 +287,12 @@ type TimesMessage struct {
 
 func (tm *TimesMessage) toJSON() string {
 	if len(tm.Times) > len(tm.Messages) {
-		log.Printf("Must have at least as many Messages as Times.  Found %q.\n", tm)
-		return "[Invalid TimesMessag]"
+		log.Printf("Must have at least as many Messages as Times.  Found %v", tm)
+		return "[Invalid TimesMessage]"
 	}
 	b, err := json.Marshal(tm)
 	if err != nil {
-		log.Println(err)
+		log.Printf("problem converting TemplatesMessage (%v) to json: %v", tm, err)
 		b = []byte{}
 	}
 	return string(b)

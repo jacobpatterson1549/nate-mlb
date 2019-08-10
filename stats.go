@@ -47,7 +47,7 @@ func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, 
 	case playerTypeHitting, playerTypePitching:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
-		return ScoreCategory{}, fmt.Errorf("Unknown playerType: %v", playerType.name)
+		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType.name)
 	}
 }
 
@@ -77,7 +77,7 @@ func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType Player
 func request(url string) (*http.Response, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
 	}
 
 	request.Header.Add("Accept", "application/json")
@@ -85,7 +85,11 @@ func request(url string) (*http.Response, error) {
 		Timeout: 5 * time.Second,
 	}
 
-	return client.Do(request)
+	r, err := client.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
+	}
+	return r, nil
 }
 
 func requestJSON(url string, v interface{}) error {
@@ -94,7 +98,12 @@ func requestJSON(url string, v interface{}) error {
 		return err
 	}
 	defer response.Body.Close()
-	return json.NewDecoder(response.Body).Decode(&v)
+
+	err = json.NewDecoder(response.Body).Decode(&v)
+	if err != nil {
+		return fmt.Errorf("problem reading json when requesting %v: %v", url, err)
+	}
+	return nil
 }
 
 func requestTeamsJSON(year int) (TeamsJSON, error) {
@@ -143,7 +152,7 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 		if f.id == player.friendID && playerType.id == player.playerTypeID {
 			playerScore, ok := playerScores[player.playerID]
 			if !ok {
-				return friendScore, fmt.Errorf("No Player score for id = %v, type = %v", player.playerID, playerType.name)
+				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.playerID, playerType.name)
 			}
 			playerScoreWithID := PlayerScore{
 				PlayerName: playerScore.PlayerName,
@@ -178,6 +187,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlay
 	pir.wg = sync.WaitGroup{}
 
 	// Note that these keys are the same as player_types
+	// TODO: make this a private field of player type (DisplayName vs GroupName)
 	pir.playerStats["hitting"] = make(map[int]int)
 	pir.playerStats["pitching"] = make(map[int]int)
 
