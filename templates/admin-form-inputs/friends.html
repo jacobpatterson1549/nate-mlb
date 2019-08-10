@@ -3,10 +3,10 @@
     <legend>Friends</legend>
     <div id="friends">
         <template id="friend-template">
-            <div class="form-group">
-                <label class="friend-name-label form-label"></label>
-                <input class="friend-name-input form-control" class="form-control" required>
-                <input class="friend-display-order" type="hidden">
+            <div class="form-group" id="friend-0">
+                <label class="friend-name-label form-label" for="friend-0-name">?</label>
+                <input class="friend-name-input form-control" id="friend-0-name" name="friend-0-name" required>
+                <input class="friend-display-order" name="friend-0-display-order" value="?" type="hidden">
                 <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
                 <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
                 <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
@@ -67,7 +67,7 @@
         var clone = document.importNode(template.content, true);
         var friend = clone.querySelector('.form-group');
         friend.id = 'friend-' + id;
-        friend.querySelector('.friend-name-label').for = 'friend-' + id + '-name';
+        friend.querySelector('.friend-name-label').htmlFor = 'friend-' + id + '-name';
         friend.querySelector('.friend-name-label').innerText = nameLabel
         friend.querySelector('.friend-name-input').id = 'friend-' + id + '-name';
         friend.querySelector('.friend-name-input').name = 'friend-' + id + '-name';
