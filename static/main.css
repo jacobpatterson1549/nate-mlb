@@ -18,9 +18,13 @@ label {
     width: 6rem;
 }
 
-.form-control {
+.form-control:not(#player-search) {
     display: inline-block;
     width: 6rem;
+}
+
+.psr-label {
+    display: inline;
 }
 
 nav,
