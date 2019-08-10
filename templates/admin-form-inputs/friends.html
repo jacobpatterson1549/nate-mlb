@@ -1,22 +1,18 @@
 {{define "friends"}}
-{{if .Data}}
-{{with $friendScores := .Data}}
 <fieldset>
     <legend>Friends</legend>
-    <div>
-        {{range $index, $friendScore := $friendScores}}
-        <div class="form-group" id="friend-{{$friendScore.FriendID}}">
-            <input id="friend-{{$friendScore.FriendID}}-display-order"
-                name="friend-{{$friendScore.FriendID}}-display-order" value="{{$index}}" type="hidden">
-            <label class="form-label" for="friend-{{$friendScore.FriendID}}-name">{{$friendScore.FriendName}}</label>
-            <input class="form-control" id="friend-{{$friendScore.FriendID}}-name"
-                name="friend-{{$friendScore.FriendID}}-name" class="form-control" required
-                value="{{$friendScore.FriendName}}">
-            <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
-            <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
-            <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
-        </div>
-        {{end}}
+    <div id="friends">
+        <template id="friend-template">
+            <div class="form-group">
+                <!-- TODO: do this for years -->
+                <label class="friend-name-label form-label"></label>
+                <input class="friend-name-input form-control" class="form-control" required>
+                <input class="friend-display-order" type="hidden">
+                <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
+                <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
+                <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
+            </div>
+        </template>
     </div>
 </fieldset>
 <button class="btn btn-secondary" type="button" title="Add Friend" onclick="addFriend()">Add Friend</button>
@@ -64,32 +60,37 @@
                 maxFriendId = friendElementId;
             }
         }
-        // create the new friend
-        var newFriend = document.createElement('div');
-        var newFriendId = parseInt(maxFriendId) + 1;
-        var newFriendDisplayOrder = friendElements.length;
-        newFriend.setAttribute('class', 'form-group');
-        newFriend.setAttribute('id', 'friend-' + newFriendId);
-        newFriend.add
-        newFriend.innerHTML = '<input id="friend-' + newFriendId + '-display-order" name="friend-' + newFriendId +
-            '-display-order" value="' + newFriendDisplayOrder + '" type="hidden">' +
-            ' <label class="form-label" for="friend-' + newFriendId + '-name">[New]</label>' +
-            ' <input class="form-control" id="friend-' + newFriendId + '-name" name="friend-' + newFriendId +
-            '-name" required>' +
-            ' <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>' +
-            ' <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>' +
-            ' <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>';
-        friendsParent.appendChild(newFriend);
+        createFriend(maxFriendId + 1, '', friendElements.length, '[NEW]');
+    }
+
+    function createFriend(id, name, displayOrder, nameLabel) {
+        var template = document.querySelector("#friend-template");
+        var clone = document.importNode(template.content, true);
+        var friend = clone.querySelector('.form-group');
+        friend.id = 'friend-' + id;
+        friend.querySelector('.friend-name-label').for = 'friend-' + id + '-name';
+        friend.querySelector('.friend-name-label').innerText = nameLabel
+        friend.querySelector('.friend-name-input').id = 'friend-' + id + '-name';
+        friend.querySelector('.friend-name-input').name = 'friend-' + id + '-name';
+        friend.querySelector('.friend-name-input').value = name;
+        friend.querySelector('.friend-display-order').id = 'friend-' + id + '-display-order';
+        friend.querySelector('.friend-display-order').name = 'friend-' + id + '-display-order';
+        friend.querySelector('.friend-display-order').value = displayOrder;
+        var friends = document.querySelector("#friends");
+        friends.appendChild(clone);
     }
 
     function changeFriendDisplayOrder(friendID, delta) {
         var friend = document.getElementById(friendID);
-        var friendDisplayOrderId = friend.id + '-display-order';
-        var friendDisplayOrderElement = document.getElementById(friendDisplayOrderId);
-        var friendDisplayOrder = friendDisplayOrderElement.getAttribute('value');
+        var friendDisplayOrderElement = friend.querySelector('.friend-display-order')
+        var friendDisplayOrder = friendDisplayOrderElement.value;
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
 </script>
-{{end}}
+{{range $index, $friendScore := .Data}}
+<script>
+    createFriend("{{$friendScore.FriendID}}", "{{$friendScore.FriendName}}", "{{$index}}",
+        "{{$friendScore.FriendName}}");
+</script>
 {{end}}
 {{end}}
