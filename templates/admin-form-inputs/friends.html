@@ -84,11 +84,10 @@
         var friendDisplayOrder = friendDisplayOrderElement.value;
         friendDisplayOrderElement.setAttribute('value', parseInt(friendDisplayOrder) + delta);
     }
+
+    {{range $index, $friendScore := .Data}}
+        createFriend("{{$friendScore.FriendID}}", "{{$friendScore.FriendName}}", "{{$index}}",
+            "{{$friendScore.FriendName}}");
+    {{end}}
 </script>
-{{range $index, $friendScore := .Data}}
-<script>
-    createFriend("{{$friendScore.FriendID}}", "{{$friendScore.FriendName}}", "{{$index}}",
-        "{{$friendScore.FriendName}}");
-</script>
-{{end}}
 {{end}}

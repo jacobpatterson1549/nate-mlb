@@ -50,11 +50,9 @@
         years.appendChild(clone);
     }
 
+    {{range .Data}}
+        createYear("{{.Value}}", "{{.Active}}");
+    {{end}}
     document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 </script>
-{{range .Data}}
-<script>
-    createYear("{{.Value}}", "{{.Active}}");
-</script>
-{{end}}
 {{end}}
