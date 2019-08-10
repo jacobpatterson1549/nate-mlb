@@ -134,7 +134,7 @@ type PlayerSearchSingleJSON struct {
 
 // Row contains the results of a player search for a single player
 type Row struct {
-	Position     string `json:"position"` // TODO: only return pitchers when playerType=3, not pitchers when playertype=2
+	Position     string `json:"position"`
 	BirthCountry string `json:"birth_country"`
 	BirthDate    string `json:"birth_date"`
 	TeamAbbrev   string `json:"team_abbrev"`
