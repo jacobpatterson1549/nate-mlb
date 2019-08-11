@@ -1,4 +1,4 @@
-{{- define "content" -}}
+{{define "content"}}
 <form method="POST" id="{{- .Action -}}-form">
     <div class="form-group">
         <label class="form-label" for="{{- .Action -}}-username">Username</label>
@@ -19,21 +19,20 @@
     {{- if (eq .Action "years") -}}
     {{- template "years" . -}}
     {{- end -}}
-    {{- if (eq .Action "password") -}}
-    {{- template "password" . -}}
-    {{- end -}}
     {{- if (eq .Action "cache") -}}
     {{- template "cache" . -}}
     {{- end -}}
-    {{- if .Data -}}
-    <div id="template-support-check-{{- .Action -}}"></div>
+    {{- if (eq .Action "password") -}}
+    {{- template "password" . -}}
     {{- end -}}
-    <p id="templates-report-{{- .Action -}}"></p>
+    {{if .Data}}
+    <div id="template-support-check-{{- .Action -}}"></div>
+    {{end}}
     <input name="action" type="hidden" value="{{- .Action -}}">
     <button class="btn btn-primary" form="{{- .Action -}}-form" id="{{- .Action -}}-form-submit-button"
         value="Submit">Submit</button>
 </form>
-{{- if .Data -}}
+{{- if .Data}}
 <script>
     if (!('content' in document.createElement('template'))) {
         var templateSupportCheckDiv = document.getElementById('template-support-check-{{- .Action -}}');
@@ -41,5 +40,5 @@
         templateSupportCheckDiv.classList.add('text-danger');        
     }
 </script>
-{{- end -}}
-{{- end -}}
+{{end -}}
+{{end}}

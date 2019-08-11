@@ -1,4 +1,4 @@
-{{- define "years" -}}
+{{define "years"}}
 <fieldset>
     <legend>Years</legend>
     <template id="year-template">
@@ -50,9 +50,9 @@
         years.appendChild(clone);
     }
 
-    {{- range .Data -}}
+    {{range .Data -}}
         createYear("{{- .Value -}}", "{{- .Active -}}");
-    {{- end -}}
+    {{- end}}
     document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 </script>
-{{- end -}}
+{{end}}

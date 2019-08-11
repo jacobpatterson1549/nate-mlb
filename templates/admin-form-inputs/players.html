@@ -1,4 +1,4 @@
-{{- define "players" -}}
+{{define "players"}}
 <fieldset>
     <legend>Players</legend>
     <div class="form-group">
@@ -145,14 +145,13 @@
         }
         refreshVisiblePlayers2();
     }
-
-    {{- range $scoreCategory := .Data -}}
+    {{ range $scoreCategory := .Data -}}
     {{- range $friendScore := $scoreCategory.FriendScores -}}
     {{- range $index, $playerScore := $friendScore.PlayerScores -}}
     createPlayer({{- $playerScore.ID -}}, {{- $playerScore.PlayerName -}}, {{- $playerScore.PlayerID -}}, {{- $index -}}, {{- $scoreCategory.PlayerTypeID -}}, {{- $friendScore.FriendID -}});
-    {{- end -}}
+    {{ end -}}
     {{- end -}}
     {{- end -}}
     refreshVisiblePlayers(); // initialize visible player scores to first friendScore.
 </script>
-{{- end -}}
+{{end}}

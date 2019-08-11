@@ -43,7 +43,8 @@
     <ul class="nav nav-tabs">
       {{- range .Tabs -}}
       <li class="nav-item">
-        <a id="{{- .GetID -}}-tab" class="nav-link" data-toggle="tab" href="#{{- .GetID -}}" role="tab">{{- .GetName -}}</a>
+        <a id="{{- .GetID -}}-tab" class="nav-link" data-toggle="tab" href="#{{- .GetID -}}"
+          role="tab">{{- .GetName -}}</a>
       </li>
       {{- end -}}
     </ul>
@@ -61,6 +62,7 @@
     {{- end -}}
     <p id="page-load-message"></p>
   </div>
+  {{- if .TimesMessageJSON -}}
   <script>
     function twoDigits(num) {
       return num < 10 ? "0" + num : num;
@@ -100,6 +102,7 @@
       $('#page-load-message').text('Page loaded at ' + formatDate("{{- .PageLoadTime -}}"))
     })
   </script>
+  {{- end -}}
 </body>
 
 </html>
