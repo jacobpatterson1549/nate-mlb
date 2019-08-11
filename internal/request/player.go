@@ -91,21 +91,17 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
-	playerNamesJSON := PlayerNames{}
-	err := requestJSON(playerNamesURL, &playerNamesJSON)
+	playerNames := PlayerNames{}
+	err := requestJSON(playerNamesURL, &playerNames)
 	if err == nil {
-		pir.addPlayerNames(playerNamesJSON)
+		for _, people := range playerNames.People {
+			pir.playerNames[people.ID] = people.FullName
+		}
 	} else {
 		pir.hasError = true
 		pir.lastError = err
 	}
 	pir.wg.Done()
-}
-
-func (pir *PlayerInfoRequest) addPlayerNames(playerNamesJSON PlayerNames) {
-	for _, people := range playerNamesJSON.People {
-		pir.playerNames[people.ID] = people.FullName
-	}
 }
 
 func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {

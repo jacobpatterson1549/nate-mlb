@@ -28,13 +28,13 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 	if err != nil {
 		return teamSearchResults, err
 	}
-	teamsJSON, err := requestTeams(activeYear)
+	teams, err := requestTeams(activeYear)
 	if err != nil {
 		return teamSearchResults, err
 	}
 
 	lowerQuery := strings.ToLower(query)
-	for _, record := range teamsJSON.Records {
+	for _, record := range teams.Records {
 		for _, teamRecord := range record.TeamRecords {
 			lowerTeamName := strings.ToLower(teamRecord.Team.Name)
 			if strings.Contains(lowerTeamName, lowerQuery) {
