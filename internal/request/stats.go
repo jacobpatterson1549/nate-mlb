@@ -1,10 +1,9 @@
-package stats
+package request
 
 import (
 	"encoding/json"
 	"fmt"
 	"nate-mlb/internal/db"
-	"net/http"
 	"sort"
 	"strconv"
 	"strings"
@@ -100,7 +99,7 @@ func getScoreCategory(friends []db.Friend, players []db.Player, playerType db.Pl
 
 func getTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := RequestTeamsJSON(year)
+	teamsJSON, err := requestTeamsJSON(year)
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
 		err = scoreCategory.compute(friends, players, teamPlayerType, playerScores, false)
@@ -121,45 +120,11 @@ func getPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType
 	return scoreCategory, err
 }
 
-// Request retrieves the contents of a url
-func Request(url string) (*http.Response, error) {
-	request, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
-	}
-
-	request.Header.Add("Accept", "application/json")
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	r, err := client.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
-	}
-	return r, nil
-}
-
-// RequestJSON retrieves data from a url and decodes the json data ino the specified struct.
-func RequestJSON(url string, v interface{}) error {
-	response, err := Request(url)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(&v)
-	if err != nil {
-		return fmt.Errorf("problem reading json when requesting %v: %v", url, err)
-	}
-	return nil
-}
-
 // RequestTeamsJSON retrieves the teams for the specified year
-func RequestTeamsJSON(year int) (TeamsJSON, error) {
+func requestTeamsJSON(year int) (TeamsJSON, error) {
 	teamsJSON := TeamsJSON{}
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	return teamsJSON, RequestJSON(url, &teamsJSON)
+	return teamsJSON, requestJSON(url, &teamsJSON)
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
@@ -262,7 +227,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
 	playerNamesJSON := PlayerNamesJSON{}
-	err := RequestJSON(playerNamesURL, &playerNamesJSON)
+	err := requestJSON(playerNamesURL, &playerNamesJSON)
 	if err == nil {
 		pir.addPlayerNames(playerNamesJSON)
 	} else {
@@ -296,7 +261,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
 func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStatsJSON := PlayerStatsJSON{}
-	err := RequestJSON(playerStatsURL, &playerStatsJSON)
+	err := requestJSON(playerStatsURL, &playerStatsJSON)
 
 	if err == nil {
 		mutex.Lock()

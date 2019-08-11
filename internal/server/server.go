@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"log"
 	"nate-mlb/internal/db"
-	"nate-mlb/internal/stats"
+	"nate-mlb/internal/request"
 	"net/http"
 	"strconv"
 	"strings"
@@ -100,7 +100,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 	activePlayersOnly := r.Form.Get("apo")
 	activePlayersOnlyB := activePlayersOnly == "true"
 
-	playerSearchResults, err := searchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
+	playerSearchResults, err := request.SearchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 }
 
 func writeStatsPage(w http.ResponseWriter) error {
-	es, err := stats.GetEtlStats()
+	es, err := request.GetEtlStats()
 	if err != nil {
 		return err
 	}
@@ -137,7 +137,7 @@ func writeStatsPage(w http.ResponseWriter) error {
 }
 
 func writeAboutPage(w http.ResponseWriter) error {
-	lastDeploy, err := getLastDeploy()
+	lastDeploy, err := request.PreviousDeployment()
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 }
 
 func writeAdminPage(w http.ResponseWriter, message string) error {
-	es, err := stats.GetEtlStats()
+	es, err := request.GetEtlStats()
 	if err != nil {
 		return err
 	}
