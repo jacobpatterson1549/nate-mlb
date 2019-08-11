@@ -237,6 +237,7 @@ type Page struct {
 }
 
 // Tab is a tab which gets rendered by the main template
+// TODO: the 'Tab' interface is not named well.  It should end in 'er' (https://golang.org/doc/effective_go.html#interface-names)
 type Tab interface {
 	GetName() string
 	GetID() string
