@@ -35,12 +35,12 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			err = writeStatsPage(w)
 		case r.Method == "GET" && r.RequestURI == "/about":
 			err = writeAboutPage(w)
-		case r.Method == "GET" && r.URL.Path == "/admin/password":
-			err = handleHashPassword(w, r)
 		case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
 			err = handleAdminPage(w, r)
 		case r.Method == "GET" && r.URL.Path == "/admin/search":
 			err = handlePlayerSearch(w, r)
+		case r.Method == "GET" && r.URL.Path == "/admin/password":
+			err = handleHashPassword(w, r)
 		default:
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		}
@@ -49,66 +49,6 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		log.Printf("server error: %q", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 	}
-}
-
-func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
-	password := r.Form.Get("v")
-	if len(password) == 0 {
-		return errors.New("missing query param: v")
-	}
-	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		return err
-	}
-	_, err = w.Write([]byte(hashedPassword))
-	return err
-}
-
-func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		message := r.Form.Get("message")
-		if len(message) == 0 {
-			message = "Enter password before submitting."
-		}
-		return writeAdminPage(w, message)
-	}
-
-	var message string
-	if err := handleAdminRequest(r); err != nil {
-		message = err.Error()
-	} else {
-		message = "Change made."
-	}
-	// prevent the post from being made again on refresh
-	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
-	return nil
-}
-
-func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
-	searchQuery := r.Form.Get("q")
-	if len(searchQuery) == 0 {
-		return errors.New("missing search query param: q")
-	}
-	playerTypeID := r.Form.Get("pt")
-	if len(playerTypeID) == 0 {
-		return errors.New("missing player type query param: pt")
-	}
-	playerTypeIDI, err := strconv.Atoi(playerTypeID)
-	if err != nil {
-		return fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
-	}
-	activePlayersOnly := r.Form.Get("apo")
-	activePlayersOnlyB := activePlayersOnly == "true"
-
-	playerSearchResults, err := request.SearchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
-	if err != nil {
-		return err
-	}
-	err = json.NewEncoder(w).Encode(playerSearchResults)
-	if err != nil {
-		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %v", playerSearchResults, err)
-	}
-	return nil
 }
 
 func writeStatsPage(w http.ResponseWriter) error {
@@ -225,6 +165,66 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 		return fmt.Errorf("problem rendering templates (%v): %v", templateNames, err)
 	}
 	return nil
+}
+
+func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
+	if r.Method == "GET" {
+		message := r.Form.Get("message")
+		if len(message) == 0 {
+			message = "Enter password before submitting."
+		}
+		return writeAdminPage(w, message)
+	}
+
+	var message string
+	if err := handleAdminRequest(r); err != nil {
+		message = err.Error()
+	} else {
+		message = "Change made."
+	}
+	// prevent the post from being made again on refresh
+	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
+	return nil
+}
+
+func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
+	searchQuery := r.Form.Get("q")
+	if len(searchQuery) == 0 {
+		return errors.New("missing search query param: q")
+	}
+	playerTypeID := r.Form.Get("pt")
+	if len(playerTypeID) == 0 {
+		return errors.New("missing player type query param: pt")
+	}
+	playerTypeIDI, err := strconv.Atoi(playerTypeID)
+	if err != nil {
+		return fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
+	}
+	activePlayersOnly := r.Form.Get("apo")
+	activePlayersOnlyB := activePlayersOnly == "true"
+
+	playerSearchResults, err := request.SearchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
+	if err != nil {
+		return err
+	}
+	err = json.NewEncoder(w).Encode(playerSearchResults)
+	if err != nil {
+		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %v", playerSearchResults, err)
+	}
+	return nil
+}
+
+func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
+	password := r.Form.Get("v")
+	if len(password) == 0 {
+		return errors.New("missing query param: v")
+	}
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write([]byte(hashedPassword))
+	return err
 }
 
 // Page is a page that gets rendered by the main template
