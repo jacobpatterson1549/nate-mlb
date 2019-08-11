@@ -21,16 +21,16 @@ type PlayerInfoRequest struct {
 	hasError    bool
 }
 
-// PlayerNamesJSON is used to unmarshal a request for player names
-type PlayerNamesJSON struct {
+// PlayerNames is used to unmarshal a request for player names
+type PlayerNames struct {
 	People []struct {
 		ID       int    `json:"id"`
 		FullName string `json:"fullName"`
 	} `json:"people"`
 }
 
-// PlayerStatsJSON is used to unmarshal a player homeRuns/wins request
-type PlayerStatsJSON struct {
+// PlayerStats is used to unmarshal a player homeRuns/wins request
+type PlayerStats struct {
 	Stats []struct {
 		Group struct {
 			DisplayName string `json:"displayName"`
@@ -91,7 +91,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
-	playerNamesJSON := PlayerNamesJSON{}
+	playerNamesJSON := PlayerNames{}
 	err := requestJSON(playerNamesURL, &playerNamesJSON)
 	if err == nil {
 		pir.addPlayerNames(playerNamesJSON)
@@ -102,7 +102,7 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) addPlayerNames(playerNamesJSON PlayerNamesJSON) {
+func (pir *PlayerInfoRequest) addPlayerNames(playerNamesJSON PlayerNames) {
 	for _, people := range playerNamesJSON.People {
 		pir.playerNames[people.ID] = people.FullName
 	}
@@ -125,12 +125,12 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
 
 func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
-	playerStatsJSON := PlayerStatsJSON{}
-	err := requestJSON(playerStatsURL, &playerStatsJSON)
+	playerStats := PlayerStats{}
+	err := requestJSON(playerStatsURL, &playerStats)
 
 	if err == nil {
 		mutex.Lock()
-		err = pir.addPlayerStats(playerID, playerStatsJSON)
+		err = pir.addPlayerStats(playerID, playerStats)
 		mutex.Unlock()
 	}
 
@@ -140,8 +140,8 @@ func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *s
 	}
 }
 
-func (pir *PlayerInfoRequest) addPlayerStats(playerID int, playerStatsJSON PlayerStatsJSON) error {
-	for _, stats := range playerStatsJSON.Stats {
+func (pir *PlayerInfoRequest) addPlayerStats(playerID int, playerStats PlayerStats) error {
+	for _, stats := range playerStats.Stats {
 		for groupDisplayName, groupStatsMap := range pir.playerStats {
 			if stats.Group.DisplayName == groupDisplayName {
 				splits := stats.Splits

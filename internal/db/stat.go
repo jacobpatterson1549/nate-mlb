@@ -35,8 +35,8 @@ func SetEtlStats(etlStatsJSON string) error {
 	return expectSingleRowAffected(result)
 }
 
-// ClearEtlStatsJSON clears the stats for the current year
-func ClearEtlStatsJSON() error {
+// ClearEtlStats clears the stats for the current year
+func ClearEtlStats() error {
 	_, err := db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
 	if err != nil {
 		return fmt.Errorf("problem clearing saved stats: %v", err)

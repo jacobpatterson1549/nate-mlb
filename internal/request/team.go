@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// TeamsJSON is used to unmarshal a wins request for all teams
-type TeamsJSON struct {
+// Teams is used to unmarshal a wins request for all teams
+type Teams struct {
 	Records []struct {
 		TeamRecords []struct {
 			Team struct {
@@ -20,23 +20,23 @@ type TeamsJSON struct {
 	} `json:"records"`
 }
 
-func requestTeamsJSON(year int) (TeamsJSON, error) {
-	teamsJSON := TeamsJSON{}
+func requestTeams(year int) (Teams, error) {
+	teams := Teams{}
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	return teamsJSON, requestJSON(url, &teamsJSON)
+	return teams, requestJSON(url, &teams)
 }
 
 func getTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := requestTeamsJSON(year)
+	teams, err := requestTeams(year)
 	if err == nil {
-		playerScores := teamsJSON.getPlayerScores()
+		playerScores := teams.getPlayerScores()
 		err = scoreCategory.compute(friends, players, teamPlayerType, playerScores, false)
 	}
 	return scoreCategory, err
 }
 
-func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
+func (t *Teams) getPlayerScores() map[int]PlayerScore {
 	playerScores := make(map[int]PlayerScore)
 	for _, record := range t.Records {
 		for _, teamRecord := range record.TeamRecords {

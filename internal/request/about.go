@@ -10,7 +10,7 @@ func PreviousDeployment() (Deployment, error) {
 	owner := "jacobpatterson1549"
 	repo := "nate-mlb"
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
-	grd := []GithubRepoDeploymentJSON{}
+	grd := []GithubRepoDeployment{}
 	err := requestJSON(url, &grd)
 	previousDeployment := Deployment{}
 	if err != nil || len(grd) == 0 {
@@ -19,8 +19,8 @@ func PreviousDeployment() (Deployment, error) {
 	return grd[0].toDeployment()
 }
 
-// GithubRepoDeploymentJSON is used to unmarshal information about a github repository
-type GithubRepoDeploymentJSON struct {
+// GithubRepoDeployment is used to unmarshal information about a github repository
+type GithubRepoDeployment struct {
 	Version string `json:"ref"`
 	Time    string `json:"updated_at"`
 }
@@ -31,7 +31,7 @@ type Deployment struct {
 	Time    time.Time
 }
 
-func (grd *GithubRepoDeploymentJSON) toDeployment() (Deployment, error) {
+func (grd *GithubRepoDeployment) toDeployment() (Deployment, error) {
 	var (
 		d   Deployment
 		err error

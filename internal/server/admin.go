@@ -47,7 +47,7 @@ func clearCache(r *http.Request) error {
 		return err
 	}
 
-	return db.ClearEtlStatsJSON()
+	return db.ClearEtlStats()
 }
 
 func updateFriends(r *http.Request) error {
@@ -80,7 +80,7 @@ func updateFriends(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStatsJSON()
+	return db.ClearEtlStats()
 }
 
 func updatePlayers(r *http.Request) error {
@@ -135,7 +135,7 @@ func updatePlayers(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStatsJSON()
+	return db.ClearEtlStats()
 }
 
 func updateYears(r *http.Request) error {

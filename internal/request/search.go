@@ -28,7 +28,7 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 	if err != nil {
 		return teamSearchResults, err
 	}
-	teamsJSON, err := requestTeamsJSON(activeYear)
+	teamsJSON, err := requestTeams(activeYear)
 	if err != nil {
 		return teamSearchResults, err
 	}
@@ -68,11 +68,11 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	if err != nil {
 		return playerSearchResults, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
 	}
-	psmj := PlayerSearchMultipleJSON{}
+	psmj := MultiplePlayerSearchResult{}
 	err = json.Unmarshal(b, &psmj)
 	if err != nil {
 		// ignore the error
-		pssj := PlayerSearchSingleJSON{}
+		pssj := SinglePlayerSearchResult{}
 		err = json.Unmarshal(b, &pssj)
 		if err != nil {
 			return playerSearchResults, fmt.Errorf("problem reading json when requesting %v: %v", url, err)
@@ -119,8 +119,8 @@ type PlayerSearchResult struct {
 	PlayerID int
 }
 
-// PlayerSearchMultipleJSON contain the results of a player search that returns more than one row.
-type PlayerSearchMultipleJSON struct {
+// MultiplePlayerSearchResult contain the results of a player search that returns more than one row.
+type MultiplePlayerSearchResult struct {
 	SearchPlayerAll struct {
 		QueryResults struct {
 			PlayerBios []PlayerBio `json:"row"`
@@ -128,8 +128,8 @@ type PlayerSearchMultipleJSON struct {
 	} `json:"search_player_all"`
 }
 
-// PlayerSearchSingleJSON contain the results of a player search that returns more than one row.
-type PlayerSearchSingleJSON struct {
+// SinglePlayerSearchResult contain the results of a player search that returns more than one row.
+type SinglePlayerSearchResult struct {
 	SearchPlayerAll struct {
 		QueryResults struct {
 			PlayerBio PlayerBio `json:"row"`
