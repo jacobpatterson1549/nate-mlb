@@ -23,7 +23,7 @@ type Teams struct {
 func requestTeams(year int) (Teams, error) {
 	teams := Teams{}
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	return teams, requestJSON(url, &teams)
+	return teams, requestStruct(url, &teams)
 }
 
 func getTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {

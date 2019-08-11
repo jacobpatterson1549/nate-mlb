@@ -92,7 +92,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
 	playerNames := PlayerNames{}
-	err := requestJSON(playerNamesURL, &playerNames)
+	err := requestStruct(playerNamesURL, &playerNames)
 	if err == nil {
 		for _, people := range playerNames.People {
 			pir.playerNames[people.ID] = people.FullName
@@ -122,7 +122,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
 func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStats := PlayerStats{}
-	err := requestJSON(playerStatsURL, &playerStats)
+	err := requestStruct(playerStatsURL, &playerStats)
 
 	if err == nil {
 		mutex.Lock()

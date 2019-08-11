@@ -27,7 +27,7 @@ func request(url string) (*http.Response, error) {
 }
 
 // RequestJSON retrieves data from a url and decodes the json data ino the specified struct.
-func requestJSON(url string, v interface{}) error {
+func requestStruct(url string, v interface{}) error {
 	response, err := request(url)
 	if err != nil {
 		return err

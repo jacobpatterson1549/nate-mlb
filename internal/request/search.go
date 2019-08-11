@@ -70,7 +70,16 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	}
 	psmj := MultiplePlayerSearchResult{}
 	err = json.Unmarshal(b, &psmj)
-	if err != nil {
+	if err == nil {
+		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
+		for i, row := range psmj.SearchPlayerAll.QueryResults.PlayerBios {
+			psr, err := row.toPlayerSearchResult()
+			if err != nil {
+				return playerSearchResults, err
+			}
+			playerSearchResults[i] = psr
+		}
+	} else {
 		// ignore the error
 		pssj := SinglePlayerSearchResult{}
 		err = json.Unmarshal(b, &pssj)
@@ -81,16 +90,7 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 		if err != nil {
 			return playerSearchResults, err
 		}
-		playerSearchResults = append(playerSearchResults, psr)
-	} else {
-		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
-		for i, row := range psmj.SearchPlayerAll.QueryResults.PlayerBios {
-			psr, err := row.toPlayerSearchResult()
-			if err != nil {
-				return playerSearchResults, err
-			}
-			playerSearchResults[i] = psr
-		}
+		playerSearchResults = []PlayerSearchResult{psr}
 	}
 
 	return playerSearchResults, nil
