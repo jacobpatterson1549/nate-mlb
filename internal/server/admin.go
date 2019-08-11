@@ -1,8 +1,9 @@
-package main
+package server
 
 import (
 	"errors"
 	"fmt"
+	"nate-mlb/internal/db"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -38,7 +39,7 @@ func resetPassword(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return setUserPassword("admin", hashedPassword)
+	return db.SetUserPassword("admin", hashedPassword)
 }
 
 func clearCache(r *http.Request) error {
@@ -46,7 +47,7 @@ func clearCache(r *http.Request) error {
 		return err
 	}
 
-	return nullEtlJSON()
+	return db.NullEtlJSON()
 }
 
 func updateFriends(r *http.Request) error {
@@ -54,7 +55,7 @@ func updateFriends(r *http.Request) error {
 		return err
 	}
 
-	friends := []Friend{}
+	friends := []db.Friend{}
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
 		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
@@ -67,19 +68,19 @@ func updateFriends(r *http.Request) error {
 				return fmt.Errorf("problem converting friend display order '%v' to number: %v", v[0], err)
 			}
 			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
-			friends = append(friends, Friend{
-				id:           friendIDi,
-				displayOrder: friendDisplayOrderI,
-				name:         friendName,
+			friends = append(friends, db.Friend{
+				ID:           friendIDi,
+				DisplayOrder: friendDisplayOrderI,
+				Name:         friendName,
 			})
 		}
 	}
 
-	err := setFriends(friends)
+	err := db.SetFriends(friends)
 	if err != nil {
 		return err
 	}
-	return nullEtlJSON()
+	return db.NullEtlJSON()
 }
 
 func updatePlayers(r *http.Request) error {
@@ -87,11 +88,11 @@ func updatePlayers(r *http.Request) error {
 		return err
 	}
 
-	players := []Player{}
+	players := []db.Player{}
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
 		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
-			ID, err := strconv.Atoi(matches[1])
+			id, err := strconv.Atoi(matches[1])
 			if err != nil {
 				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
 			}
@@ -99,7 +100,7 @@ func updatePlayers(r *http.Request) error {
 			if err != nil {
 				return fmt.Errorf("problem converting player display order '%v' to number: %v", v[0], err)
 			}
-			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-player-type-id", ID))
+			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-player-type-id", id))
 			var playerTypeIDI int
 			if len(playerTypeID) > 0 { // not specified when updating existing player
 				playerTypeIDI, err = strconv.Atoi(playerTypeID)
@@ -107,12 +108,12 @@ func updatePlayers(r *http.Request) error {
 					return fmt.Errorf("problem converting player type id '%v' to number: %v", playerTypeID, err)
 				}
 			}
-			playerID := r.Form.Get(fmt.Sprintf("player-%d-player-id", ID))
+			playerID := r.Form.Get(fmt.Sprintf("player-%d-player-id", id))
 			playerIDI, err := strconv.Atoi(playerID)
 			if err != nil {
 				return fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
 			}
-			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", ID))
+			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", id))
 			var friendIDI int
 			if len(friendID) > 0 { // not specified when updating existing player
 				friendIDI, err = strconv.Atoi(friendID)
@@ -120,21 +121,21 @@ func updatePlayers(r *http.Request) error {
 					return fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
 				}
 			}
-			players = append(players, Player{
-				id:           ID,
-				displayOrder: playerDisplayOrderI,
-				playerTypeID: playerTypeIDI,
-				playerID:     playerIDI,
-				friendID:     friendIDI,
+			players = append(players, db.Player{
+				ID:           id,
+				DisplayOrder: playerDisplayOrderI,
+				PlayerTypeID: playerTypeIDI,
+				PlayerID:     playerIDI,
+				FriendID:     friendIDI,
 			})
 		}
 	}
 
-	err := setPlayers(players)
+	err := db.SetPlayers(players)
 	if err != nil {
 		return err
 	}
-	return nullEtlJSON()
+	return db.NullEtlJSON()
 }
 
 func updateYears(r *http.Request) error {
@@ -161,7 +162,7 @@ func updateYears(r *http.Request) error {
 	}
 
 	// (does not forcefully update cache if active year changed)
-	return setYears(activeYearI, yearsI)
+	return db.SetYears(activeYearI, yearsI)
 }
 
 func hashPassword(password string) (string, error) {
@@ -175,7 +176,7 @@ func hashPassword(password string) (string, error) {
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	hashedPassword, err := getUserPassword(username)
+	hashedPassword, err := db.GetUserPassword(username)
 	if err != nil {
 		return err
 	}

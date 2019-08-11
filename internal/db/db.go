@@ -1,21 +1,17 @@
-package main
+package db
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"time"
-
-	_ "github.com/lib/pq"
 )
 
 // IDs of constant db enums
 const (
-	playerTypeTeam     = 1 // TODO: Make PlayerId and enum type
-	playerTypeHitting  = 2
-	playerTypePitching = 3
+	PlayerTypeTeam     = 1 // TODO: Make PlayerId and enum type
+	PlayerTypeHitting  = 2
+	PlayerTypePitching = 3
 )
 
 var (
@@ -23,21 +19,18 @@ var (
 )
 
 // InitDB initializes the pointer to the database
-func InitDB() error {
+func InitDB(dataSourceName string) error {
 	driverName := "postgres"
-	datasourceName, ok := os.LookupEnv("DATABASE_URL")
-	if !ok {
-		return errors.New("DATABASE_URL environment variable not set")
-	}
 	var err error
-	db, err = sql.Open(driverName, datasourceName)
+	db, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return fmt.Errorf("problem opening database %v", err)
 	}
 	return nil
 }
 
-func getFriendPlayerInfo() (FriendPlayerInfo, error) {
+// GetFriendPlayerInfo retrieves playerTypeas and active friends, players, and year from the database
+func GetFriendPlayerInfo() (FriendPlayerInfo, error) {
 	fpi := FriendPlayerInfo{}
 
 	friends, err := getFriends()
@@ -52,62 +45,49 @@ func getFriendPlayerInfo() (FriendPlayerInfo, error) {
 	if err != nil {
 		return fpi, err
 	}
-	activeYear, err := getActiveYear()
+	activeYear, err := GetActiveYear()
 	if err != nil {
 		return fpi, err
 	}
 
-	fpi.friends = friends
-	fpi.playerTypes = playerTypes
-	fpi.players = players
-	fpi.year = activeYear
+	fpi.Friends = friends
+	fpi.PlayerTypes = playerTypes
+	fpi.Players = players
+	fpi.Year = activeYear
 	return fpi, nil
 }
 
-func getEtlStats() (EtlStats, error) {
-	var es EtlStats
-	var err error
-
-	var year int
+// GetEtlStatsJSON gets the stats for the current year
+func GetEtlStatsJSON() (string, error) {
 	var etlJSON sql.NullString
-	row := db.QueryRow("SELECT year, etl_json FROM stats WHERE active")
-	err = row.Scan(&year, &etlJSON)
+	row := db.QueryRow("SELECT etl_json FROM stats WHERE active")
+	err := row.Scan(&etlJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = errors.New("no active year")
+		} else {
+			err = fmt.Errorf("problem getting stats: %v", err)
 		}
-		return es, fmt.Errorf("problem getting stats: %v", err)
+		return "", err
 	}
-	fetchStats := true
-	currentTime := getUtcTime()
-	if etlJSON.Valid {
-		err = json.Unmarshal([]byte(etlJSON.String), &es)
-		if err != nil {
-			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
-		}
-		fetchStats = es.isStale(currentTime)
+
+	if !etlJSON.Valid {
+		return "", nil
 	}
-	if fetchStats {
-		scoreCategories, err := getStats()
-		if err != nil {
-			return es, err
-		}
-		es.ScoreCategories = scoreCategories
-		es.EtlTime = currentTime
-		etlJSON, err := json.Marshal(es)
-		if err != nil {
-			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
-		}
-		result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE year = $2", etlJSON, year)
-		if err != nil {
-			return es, fmt.Errorf("problem saving stats for year %v: %v", year, err)
-		}
-		err = expectSingleRowAffected(result)
-	}
-	return es, err
+	return etlJSON.String, nil
 }
 
-func nullEtlJSON() error {
+// SetEtlStats sets the stats for the current year
+func SetEtlStats(etlStatsJSON string) error {
+	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE active", etlStatsJSON)
+	if err != nil {
+		return fmt.Errorf("problem saving stats current year: %v", err)
+	}
+	return expectSingleRowAffected(result)
+}
+
+// NullEtlJSON clears the stats for the current year
+func NullEtlJSON() error { // TODO: rename
 	_, err := db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
 	if err != nil {
 		return fmt.Errorf("problem clearing saved stats: %v", err)
@@ -115,7 +95,8 @@ func nullEtlJSON() error {
 	return nil
 }
 
-func getActiveYear() (int, error) {
+// GetActiveYear gets the active year for stat retrieval
+func GetActiveYear() (int, error) {
 	var activeYear int
 
 	row := db.QueryRow("SELECT year FROM stats WHERE active")
@@ -129,7 +110,8 @@ func getActiveYear() (int, error) {
 	return activeYear, nil
 }
 
-func getYears() ([]Year, error) {
+// GetYears gets the specified years
+func GetYears() ([]Year, error) {
 	years := []Year{}
 
 	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
@@ -162,8 +144,9 @@ func getYears() ([]Year, error) {
 	return years, nil
 }
 
-func setYears(activeYear int, years []int) error {
-	currentYears, err := getYears()
+// SetYears saves the specified years and sets the active year // TODO: rename to SaveYears
+func SetYears(activeYear int, years []int) error { // TODO: swap param order
+	currentYears, err := GetYears()
 	if err != nil {
 		return err
 	}
@@ -241,7 +224,7 @@ func setYears(activeYear int, years []int) error {
 	return nil
 }
 
-// TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions)
+// TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions) (look at how NullString scanning works)
 func getFriends() ([]Friend, error) {
 	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
@@ -253,7 +236,7 @@ func getFriends() ([]Friend, error) {
 	i := 0
 	for rows.Next() {
 		friends = append(friends, Friend{})
-		err = rows.Scan(&friends[i].id, &friends[i].displayOrder, &friends[i].name)
+		err = rows.Scan(&friends[i].ID, &friends[i].DisplayOrder, &friends[i].Name)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
@@ -273,7 +256,7 @@ func getPlayerTypes() ([]PlayerType, error) {
 	i := 0
 	for rows.Next() {
 		playerTypes = append(playerTypes, PlayerType{})
-		err = rows.Scan(&playerTypes[i].id, &playerTypes[i].name, &playerTypes[i].description)
+		err = rows.Scan(&playerTypes[i].ID, &playerTypes[i].Name, &playerTypes[i].Description)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
@@ -293,7 +276,7 @@ func getPlayers() ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].id, &players[i].displayOrder, &players[i].playerTypeID, &players[i].playerID, &players[i].friendID)
+		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerTypeID, &players[i].PlayerID, &players[i].FriendID)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
@@ -302,7 +285,8 @@ func getPlayers() ([]Player, error) {
 	return players, nil
 }
 
-func getUserPassword(username string) (string, error) {
+// GetUserPassword gets the password for the specified user
+func GetUserPassword(username string) (string, error) {
 	var v string
 	row := db.QueryRow("SELECT password FROM users WHERE username = $1", username)
 	err := row.Scan(&v)
@@ -312,7 +296,8 @@ func getUserPassword(username string) (string, error) {
 	return v, nil
 }
 
-func setUserPassword(username, password string) error {
+// SetUserPassword gets the password for the specified user // TODO: rename to SaveUserPassword
+func SetUserPassword(username, password string) error {
 	result, err := db.Exec("UPDATE users SET password = $1 WHERE username = $2", password, username)
 	if err != nil {
 		return fmt.Errorf("problem updating password for user %v: %v", username, err)
@@ -328,26 +313,27 @@ func expectSingleRowAffected(r sql.Result) error {
 	return err
 }
 
-func setFriends(futureFriends []Friend) error {
+// SetFriends saves the specied players in for the active year. TODO: rename to SaveFriends
+func SetFriends(futureFriends []Friend) error {
 	friends, err := getFriends()
 	if err != nil {
 		return err
 	}
 	previousFriends := make(map[int]Friend)
 	for _, friend := range friends {
-		previousFriends[friend.id] = friend
+		previousFriends[friend.ID] = friend
 	}
 
 	insertFriends := []Friend{}
 	updateFriends := []Friend{}
 	for _, friend := range futureFriends {
-		previousFriend, ok := previousFriends[friend.id]
+		previousFriend, ok := previousFriends[friend.ID]
 		if !ok {
 			insertFriends = append(insertFriends, friend)
-		} else if friend.displayOrder != previousFriend.displayOrder || friend.name != previousFriend.name {
+		} else if friend.DisplayOrder != previousFriend.DisplayOrder || friend.Name != previousFriend.Name {
 			updateFriends = append(updateFriends, friend)
 		}
-		delete(previousFriends, friend.id)
+		delete(previousFriends, friend.ID)
 	}
 	deleteFriends := previousFriends
 
@@ -360,8 +346,8 @@ func setFriends(futureFriends []Friend) error {
 		if err == nil {
 			result, err = tx.Exec(
 				"INSERT INTO friends (display_order, name, year) SELECT $1, $2, year FROM stats AS s WHERE s.active",
-				friend.displayOrder,
-				friend.name)
+				friend.DisplayOrder,
+				friend.Name)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
@@ -371,9 +357,9 @@ func setFriends(futureFriends []Friend) error {
 		if err == nil {
 			result, err = tx.Exec(
 				"UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
-				friend.displayOrder,
-				friend.name,
-				friend.id)
+				friend.DisplayOrder,
+				friend.Name,
+				friend.ID)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
@@ -402,26 +388,27 @@ func setFriends(futureFriends []Friend) error {
 	return nil
 }
 
-func setPlayers(futurePlayers []Player) error {
+// SetPlayers saves the specied players in for the active year. TODO: rename to SavePlayers
+func SetPlayers(futurePlayers []Player) error {
 	players, err := getPlayers()
 	if err != nil {
 		return err
 	}
 	previousPlayers := make(map[int]Player)
 	for _, player := range players {
-		previousPlayers[player.id] = player
+		previousPlayers[player.ID] = player
 	}
 
 	insertPlayers := []Player{}
 	updatePlayers := []Player{}
 	for _, player := range futurePlayers {
-		previousPlayer, ok := previousPlayers[player.id]
+		previousPlayer, ok := previousPlayers[player.ID]
 		if !ok {
 			insertPlayers = append(insertPlayers, player)
-		} else if player.displayOrder != previousPlayer.displayOrder { // can only update display order
+		} else if player.DisplayOrder != previousPlayer.DisplayOrder { // can only update display order
 			updatePlayers = append(updatePlayers, player)
 		}
-		delete(previousPlayers, player.id)
+		delete(previousPlayers, player.ID)
 	}
 	deletePlayers := previousPlayers
 
@@ -434,10 +421,10 @@ func setPlayers(futurePlayers []Player) error {
 		if err == nil {
 			result, err = tx.Exec(
 				"INSERT INTO players (display_order, player_type_id, player_id, friend_id, year) SELECT $1, $2, $3, $4, year FROM stats AS s WHERE s.active",
-				player.displayOrder,
-				player.playerTypeID,
-				player.playerID,
-				player.friendID)
+				player.DisplayOrder,
+				player.PlayerTypeID,
+				player.PlayerID,
+				player.FriendID)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
@@ -447,8 +434,8 @@ func setPlayers(futurePlayers []Player) error {
 		if err == nil {
 			result, err = tx.Exec(
 				"UPDATE players SET display_order = $1 WHERE id = $2",
-				player.displayOrder,
-				player.id)
+				player.DisplayOrder,
+				player.ID)
 			if err == nil {
 				err = expectSingleRowAffected(result)
 			}
@@ -477,27 +464,17 @@ func setPlayers(futurePlayers []Player) error {
 	return nil
 }
 
-func getUtcTime() time.Time {
+// GetUtcTime retrieves the current UTC time
+func GetUtcTime() time.Time {
 	return time.Now().UTC()
-}
-
-// SETS EtlRefreshTime and determines if it before the current time
-func (es *EtlStats) isStale(currentTime time.Time) bool {
-	previousHonoluluMidnight := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 10, 0, 0, 0, currentTime.Location())
-	if previousHonoluluMidnight.After(currentTime) {
-		previousHonoluluMidnight = previousHonoluluMidnight.Add(-24 * time.Hour)
-	}
-	es.EtlRefreshTime = previousHonoluluMidnight
-
-	return es.EtlTime.Before(es.EtlRefreshTime)
 }
 
 // FriendPlayerInfo contain all the pool items for each Friend.
 type FriendPlayerInfo struct {
-	friends     []Friend
-	playerTypes []PlayerType
-	players     []Player
-	year        int
+	Friends     []Friend
+	PlayerTypes []PlayerType
+	Players     []Player
+	Year        int
 }
 
 // Year contains a year that has been set for stats and whether it is active
@@ -508,30 +485,23 @@ type Year struct {
 
 // Friend contains the name of the person in the pool.
 type Friend struct {
-	id           int
-	displayOrder int
-	name         string
+	ID           int
+	DisplayOrder int
+	Name         string
 }
 
 // PlayerType contain a name of a pool item.
 type PlayerType struct {
-	id          int
-	name        string
-	description string
+	ID          int
+	Name        string
+	Description string
 }
 
 // Player maps a player (of a a specific PlayerType) to a Friend.
 type Player struct {
-	id           int
-	displayOrder int
-	playerTypeID int
-	playerID     int
-	friendID     int
-}
-
-// EtlStats contain some score categories that were stored at a specific time
-type EtlStats struct {
-	EtlTime         time.Time
-	EtlRefreshTime  time.Time
-	ScoreCategories []ScoreCategory
+	ID           int
+	DisplayOrder int
+	PlayerTypeID int
+	PlayerID     int
+	FriendID     int
 }

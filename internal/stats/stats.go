@@ -1,8 +1,9 @@
-package main
+package stats
 
 import (
 	"encoding/json"
 	"fmt"
+	"nate-mlb/internal/db"
 	"net/http"
 	"sort"
 	"strconv"
@@ -11,22 +12,56 @@ import (
 	"time"
 )
 
+// GetEtlStats retrieves, calculates, and caches the player stats
+func GetEtlStats() (EtlStats, error) {
+	var es EtlStats
+
+	var year int
+	etlJSON, err := db.GetEtlStatsJSON()
+	if err != nil {
+		return es, err
+	}
+	fetchStats := true
+	currentTime := db.GetUtcTime()
+	if len(etlJSON) > 0 {
+		err = json.Unmarshal([]byte(etlJSON), &es)
+		if err != nil {
+			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
+		}
+		fetchStats = es.isStale(currentTime)
+	}
+	if fetchStats {
+		scoreCategories, err := getStats()
+		if err != nil {
+			return es, err
+		}
+		es.ScoreCategories = scoreCategories
+		es.EtlTime = currentTime
+		etlJSON, err := json.Marshal(es)
+		if err != nil {
+			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
+		}
+		err = db.SetEtlStats(string(etlJSON))
+	}
+	return es, err
+}
+
 func getStats() ([]ScoreCategory, error) {
 
-	friendPlayerInfo, err := getFriendPlayerInfo()
+	friendPlayerInfo, err := db.GetFriendPlayerInfo()
 	if err != nil {
 		return nil, err
 	}
 
-	numCategories := len(friendPlayerInfo.playerTypes)
+	numCategories := len(friendPlayerInfo.PlayerTypes)
 	scoreCategories := make([]ScoreCategory, numCategories)
 	var wg sync.WaitGroup
 	wg.Add(numCategories)
 	var lastError error
 	playerInfoRequest := PlayerInfoRequest{}
 	playerInfoRequest.requestPlayerInfoAsync(friendPlayerInfo)
-	for i, playerType := range friendPlayerInfo.playerTypes {
-		go func(i int, playerType PlayerType) {
+	for i, playerType := range friendPlayerInfo.PlayerTypes {
+		go func(i int, playerType db.PlayerType) {
 			scoreCategory, err := getScoreCategory(friendPlayerInfo, playerType, &playerInfoRequest)
 			if err != nil {
 				lastError = err
@@ -40,20 +75,20 @@ func getStats() ([]ScoreCategory, error) {
 	return scoreCategories, lastError
 }
 
-func getScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
-	switch playerType.id {
-	case playerTypeTeam:
+func getScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+	switch playerType.ID {
+	case db.PlayerTypeTeam:
 		return getTeamScoreScategory(friendPlayerInfo, playerType)
-	case playerTypeHitting, playerTypePitching:
+	case db.PlayerTypeHitting, db.PlayerTypePitching:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
-		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType.name)
+		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType.Name)
 	}
 }
 
-func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType PlayerType) (ScoreCategory, error) {
+func getTeamScoreScategory(friendPlayerInfo db.FriendPlayerInfo, teamPlayerType db.PlayerType) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := requestTeamsJSON(friendPlayerInfo.year)
+	teamsJSON, err := RequestTeamsJSON(friendPlayerInfo.Year)
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
 		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
@@ -61,20 +96,21 @@ func getTeamScoreScategory(friendPlayerInfo FriendPlayerInfo, teamPlayerType Pla
 	return scoreCategory, err
 }
 
-func getPlayerScoreCategory(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+func getPlayerScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
 	playerInfoRequest.wg.Wait()
 	if playerInfoRequest.hasError {
 		return scoreCategory, playerInfoRequest.lastError
 	}
-	playerScores, err := playerInfoRequest.getPlayerScores(playerType.name)
+	playerScores, err := playerInfoRequest.getPlayerScores(playerType.Name)
 	if err == nil {
 		err = scoreCategory.compute(friendPlayerInfo, playerType, playerScores, true)
 	}
 	return scoreCategory, err
 }
 
-func request(url string) (*http.Response, error) {
+// Request retrieves the contents of a url
+func Request(url string) (*http.Response, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
@@ -92,8 +128,9 @@ func request(url string) (*http.Response, error) {
 	return r, nil
 }
 
-func requestJSON(url string, v interface{}) error {
-	response, err := request(url)
+// RequestJSON retrieves data from a url and decodes the json data ino the specified struct.
+func RequestJSON(url string, v interface{}) error {
+	response, err := Request(url)
 	if err != nil {
 		return err
 	}
@@ -106,10 +143,11 @@ func requestJSON(url string, v interface{}) error {
 	return nil
 }
 
-func requestTeamsJSON(year int) (TeamsJSON, error) {
+// RequestTeamsJSON retrieves the teams for the specified year
+func RequestTeamsJSON(year int) (TeamsJSON, error) {
 	teamsJSON := TeamsJSON{}
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	return teamsJSON, requestJSON(url, &teamsJSON)
+	return teamsJSON, RequestJSON(url, &teamsJSON)
 }
 
 func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
@@ -126,13 +164,13 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 	return playerScores
 }
 
-func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
-	sc.Name = playerType.name
-	sc.Description = playerType.description
-	sc.PlayerTypeID = playerType.id
-	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.friends))
-	for i, friend := range friendPlayerInfo.friends {
-		friendScore, err := friend.compute(friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
+func (sc *ScoreCategory) compute(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
+	sc.Name = playerType.Name
+	sc.Description = playerType.Description
+	sc.PlayerTypeID = playerType.ID
+	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.Friends))
+	for i, friend := range friendPlayerInfo.Friends {
+		friendScore, err := computeFriendScore(friend, friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
 		if err != nil {
 			return err
 		}
@@ -141,23 +179,23 @@ func (sc *ScoreCategory) compute(friendPlayerInfo FriendPlayerInfo, playerType P
 	return nil
 }
 
-func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
+func computeFriendScore(f db.Friend, friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	friendScore := FriendScore{}
 
-	friendScore.FriendName = f.name
-	friendScore.FriendID = f.id
+	friendScore.FriendName = f.Name
+	friendScore.FriendID = f.ID
 
 	friendScore.PlayerScores = []PlayerScore{}
-	for _, player := range friendPlayerInfo.players {
-		if f.id == player.friendID && playerType.id == player.playerTypeID {
-			playerScore, ok := playerScores[player.playerID]
+	for _, player := range friendPlayerInfo.Players {
+		if f.ID == player.FriendID && playerType.ID == player.PlayerTypeID {
+			playerScore, ok := playerScores[player.PlayerID]
 			if !ok {
-				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.playerID, playerType.name)
+				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.PlayerID, playerType.Name)
 			}
 			playerScoreWithID := PlayerScore{
 				PlayerName: playerScore.PlayerName,
 				PlayerID:   playerScore.PlayerID,
-				ID:         player.id,
+				ID:         player.ID,
 				Score:      playerScore.Score,
 			}
 			friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
@@ -180,7 +218,7 @@ func (f *Friend) compute(friendPlayerInfo FriendPlayerInfo, playerType PlayerTyp
 	return friendScore, nil
 }
 
-func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlayerInfo) {
+func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo db.FriendPlayerInfo) {
 
 	pir.playerNames = make(map[int]string)
 	pir.playerStats = make(map[string]map[int]int)
@@ -194,25 +232,25 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo FriendPlay
 	playerIDsSet := make(map[int]bool)
 	playerIDstrings := []string{}
 	playerIDInts := []int{}
-	for _, player := range friendPlayerInfo.players {
-		if player.playerTypeID == 2 || player.playerTypeID == 3 {
-			if _, ok := playerIDsSet[player.playerID]; !ok {
-				playerIDsSet[player.playerID] = true
-				playerIDstrings = append(playerIDstrings, strconv.Itoa(player.playerID))
-				playerIDInts = append(playerIDInts, player.playerID)
+	for _, player := range friendPlayerInfo.Players {
+		if player.PlayerTypeID == 2 || player.PlayerTypeID == 3 {
+			if _, ok := playerIDsSet[player.PlayerID]; !ok {
+				playerIDsSet[player.PlayerID] = true
+				playerIDstrings = append(playerIDstrings, strconv.Itoa(player.PlayerID))
+				playerIDInts = append(playerIDInts, player.PlayerID)
 			}
 		}
 	}
 
 	pir.wg.Add(2)
 	go pir.requestPlayerNames(playerIDstrings)
-	go pir.requestPlayerStats(playerIDInts, friendPlayerInfo.year)
+	go pir.requestPlayerStats(playerIDInts, friendPlayerInfo.Year)
 }
 
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
 	playerNamesJSON := PlayerNamesJSON{}
-	err := requestJSON(playerNamesURL, &playerNamesJSON)
+	err := RequestJSON(playerNamesURL, &playerNamesJSON)
 	if err == nil {
 		pir.addPlayerNames(playerNamesJSON)
 	} else {
@@ -246,7 +284,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
 func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStatsJSON := PlayerStatsJSON{}
-	err := requestJSON(playerStatsURL, &playerStatsJSON)
+	err := RequestJSON(playerStatsURL, &playerStatsJSON)
 
 	if err == nil {
 		mutex.Lock()
@@ -393,4 +431,32 @@ type PlayerStatsJSON struct {
 type Stat struct {
 	HomeRuns int `json:"homeRuns"`
 	Wins     int `json:"wins"`
+}
+
+// EtlStats contain some score categories that were stored at a specific time
+type EtlStats struct {
+	EtlTime         time.Time
+	EtlRefreshTime  time.Time
+	ScoreCategories []ScoreCategory
+}
+
+// SETS EtlRefreshTime and determines if it before the current time
+func (es *EtlStats) isStale(currentTime time.Time) bool {
+	previousHonoluluMidnight := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 10, 0, 0, 0, currentTime.Location())
+	if previousHonoluluMidnight.After(currentTime) {
+		previousHonoluluMidnight = previousHonoluluMidnight.Add(-24 * time.Hour)
+	}
+	es.EtlRefreshTime = previousHonoluluMidnight
+
+	return es.EtlTime.Before(es.EtlRefreshTime)
+}
+
+// GetName implements the Tab interface for ScoreCategory
+func (sc ScoreCategory) GetName() string {
+	return sc.Name
+}
+
+// GetID implements the Tab interface for ScoreCategory
+func (sc ScoreCategory) GetID() string {
+	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }

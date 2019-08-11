@@ -1,7 +1,8 @@
-package main
+package server
 
 import (
 	"fmt"
+	"nate-mlb/internal/stats"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func getLastDeploy() (Deploy, error) {
 
 	grd := []GithubRepoDeploymentJSON{}
 	lastDeploy := Deploy{}
-	err := requestJSON(url, &grd)
+	err := stats.RequestJSON(url, &grd)
 	if err != nil {
 		return lastDeploy, err
 	}

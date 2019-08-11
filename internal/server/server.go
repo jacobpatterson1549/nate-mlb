@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"nate-mlb/internal/db"
+	"nate-mlb/internal/stats"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func runServer(portNumber int) error {
+// Run configures and starts the server
+func Run(portNumber int) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", handle)
 
@@ -109,7 +112,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 }
 
 func writeStatsPage(w http.ResponseWriter) error {
-	es, err := getEtlStats()
+	es, err := stats.GetEtlStats()
 	if err != nil {
 		return err
 	}
@@ -127,7 +130,7 @@ func writeStatsPage(w http.ResponseWriter) error {
 		Tabs:             tabs,
 		TimesMessageJSON: timesMessage.toJSON(),
 		templateNames:    []string{"templates/stats.html"},
-		PageLoadTime:     getUtcTime(),
+		PageLoadTime:     db.GetUtcTime(),
 	}
 
 	return renderTemplate(w, viewPage)
@@ -148,18 +151,18 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Tabs:             []Tab{AboutTab{}},
 		TimesMessageJSON: timesMessage.toJSON(),
 		templateNames:    []string{"templates/about.html"},
-		PageLoadTime:     getUtcTime(),
+		PageLoadTime:     db.GetUtcTime(),
 	}
 
 	return renderTemplate(w, adminPage)
 }
 
 func writeAdminPage(w http.ResponseWriter, message string) error {
-	es, err := getEtlStats()
+	es, err := stats.GetEtlStats()
 	if err != nil {
 		return err
 	}
-	years, err := getYears()
+	years, err := db.GetYears()
 	if err != nil {
 		return err
 	}
@@ -201,7 +204,7 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		Tabs:             tabs,
 		TimesMessageJSON: timesMessage.toJSON(),
 		templateNames:    templateNames,
-		PageLoadTime:     getUtcTime(),
+		PageLoadTime:     db.GetUtcTime(),
 	}
 	return renderTemplate(w, adminPage)
 }
@@ -254,16 +257,6 @@ func (at AdminTab) GetName() string {
 // GetID implements the Tab interface for AdminTab
 func (at AdminTab) GetID() string {
 	return strings.ReplaceAll(at.GetName(), " ", "-")
-}
-
-// GetName implements the Tab interface for ScoreCategory
-func (sc ScoreCategory) GetName() string {
-	return sc.Name
-}
-
-// GetID implements the Tab interface for ScoreCategory
-func (sc ScoreCategory) GetID() string {
-	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }
 
 // AboutTab provides a constant tab with about information
