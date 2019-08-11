@@ -13,7 +13,8 @@ type Player struct {
 	FriendID     int
 }
 
-func getPlayers() ([]Player, error) {
+// GetPlayers gets the players for the active year
+func GetPlayers() ([]Player, error) {
 	rows, err := db.Query("SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.active ORDER BY p.player_type_id, p.friend_id, p.display_order")
 	if err != nil {
 		return nil, fmt.Errorf("problem reading players: %v", err)
@@ -33,9 +34,9 @@ func getPlayers() ([]Player, error) {
 	return players, nil
 }
 
-// SavePlayers saves the specied players in for the active year.
+// SavePlayers saves the specified players for the active year
 func SavePlayers(futurePlayers []Player) error {
-	players, err := getPlayers()
+	players, err := GetPlayers()
 	if err != nil {
 		return err
 	}

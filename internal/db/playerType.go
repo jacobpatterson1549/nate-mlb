@@ -25,7 +25,8 @@ func (pt *PlayerType) Description() string {
 var playerTypeNames = make(map[PlayerType]string)
 var playerTypeDescriptions = make(map[PlayerType]string)
 
-func getPlayerTypes() ([]PlayerType, error) { // TODO: rename to LoadPalyerTypes
+// LoadPlayerTypes loads the PlayerTypes from the database
+func LoadPlayerTypes() ([]PlayerType, error) {
 	rows, err := db.Query("SELECT id, name, description FROM player_types ORDER BY id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("problem reading playerTypes: %v", err)

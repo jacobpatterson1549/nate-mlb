@@ -11,7 +11,8 @@ type Friend struct {
 	Name         string
 }
 
-func getFriends() ([]Friend, error) {
+// GetFriends gets the friends for the active year
+func GetFriends() ([]Friend, error) {
 	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
 		return nil, fmt.Errorf("problem reading friends: %v", err)
@@ -31,9 +32,9 @@ func getFriends() ([]Friend, error) {
 	return friends, nil
 }
 
-// SaveFriends saves the specied players in for the active year.
+// SaveFriends saves the specified friends for the active year
 func SaveFriends(futureFriends []Friend) error {
-	friends, err := getFriends()
+	friends, err := GetFriends()
 	if err != nil {
 		return err
 	}

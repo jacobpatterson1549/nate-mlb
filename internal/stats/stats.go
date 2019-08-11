@@ -48,21 +48,33 @@ func GetEtlStats() (EtlStats, error) {
 
 func getStats() ([]ScoreCategory, error) {
 
-	friendPlayerInfo, err := db.GetFriendPlayerInfo()
+	friends, err := db.GetFriends()
+	if err != nil {
+		return nil, err
+	}
+	playerTypes, err := db.LoadPlayerTypes()
+	if err != nil {
+		return nil, err
+	}
+	players, err := db.GetPlayers()
+	if err != nil {
+		return nil, err
+	}
+	activeYear, err := db.GetActiveYear()
 	if err != nil {
 		return nil, err
 	}
 
-	numCategories := len(friendPlayerInfo.PlayerTypes)
+	numCategories := len(playerTypes)
 	scoreCategories := make([]ScoreCategory, numCategories)
 	var wg sync.WaitGroup
 	wg.Add(numCategories)
 	var lastError error
 	playerInfoRequest := PlayerInfoRequest{}
-	playerInfoRequest.requestPlayerInfoAsync(friendPlayerInfo)
-	for i, playerType := range friendPlayerInfo.PlayerTypes {
+	playerInfoRequest.requestPlayerInfoAsync(players, activeYear)
+	for i, playerType := range playerTypes {
 		go func(i int, playerType db.PlayerType) {
-			scoreCategory, err := getScoreCategory(friendPlayerInfo, playerType, &playerInfoRequest)
+			scoreCategory, err := getScoreCategory(friends, players, playerType, activeYear, &playerInfoRequest)
 			if err != nil {
 				lastError = err
 			} else {
@@ -75,28 +87,28 @@ func getStats() ([]ScoreCategory, error) {
 	return scoreCategories, lastError
 }
 
-func getScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+func getScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, year int, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	switch playerType {
 	case db.Team:
-		return getTeamScoreScategory(friendPlayerInfo, playerType)
+		return getTeamScoreScategory(friends, players, playerType, year)
 	case db.Hitter, db.Pitcher:
-		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
+		return getPlayerScoreCategory(friends, players, playerType, playerInfoRequest)
 	default:
 		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType)
 	}
 }
 
-func getTeamScoreScategory(friendPlayerInfo db.FriendPlayerInfo, teamPlayerType db.PlayerType) (ScoreCategory, error) {
+func getTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
-	teamsJSON, err := RequestTeamsJSON(friendPlayerInfo.Year)
+	teamsJSON, err := RequestTeamsJSON(year)
 	if err == nil {
 		playerScores := teamsJSON.getPlayerScores()
-		err = scoreCategory.compute(friendPlayerInfo, teamPlayerType, playerScores, false)
+		err = scoreCategory.compute(friends, players, teamPlayerType, playerScores, false)
 	}
 	return scoreCategory, err
 }
 
-func getPlayerScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+func getPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
 	playerInfoRequest.wg.Wait()
 	if playerInfoRequest.hasError {
@@ -104,7 +116,7 @@ func getPlayerScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.
 	}
 	playerScores, err := playerInfoRequest.getPlayerScores(playerType.Name())
 	if err == nil {
-		err = scoreCategory.compute(friendPlayerInfo, playerType, playerScores, true)
+		err = scoreCategory.compute(friends, players, playerType, playerScores, true)
 	}
 	return scoreCategory, err
 }
@@ -164,13 +176,13 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 	return playerScores
 }
 
-func (sc *ScoreCategory) compute(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
+func (sc *ScoreCategory) compute(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
 	sc.PlayerTypeID = int(playerType)
-	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.Friends))
-	for i, friend := range friendPlayerInfo.Friends {
-		friendScore, err := computeFriendScore(friend, friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
+	sc.FriendScores = make([]FriendScore, len(friends))
+	for i, friend := range friends {
+		friendScore, err := computeFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)
 		if err != nil {
 			return err
 		}
@@ -179,14 +191,14 @@ func (sc *ScoreCategory) compute(friendPlayerInfo db.FriendPlayerInfo, playerTyp
 	return nil
 }
 
-func computeFriendScore(f db.Friend, friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
+func computeFriendScore(f db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	friendScore := FriendScore{}
 
 	friendScore.FriendName = f.Name
 	friendScore.FriendID = f.ID
 
 	friendScore.PlayerScores = []PlayerScore{}
-	for _, player := range friendPlayerInfo.Players {
+	for _, player := range players {
 		if f.ID == player.FriendID && int(playerType) == player.PlayerTypeID {
 			playerScore, ok := playerScores[player.PlayerID]
 			if !ok {
@@ -218,7 +230,7 @@ func computeFriendScore(f db.Friend, friendPlayerInfo db.FriendPlayerInfo, playe
 	return friendScore, nil
 }
 
-func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo db.FriendPlayerInfo) {
+func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year int) {
 
 	pir.playerNames = make(map[int]string)
 	pir.playerStats = make(map[string]map[int]int)
@@ -232,7 +244,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo db.FriendP
 	playerIDsSet := make(map[int]bool)
 	playerIDstrings := []string{}
 	playerIDInts := []int{}
-	for _, player := range friendPlayerInfo.Players {
+	for _, player := range players {
 		if player.PlayerTypeID == 2 || player.PlayerTypeID == 3 {
 			if _, ok := playerIDsSet[player.PlayerID]; !ok {
 				playerIDsSet[player.PlayerID] = true
@@ -244,7 +256,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(friendPlayerInfo db.FriendP
 
 	pir.wg.Add(2)
 	go pir.requestPlayerNames(playerIDstrings)
-	go pir.requestPlayerStats(playerIDInts, friendPlayerInfo.Year)
+	go pir.requestPlayerStats(playerIDInts, year)
 }
 
 func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
