@@ -18,7 +18,9 @@
                         <label class="form-check-label" for="active-players-only">Active Players Only</label>
                     </div>
                     <template id="player-search-results-template">
-                        <legend>PlayerSearchResults</legend>
+                        <fieldset id="player-search-results">
+                            <legend>PlayerSearchResults</legend>
+                        </fieldset>
                     </template>
                     <template id="player-search-result-template">
                         <div class="form-check">
@@ -90,6 +92,7 @@
 
         var template = document.getElementById("player-search-results-template");
         var playerSearchResultsDiv = document.importNode(template.content, true);
+        var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
             var template2 = document.getElementById("player-search-result-template");
@@ -101,16 +104,16 @@
             psr.querySelector('.psr-label-details').innerText = playerSearchResult.Details;
             psr.querySelector('.psr-player-id').value = playerSearchResult.PlayerID;
             psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
-            playerSearchResultsDiv.appendChild(playerSerchResultDiv);
+            playerSearchResultsFieldSet.appendChild(psr);
         }
         if (playerSearchResults.length == 1) {
-            var psr = playerSearchResultsDiv.querySelector('.form-check');
+            var psr = playerSearchResultsFieldSet.querySelector('.form-check');
             psr.querySelector('.psr-radio').checked = true;
             setNewPlayerSelected(true);
         }
         var resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '';
-        resultsDiv.appendChild(playerSearchResultsDiv);
+        resultsDiv.appendChild(playerSearchResultsFieldSet);
     }
 
     function searchError(err) {
