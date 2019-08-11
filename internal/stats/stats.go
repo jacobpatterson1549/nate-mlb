@@ -76,13 +76,13 @@ func getStats() ([]ScoreCategory, error) {
 }
 
 func getScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
-	switch playerType.ID {
-	case db.PlayerTypeTeam:
+	switch playerType {
+	case db.Team:
 		return getTeamScoreScategory(friendPlayerInfo, playerType)
-	case db.PlayerTypeHitting, db.PlayerTypePitching:
+	case db.Hitter, db.Pitcher:
 		return getPlayerScoreCategory(friendPlayerInfo, playerType, playerInfoRequest)
 	default:
-		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType.Name)
+		return ScoreCategory{}, fmt.Errorf("unknown playerType: %v", playerType)
 	}
 }
 
@@ -102,7 +102,7 @@ func getPlayerScoreCategory(friendPlayerInfo db.FriendPlayerInfo, playerType db.
 	if playerInfoRequest.hasError {
 		return scoreCategory, playerInfoRequest.lastError
 	}
-	playerScores, err := playerInfoRequest.getPlayerScores(playerType.Name)
+	playerScores, err := playerInfoRequest.getPlayerScores(playerType.Name())
 	if err == nil {
 		err = scoreCategory.compute(friendPlayerInfo, playerType, playerScores, true)
 	}
@@ -165,9 +165,9 @@ func (t *TeamsJSON) getPlayerScores() map[int]PlayerScore {
 }
 
 func (sc *ScoreCategory) compute(friendPlayerInfo db.FriendPlayerInfo, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
-	sc.Name = playerType.Name
-	sc.Description = playerType.Description
-	sc.PlayerTypeID = playerType.ID
+	sc.Name = playerType.Name()
+	sc.Description = playerType.Description()
+	sc.PlayerTypeID = int(playerType)
 	sc.FriendScores = make([]FriendScore, len(friendPlayerInfo.Friends))
 	for i, friend := range friendPlayerInfo.Friends {
 		friendScore, err := computeFriendScore(friend, friendPlayerInfo, playerType, playerScores, onlySumTopTwoPlayerScores)
@@ -187,10 +187,10 @@ func computeFriendScore(f db.Friend, friendPlayerInfo db.FriendPlayerInfo, playe
 
 	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range friendPlayerInfo.Players {
-		if f.ID == player.FriendID && playerType.ID == player.PlayerTypeID {
+		if f.ID == player.FriendID && int(playerType) == player.PlayerTypeID {
 			playerScore, ok := playerScores[player.PlayerID]
 			if !ok {
-				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.PlayerID, playerType.Name)
+				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.PlayerID, playerType.Name())
 			}
 			playerScoreWithID := PlayerScore{
 				PlayerName: playerScore.PlayerName,
