@@ -170,19 +170,6 @@ func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIDs []int) {
 	}
 }
 
-func (s *Stat) getScore(groupDisplayName string) (int, error) {
-	// TODO: make seperate requests for pitchers and hitters, and key in on (Stat)function()int
-	// (these strings are in the data, so they must be switched on)
-	switch groupDisplayName {
-	case "hitting":
-		return s.HomeRuns, nil
-	case "pitching":
-		return s.Wins, nil
-	default:
-		return -1, fmt.Errorf("Unknown stat for groupDisplayName %v", groupDisplayName)
-	}
-}
-
 func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]PlayerScore, error) {
 	playerScores := make(map[int]PlayerScore)
 	for k, v := range pir.playerStats {
@@ -201,4 +188,17 @@ func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]
 		}
 	}
 	return playerScores, nil
+}
+
+func (s *Stat) getScore(groupDisplayName string) (int, error) {
+	// TODO: make seperate requests for pitchers and hitters, and key in on (Stat)function()int
+	// (these strings are in the data, so they must be switched on)
+	switch groupDisplayName {
+	case "hitting":
+		return s.HomeRuns, nil
+	case "pitching":
+		return s.Wins, nil
+	default:
+		return -1, fmt.Errorf("Unknown stat for groupDisplayName %v", groupDisplayName)
+	}
 }
