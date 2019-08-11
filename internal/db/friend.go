@@ -32,8 +32,8 @@ func getFriends() ([]Friend, error) {
 	return friends, nil
 }
 
-// SetFriends saves the specied players in for the active year. TODO: rename to SaveFriends
-func SetFriends(futureFriends []Friend) error {
+// SaveFriends saves the specied players in for the active year.
+func SaveFriends(futureFriends []Friend) error {
 	friends, err := getFriends()
 	if err != nil {
 		return err

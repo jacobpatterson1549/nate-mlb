@@ -39,7 +39,7 @@ func resetPassword(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.SetUserPassword("admin", hashedPassword)
+	return db.SavePassword("admin", hashedPassword)
 }
 
 func clearCache(r *http.Request) error {
@@ -47,7 +47,7 @@ func clearCache(r *http.Request) error {
 		return err
 	}
 
-	return db.NullEtlJSON()
+	return db.ClearEtlStatsJSON()
 }
 
 func updateFriends(r *http.Request) error {
@@ -76,11 +76,11 @@ func updateFriends(r *http.Request) error {
 		}
 	}
 
-	err := db.SetFriends(friends)
+	err := db.SaveFriends(friends)
 	if err != nil {
 		return err
 	}
-	return db.NullEtlJSON()
+	return db.ClearEtlStatsJSON()
 }
 
 func updatePlayers(r *http.Request) error {
@@ -131,11 +131,11 @@ func updatePlayers(r *http.Request) error {
 		}
 	}
 
-	err := db.SetPlayers(players)
+	err := db.SavePlayers(players)
 	if err != nil {
 		return err
 	}
-	return db.NullEtlJSON()
+	return db.ClearEtlStatsJSON()
 }
 
 func updateYears(r *http.Request) error {
@@ -147,10 +147,6 @@ func updateYears(r *http.Request) error {
 	if len(activeYear) == 0 {
 		return errors.New("missing value for year-active")
 	}
-	activeYearI, err := strconv.Atoi(activeYear)
-	if err != nil {
-		return fmt.Errorf("problem converting active year (%v) to number: %v", activeYear, err)
-	}
 	years := r.Form["year"]
 	yearsI := make([]int, len(years))
 	for i, year := range years {
@@ -160,9 +156,13 @@ func updateYears(r *http.Request) error {
 		}
 		yearsI[i] = yearI
 	}
+	activeYearI, err := strconv.Atoi(activeYear)
+	if err != nil {
+		return fmt.Errorf("problem converting active year (%v) to number: %v", activeYear, err)
+	}
 
 	// (does not forcefully update cache if active year changed)
-	return db.SetYears(activeYearI, yearsI)
+	return db.SaveYears(yearsI, activeYearI)
 }
 
 func hashPassword(password string) (string, error) {
@@ -176,7 +176,7 @@ func hashPassword(password string) (string, error) {
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	hashedPassword, err := db.GetUserPassword(username)
+	hashedPassword, err := db.GetPassword(username)
 	if err != nil {
 		return err
 	}

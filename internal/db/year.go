@@ -61,8 +61,8 @@ func GetYears() ([]Year, error) {
 	return years, nil
 }
 
-// SetYears saves the specified years and sets the active year // TODO: rename to SaveYears
-func SetYears(activeYear int, futureYears []int) error { // TODO: swap param order
+// SaveYears saves the specified years and sets the active year
+func SaveYears(futureYears []int, activeYear int) error {
 	previousYears, err := GetYears()
 	if err != nil {
 		return err

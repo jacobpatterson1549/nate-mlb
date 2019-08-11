@@ -33,8 +33,8 @@ func getPlayers() ([]Player, error) {
 	return players, nil
 }
 
-// SetPlayers saves the specied players in for the active year. TODO: rename to SavePlayers
-func SetPlayers(futurePlayers []Player) error {
+// SavePlayers saves the specied players in for the active year.
+func SavePlayers(futurePlayers []Player) error {
 	players, err := getPlayers()
 	if err != nil {
 		return err
