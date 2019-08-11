@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 )
 
@@ -55,55 +54,35 @@ func SetFriends(futureFriends []Friend) error {
 		}
 		delete(previousFriends, friend.ID)
 	}
-	deleteFriends := previousFriends
 
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("problem starting transaction: %v", err)
-	}
-	var result sql.Result
-	for _, friend := range insertFriends {
-		if err == nil {
-			result, err = tx.Exec(
-				"INSERT INTO friends (display_order, name, year) SELECT $1, $2, year FROM stats AS s WHERE s.active",
-				friend.DisplayOrder,
-				friend.Name)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	queries := make([]query, len(insertFriends)+len(updateFriends)+len(previousFriends))
+	i := 0
+	for _, insertFriend := range insertFriends {
+		queries[i] = query{
+			sql:  "INSERT INTO friends (display_order, name, year) SELECT $1, $2, year FROM stats AS s WHERE s.active",
+			args: make([]interface{}, 2),
 		}
+		queries[i].args[0] = insertFriend.DisplayOrder
+		queries[i].args[1] = insertFriend.Name
+		i++
 	}
-	for _, friend := range updateFriends {
-		if err == nil {
-			result, err = tx.Exec(
-				"UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
-				friend.DisplayOrder,
-				friend.Name,
-				friend.ID)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	for _, updateFriend := range updateFriends {
+		queries[i] = query{
+			sql:  "UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
+			args: make([]interface{}, 3),
 		}
+		queries[i].args[0] = updateFriend.DisplayOrder
+		queries[i].args[1] = updateFriend.Name
+		queries[i].args[2] = updateFriend.ID
+		i++
 	}
-	for friendID := range deleteFriends {
-		if err == nil {
-			result, err = tx.Exec(
-				"DELETE FROM friends WHERE id = $1",
-				friendID)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	for deleteFriendID := range previousFriends {
+		queries[i] = query{
+			sql:  "DELETE FROM friends WHERE id = $1",
+			args: make([]interface{}, 1),
 		}
+		queries[i].args[0] = deleteFriendID
+		i++
 	}
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
-		}
-	} else {
-		err = tx.Commit()
-	}
-	if err != nil {
-		return fmt.Errorf("problem saving friends: %v", err)
-	}
-	return nil
+	return exececuteInTransaction(queries)
 }

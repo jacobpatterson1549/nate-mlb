@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 )
 
@@ -56,56 +55,36 @@ func SetPlayers(futurePlayers []Player) error {
 		}
 		delete(previousPlayers, player.ID)
 	}
-	deletePlayers := previousPlayers
 
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("problem starting transaction: %v", err)
-	}
-	var result sql.Result
-	for _, player := range insertPlayers {
-		if err == nil {
-			result, err = tx.Exec(
-				"INSERT INTO players (display_order, player_type_id, player_id, friend_id, year) SELECT $1, $2, $3, $4, year FROM stats AS s WHERE s.active",
-				player.DisplayOrder,
-				player.PlayerTypeID,
-				player.PlayerID,
-				player.FriendID)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	queries := make([]query, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
+	i := 0
+	for _, insertPlayer := range insertPlayers {
+		queries[i] = query{
+			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, year) SELECT $1, $2, $3, $4, year FROM stats AS s WHERE s.active",
+			args: make([]interface{}, 4),
 		}
+		queries[i].args[0] = insertPlayer.DisplayOrder
+		queries[i].args[1] = insertPlayer.PlayerTypeID
+		queries[i].args[2] = insertPlayer.PlayerID
+		queries[i].args[3] = insertPlayer.FriendID
+		i++
 	}
-	for _, player := range updatePlayers {
-		if err == nil {
-			result, err = tx.Exec(
-				"UPDATE players SET display_order = $1 WHERE id = $2",
-				player.DisplayOrder,
-				player.ID)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	for _, updateplayer := range updatePlayers {
+		queries[i] = query{
+			sql:  "UPDATE players SET display_order = $1 WHERE id = $2",
+			args: make([]interface{}, 2),
 		}
+		queries[i].args[0] = updateplayer.DisplayOrder
+		queries[i].args[1] = updateplayer.ID
+		i++
 	}
-	for playerID := range deletePlayers {
-		if err == nil {
-			result, err = tx.Exec(
-				"DELETE FROM players WHERE id = $1",
-				playerID)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
+	for deleteID := range previousPlayers {
+		queries[i] = query{
+			sql:  "DELETE FROM players WHERE id = $1",
+			args: make([]interface{}, 1),
 		}
+		queries[i].args[0] = deleteID
+		i++
 	}
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
-		}
-	} else {
-		err = tx.Commit()
-	}
-	if err != nil {
-		return fmt.Errorf("problem saving players: %v", err)
-	}
-	return nil
+	return exececuteInTransaction(queries)
 }

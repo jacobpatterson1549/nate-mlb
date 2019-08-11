@@ -62,81 +62,60 @@ func GetYears() ([]Year, error) {
 }
 
 // SetYears saves the specified years and sets the active year // TODO: rename to SaveYears
-func SetYears(activeYear int, years []int) error { // TODO: swap param order
-	currentYears, err := GetYears()
+func SetYears(activeYear int, futureYears []int) error { // TODO: swap param order
+	previousYears, err := GetYears()
 	if err != nil {
 		return err
 	}
-	currentYearsMap := make(map[int]bool)
-	for _, year := range currentYears {
-		currentYearsMap[year.Value] = true
+	previousYearsMap := make(map[int]bool)
+	for _, year := range previousYears {
+		previousYearsMap[year.Value] = true
 	}
 
 	insertYears := []int{}
 	activeYearPresent := false
-	for _, year := range years {
+	for _, year := range futureYears {
 		if year == activeYear {
 			activeYearPresent = true
 		}
-		if _, ok := currentYearsMap[year]; !ok {
+		if _, ok := previousYearsMap[year]; !ok {
 			insertYears = append(insertYears, year)
 		}
-		delete(currentYearsMap, year)
+		delete(previousYearsMap, year)
 	}
-	if len(years) > 0 && !activeYearPresent {
-		return fmt.Errorf("active year %v not present in years: %v", activeYear, years)
+	if len(futureYears) > 0 && !activeYearPresent {
+		return fmt.Errorf("active year %v not present in years: %v", activeYear, futureYears)
 	}
-	deleteYears := currentYearsMap
 
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("problem starting transaction: %v", err)
-	}
-	var result sql.Result
-	for year := range deleteYears {
-		if err == nil {
-			result, err = tx.Exec(
-				"DELETE FROM stats WHERE year = $1",
-				year)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
-		}
-	}
-	for _, year := range insertYears {
-		if err == nil {
-			result, err = tx.Exec(
-				"INSERT INTO stats (year) VALUES ($1)",
-				year)
-			if err == nil {
-				err = expectSingleRowAffected(result)
-			}
-		}
-	}
+	queries := make([]query, len(insertYears)+len(previousYearsMap)+2)
 	// remove active year
-	if err == nil && len(years) > 0 {
-		result, err = tx.Exec("UPDATE stats SET active = NULL WHERE active")
-		// TODO: no need to expecet 1 row because no years may be present, but still need to rollback on error
+	// do this first to ensure one row is affected, in the case that the active row is deleted
+	queries[0] = query{
+		sql: "UPDATE stats SET active = NULL WHERE active",
 	}
+	i := 1
+	for _, insertYear := range insertYears {
+		queries[i] = query{
+			sql:  "INSERT INTO stats (year) VALUES ($1)",
+			args: make([]interface{}, 1),
+		}
+		queries[i].args[0] = insertYear
+		i++
+	}
+	for deleteYear := range previousYearsMap {
+		queries[i] = query{
+			sql:  "DELETE FROM stats WHERE year = $1",
+			args: make([]interface{}, 1),
+		}
+		queries[i].args[0] = deleteYear
+		i++
+	}
+
 	// set active year
-	if err == nil && len(years) > 0 {
-		// TODO: make "func affectOneRow(tx *sql.Tx, sql string) error" function to make rollback
-		result, err = tx.Exec(
-			"UPDATE stats SET active = TRUE WHERE year = $1",
-			activeYear)
-		if err != nil {
-			err = expectSingleRowAffected(result)
-		}
+	queries[i] = query{
+		sql:  "UPDATE stats SET active = TRUE WHERE year = $1",
+		args: make([]interface{}, 1),
 	}
-	if err != nil {
-		if err2 := tx.Rollback(); err2 != nil {
-			err = fmt.Errorf("problem: %v, ROLLBACK ERROR: %v", err.Error(), err2.Error())
-		}
-	} else {
-		err = tx.Commit()
-	}
-	if err != nil {
-		return fmt.Errorf("problem saving years: %v", err)
-	}
-	return nil
+	queries[i].args[0] = activeYear
+	return exececuteInTransaction(queries)
 }
