@@ -11,7 +11,6 @@ type Friend struct {
 	Name         string
 }
 
-// TODO: use shared logic to request friends, playerTypes, players (but with helper mapper functions) (look at how NullString scanning works)
 func getFriends() ([]Friend, error) {
 	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
 	if err != nil {
