@@ -14,7 +14,8 @@ type TeamsJSON struct {
 				Name string `json:"name"`
 				ID   int    `json:"id"`
 			} `json:"team"`
-			Wins int `json:"wins"`
+			Wins   int `json:"wins"`
+			Losses int `json:"losses"`
 		} `json:"teamRecords"`
 	} `json:"records"`
 }

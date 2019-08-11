@@ -40,7 +40,7 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 			if strings.Contains(lowerTeamName, lowerQuery) {
 				teamSearchResults = append(teamSearchResults, PlayerSearchResult{
 					Name:     teamRecord.Team.Name,
-					Details:  fmt.Sprintf("%d wins", teamRecord.Wins),
+					Details:  fmt.Sprintf("%d - %d Record", teamRecord.Wins, teamRecord.Losses),
 					PlayerID: teamRecord.Team.ID,
 				})
 			}
