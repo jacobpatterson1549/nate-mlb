@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-
+	driverName := "postgres"
 	dataSourceName, ok := os.LookupEnv("DATABASE_URL")
 	if !ok {
 		log.Fatal("DATABASE_URL environment variable not set")
@@ -21,7 +21,7 @@ func main() {
 		log.Fatal("PORT environment variable not set")
 	}
 
-	err := db.InitDB(dataSourceName)
+	err := db.InitDB(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("Could not set database ", err)
 	}

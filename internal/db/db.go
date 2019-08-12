@@ -11,8 +11,7 @@ var (
 )
 
 // InitDB initializes the pointer to the database
-func InitDB(dataSourceName string) error {
-	driverName := "postgres"
+func InitDB(driverName, dataSourceName string) error {
 	var err error
 	db, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
