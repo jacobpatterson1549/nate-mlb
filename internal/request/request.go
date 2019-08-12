@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// Request retrieves the contents of a url
 func request(url string) (*http.Response, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -26,7 +25,6 @@ func request(url string) (*http.Response, error) {
 	return r, nil
 }
 
-// RequestJSON retrieves data from a url and decodes the json data ino the specified struct.
 func requestStruct(url string, v interface{}) error {
 	response, err := request(url)
 	if err != nil {
