@@ -13,11 +13,11 @@ import (
 
 var (
 	adminActions = map[string](func(*http.Request) error){
-		"password": resetPassword,
-		"cache":    clearCache,
 		"friends":  updateFriends,
 		"players":  updatePlayers,
 		"years":    updateYears,
+		"cache":    clearCache,
+		"password": resetPassword,
 	}
 )
 
@@ -27,60 +27,6 @@ func handleAdminRequest(r *http.Request) error {
 		return action(r)
 	}
 	return errors.New("invalid admin action")
-}
-
-func resetPassword(r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
-	newPassword := r.FormValue("newPassword")
-	hashedPassword, err := hashPassword(newPassword)
-	if err != nil {
-		return err
-	}
-	return db.SavePassword("admin", hashedPassword)
-}
-
-func clearCache(r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
-	return db.ClearEtlStats()
-}
-
-func updateFriends(r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
-	friends := []db.Friend{}
-	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
-	for k, v := range r.Form {
-		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
-			friendIDi, err := strconv.Atoi(matches[1])
-			if err != nil {
-				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
-			}
-			friendDisplayOrderI, err := strconv.Atoi(v[0])
-			if err != nil {
-				return fmt.Errorf("problem converting friend display order '%v' to number: %v", v[0], err)
-			}
-			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
-			friends = append(friends, db.Friend{
-				ID:           friendIDi,
-				DisplayOrder: friendDisplayOrderI,
-				Name:         friendName,
-			})
-		}
-	}
-
-	err := db.SaveFriends(friends)
-	if err != nil {
-		return err
-	}
-	return db.ClearEtlStats()
 }
 
 func updatePlayers(r *http.Request) error {
@@ -138,6 +84,39 @@ func updatePlayers(r *http.Request) error {
 	return db.ClearEtlStats()
 }
 
+func updateFriends(r *http.Request) error {
+	if err := verifyUserPassword(r); err != nil {
+		return err
+	}
+
+	friends := []db.Friend{}
+	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
+	for k, v := range r.Form {
+		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
+			friendIDi, err := strconv.Atoi(matches[1])
+			if err != nil {
+				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
+			}
+			friendDisplayOrderI, err := strconv.Atoi(v[0])
+			if err != nil {
+				return fmt.Errorf("problem converting friend display order '%v' to number: %v", v[0], err)
+			}
+			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
+			friends = append(friends, db.Friend{
+				ID:           friendIDi,
+				DisplayOrder: friendDisplayOrderI,
+				Name:         friendName,
+			})
+		}
+	}
+
+	err := db.SaveFriends(friends)
+	if err != nil {
+		return err
+	}
+	return db.ClearEtlStats()
+}
+
 func updateYears(r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
@@ -165,12 +144,25 @@ func updateYears(r *http.Request) error {
 	return db.SaveYears(yearsI, activeYearI)
 }
 
-func hashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("problem hashing password: %v", err)
+func clearCache(r *http.Request) error {
+	if err := verifyUserPassword(r); err != nil {
+		return err
 	}
-	return string(hashedPassword), nil
+
+	return db.ClearEtlStats()
+}
+
+func resetPassword(r *http.Request) error {
+	if err := verifyUserPassword(r); err != nil {
+		return err
+	}
+
+	newPassword := r.FormValue("newPassword")
+	hashedPassword, err := hashPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	return db.SavePassword("admin", hashedPassword)
 }
 
 func verifyUserPassword(r *http.Request) error {
@@ -188,4 +180,12 @@ func verifyUserPassword(r *http.Request) error {
 		return fmt.Errorf("problem verifying password: %v", err)
 	}
 	return nil
+}
+
+func hashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("problem hashing password: %v", err)
+	}
+	return string(hashedPassword), nil
 }

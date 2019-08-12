@@ -72,29 +72,7 @@ func writeStatsPage(w http.ResponseWriter) error {
 		templateNames:    []string{"templates/stats.html"},
 		PageLoadTime:     db.GetUtcTime(),
 	}
-
 	return renderTemplate(w, viewPage)
-}
-
-func writeAboutPage(w http.ResponseWriter) error {
-	lastDeploy, err := request.PreviousDeployment()
-	if err != nil {
-		return err
-	}
-
-	timesMessage := TimesMessage{
-		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
-		Times:    []time.Time{lastDeploy.Time},
-	}
-	adminPage := Page{
-		Title:            "About Nate's MLB",
-		Tabs:             []Tab{AboutTab{}},
-		TimesMessageJSON: timesMessage.toJSON(),
-		templateNames:    []string{"templates/about.html"},
-		PageLoadTime:     db.GetUtcTime(),
-	}
-
-	return renderTemplate(w, adminPage)
 }
 
 func writeAdminPage(w http.ResponseWriter, message string) error {
@@ -144,6 +122,26 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		Tabs:             tabs,
 		TimesMessageJSON: timesMessage.toJSON(),
 		templateNames:    templateNames,
+		PageLoadTime:     db.GetUtcTime(),
+	}
+	return renderTemplate(w, adminPage)
+}
+
+func writeAboutPage(w http.ResponseWriter) error {
+	lastDeploy, err := request.PreviousDeployment()
+	if err != nil {
+		return err
+	}
+
+	timesMessage := TimesMessage{
+		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
+		Times:    []time.Time{lastDeploy.Time},
+	}
+	adminPage := Page{
+		Title:            "About Nate's MLB",
+		Tabs:             []Tab{AboutTab{}},
+		TimesMessageJSON: timesMessage.toJSON(),
+		templateNames:    []string{"templates/about.html"},
 		PageLoadTime:     db.GetUtcTime(),
 	}
 	return renderTemplate(w, adminPage)
