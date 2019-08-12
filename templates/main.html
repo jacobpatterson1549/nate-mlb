@@ -50,19 +50,19 @@
     </ul>
   </div>
   <div id="main-content" class="tab-content" role="main">
-    {{- range .Tabs -}}
+    {{range .Tabs -}}
     <div id="{{- .GetID -}}" class="tab-pane fade" role="tabpanel">
       {{- template "content" . -}}
     </div>
-    {{- end -}}
+    {{- end}}
   </div>
   <div role="contentinfo">
-    {{- if .TimesMessageJSON -}}
+    {{if .TimesMessageJSON -}}
     <p id="times-message"></p>
-    {{- end -}}
+    {{- end}}
     <p id="page-load-message"></p>
   </div>
-  {{- if .TimesMessageJSON -}}
+  {{if .TimesMessageJSON -}}
   <script>
     function twoDigits(num) {
       return num < 10 ? "0" + num : num;
@@ -87,7 +87,7 @@
       $('#main-tabs li:first-child a').tab('show')
       $('#navbar a[href="' + this.location.pathname + '"]').addClass('active')
       if ("{{- .TimesMessageJSON -}}".length > 0) {
-        var timesMessage = jQuery.parseJSON("{{- .TimesMessageJSON -}}");
+        var timesMessage = jQuery.parseJSON({{.TimesMessageJSON}});
         var messages = timesMessage.Messages;
         var times = timesMessage.Times;
         var formattedMessage = ""
@@ -99,10 +99,10 @@
         }
         $('#times-message').text(formattedMessage)
       }
-      $('#page-load-message').text('Page loaded at ' + formatDate("{{- .PageLoadTime -}}"))
+      $('#page-load-message').text('Page loaded at ' + formatDate({{.PageLoadTime}}))
     })
   </script>
-  {{- end -}}
+  {{- end}}
 </body>
 
 </html>
