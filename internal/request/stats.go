@@ -107,9 +107,9 @@ func getScoreCategories() ([]ScoreCategory, error) {
 			var scoreCategory ScoreCategory
 			switch playerType {
 			case db.Team:
-				scoreCategory, err = getTeamScoreScategory(friends, players, playerType, activeYear)
+				scoreCategory, err = createTeamScoreScategory(friends, players, playerType, activeYear)
 			case db.Hitter, db.Pitcher:
-				scoreCategory, err = getPlayerScoreCategory(friends, players, playerType, &playerInfoRequest)
+				scoreCategory, err = createPlayerScoreCategory(friends, players, playerType, &playerInfoRequest)
 			default:
 				err = fmt.Errorf("unknown playerType: %v", playerType)
 			}

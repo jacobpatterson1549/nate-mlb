@@ -8,17 +8,13 @@ import (
 	"sync"
 )
 
-func fillerPlayer() {
-
-}
-
 // PlayerInfoRequest contains invormation about requests for hitter/pitcher names/stats
 type PlayerInfoRequest struct {
 	playerNames map[int]string
-	playerStats map[string]map[int]int
+	playerStats map[db.PlayerType]map[int]int
 	wg          sync.WaitGroup
 	lastError   error
-	hasError    bool
+	hasError    bool // TODO: DELETEME
 }
 
 // PlayerNames is used to unmarshal a request for player names
@@ -31,29 +27,32 @@ type PlayerNames struct {
 
 // PlayerStats is used to unmarshal a player homeRuns/wins request
 type PlayerStats struct {
-	Stats []struct {
-		Group struct {
-			DisplayName string `json:"displayName"`
-		} `json:"group"`
-		Splits []struct {
-			Stat Stat `json:"stat"`
-		} `json:"splits"`
-	} `json:"stats"`
+	PlayerTypeStats []PlayerTypeStat `json:"stats"`
 }
 
-// Stat is used too unmarshal stats for a part of a player stat request
+// PlayerTypeStat contains stats for a type of position for a player
+type PlayerTypeStat struct {
+	Group struct {
+		DisplayName string `json:"displayName"`
+	} `json:"group"`
+	Splits []struct {
+		Stat Stat `json:"stat"`
+	} `json:"splits"`
+}
+
+// Stat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
 type Stat struct {
 	HomeRuns int `json:"homeRuns"`
 	Wins     int `json:"wins"`
 }
 
-func getPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+func createPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
 	playerInfoRequest.wg.Wait()
 	if playerInfoRequest.hasError {
 		return scoreCategory, playerInfoRequest.lastError
 	}
-	playerScores, err := playerInfoRequest.getPlayerScores(playerType.Name())
+	playerScores, err := playerInfoRequest.createPlayerScores(playerType)
 	if err == nil {
 		err = scoreCategory.compute(friends, players, playerType, playerScores, true)
 	}
@@ -63,34 +62,37 @@ func getPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType
 func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year int) {
 
 	pir.playerNames = make(map[int]string)
-	pir.playerStats = make(map[string]map[int]int)
+	pir.playerStats = make(map[db.PlayerType]map[int]int)
 	pir.wg = sync.WaitGroup{}
 
 	// Note that these keys are the same as player_types
-	// TODO: make this a private field of player type (DisplayName vs GroupName)
-	pir.playerStats["hitting"] = make(map[int]int)
-	pir.playerStats["pitching"] = make(map[int]int)
+	pir.playerStats[db.Hitter] = make(map[int]int)
+	pir.playerStats[db.Pitcher] = make(map[int]int)
 
-	playerIDsSet := make(map[int]bool)
-	playerIDstrings := []string{}
-	playerIDInts := []int{}
+	playerIDs := make(map[int]string)
 	for _, player := range players {
-		if player.PlayerTypeID == 2 || player.PlayerTypeID == 3 {
-			if _, ok := playerIDsSet[player.PlayerID]; !ok {
-				playerIDsSet[player.PlayerID] = true
-				playerIDstrings = append(playerIDstrings, strconv.Itoa(player.PlayerID))
-				playerIDInts = append(playerIDInts, player.PlayerID)
+		// TODO: make player.PlayerTypeID be a PlayerType and rename to player.playerType
+		if player.PlayerTypeID == int(db.Hitter) || player.PlayerTypeID == int(db.Pitcher) {
+			if _, ok := playerIDs[player.PlayerID]; !ok {
+				playerIDs[player.PlayerID] = strconv.Itoa(player.PlayerID)
 			}
+			pir.playerStats[db.PlayerType(player.PlayerTypeID)][player.PlayerID] = 0
 		}
 	}
 
 	pir.wg.Add(2)
-	go pir.requestPlayerNames(playerIDstrings)
-	go pir.requestPlayerStats(playerIDInts, year)
+	go pir.requestPlayerNames(playerIDs)
+	go pir.requestPlayerStats(year)
 }
 
-func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
-	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDs, ",")), ",", "%2C")
+func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs map[int]string) {
+	playerIDStrings := make([]string, len(playerIDs))
+	i := 0
+	for _, playerIDString := range playerIDs {
+		playerIDStrings[i] = playerIDString
+		i++
+	}
+	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDStrings, ",")), ",", "%2C")
 	playerNames := PlayerNames{}
 	err := requestStruct(playerNamesURL, &playerNames)
 	if err == nil {
@@ -104,30 +106,35 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs []string) {
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStats(playerIDs []int, year int) {
+func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	wg.Add(len(playerIDs))
-	for _, playerID := range playerIDs {
-		go func(playerID int, mutex *sync.Mutex) {
-			pir.requestPlayerStat(playerID, year, mutex)
-			wg.Done()
-		}(playerID, &mutex)
+	for playerType, players := range pir.playerStats {
+		for playerID := range players {
+			go func(playerID int, mutex *sync.Mutex) {
+				pir.requestPlayerStat(playerType, playerID, year, mutex)
+				wg.Done()
+			}(playerID, &mutex)
+		}
+		wg.Add(len(players))
 	}
 	wg.Wait()
-	pir.addMissingPlayerStats(playerIDs)
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *sync.Mutex) {
+func (pir *PlayerInfoRequest) requestPlayerStat(playerType db.PlayerType, playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStats := PlayerStats{}
 	err := requestStruct(playerStatsURL, &playerStats)
 
 	if err == nil {
-		mutex.Lock()
-		err = pir.addPlayerStats(playerID, playerStats)
-		mutex.Unlock()
+		var score int
+		score, err = playerStats.getScore(playerType)
+		if err == nil {
+			mutex.Lock()
+			pir.playerStats[playerType][playerID] = score
+			mutex.Unlock()
+		}
 	}
 
 	if err != nil {
@@ -136,65 +143,42 @@ func (pir *PlayerInfoRequest) requestPlayerStat(playerID int, year int, mutex *s
 	}
 }
 
-func (pir *PlayerInfoRequest) addPlayerStats(playerID int, playerStats PlayerStats) error {
-	for _, stats := range playerStats.Stats {
-		for groupDisplayName, groupStatsMap := range pir.playerStats {
-			if stats.Group.DisplayName == groupDisplayName {
-				splits := stats.Splits
-				lastStat := splits[len(splits)-1].Stat
-				score, err := lastStat.getScore(groupDisplayName)
-				if err != nil {
-					return err
-				}
-				groupStatsMap[playerID] = score
-			}
-		}
-	}
-	return nil
-}
-
-func (pir *PlayerInfoRequest) addMissingPlayerStats(playerIDs []int) {
-	// Some players might not have played for the requested year for the position that was requested.
-	// If so, add a 0 as their stat.
-	// TODO: This bloats the playerStats map, but it is not a big deal for now.
-	for _, playerID := range playerIDs {
-		for _, playerStats := range pir.playerStats {
-			if _, ok := playerStats[playerID]; !ok {
-				playerStats[playerID] = 0
-			}
-		}
-	}
-}
-
-func (pir *PlayerInfoRequest) getPlayerScores(groupDisplayName string) (map[int]PlayerScore, error) {
+func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[int]PlayerScore, error) {
 	playerScores := make(map[int]PlayerScore)
-	for k, v := range pir.playerStats {
-		if k == groupDisplayName {
-			for playerID, score := range v {
-				name, ok := pir.playerNames[playerID]
-				if !ok {
-					return playerScores, fmt.Errorf("No player name for player %v", playerID)
-				}
-				playerScores[playerID] = PlayerScore{
-					PlayerName: name,
-					PlayerID:   playerID,
-					Score:      score,
-				}
-			}
+	for playerID, score := range pir.playerStats[playerType] {
+		name, ok := pir.playerNames[playerID]
+		if !ok {
+			return playerScores, fmt.Errorf("No player name for player %v", playerID)
+		}
+		playerScores[playerID] = PlayerScore{
+			PlayerName: name,
+			PlayerID:   playerID,
+			Score:      score,
 		}
 	}
 	return playerScores, nil
 }
 
-func (s *Stat) getScore(groupDisplayName string) (int, error) {
-	// TODO: make seperate requests for pitchers and hitters, and key in on (Stat)function()int
-	// (these strings are in the data, so they must be switched on)
-	switch groupDisplayName {
-	case "hitting":
-		return s.HomeRuns, nil
-	case "pitching":
-		return s.Wins, nil
+func (ps *PlayerStats) getScore(playerType db.PlayerType) (int, error) {
+	switch playerType {
+	case db.Hitter:
+		return ps.lastStat("hitting", func(s *Stat) int { return s.HomeRuns }), nil
+	case db.Pitcher:
+		return ps.lastStat("pitching", func(s *Stat) int { return s.Wins }), nil
 	default:
-		return -1, fmt.Errorf("Unknown stat for groupDisplayName %v", groupDisplayName)
+		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)
 	}
+}
+
+func (ps *PlayerStats) lastStat(groupDisplayName string, score func(*Stat) int) int {
+	for _, playerTypeStat := range ps.PlayerTypeStats {
+		if groupDisplayName == playerTypeStat.Group.DisplayName {
+			splits := playerTypeStat.Splits
+			if len(splits) > 0 {
+				lastStat := splits[len(splits)-1].Stat
+				return score(&lastStat)
+			}
+		}
+	}
+	return 0 // example: In 2019, Luis Severino is a pitcher, but has not played (TODO: Write test for this)
 }

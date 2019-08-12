@@ -26,17 +26,17 @@ func requestTeams(year int) (Teams, error) {
 	return teams, requestStruct(url, &teams)
 }
 
-func getTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
+func createTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
 	teams, err := requestTeams(year)
 	if err == nil {
-		playerScores := teams.getPlayerScores()
+		playerScores := teams.createPlayerScores()
 		err = scoreCategory.compute(friends, players, teamPlayerType, playerScores, false)
 	}
 	return scoreCategory, err
 }
 
-func (t *Teams) getPlayerScores() map[int]PlayerScore {
+func (t *Teams) createPlayerScores() map[int]PlayerScore {
 	playerScores := make(map[int]PlayerScore)
 	for _, record := range t.Records {
 		for _, teamRecord := range record.TeamRecords {
