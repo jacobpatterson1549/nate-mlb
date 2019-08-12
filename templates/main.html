@@ -26,7 +26,8 @@
   <nav class="navbar navbar-expand-sm navbar-light bg-light" id="main-navbar">
     <img src="/static/favicon.ico" alt="baseball-hat">
     <a class="navbar-brand" href="/">nate-mlb</a>
-    <button class="navbar-toggler" aria-label="Toggle Navbar" type="button" data-toggle="collapse" data-target="#main-navbar-nav">
+    <button class="navbar-toggler" aria-label="Toggle Navbar" type="button" data-toggle="collapse"
+      data-target="#main-navbar-nav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="main-navbar-nav">
@@ -89,7 +90,8 @@
     }
 
     function initCurrentNavbarPage() {
-      document.getElementById('main-navbar-nav').querySelector('[href="' + this.location.pathname + '"]').classList.add('active');
+      document.getElementById('main-navbar-nav').querySelector('[href="' + this.location.pathname + '"]').classList.add(
+        'active');
     }
 
     function initFirstTab() {
