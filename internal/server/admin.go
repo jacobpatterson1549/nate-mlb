@@ -82,26 +82,17 @@ func updateYears(r *http.Request) error {
 		return err
 	}
 
-	activeYear := r.Form.Get("year-active")
-	if len(activeYear) == 0 {
-		return errors.New("missing value for year-active")
-	}
-	years := r.Form["year"]
-	yearsI := make([]int, len(years))
-	for i, year := range years {
-		yearI, err := strconv.Atoi(year)
+	years := []db.Year{}
+	for _, y := range r.Form["year"] {
+		year, err := getYear(r, y)
 		if err != nil {
-			return fmt.Errorf("problem converting year (%v) to number: %v", year, err)
+			return err
 		}
-		yearsI[i] = yearI
-	}
-	activeYearI, err := strconv.Atoi(activeYear)
-	if err != nil {
-		return fmt.Errorf("problem converting active year (%v) to number: %v", activeYear, err)
+		years = append(years, year)
 	}
 
 	// (does not forcefully update cache if active year changed)
-	return db.SaveYears(yearsI, activeYearI)
+	return db.SaveYears(years)
 }
 
 func clearCache(r *http.Request) error {
@@ -211,4 +202,19 @@ func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 	friend.Name = r.Form.Get(fmt.Sprintf("friend-%s-name", id))
 
 	return friend, nil
+}
+
+func getYear(r *http.Request, yearS string) (db.Year, error) {
+	var year db.Year
+
+	yearI, err := strconv.Atoi(yearS)
+	if err != nil {
+		return year, fmt.Errorf("problem converting year (%v) to number: %v", year, err)
+	}
+	year.Value = yearI
+
+	yearActive := r.Form.Get("year-active")
+	year.Active = yearS == yearActive
+
+	return year, nil
 }

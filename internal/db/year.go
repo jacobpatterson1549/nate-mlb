@@ -62,7 +62,7 @@ func GetYears() ([]Year, error) {
 }
 
 // SaveYears saves the specified years and sets the active year
-func SaveYears(futureYears []int, activeYear int) error {
+func SaveYears(futureYears []Year) error {
 	previousYears, err := GetYears()
 	if err != nil {
 		return err
@@ -73,18 +73,23 @@ func SaveYears(futureYears []int, activeYear int) error {
 	}
 
 	insertYears := []int{}
+	var activeYear int
 	activeYearPresent := false
 	for _, year := range futureYears {
-		if year == activeYear {
+		if year.Active {
+			if activeYearPresent {
+				return fmt.Errorf("multiple active years present in %v", err)
+			}
+			activeYear = year.Value
 			activeYearPresent = true
 		}
-		if _, ok := previousYearsMap[year]; !ok {
-			insertYears = append(insertYears, year)
+		if _, ok := previousYearsMap[year.Value]; !ok {
+			insertYears = append(insertYears, year.Value)
 		}
-		delete(previousYearsMap, year)
+		delete(previousYearsMap, year.Value)
 	}
 	if len(futureYears) > 0 && !activeYearPresent {
-		return fmt.Errorf("active year %v not present in years: %v", activeYear, futureYears)
+		return fmt.Errorf("active year not present in years: %v", futureYears)
 	}
 
 	queries := make([]query, len(insertYears)+len(previousYearsMap)+2)
