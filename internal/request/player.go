@@ -112,7 +112,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	for playerType, players := range pir.playerStats {
 		for playerID := range players {
 			go func(playerID int, mutex *sync.Mutex) {
-				pir.requestPlayerStat(playerType, playerID, year, mutex)
+				pir.requestPlayerScore(playerType, playerID, year, mutex)
 				wg.Done()
 			}(playerID, &mutex)
 		}
@@ -122,7 +122,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) requestPlayerStat(playerType db.PlayerType, playerID int, year int, mutex *sync.Mutex) {
+func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	playerStats := PlayerStats{}
 	err := requestStruct(playerStatsURL, &playerStats)
