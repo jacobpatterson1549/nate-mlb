@@ -12,6 +12,11 @@ const (
 	PlayerTypePitcher PlayerType = 3
 )
 
+var (
+	playerTypeNames        = make(map[PlayerType]string)
+	playerTypeDescriptions = make(map[PlayerType]string)
+)
+
 // Name gets the name for a PlayerType
 func (pt *PlayerType) Name() string {
 	return playerTypeNames[*pt]
@@ -21,9 +26,6 @@ func (pt *PlayerType) Name() string {
 func (pt *PlayerType) Description() string {
 	return playerTypeDescriptions[*pt]
 }
-
-var playerTypeNames = make(map[PlayerType]string)
-var playerTypeDescriptions = make(map[PlayerType]string)
 
 // LoadPlayerTypes loads the PlayerTypes from the database
 func LoadPlayerTypes() ([]PlayerType, error) {

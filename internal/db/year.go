@@ -110,7 +110,6 @@ func SaveYears(futureYears []int, activeYear int) error {
 		queries[i].args[0] = deleteYear
 		i++
 	}
-
 	// set active year
 	queries[i] = query{
 		sql:  "UPDATE stats SET active = TRUE WHERE year = $1",
