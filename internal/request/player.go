@@ -14,7 +14,6 @@ type PlayerInfoRequest struct {
 	playerStats map[db.PlayerType]map[int]int
 	wg          sync.WaitGroup
 	lastError   error
-	hasError    bool // TODO: DELETEME
 }
 
 // PlayerNames is used to unmarshal a request for player names
@@ -49,7 +48,7 @@ type Stat struct {
 func createPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
 	scoreCategory := ScoreCategory{}
 	playerInfoRequest.wg.Wait()
-	if playerInfoRequest.hasError {
+	if playerInfoRequest.lastError != nil {
 		return scoreCategory, playerInfoRequest.lastError
 	}
 	playerScores, err := playerInfoRequest.createPlayerScores(playerType)
@@ -95,13 +94,12 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs map[int]string) {
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDStrings, ",")), ",", "%2C")
 	playerNames := PlayerNames{}
 	err := requestStruct(playerNamesURL, &playerNames)
-	if err == nil {
+	if err != nil {
+		pir.lastError = err
+	} else {
 		for _, people := range playerNames.People {
 			pir.playerNames[people.ID] = people.FullName
 		}
-	} else {
-		pir.hasError = true
-		pir.lastError = err
 	}
 	pir.wg.Done()
 }
@@ -110,13 +108,13 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for playerType, players := range pir.playerStats {
+		wg.Add(len(players))
 		for playerID := range players {
 			go func(playerID int, mutex *sync.Mutex) {
 				pir.requestPlayerScore(playerType, playerID, year, mutex)
 				wg.Done()
 			}(playerID, &mutex)
 		}
-		wg.Add(len(players))
 	}
 	wg.Wait()
 	pir.wg.Done()
@@ -138,7 +136,6 @@ func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playe
 	}
 
 	if err != nil {
-		pir.hasError = true
 		pir.lastError = err
 	}
 }
