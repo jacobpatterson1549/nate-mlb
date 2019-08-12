@@ -10,6 +10,11 @@ var (
 	db *sql.DB
 )
 
+type query struct {
+	sql  string
+	args []interface{}
+}
+
 // InitDB initializes the pointer to the database
 func InitDB(driverName, dataSourceName string) error {
 	var err error
@@ -60,9 +65,4 @@ func expectSingleRowAffected(r sql.Result) error {
 		err = fmt.Errorf("expected to update 1 row, but updated %d", rows)
 	}
 	return err
-}
-
-type query struct {
-	sql  string
-	args []interface{}
 }
