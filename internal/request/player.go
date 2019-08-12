@@ -65,13 +65,12 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 	pir.wg = sync.WaitGroup{}
 
 	// Note that these keys are the same as player_types
-	pir.playerStats[db.Hitter] = make(map[int]int)
-	pir.playerStats[db.Pitcher] = make(map[int]int)
+	pir.playerStats[db.PlayerTypeHitter] = make(map[int]int)
+	pir.playerStats[db.PlayerTypePitcher] = make(map[int]int)
 
 	playerIDs := make(map[int]string)
 	for _, player := range players {
-		// TODO: make player.PlayerTypeID be a PlayerType and rename to player.playerType
-		if player.PlayerType == db.Hitter || player.PlayerType == db.Pitcher {
+		if player.PlayerType == db.PlayerTypeHitter || player.PlayerType == db.PlayerTypePitcher {
 			if _, ok := playerIDs[player.PlayerID]; !ok {
 				playerIDs[player.PlayerID] = strconv.Itoa(player.PlayerID)
 			}
@@ -158,9 +157,9 @@ func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[
 
 func (ps *PlayerStats) getScore(playerType db.PlayerType) (int, error) {
 	switch playerType {
-	case db.Hitter:
+	case db.PlayerTypeHitter:
 		return ps.lastStat("hitting", func(s *Stat) int { return s.HomeRuns }), nil
-	case db.Pitcher:
+	case db.PlayerTypePitcher:
 		return ps.lastStat("pitching", func(s *Stat) int { return s.Wins }), nil
 	default:
 		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)

@@ -7,9 +7,9 @@ type PlayerType int
 
 // The expected PlayerTypes
 const (
-	Team    PlayerType = 1
-	Hitter  PlayerType = 2
-	Pitcher PlayerType = 3
+	PlayerTypeTeam    PlayerType = 1
+	PlayerTypeHitter  PlayerType = 2
+	PlayerTypePitcher PlayerType = 3
 )
 
 // Name gets the name for a PlayerType
@@ -48,5 +48,5 @@ func LoadPlayerTypes() ([]PlayerType, error) {
 		playerTypeDescriptions[playerType] = description
 		i++
 	}
-	return []PlayerType{Team, Hitter, Pitcher}, nil
+	return []PlayerType{PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher}, nil
 }
