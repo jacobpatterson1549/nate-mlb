@@ -5,20 +5,6 @@ import (
 	"time"
 )
 
-// PreviousDeployment returns some information about the most recent deployment
-func PreviousDeployment() (Deployment, error) {
-	owner := "jacobpatterson1549"
-	repo := "nate-mlb"
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
-	grd := []GithubRepoDeployment{}
-	err := requestStruct(url, &grd)
-	previousDeployment := Deployment{}
-	if err != nil || len(grd) == 0 {
-		return previousDeployment, err
-	}
-	return grd[0].toDeployment()
-}
-
 // GithubRepoDeployment is used to unmarshal information about a github repository
 type GithubRepoDeployment struct {
 	Version string `json:"ref"`
@@ -29,6 +15,20 @@ type GithubRepoDeployment struct {
 type Deployment struct {
 	Version string
 	Time    time.Time
+}
+
+// PreviousDeployment returns some information about the most recent deployment
+func PreviousDeployment() (Deployment, error) {
+	owner := "jacobpatterson1549"
+	repo := "nate-mlb"
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
+	grd := []GithubRepoDeployment{}
+	err := requestStruct(url, &grd)
+	previousDeployment := Deployment{}
+	if err != nil || len(grd) == 0 {
+		return previousDeployment, err // TODO: TESTME: no error if no deployments, but empty deployment.  Is this ideal?
+	}
+	return grd[0].toDeployment()
 }
 
 func (grd *GithubRepoDeployment) toDeployment() (Deployment, error) {

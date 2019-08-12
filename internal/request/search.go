@@ -10,6 +10,41 @@ import (
 	"strings"
 )
 
+// PlayerSearchResult contains information about the result for a searched player.
+type PlayerSearchResult struct {
+	Name     string
+	Details  string
+	PlayerID int
+}
+
+// MultiplePlayerSearchResult contain the results of a player search that returns more than one row.
+type MultiplePlayerSearchResult struct {
+	SearchPlayerAll struct {
+		QueryResults struct {
+			PlayerBios []PlayerBio `json:"row"`
+		} `json:"queryResults"`
+	} `json:"search_player_all"`
+}
+
+// SinglePlayerSearchResult contain the results of a player search that returns more than one row.
+type SinglePlayerSearchResult struct {
+	SearchPlayerAll struct {
+		QueryResults struct {
+			PlayerBio PlayerBio `json:"row"`
+		} `json:"queryResults"`
+	} `json:"search_player_all"`
+}
+
+// PlayerBio contains the results of a player search for a single player
+type PlayerBio struct {
+	Position     string `json:"position"`
+	BirthCountry string `json:"birth_country"`
+	BirthDate    string `json:"birth_date"`
+	TeamAbbrev   string `json:"team_abbrev"`
+	PlayerName   string `json:"name_display_first_last"`
+	PlayerID     string `json:"player_id"`
+}
+
 // SearchPlayers finds the PlayerSearchResults for the specified name prefix
 func SearchPlayers(playerTypeID int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	switch {
@@ -110,39 +145,4 @@ func (row PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 		PlayerID: playerID,
 	}
 	return psr, nil
-}
-
-// PlayerSearchResult contains information about the result for a searched player.
-type PlayerSearchResult struct {
-	Name     string
-	Details  string
-	PlayerID int
-}
-
-// MultiplePlayerSearchResult contain the results of a player search that returns more than one row.
-type MultiplePlayerSearchResult struct {
-	SearchPlayerAll struct {
-		QueryResults struct {
-			PlayerBios []PlayerBio `json:"row"`
-		} `json:"queryResults"`
-	} `json:"search_player_all"`
-}
-
-// SinglePlayerSearchResult contain the results of a player search that returns more than one row.
-type SinglePlayerSearchResult struct {
-	SearchPlayerAll struct {
-		QueryResults struct {
-			PlayerBio PlayerBio `json:"row"`
-		} `json:"queryResults"`
-	} `json:"search_player_all"`
-}
-
-// PlayerBio contains the results of a player search for a single player
-type PlayerBio struct {
-	Position     string `json:"position"`
-	BirthCountry string `json:"birth_country"`
-	BirthDate    string `json:"birth_date"`
-	TeamAbbrev   string `json:"team_abbrev"`
-	PlayerName   string `json:"name_display_first_last"`
-	PlayerID     string `json:"player_id"`
 }
