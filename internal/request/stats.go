@@ -148,7 +148,7 @@ func computeFriendScore(friend db.Friend, players []db.Player, playerType db.Pla
 
 	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range players {
-		if friend.ID == player.FriendID && int(playerType) == player.PlayerTypeID {
+		if friend.ID == player.FriendID && playerType == player.PlayerType {
 			playerScore, ok := playerScores[player.PlayerID]
 			if !ok {
 				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.PlayerID, playerType.Name())

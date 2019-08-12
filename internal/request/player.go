@@ -71,11 +71,11 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 	playerIDs := make(map[int]string)
 	for _, player := range players {
 		// TODO: make player.PlayerTypeID be a PlayerType and rename to player.playerType
-		if player.PlayerTypeID == int(db.Hitter) || player.PlayerTypeID == int(db.Pitcher) {
+		if player.PlayerType == db.Hitter || player.PlayerType == db.Pitcher {
 			if _, ok := playerIDs[player.PlayerID]; !ok {
 				playerIDs[player.PlayerID] = strconv.Itoa(player.PlayerID)
 			}
-			pir.playerStats[db.PlayerType(player.PlayerTypeID)][player.PlayerID] = 0
+			pir.playerStats[db.PlayerType(player.PlayerType)][player.PlayerID] = 0
 		}
 	}
 

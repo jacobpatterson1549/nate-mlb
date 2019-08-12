@@ -124,7 +124,7 @@ func updatePlayers(r *http.Request) error {
 			players = append(players, db.Player{
 				ID:           id,
 				DisplayOrder: playerDisplayOrderI,
-				PlayerTypeID: playerTypeIDI,
+				PlayerType:   db.PlayerType(playerTypeIDI),
 				PlayerID:     playerIDI,
 				FriendID:     friendIDI,
 			})

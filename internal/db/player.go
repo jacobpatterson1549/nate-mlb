@@ -8,7 +8,7 @@ import (
 type Player struct {
 	ID           int
 	DisplayOrder int
-	PlayerTypeID int
+	PlayerType   PlayerType
 	PlayerID     int
 	FriendID     int
 }
@@ -25,7 +25,7 @@ func GetPlayers() ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerTypeID, &players[i].PlayerID, &players[i].FriendID)
+		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerType, &players[i].PlayerID, &players[i].FriendID)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
@@ -65,7 +65,7 @@ func SavePlayers(futurePlayers []Player) error {
 			args: make([]interface{}, 4),
 		}
 		queries[i].args[0] = insertPlayer.DisplayOrder
-		queries[i].args[1] = insertPlayer.PlayerTypeID
+		queries[i].args[1] = insertPlayer.PlayerType
 		queries[i].args[2] = insertPlayer.PlayerID
 		queries[i].args[3] = insertPlayer.FriendID
 		i++
