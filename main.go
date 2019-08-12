@@ -21,7 +21,7 @@ func main() {
 		log.Fatal("PORT environment variable not set")
 	}
 
-	err := db.InitDB(dataSourceName) // TODO: pass db to server
+	err := db.InitDB(dataSourceName)
 	if err != nil {
 		log.Fatal("Could not set database ", err)
 	}
