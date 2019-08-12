@@ -38,42 +38,11 @@ func updatePlayers(r *http.Request) error {
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
 		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
-			id, err := strconv.Atoi(matches[1])
+			player, err := getPlayer(r, matches[1], v[0])
 			if err != nil {
-				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
+				return err
 			}
-			playerDisplayOrderI, err := strconv.Atoi(v[0])
-			if err != nil {
-				return fmt.Errorf("problem converting player display order '%v' to number: %v", v[0], err)
-			}
-			playerTypeID := r.Form.Get(fmt.Sprintf("player-%d-player-type-id", id))
-			var playerTypeIDI int
-			if len(playerTypeID) > 0 { // not specified when updating existing player
-				playerTypeIDI, err = strconv.Atoi(playerTypeID)
-				if err != nil {
-					return fmt.Errorf("problem converting player type id '%v' to number: %v", playerTypeID, err)
-				}
-			}
-			playerID := r.Form.Get(fmt.Sprintf("player-%d-player-id", id))
-			playerIDI, err := strconv.Atoi(playerID)
-			if err != nil {
-				return fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
-			}
-			friendID := r.Form.Get(fmt.Sprintf("player-%d-friend-id", id))
-			var friendIDI int
-			if len(friendID) > 0 { // not specified when updating existing player
-				friendIDI, err = strconv.Atoi(friendID)
-				if err != nil {
-					return fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
-				}
-			}
-			players = append(players, db.Player{
-				ID:           id,
-				DisplayOrder: playerDisplayOrderI,
-				PlayerType:   db.PlayerType(playerTypeIDI),
-				PlayerID:     playerIDI,
-				FriendID:     friendIDI,
-			})
+			players = append(players, player)
 		}
 	}
 
@@ -93,20 +62,11 @@ func updateFriends(r *http.Request) error {
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
 		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
-			friendIDi, err := strconv.Atoi(matches[1])
+			friend, err := getFriend(r, matches[1], v[0])
 			if err != nil {
-				return fmt.Errorf("problem converting %v to number: %v", matches[1], err)
+				return err
 			}
-			friendDisplayOrderI, err := strconv.Atoi(v[0])
-			if err != nil {
-				return fmt.Errorf("problem converting friend display order '%v' to number: %v", v[0], err)
-			}
-			friendName := r.Form.Get(fmt.Sprintf("friend-%d-name", friendIDi))
-			friends = append(friends, db.Friend{
-				ID:           friendIDi,
-				DisplayOrder: friendDisplayOrderI,
-				Name:         friendName,
-			})
+			friends = append(friends, friend)
 		}
 	}
 
@@ -188,4 +148,67 @@ func hashPassword(password string) (string, error) {
 		return "", fmt.Errorf("problem hashing password: %v", err)
 	}
 	return string(hashedPassword), nil
+}
+
+func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
+	var player db.Player
+
+	IDI, err := strconv.Atoi(id)
+	if err != nil {
+		return player, fmt.Errorf("problem converting %v to number: %v", id, err)
+	}
+	player.ID = IDI
+
+	displayOrderI, err := strconv.Atoi(displayOrder)
+	if err != nil {
+		return player, fmt.Errorf("problem converting player display order '%v' to number: %v", displayOrder, err)
+	}
+	player.DisplayOrder = displayOrderI
+
+	playerTypeID := r.Form.Get(fmt.Sprintf("player-%s-player-type-id", id))
+	if len(playerTypeID) > 0 { // not specified when updating existing player
+		playerTypeIDI, err := strconv.Atoi(playerTypeID)
+		if err != nil {
+			return player, fmt.Errorf("problem converting player type id '%v' to number: %v", playerTypeID, err)
+		}
+		player.PlayerType = db.PlayerType(playerTypeIDI)
+	}
+
+	playerID := r.Form.Get(fmt.Sprintf("player-%s-player-id", id))
+	playerIDI, err := strconv.Atoi(playerID)
+	if err != nil {
+		return player, fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
+	}
+	player.PlayerID = playerIDI
+
+	friendID := r.Form.Get(fmt.Sprintf("player-%s-friend-id", id))
+	if len(friendID) > 0 { // not specified when updating existing player
+		friendIDI, err := strconv.Atoi(friendID)
+		if err != nil {
+			return player, fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
+		}
+		player.FriendID = friendIDI
+	}
+
+	return player, nil
+}
+
+func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
+	var friend db.Friend
+
+	friendIDI, err := strconv.Atoi(id)
+	if err != nil {
+		return friend, fmt.Errorf("problem converting %v to number: %v", id, err)
+	}
+	friend.ID = friendIDI
+
+	friendDisplayOrderI, err := strconv.Atoi(displayOrder)
+	if err != nil {
+		return friend, fmt.Errorf("problem converting friend display order '%v' to number: %v", displayOrder, err)
+	}
+	friend.DisplayOrder = friendDisplayOrderI
+
+	friend.Name = r.Form.Get(fmt.Sprintf("friend-%s-name", id))
+
+	return friend, nil
 }
