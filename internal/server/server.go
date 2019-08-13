@@ -124,7 +124,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
 	}
-	var aboutTab AboutTab
+	aboutTab := AdminTab{Name: "About"}
 	aboutPage := newPage("About Nate's MLB", []Tab{aboutTab}, timesMessage, "html/tmpl/about.html")
 	return renderTemplate(w, aboutPage)
 }

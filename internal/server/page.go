@@ -28,9 +28,6 @@ type AdminTab struct {
 	Data   []interface{} // each template knows what data to expect
 }
 
-// AboutTab provides a constant tab with about information
-type AboutTab struct{}
-
 // TimesMessage contains times to insert between messages
 type TimesMessage struct {
 	Messages []string
@@ -55,14 +52,4 @@ func (at AdminTab) GetName() string {
 // GetID implements the Tab interface for AdminTab
 func (at AdminTab) GetID() string {
 	return strings.ReplaceAll(at.GetName(), " ", "-")
-}
-
-// GetName implements the Tab interface for AdminTab
-func (at AboutTab) GetName() string {
-	return "About"
-}
-
-// GetID implements the Tab interface for AdminTab
-func (at AboutTab) GetID() string {
-	return "About"
 }
