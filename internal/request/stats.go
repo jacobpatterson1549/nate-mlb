@@ -188,12 +188,12 @@ func previousMidnight(t time.Time) time.Time {
 	return midnight
 }
 
-// GetName implements the Tab interface for ScoreCategory
+// GetName implements the server.Tab interface for ScoreCategory
 func (sc ScoreCategory) GetName() string {
 	return sc.Name
 }
 
-// GetID implements the Tab interface for ScoreCategory
+// GetID implements the server.Tab interface for ScoreCategory
 func (sc ScoreCategory) GetID() string {
 	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }
