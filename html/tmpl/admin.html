@@ -11,19 +11,19 @@
             autocomplete="current-password" required>
     </div>
     {{- if (eq .Action "players") -}}
-    {{- template "players" . -}}
+    {{template "players" .}}
     {{- end -}}
     {{- if (eq .Action "friends") -}}
-    {{- template "friends" . -}}
+    {{template "friends" .}}
     {{- end -}}
     {{- if (eq .Action "years") -}}
-    {{- template "years" . -}}
+    {{template "years" .}}
     {{- end -}}
     {{- if (eq .Action "cache") -}}
-    {{- template "cache" . -}}
+    {{template "cache" .}}
     {{- end -}}
     {{- if (eq .Action "password") -}}
-    {{- template "password" . -}}
+    {{template "password" .}}
     {{- end -}}
     {{if .Data}}
     <div id="template-support-check-{{- .Action -}}"></div>

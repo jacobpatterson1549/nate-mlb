@@ -52,7 +52,7 @@
 
     {{range .Data -}}
         createYear("{{- .Value -}}", "{{- .Active -}}");
-    {{- end}}
+    {{end -}}
     document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 </script>
 {{end}}
