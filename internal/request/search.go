@@ -3,7 +3,6 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"nate-mlb/internal/db"
 	"net/url"
 	"strconv"
@@ -17,22 +16,17 @@ type PlayerSearchResult struct {
 	PlayerID int
 }
 
-// MultiplePlayerSearchResult contain the results of a player search that returns more than one row.
-type MultiplePlayerSearchResult struct {
+// PlayerSearchQueryResult  is used to unmarshal a request for information about players by name
+type PlayerSearchQueryResult struct {
 	SearchPlayerAll struct {
-		QueryResults struct {
-			PlayerBios []PlayerBio `json:"row"`
-		} `json:"queryResults"`
+		QueryResults QueryResults `json:"queryResults"`
 	} `json:"search_player_all"`
 }
 
-// SinglePlayerSearchResult contain the results of a player search that returns more than one row.
-type SinglePlayerSearchResult struct {
-	SearchPlayerAll struct {
-		QueryResults struct {
-			PlayerBio PlayerBio `json:"row"`
-		} `json:"queryResults"`
-	} `json:"search_player_all"`
+// QueryResults  is used to unmarshal a request for information about players by name
+type QueryResults struct {
+	TotalSize  string          `json:"totalSize"`
+	PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
 }
 
 // PlayerBio contains the results of a player search for a single player
@@ -91,50 +85,39 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	}
 	playerNamePrefix = url.QueryEscape(playerNamePrefix)
 	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
-	response, err := request(url)
+	var playerSearchQueryResult PlayerSearchQueryResult
+	err := requestStruct(url, &playerSearchQueryResult)
+
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}
-	defer response.Body.Close()
-
-	// sometimes the rows are '[]Row' and sometimes it is 'Row' (a singular row) -- so this hack must exist.  read the body, try to prase it twice
-	b, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return []PlayerSearchResult{}, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
-	}
-	// TODO: investigate using json.RawMessage to parse queryResults.totalSize
-	return getPlayerSearchResults(b)
+	return playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults()
 }
 
-func getPlayerSearchResults(b []byte) ([]PlayerSearchResult, error) {
-	var playerSearchResults []PlayerSearchResult
-
-	var psmj MultiplePlayerSearchResult
-	err := json.Unmarshal(b, &psmj)
-	if err == nil {
-		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
-		for i, row := range psmj.SearchPlayerAll.QueryResults.PlayerBios {
-			psr, err := row.toPlayerSearchResult()
-			if err != nil {
-				return playerSearchResults, err
-			}
-			playerSearchResults[i] = psr
-		}
-	} else {
-		// ignore the error
-		var pssj SinglePlayerSearchResult
-		err = json.Unmarshal(b, &pssj)
-		if err != nil {
-			return playerSearchResults, fmt.Errorf("problem reading player search results: %v", err)
-		}
-		psr, err := pssj.SearchPlayerAll.QueryResults.PlayerBio.toPlayerSearchResult()
-		if err != nil {
-			return playerSearchResults, err
-		}
-		playerSearchResults = []PlayerSearchResult{psr}
+func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) {
+	var playerBios []PlayerBio
+	var err error
+	switch psqr.TotalSize {
+	case "0":
+		break
+	case "1":
+		var playerBio PlayerBio
+		err = json.Unmarshal(psqr.PlayerBios, &playerBio)
+		playerBios = append(playerBios, playerBio)
+	default:
+		err = json.Unmarshal(psqr.PlayerBios, &playerBios)
 	}
 
-	return playerSearchResults, nil
+	var playerSearchResults []PlayerSearchResult
+	if err == nil {
+		playerSearchResults = make([]PlayerSearchResult, len(playerBios))
+		for i, pb := range playerBios {
+			if err == nil {
+				playerSearchResults[i], err = pb.toPlayerSearchResult()
+			}
+		}
+	}
+	return playerSearchResults, err
 }
 
 func (row PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {

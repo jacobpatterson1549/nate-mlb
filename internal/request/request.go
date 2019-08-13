@@ -7,26 +7,20 @@ import (
 	"time"
 )
 
-func request(url string) (*http.Response, error) {
+func requestStruct(url string, v interface{}) error {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
+		return fmt.Errorf("problem initializing request to %v: %v", url, err)
 	}
-
 	request.Header.Add("Accept", "application/json")
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
-
-	r, err := client.Do(request)
+	response, err := client.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
+		return fmt.Errorf("problem requesting %v: %v", url, err)
 	}
-	return r, nil
-}
 
-func requestStruct(url string, v interface{}) error {
-	response, err := request(url)
 	if err != nil {
 		return err
 	}

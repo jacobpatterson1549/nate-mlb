@@ -1,6 +1,8 @@
 package request
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -13,11 +15,12 @@ type getPlayerSearchResultsTest struct {
 var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 	{
 		// bad json
-		wantError: true,
+		searchResultJSON: `{}`,
+		wantError:        true,
 	},
 	{
 		// no results
-		searchResultJSON: `{"search_player_all":{"queryResults":{}}}`},
+		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"0"}}}`},
 	{
 		// one result
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
@@ -33,26 +36,42 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 			PlayerSearchResult{Name: "Yonder Alonso", Details: "team:COL, position:1B, born:Cuba,1987-04-08", PlayerID: 475174},
 		},
 	},
+	{
+		// first birthday bad
+		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"2","row":[{"position":"1B","birth_country":"USA","birth_date":"1994-12-07T00:00:00","team_abbrev":"NYM","name_display_first_last":"Pete Alonso","player_id":"INVALID"},{"position":"1B","birth_country":"Cuba","birth_date":"1987-04-08T00:00:00","team_abbrev":"COL","name_display_first_last":"Yonder Alonso","player_id":"475174"}]}}}`,
+		wantError:        true,
+	},
 }
 
 func TestGetPlayerSearchResults(t *testing.T) {
 	for i, test := range getPlayerSearchResultsTests {
-		got, err := getPlayerSearchResults([]byte(test.searchResultJSON))
+		var playerSearchQueryResult PlayerSearchQueryResult
+		err := json.Unmarshal([]byte(test.searchResultJSON), &playerSearchQueryResult)
+		if err != nil {
+			t.Errorf("Test %v: wanted %v, but got ERROR %v", i, test.want, err) // (all json should parse into minimum state)
+		}
+		var got []PlayerSearchResult
+		got, err = playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults()
 		hadError := err != nil
 		if test.wantError != hadError {
 			t.Errorf("Test %v: wanted %v, but got ERROR %v", i, test.want, err)
-		}
-		if !test.wantError {
-			if len(got) != len(test.want) {
-				t.Errorf("Test %v: wanted %v, but got different length results %v", i, test.want, got)
-			} else {
-				for j, w := range test.want {
-					g := got[j]
-					if w != g {
-						t.Errorf("Test %v: values at index %v different: wanted %v, but got %v", i, j, w, g)
-					}
-				}
+		} else if !test.wantError {
+			if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
+				t.Errorf("Test %v: %v", i, err)
 			}
 		}
 	}
+}
+
+func assertEqualPlayerSearchResults(want, got []PlayerSearchResult) error {
+	if len(got) != len(want) {
+		return fmt.Errorf("wanted %v, but got different length results %v", want, got)
+	}
+	for j, w := range want {
+		g := got[j]
+		if w != g {
+			return fmt.Errorf("values at index %v different: wanted %v, but got %v", j, w, g)
+		}
+	}
+	return nil
 }
