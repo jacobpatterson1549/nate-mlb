@@ -1,6 +1,7 @@
 package server
 
 import (
+	"nate-mlb/internal/db"
 	"strings"
 	"time"
 )
@@ -34,6 +35,16 @@ type AboutTab struct{}
 type TimesMessage struct {
 	Messages []string
 	Times    []time.Time
+}
+
+func newPage(title string, tabs []Tab, timesMessage TimesMessage, templateNames ...string) Page {
+	return Page{
+		Title:         title,
+		Tabs:          tabs,
+		TimesMessage:  timesMessage,
+		templateNames: templateNames,
+		PageLoadTime:  db.GetUtcTime(),
+	}
 }
 
 // GetName implements the Tab interface for AdminTab

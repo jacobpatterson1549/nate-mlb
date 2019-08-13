@@ -64,14 +64,8 @@ func writeStatsPage(w http.ResponseWriter) error {
 		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
 		Times:    []time.Time{es.EtlRefreshTime, es.EtlTime},
 	}
-	viewPage := Page{
-		Title:         "Nate's MLB pool",
-		Tabs:          tabs,
-		TimesMessage:  timesMessage,
-		templateNames: []string{"html/tmpl/stats.html"},
-		PageLoadTime:  db.GetUtcTime(),
-	}
-	return renderTemplate(w, viewPage)
+	statsPage := newPage("Nate's MLB pool", tabs, timesMessage, "html/tmpl/stats.html")
+	return renderTemplate(w, statsPage)
 }
 
 func writeAdminPage(w http.ResponseWriter, message string) error {
@@ -116,13 +110,7 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 		templateNames[i+2] = fmt.Sprintf("html/tmpl/admin-form-inputs/%s.html", adminTab.Action)
 	}
 	timesMessage := TimesMessage{Messages: []string{message}}
-	adminPage := Page{
-		Title:         "Nate's MLB pool [ADMIN MODE]",
-		Tabs:          tabs,
-		TimesMessage:  timesMessage,
-		templateNames: templateNames,
-		PageLoadTime:  db.GetUtcTime(),
-	}
+	adminPage := newPage("Nate's MLB pool [ADMIN MODE]", tabs, timesMessage, templateNames...)
 	return renderTemplate(w, adminPage)
 }
 
@@ -136,14 +124,8 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
 	}
-	adminPage := Page{
-		Title:         "About Nate's MLB",
-		Tabs:          []Tab{AboutTab{}},
-		TimesMessage:  timesMessage,
-		templateNames: []string{"html/tmpl/about.html"},
-		PageLoadTime:  db.GetUtcTime(),
-	}
-	return renderTemplate(w, adminPage)
+	aboutPage := newPage("About Nate's MLB", []Tab{AboutTab{}}, timesMessage, "html/tmpl/about.html")
+	return renderTemplate(w, aboutPage)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
