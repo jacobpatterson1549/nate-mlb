@@ -30,14 +30,14 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func exececuteInTransaction(queries []query) error {
+func exececuteInTransaction(queries *[]query) error {
 	var err error
 	tx, err := db.Begin()
 	if err != nil {
 		err = fmt.Errorf("problem starting transaction to save: %v", err)
 	}
 	var result sql.Result
-	for _, query := range queries {
+	for _, query := range *queries {
 		if err == nil {
 			result, err = tx.Exec(query.sql, query.args...)
 			if err == nil {

@@ -31,12 +31,12 @@ func createTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlay
 	teams, err := requestTeams(year)
 	if err == nil {
 		playerScores := teams.createPlayerScores()
-		err = scoreCategory.compute(friends, players, teamPlayerType, playerScores, false)
+		err = scoreCategory.populate(friends, players, teamPlayerType, playerScores, false)
 	}
 	return scoreCategory, err
 }
 
-func (t *Teams) createPlayerScores() map[int]PlayerScore {
+func (t Teams) createPlayerScores() map[int]PlayerScore {
 	playerScores := make(map[int]PlayerScore)
 	for _, record := range t.Records {
 		for _, teamRecord := range record.TeamRecords {

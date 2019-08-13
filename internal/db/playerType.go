@@ -18,13 +18,13 @@ var (
 )
 
 // Name gets the name for a PlayerType
-func (pt *PlayerType) Name() string {
-	return playerTypeNames[*pt]
+func (pt PlayerType) Name() string {
+	return playerTypeNames[pt]
 }
 
 // Description gets the name for a PlayerType
-func (pt *PlayerType) Description() string {
-	return playerTypeDescriptions[*pt]
+func (pt PlayerType) Description() string {
+	return playerTypeDescriptions[pt]
 }
 
 // LoadPlayerTypes loads the PlayerTypes from the database

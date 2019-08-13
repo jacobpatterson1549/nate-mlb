@@ -125,7 +125,7 @@ func getScoreCategories() ([]ScoreCategory, error) {
 	return scoreCategories, lastError
 }
 
-func (sc *ScoreCategory) compute(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
+func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
 	sc.PlayerTypeID = int(playerType)

@@ -121,5 +121,5 @@ func SaveYears(futureYears []Year) error {
 		args: make([]interface{}, 1),
 	}
 	queries[i].args[0] = activeYear
-	return exececuteInTransaction(queries)
+	return exececuteInTransaction(&queries)
 }

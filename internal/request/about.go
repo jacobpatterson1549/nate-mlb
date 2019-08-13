@@ -31,7 +31,7 @@ func PreviousDeployment() (Deployment, error) {
 	return grd[0].toDeployment()
 }
 
-func (grd *GithubRepoDeployment) toDeployment() (Deployment, error) {
+func (grd GithubRepoDeployment) toDeployment() (Deployment, error) {
 	var (
 		d   Deployment
 		err error

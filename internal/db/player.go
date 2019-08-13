@@ -87,5 +87,5 @@ func SavePlayers(futurePlayers []Player) error {
 		queries[i].args[0] = deleteID
 		i++
 	}
-	return exececuteInTransaction(queries)
+	return exececuteInTransaction(&queries)
 }

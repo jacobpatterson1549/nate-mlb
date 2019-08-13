@@ -53,7 +53,7 @@ func createPlayerScoreCategory(friends []db.Friend, players []db.Player, playerT
 	}
 	playerScores, err := playerInfoRequest.createPlayerScores(playerType)
 	if err == nil {
-		err = scoreCategory.compute(friends, players, playerType, playerScores, true)
+		err = scoreCategory.populate(friends, players, playerType, playerScores, true)
 	}
 	return scoreCategory, err
 }
@@ -155,24 +155,24 @@ func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[
 	return playerScores, nil
 }
 
-func (ps *PlayerStats) getScore(playerType db.PlayerType) (int, error) {
+func (ps PlayerStats) getScore(playerType db.PlayerType) (int, error) {
 	switch playerType {
 	case db.PlayerTypeHitter:
-		return ps.lastStat("hitting", func(s *Stat) int { return s.HomeRuns }), nil
+		return ps.lastStat("hitting", func(s Stat) int { return s.HomeRuns }), nil
 	case db.PlayerTypePitcher:
-		return ps.lastStat("pitching", func(s *Stat) int { return s.Wins }), nil
+		return ps.lastStat("pitching", func(s Stat) int { return s.Wins }), nil
 	default:
 		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)
 	}
 }
 
-func (ps *PlayerStats) lastStat(groupDisplayName string, score func(*Stat) int) int {
+func (ps PlayerStats) lastStat(groupDisplayName string, score func(Stat) int) int {
 	for _, playerTypeStat := range ps.PlayerTypeStats {
 		if groupDisplayName == playerTypeStat.Group.DisplayName {
 			splits := playerTypeStat.Splits
 			if len(splits) > 0 {
 				lastStat := splits[len(splits)-1].Stat
-				return score(&lastStat)
+				return score(lastStat)
 			}
 		}
 	}

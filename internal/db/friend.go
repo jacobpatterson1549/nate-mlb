@@ -84,5 +84,5 @@ func SaveFriends(futureFriends []Friend) error {
 		queries[i].args[0] = deleteFriendID
 		i++
 	}
-	return exececuteInTransaction(queries)
+	return exececuteInTransaction(&queries)
 }
