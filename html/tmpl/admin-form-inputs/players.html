@@ -115,7 +115,7 @@
         var playerScores = friendScores.querySelector('#friend-id-' + friendID);
         if (playerScores == null) {
             playerScores = document.createElement('div');
-            playerScores.id = 'friend-id-' + friendID;
+            playerScores.id = friendScores.id + '-friend-id-' + friendID;
             friendScores.appendChild(playerScores);
         }
         playerScores.appendChild(clone);
