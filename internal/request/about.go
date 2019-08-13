@@ -22,24 +22,30 @@ func PreviousDeployment() (Deployment, error) {
 	owner := "jacobpatterson1549"
 	repo := "nate-mlb"
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
-	grd := []GithubRepoDeployment{}
+	var grd []GithubRepoDeployment
 	err := requestStruct(url, &grd)
-	previousDeployment := Deployment{}
-	if err != nil || len(grd) == 0 {
-		return previousDeployment, err // TODO: TESTME: no error if no deployments, but empty deployment.  Is this ideal?
+
+	var previousDeployment Deployment
+	if err != nil {
+		return previousDeployment, err
 	}
-	return grd[0].toDeployment()
+	err = previousDeployment.setFromGithubRepoDeployments(grd)
+	return previousDeployment, err
 }
 
-func (grd GithubRepoDeployment) toDeployment() (Deployment, error) {
-	var (
-		d   Deployment
-		err error
-	)
+func (d *Deployment) setFromGithubRepoDeployments(grd []GithubRepoDeployment) error {
+	if len(grd) == 0 {
+		return nil
+	}
+	return d.setFromGithubRepoDeployment(grd[0])
+}
+
+func (d *Deployment) setFromGithubRepoDeployment(grd GithubRepoDeployment) error {
+	var err error
 	d.Time, err = time.Parse(time.RFC3339, grd.Time)
 	if err != nil {
-		return d, fmt.Errorf("problem parsing %v into date: %v", grd.Time, err)
+		return fmt.Errorf("problem parsing %v into date: %v", grd.Time, err)
 	}
 	d.Version = grd.Version
-	return d, nil
+	return nil
 }
