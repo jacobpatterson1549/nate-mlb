@@ -85,7 +85,6 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 }
 
 func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	var playerSearchResults []PlayerSearchResult
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"
@@ -94,17 +93,24 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	response, err := request(url)
 	if err != nil {
-		return playerSearchResults, err
+		return []PlayerSearchResult{}, err
 	}
 	defer response.Body.Close()
 
 	// sometimes the rows are '[]Row' and sometimes it is 'Row' (a singular row) -- so this hack must exist.  read the body, try to prase it twice
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return playerSearchResults, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
+		return []PlayerSearchResult{}, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
 	}
+	// TODO: investigate using json.RawMessage to parse queryResults.totalSize
+	return getPlayerSearchResults(b)
+}
+
+func getPlayerSearchResults(b []byte) ([]PlayerSearchResult, error) {
+	var playerSearchResults []PlayerSearchResult
+
 	var psmj MultiplePlayerSearchResult
-	err = json.Unmarshal(b, &psmj)
+	err := json.Unmarshal(b, &psmj)
 	if err == nil {
 		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
 		for i, row := range psmj.SearchPlayerAll.QueryResults.PlayerBios {
@@ -119,7 +125,7 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 		var pssj SinglePlayerSearchResult
 		err = json.Unmarshal(b, &pssj)
 		if err != nil {
-			return playerSearchResults, fmt.Errorf("problem reading json when requesting %v: %v", url, err)
+			return playerSearchResults, fmt.Errorf("problem reading player search results: %v", err)
 		}
 		psr, err := pssj.SearchPlayerAll.QueryResults.PlayerBio.toPlayerSearchResult()
 		if err != nil {
