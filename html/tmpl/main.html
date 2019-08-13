@@ -64,12 +64,10 @@
     {{- end}}
   </div>
   <div role="contentinfo">
-    {{if .TimesMessageJSON -}}
     <p id="times-message"></p>
-    {{- end}}
     <p id="page-load-message"></p>
   </div>
-  {{if .TimesMessageJSON -}}
+  {{if .TimesMessage -}}
   <script>
     function twoDigits(num) {
       return num < 10 ? "0" + num : num;
@@ -103,19 +101,17 @@
     }
 
     function initBottomMessages() {
-      if ("{{- .TimesMessageJSON -}}".length > 0) {
-        var timesMessage = jQuery.parseJSON({{.TimesMessageJSON}});
-        var messages = timesMessage.Messages;
-        var times = timesMessage.Times;
-        var formattedMessage = ""
-        for (var i = 0; i < messages.length; i++) {
-          formattedMessage += messages[i];
-          if (times && i < times.length) {
-            formattedMessage += formatDate(times[i]);
-          }
+      var timesMessage = {{.TimesMessage}}
+      var messages = timesMessage.Messages;
+      var times = timesMessage.Times;
+      var formattedTimesMessage = ""
+      for (var i = 0; i < messages.length; i++) {
+        formattedTimesMessage += messages[i];
+        if (times && i < times.length) {
+          formattedTimesMessage += formatDate(times[i]);
         }
-        document.getElementById('times-message').innerText = formattedMessage;
       }
+      document.getElementById('times-message').innerText = formattedTimesMessage;
       document.getElementById('page-load-message').innerText = 'Page loaded at ' + formatDate({{.PageLoadTime}});
     }
 

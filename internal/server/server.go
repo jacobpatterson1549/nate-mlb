@@ -65,11 +65,11 @@ func writeStatsPage(w http.ResponseWriter) error {
 		Times:    []time.Time{es.EtlRefreshTime, es.EtlTime},
 	}
 	viewPage := Page{
-		Title:            "Nate's MLB pool",
-		Tabs:             tabs,
-		TimesMessageJSON: timesMessage.toJSON(),
-		templateNames:    []string{"html/tmpl/stats.html"},
-		PageLoadTime:     db.GetUtcTime(),
+		Title:         "Nate's MLB pool",
+		Tabs:          tabs,
+		TimesMessage:  timesMessage,
+		templateNames: []string{"html/tmpl/stats.html"},
+		PageLoadTime:  db.GetUtcTime(),
 	}
 	return renderTemplate(w, viewPage)
 }
@@ -117,11 +117,11 @@ func writeAdminPage(w http.ResponseWriter, message string) error {
 	}
 	timesMessage := TimesMessage{Messages: []string{message}}
 	adminPage := Page{
-		Title:            "Nate's MLB pool [ADMIN MODE]",
-		Tabs:             tabs,
-		TimesMessageJSON: timesMessage.toJSON(),
-		templateNames:    templateNames,
-		PageLoadTime:     db.GetUtcTime(),
+		Title:         "Nate's MLB pool [ADMIN MODE]",
+		Tabs:          tabs,
+		TimesMessage:  timesMessage,
+		templateNames: templateNames,
+		PageLoadTime:  db.GetUtcTime(),
 	}
 	return renderTemplate(w, adminPage)
 }
@@ -137,11 +137,11 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	adminPage := Page{
-		Title:            "About Nate's MLB",
-		Tabs:             []Tab{AboutTab{}},
-		TimesMessageJSON: timesMessage.toJSON(),
-		templateNames:    []string{"html/tmpl/about.html"},
-		PageLoadTime:     db.GetUtcTime(),
+		Title:         "About Nate's MLB",
+		Tabs:          []Tab{AboutTab{}},
+		TimesMessage:  timesMessage,
+		templateNames: []string{"html/tmpl/about.html"},
+		PageLoadTime:  db.GetUtcTime(),
 	}
 	return renderTemplate(w, adminPage)
 }

@@ -1,19 +1,17 @@
 package server
 
 import (
-	"encoding/json"
-	"log"
 	"strings"
 	"time"
 )
 
 // Page is a page that gets rendered by the main template
 type Page struct {
-	Title            string
-	Tabs             []Tab
-	TimesMessageJSON string
-	templateNames    []string
-	PageLoadTime     time.Time
+	Title         string
+	Tabs          []Tab
+	TimesMessage  TimesMessage
+	templateNames []string
+	PageLoadTime  time.Time
 }
 
 // Tab is a tab which gets rendered by the main template
@@ -56,17 +54,4 @@ func (at AboutTab) GetName() string {
 // GetID implements the Tab interface for AdminTab
 func (at AboutTab) GetID() string {
 	return "About"
-}
-
-func (tm *TimesMessage) toJSON() string {
-	if len(tm.Times) > len(tm.Messages) {
-		log.Printf("Must have at least as many Messages as Times.  Found %v", tm)
-		return "[Invalid TimesMessage]"
-	}
-	b, err := json.Marshal(tm)
-	if err != nil {
-		log.Printf("problem converting TemplatesMessage (%v) to json: %v", tm, err)
-		b = []byte{}
-	}
-	return string(b)
 }
