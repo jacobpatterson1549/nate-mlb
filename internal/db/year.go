@@ -29,7 +29,7 @@ func GetActiveYear() (int, error) {
 
 // GetYears gets the specified years
 func GetYears() ([]Year, error) {
-	years := []Year{}
+	var years []Year
 
 	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
 	if err != nil {
@@ -72,7 +72,7 @@ func SaveYears(futureYears []Year) error {
 		previousYearsMap[year.Value] = true
 	}
 
-	insertYears := []int{}
+	var insertYears []int
 	var activeYear int
 	activeYearPresent := false
 	for _, year := range futureYears {

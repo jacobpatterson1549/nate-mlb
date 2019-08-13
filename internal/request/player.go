@@ -45,8 +45,8 @@ type Stat struct {
 	Wins     int `json:"wins"`
 }
 
-func createPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
-	scoreCategory := ScoreCategory{}
+func newPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+	var scoreCategory ScoreCategory
 	playerInfoRequest.wg.Wait()
 	if playerInfoRequest.lastError != nil {
 		return scoreCategory, playerInfoRequest.lastError
@@ -62,7 +62,6 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 
 	pir.playerNames = make(map[int]string)
 	pir.playerStats = make(map[db.PlayerType]map[int]int)
-	pir.wg = sync.WaitGroup{}
 
 	// Note that these keys are the same as player_types
 	pir.playerStats[db.PlayerTypeHitter] = make(map[int]int)
@@ -91,8 +90,9 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs map[int]string) {
 		i++
 	}
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDStrings, ",")), ",", "%2C")
-	playerNames := PlayerNames{}
+	var playerNames PlayerNames
 	err := requestStruct(playerNamesURL, &playerNames)
+
 	if err != nil {
 		pir.lastError = err
 	} else {
@@ -121,7 +121,7 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 
 func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playerID int, year int, mutex *sync.Mutex) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
-	playerStats := PlayerStats{}
+	var playerStats PlayerStats
 	err := requestStruct(playerStatsURL, &playerStats)
 
 	if err == nil {
@@ -133,7 +133,6 @@ func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playe
 			mutex.Unlock()
 		}
 	}
-
 	if err != nil {
 		pir.lastError = err
 	}

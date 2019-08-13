@@ -58,7 +58,7 @@ func SearchPlayers(playerTypeID int, playerNamePrefix string, activePlayersOnly 
 }
 
 func searchTeams(query string) ([]PlayerSearchResult, error) {
-	teamSearchResults := []PlayerSearchResult{}
+	var teamSearchResults []PlayerSearchResult
 	activeYear, err := db.GetActiveYear()
 	if err != nil {
 		return teamSearchResults, err
@@ -85,7 +85,7 @@ func searchTeams(query string) ([]PlayerSearchResult, error) {
 }
 
 func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	playerSearchResults := []PlayerSearchResult{}
+	var playerSearchResults []PlayerSearchResult
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"
@@ -103,7 +103,7 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 	if err != nil {
 		return playerSearchResults, fmt.Errorf("problem reading response body from reqeust to %v: %v", url, err)
 	}
-	psmj := MultiplePlayerSearchResult{}
+	var psmj MultiplePlayerSearchResult
 	err = json.Unmarshal(b, &psmj)
 	if err == nil {
 		playerSearchResults = make([]PlayerSearchResult, len(psmj.SearchPlayerAll.QueryResults.PlayerBios))
@@ -116,7 +116,7 @@ func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]Playe
 		}
 	} else {
 		// ignore the error
-		pssj := SinglePlayerSearchResult{}
+		var pssj SinglePlayerSearchResult
 		err = json.Unmarshal(b, &pssj)
 		if err != nil {
 			return playerSearchResults, fmt.Errorf("problem reading json when requesting %v: %v", url, err)

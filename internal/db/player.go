@@ -21,7 +21,7 @@ func GetPlayers() ([]Player, error) {
 	}
 	defer rows.Close()
 
-	players := []Player{}
+	var players []Player
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
@@ -45,8 +45,8 @@ func SavePlayers(futurePlayers []Player) error {
 		previousPlayers[player.ID] = player
 	}
 
-	insertPlayers := []Player{}
-	updatePlayers := []Player{}
+	var insertPlayers []Player
+	var updatePlayers []Player
 	for _, player := range futurePlayers {
 		previousPlayer, ok := previousPlayers[player.ID]
 		if !ok {

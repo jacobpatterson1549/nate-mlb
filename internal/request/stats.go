@@ -100,16 +100,16 @@ func getScoreCategories() ([]ScoreCategory, error) {
 	var wg sync.WaitGroup
 	wg.Add(numCategories)
 	var lastError error
-	playerInfoRequest := PlayerInfoRequest{}
+	var playerInfoRequest PlayerInfoRequest
 	playerInfoRequest.requestPlayerInfoAsync(players, activeYear)
 	for i, playerType := range playerTypes {
 		go func(i int, playerType db.PlayerType) {
 			var scoreCategory ScoreCategory
 			switch playerType {
 			case db.PlayerTypeTeam:
-				scoreCategory, err = createTeamScoreScategory(friends, players, playerType, activeYear)
+				scoreCategory, err = newTeamScoreScategory(friends, players, playerType, activeYear)
 			case db.PlayerTypeHitter, db.PlayerTypePitcher:
-				scoreCategory, err = createPlayerScoreCategory(friends, players, playerType, &playerInfoRequest)
+				scoreCategory, err = newPlayerScoreCategory(friends, players, playerType, &playerInfoRequest)
 			default:
 				err = fmt.Errorf("unknown playerType: %v", playerType)
 			}
@@ -131,7 +131,7 @@ func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, play
 	sc.PlayerTypeID = int(playerType)
 	sc.FriendScores = make([]FriendScore, len(friends))
 	for i, friend := range friends {
-		friendScore, err := computeFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)
+		friendScore, err := newFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)
 		if err != nil {
 			return err
 		}
@@ -140,13 +140,12 @@ func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, play
 	return nil
 }
 
-func computeFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
-	friendScore := FriendScore{}
+func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
+	var friendScore FriendScore
 
 	friendScore.FriendName = friend.Name
 	friendScore.FriendID = friend.ID
 
-	friendScore.PlayerScores = []PlayerScore{}
 	for _, player := range players {
 		if friend.ID == player.FriendID && playerType == player.PlayerType {
 			playerScore, ok := playerScores[player.PlayerID]

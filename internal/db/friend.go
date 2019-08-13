@@ -19,7 +19,7 @@ func GetFriends() ([]Friend, error) {
 	}
 	defer rows.Close()
 
-	friends := []Friend{}
+	var friends []Friend
 	i := 0
 	for rows.Next() {
 		friends = append(friends, Friend{})
@@ -43,8 +43,8 @@ func SaveFriends(futureFriends []Friend) error {
 		previousFriends[friend.ID] = friend
 	}
 
-	insertFriends := []Friend{}
-	updateFriends := []Friend{}
+	var insertFriends []Friend
+	var updateFriends []Friend
 	for _, friend := range futureFriends {
 		previousFriend, ok := previousFriends[friend.ID]
 		if !ok {

@@ -21,13 +21,13 @@ type Teams struct {
 }
 
 func requestTeams(year int) (Teams, error) {
-	teams := Teams{}
+	var teams Teams
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
 	return teams, requestStruct(url, &teams)
 }
 
-func createTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
-	scoreCategory := ScoreCategory{}
+func newTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
+	var scoreCategory ScoreCategory
 	teams, err := requestTeams(year)
 	if err == nil {
 		playerScores := teams.createPlayerScores()
