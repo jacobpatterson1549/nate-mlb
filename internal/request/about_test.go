@@ -36,11 +36,11 @@ var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDep
 			GithubRepoDeployment{Version: "v2", Time: "INVALID_DATE"},
 			GithubRepoDeployment{Version: "v1", Time: "2019-07-31T16:00:45Z"},
 		},
-		wantError: false,
+		wantError: true,
 	},
 }
 
-func TestSetDeplomentFromGithubRepoDeploymentsTest(t *testing.T) {
+func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
 	for i, test := range setDeplomentFromGithubRepoDeploymentsTests {
 		var got Deployment
 		err := got.setFromGithubRepoDeployments(test.grd)
