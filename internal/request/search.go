@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // PlayerSearchResult contains information about the result for a searched player.
@@ -122,8 +123,12 @@ func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) 
 
 func (row PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
-	birthDate := row.BirthDate[:10]             // YYYY-MM-DD
-	playerID, err := strconv.Atoi(row.PlayerID) // all players must have valid ids, ignore bad ids
+	bdTime, err := time.Parse("2006-01-02T15:04:05", row.BirthDate)
+	if err != nil {
+		return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", row.BirthDate, err)
+	}
+	birthDate := bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
+	playerID, err := strconv.Atoi(row.PlayerID)   // all players must have valid ids, ignore bad ids
 	if err != nil {
 		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, row, err)
 	}
