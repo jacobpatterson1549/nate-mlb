@@ -158,15 +158,15 @@ func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[
 func (ps PlayerStats) getScore(playerType db.PlayerType) (int, error) {
 	switch playerType {
 	case db.PlayerTypeHitter:
-		return ps.lastStat("hitting", func(s Stat) int { return s.HomeRuns }), nil
+		return ps.lastStatScore("hitting", func(s Stat) int { return s.HomeRuns }), nil
 	case db.PlayerTypePitcher:
-		return ps.lastStat("pitching", func(s Stat) int { return s.Wins }), nil
+		return ps.lastStatScore("pitching", func(s Stat) int { return s.Wins }), nil
 	default:
 		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)
 	}
 }
 
-func (ps PlayerStats) lastStat(groupDisplayName string, score func(Stat) int) int {
+func (ps PlayerStats) lastStatScore(groupDisplayName string, score func(Stat) int) int {
 	for _, playerTypeStat := range ps.PlayerTypeStats {
 		if groupDisplayName == playerTypeStat.Group.DisplayName {
 			splits := playerTypeStat.Splits
@@ -176,5 +176,5 @@ func (ps PlayerStats) lastStat(groupDisplayName string, score func(Stat) int) in
 			}
 		}
 	}
-	return 0 // example: In 2019, Luis Severino is a pitcher, but has not played (TODO: Write test for this)
+	return 0
 }
