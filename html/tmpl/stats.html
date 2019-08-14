@@ -9,14 +9,26 @@
                     <h3 class="card-title text-success">{{.FriendName}}</h3>
                     <div class="card-text">
                         <table class="card-table table">
-                            {{range .PlayerScores -}}
-                            <tr>
-                                <td>{{.PlayerName}}</td>
-                                <td>{{.Score}}</td>
-                            </tr>
+                            <thead class="d-none">
+                                <th>Player Name</th>
+                                <th>Score</th>
+                            </thead>
+                            <tbody>
+                                {{range .PlayerScores -}}
+                                <tr>
+                                    <td>{{.PlayerName}}</td>
+                                    <td>{{.Score}}</td>
+                                </tr>
+                            </tbody>
                             {{end -}}
+                            <tfoot>
+                                <tr>
+                                    <td>
+                                        <h4 class="text-danger">Value: {{.Score}}</h4>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
-                        <h4 class="list-group-item text-danger">Value: {{.Score}}</h4>
                     </div>
                 </div>
             </div>
