@@ -64,9 +64,9 @@ SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id)+1 FROM friends), 1));
 
 INSERT INTO player_types (id, name, description)
 	VALUES
-	  (1, 'teams', 'wins')
-	, (2, 'hitting', 'home runs')
-	, (3, 'pitching', 'wins')
+	  (1, 'Teams', 'Wins')
+	, (2, 'Hitting', 'Home Runs')
+	, (3, 'Pitching', 'Wins')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
