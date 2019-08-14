@@ -46,9 +46,17 @@ func LoadPlayerTypes() ([]PlayerType, error) {
 		if err != nil {
 			return nil, fmt.Errorf("problem reading data: %v", err)
 		}
-		playerTypeNames[playerType] = name
-		playerTypeDescriptions[playerType] = description
+		switch playerType {
+		case PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher:
+			playerTypeNames[playerType] = name
+			playerTypeDescriptions[playerType] = description
+		default:
+			return nil, fmt.Errorf("Unknown PlayerType: id=%d", playerType)
+		}
 		i++
+	}
+	if len(playerTypeNames) != 3 {
+		return nil, fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d", len(playerTypeNames))
 	}
 	return []PlayerType{PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher}, nil
 }
