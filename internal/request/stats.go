@@ -162,18 +162,7 @@ func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerT
 		}
 	}
 
-	scores := make([]int, len(friendScore.PlayerScores))
-	for i, playerScore := range friendScore.PlayerScores {
-		scores[i] = playerScore.Score
-	}
-	if onlySumTopTwoPlayerScores && len(scores) > 2 {
-		sort.Ints(scores) // ex: 1 2 3 4 5
-		scores = scores[len(scores)-2:]
-	}
-	friendScore.Score = 0
-	for _, score := range scores {
-		friendScore.Score += score
-	}
+	friendScore.populateScore(onlySumTopTwoPlayerScores)
 
 	return friendScore, nil
 }
@@ -195,4 +184,19 @@ func (sc ScoreCategory) GetName() string {
 // GetID implements the server.Tab interface for ScoreCategory
 func (sc ScoreCategory) GetID() string {
 	return strings.ReplaceAll(sc.GetName(), " ", "-")
+}
+
+func (friendScore *FriendScore) populateScore(onlySumTopTwoPlayerScores bool) {
+	scores := make([]int, len(friendScore.PlayerScores))
+	for i, playerScore := range friendScore.PlayerScores {
+		scores[i] = playerScore.Score
+	}
+	if onlySumTopTwoPlayerScores && len(scores) > 2 {
+		sort.Ints(scores) // ex: 1 2 3 4 5
+		scores = scores[len(scores)-2:]
+	}
+	friendScore.Score = 0
+	for _, score := range scores {
+		friendScore.Score += score
+	}
 }
