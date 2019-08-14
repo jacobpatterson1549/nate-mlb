@@ -27,8 +27,3 @@ select {
 .btn-primary {
     display: block;
 }
-
-.player-name {
-    display: inline-block;
-    width: 10rem;
-}
