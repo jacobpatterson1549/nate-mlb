@@ -110,15 +110,17 @@ func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) 
 	}
 
 	var playerSearchResults []PlayerSearchResult
-	if err == nil {
-		playerSearchResults = make([]PlayerSearchResult, len(playerBios))
-		for i, pb := range playerBios {
-			if err == nil {
-				playerSearchResults[i], err = pb.toPlayerSearchResult()
-			}
+	if err != nil {
+		return playerSearchResults, err
+	}
+	playerSearchResults = make([]PlayerSearchResult, len(playerBios))
+	for i, pb := range playerBios {
+		playerSearchResults[i], err = pb.toPlayerSearchResult()
+		if err != nil {
+			return playerSearchResults, err
 		}
 	}
-	return playerSearchResults, err
+	return playerSearchResults, nil
 }
 
 func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {

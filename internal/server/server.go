@@ -28,21 +28,23 @@ func Run(portNumber int) error {
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
-	if err == nil {
-		switch {
-		case r.Method == "GET" && r.RequestURI == "/":
-			err = writeStatsPage(w)
-		case r.Method == "GET" && r.RequestURI == "/about":
-			err = writeAboutPage(w)
-		case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
-			err = handleAdminPage(w, r)
-		case r.Method == "GET" && r.URL.Path == "/admin/search":
-			err = handlePlayerSearch(w, r)
-		case r.Method == "GET" && r.URL.Path == "/admin/password":
-			err = handleHashPassword(w, r)
-		default:
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	switch {
+	case r.Method == "GET" && r.RequestURI == "/":
+		err = writeStatsPage(w)
+	case r.Method == "GET" && r.RequestURI == "/about":
+		err = writeAboutPage(w)
+	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
+		err = handleAdminPage(w, r)
+	case r.Method == "GET" && r.URL.Path == "/admin/search":
+		err = handlePlayerSearch(w, r)
+	case r.Method == "GET" && r.URL.Path == "/admin/password":
+		err = handleHashPassword(w, r)
+	default:
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 	if err != nil {
 		log.Printf("server error: %q", err)

@@ -52,9 +52,10 @@ func newPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType
 		return scoreCategory, playerInfoRequest.lastError
 	}
 	playerScores, err := playerInfoRequest.createPlayerScores(playerType)
-	if err == nil {
-		err = scoreCategory.populate(friends, players, playerType, playerScores, true)
+	if err != nil {
+		return scoreCategory, nil
 	}
+	err = scoreCategory.populate(friends, players, playerType, playerScores, true)
 	return scoreCategory, err
 }
 
@@ -123,19 +124,20 @@ func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playe
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	var playerStats PlayerStats
 	err := requestStruct(playerStatsURL, &playerStats)
-
-	if err == nil {
-		var score int
-		score, err = playerStats.getScore(playerType)
-		if err == nil {
-			mutex.Lock()
-			pir.playerStats[playerType][playerID] = score
-			mutex.Unlock()
-		}
-	}
 	if err != nil {
 		pir.lastError = err
+		return
 	}
+
+	score, err := playerStats.getScore(playerType)
+	if err != nil {
+		pir.lastError = err
+		return
+	}
+
+	mutex.Lock()
+	pir.playerStats[playerType][playerID] = score
+	mutex.Unlock()
 }
 
 func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[int]PlayerScore, error) {
