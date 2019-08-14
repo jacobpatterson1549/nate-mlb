@@ -32,10 +32,6 @@ html {
     margin: 1rem;
 }
 
-.svg-inline--fa {
-    margin-right: .5rem;
-}
-
 .player-name {
     display: inline-block;
     width: 10rem;
