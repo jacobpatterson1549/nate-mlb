@@ -32,7 +32,7 @@
                 return;
             }
         }
-        createYear(year, "true");
+        createYear(year, true);
     }
 
     function createYear(yearNum, active) {
@@ -42,7 +42,7 @@
         newYear.id = 'year-' + yearNum;
         newYear.querySelector('.year-radio').id = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-radio').value = yearNum;
-        if (active == "true") {
+        if (active == true) {
             newYear.querySelector('.year-radio').checked = true;
         }
         newYear.querySelector('.year-label').htmlFor = 'year-' + yearNum + '-active';
@@ -53,7 +53,7 @@
     }
 
     {{range .Data -}}
-        createYear("{{- .Value -}}", "{{- .Active -}}");
+        createYear({{- .Value -}}, {{- .Active -}});
     {{end -}}
     document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 </script>
