@@ -34,8 +34,8 @@
         var yearsParent = document.getElementById('years');
         var year = document.getElementById('add-year-input').value;
         var years = yearsParent.children;
-        for (var i = 1; i < years.length; i++) {
-            var yearI = years[i].children[2].value;
+        for (var i = 0; i < years.length; i++) {
+            var yearI = years[i].querySelector('.year-input').value;
             if (yearI === year) {
                 return;
             }
