@@ -71,7 +71,7 @@ INSERT INTO player_types (id, name, description)
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
 	VALUES
--- teams: (-- name_display_full)
+-- teams:  name_display_full
 	  (1, 111, 1, 0, 2019) -- Boston Red Sox
 	, (1, 112, 1, 1, 2019) -- Chicago Cubs
 	, (1, 142, 1, 2, 2019) -- Minnesota Twins
@@ -102,7 +102,7 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
 	, (1, 133, 6, 2, 2019) -- Oakland Athletics
 	, (1, 135, 6, 3, 2019) -- San Diego Padres
 	, (1, 137, 6, 4, 2019) -- San Francisco Giants
--- hitters: (-- name_display_first_last)
+-- hitters: name_display_first_last
 	, (2, 502110, 1, 0, 2019) -- J.D. Martinez
 	, (2, 605141, 1, 1, 2019) -- Mookie Betts
 	, (2, 608070, 1, 2, 2019) -- Jose Ramirez
@@ -121,7 +121,7 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
 	, (2, 592450, 6, 0, 2019) -- Aaron Judge
 	, (2, 596115, 6, 1, 2019) -- Trevor Story
 	, (2, 502671, 6, 2, 2019) -- Paul Goldschmidt
--- pitchers:
+-- pitchers: name_display_first_last
 	, (3, 605483, 1, 0, 2019) -- Blake Snell
 	, (3, 622663, 1, 1, 2019) -- Luis Severino
 	, (3, 605400, 1, 2, 2019) -- Aaron Nola
@@ -141,7 +141,6 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
 	, (3, 543037, 6, 1, 2019) -- Gerrit Cole
 	, (3, 545333, 6, 2, 2019) -- Trevor Bauer
 	;
-SELECT setVal('players_id_seq', COALESCE((SELECT MAX(id)+1 FROM players), 1));
 
 INSERT INTO users (username, password)
 	VALUES
