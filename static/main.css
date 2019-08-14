@@ -6,11 +6,10 @@ label {
     width: 6rem;
 }
 
-.form-control:not(#player-search) {
-    display: inline-block;
+.form-control {
     width: 6rem;
 }
 
-.psr-label {
+.form-check-label {
     display: inline;
 }
