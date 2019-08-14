@@ -32,9 +32,11 @@
     <div id="players">
     </div>
 </fieldset>
-<button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
-    <span>Add Player...</span>
-</button>
+<div class="form-group">
+    <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal">
+        <span>Add Player...</span>
+    </button>
+</div>
 {{template "player-search" .}}
 <script>
     function movePlayerUp() {

@@ -14,12 +14,3 @@ label {
 .psr-label {
     display: inline;
 }
-
-nav,
-#main-tabs,
-.form-check,
-fieldset+button,
-form,
-select {
-    margin-bottom: 1rem;
-}

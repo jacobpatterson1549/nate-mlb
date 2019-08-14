@@ -2,7 +2,7 @@
 <fieldset>
     <legend>Years</legend>
     <template id="year-template">
-        <div class="form-check" id="year-0">
+        <div class="form-group form-check" id="year-0">
             <input class="year-radio form-check-input" type="radio" name="year-active" id="year-0-active">
             <label class="year-label form-check-label" for="year-0-active">?</label>
             <input class="year-input" type="hidden" name="year" value="?">
@@ -12,8 +12,10 @@
     <div id="years">
     </div>
 </fieldset>
-<button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
-<input id="add-year-input" class="form-control" type="number" min="2000" max="3000" , step="1">
+<div class="form-group">
+    <button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
+    <input id="add-year-input" class="form-control" type="number" min="2000" max="3000" , step="1">
+</div>
 <script>
     function removeYear() {
         var year = event.target.parentNode;

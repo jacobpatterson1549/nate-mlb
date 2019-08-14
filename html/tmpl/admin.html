@@ -25,19 +25,22 @@
     {{- if (eq .Action "password") -}}
     {{template "password" .}}
     {{- end -}}
-    {{if .Data}}
-    <div id="template-support-check-{{- .Action -}}"></div>
-    {{end}}
-    <input name="action" type="hidden" value="{{- .Action -}}">
-    <button class="btn btn-primary" form="{{- .Action -}}-form" id="{{- .Action -}}-form-submit-button"
-        value="Submit">Submit</button>
+    <div class="form-group">
+        {{if .Data}}
+        <div id="template-support-check-{{- .Action -}}"></div>
+        {{end}}
+        <input name="action" type="hidden" value="{{- .Action -}}">
+        <button class="btn btn-primary" form="{{- .Action -}}-form" id="{{- .Action -}}-form-submit-button"
+            value="Submit">Submit</button>
+    </div>
 </form>
 {{- if .Data}}
 <script>
     if (!('content' in document.createElement('template'))) {
         var templateSupportCheckDiv = document.getElementById('template-support-check-{{- .Action -}}');
-        templateSupportCheckDiv.innerText = 'HTML <template> tag not supported in browser, so {{.Action}} editor cannot be shown.';
-        templateSupportCheckDiv.classList.add('text-danger');        
+        templateSupportCheckDiv.innerText =
+            'HTML <template> tag not supported in browser, so {{.Action}} editor cannot be shown.';
+        templateSupportCheckDiv.classList.add('text-danger');
     }
 </script>
 {{end -}}
