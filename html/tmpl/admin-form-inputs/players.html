@@ -106,16 +106,16 @@
         player.querySelector('.player-friend-id').name = 'player-' + id + '-friend-id';
         player.querySelector('.player-friend-id').value = friendID;
         var players = document.getElementById("players");
-        var friendScores = players.querySelector('#player-type-id-' + playerTypeID);
+        var friendScores = players.querySelector('.player-type-id-' + playerTypeID);
         if (friendScores == null) {
             friendScores = document.createElement('div');
-            friendScores.id = 'player-type-id-' + playerTypeID;
+            friendScores.classList.add('player-type-id-' + playerTypeID);
             players.appendChild(friendScores);
         }
-        var playerScores = friendScores.querySelector('#friend-id-' + friendID);
+        var playerScores = friendScores.querySelector('.friend-id-' + friendID);
         if (playerScores == null) {
             playerScores = document.createElement('div');
-            playerScores.id = friendScores.id + '-friend-id-' + friendID;
+            playerScores.classList.add('friend-id-' + friendID);
             friendScores.appendChild(playerScores);
         }
         playerScores.appendChild(clone);
