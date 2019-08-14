@@ -6,7 +6,7 @@
         <div class="col-sm m-2">
             <div class="card">
                 <div class="card-body">
-                    <h3 class="card-title text-info text-info">{{.FriendName}}</h3>
+                    <h3 class="card-title text-success">{{.FriendName}}</h3>
                     <div class="card-text">
                         <table class="card-table table">
                             {{range .PlayerScores -}}
@@ -16,7 +16,7 @@
                             </tr>
                             {{end -}}
                         </table>
-                        <h4 class="list-group-item text-info">Value: {{.Score}}</h4>
+                        <h4 class="list-group-item text-danger">Value: {{.Score}}</h4>
                     </div>
                 </div>
             </div>
