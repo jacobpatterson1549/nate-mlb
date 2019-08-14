@@ -37,7 +37,7 @@ func updatePlayers(r *http.Request) error {
 	var players []db.Player
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
-		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
+		if matches := re.FindStringSubmatch(k); len(matches) > 1 {
 			player, err := getPlayer(r, matches[1], v[0])
 			if err != nil {
 				return err
@@ -61,7 +61,7 @@ func updateFriends(r *http.Request) error {
 	var friends []db.Friend
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
-		if matches := re.FindStringSubmatch(k); len(matches) > 0 {
+		if matches := re.FindStringSubmatch(k); len(matches) > 1 {
 			friend, err := getFriend(r, matches[1], v[0])
 			if err != nil {
 				return err
