@@ -142,28 +142,13 @@ func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, play
 
 func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	var friendScore FriendScore
-
 	friendScore.FriendName = friend.Name
-	friendScore.FriendID = friend.ID
-
-	for _, player := range players {
-		if friend.ID == player.FriendID && playerType == player.PlayerType {
-			playerScore, ok := playerScores[player.PlayerID]
-			if !ok {
-				return friendScore, fmt.Errorf("no Player score for id = %v, type = %v", player.PlayerID, playerType.Name())
-			}
-			playerScoreWithID := PlayerScore{
-				PlayerName: playerScore.PlayerName,
-				PlayerID:   playerScore.PlayerID,
-				ID:         player.ID,
-				Score:      playerScore.Score,
-			}
-			friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
-		}
+	friendScore.FriendID = friend.ID // must be done before player scores are populated
+	err := friendScore.populatePlayerScores(players, playerType, playerScores)
+	if err != nil {
+		return friendScore, err
 	}
-
 	friendScore.populateScore(onlySumTopTwoPlayerScores)
-
 	return friendScore, nil
 }
 
@@ -184,6 +169,25 @@ func (sc ScoreCategory) GetName() string {
 // GetID implements the server.Tab interface for ScoreCategory
 func (sc ScoreCategory) GetID() string {
 	return strings.ReplaceAll(sc.GetName(), " ", "-")
+}
+
+func (friendScore *FriendScore) populatePlayerScores(players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore) error {
+	for _, player := range players {
+		if friendScore.FriendID == player.FriendID && playerType == player.PlayerType {
+			playerScore, ok := playerScores[player.PlayerID]
+			if !ok {
+				return fmt.Errorf("no PlayerScore for player id = %v, type = %v", player.PlayerID, playerType)
+			}
+			playerScoreWithID := PlayerScore{
+				PlayerName: playerScore.PlayerName,
+				PlayerID:   playerScore.PlayerID,
+				ID:         player.ID,
+				Score:      playerScore.Score,
+			}
+			friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
+		}
+	}
+	return nil
 }
 
 func (friendScore *FriendScore) populateScore(onlySumTopTwoPlayerScores bool) {
