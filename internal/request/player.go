@@ -111,7 +111,14 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 		wg.Add(len(players))
 		for playerID := range players {
 			go func(playerID int, mutex *sync.Mutex) {
-				pir.requestPlayerScore(playerType, playerID, year, mutex)
+				score, err := requestPlayerScore(playerType, playerID, year)
+				if err != nil {
+					pir.lastError = err
+				} else {
+					mutex.Lock()
+					pir.playerStats[playerType][playerID] = score
+					mutex.Unlock()
+				}
 				wg.Done()
 			}(playerID, &mutex)
 		}
@@ -120,24 +127,14 @@ func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	pir.wg.Done()
 }
 
-func (pir *PlayerInfoRequest) requestPlayerScore(playerType db.PlayerType, playerID int, year int, mutex *sync.Mutex) {
+func requestPlayerScore(playerType db.PlayerType, playerID int, year int) (int, error) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	var playerStats PlayerStats
 	err := requestStruct(playerStatsURL, &playerStats)
 	if err != nil {
-		pir.lastError = err
-		return
+		return -1, err
 	}
-
-	score, err := playerStats.getScore(playerType)
-	if err != nil {
-		pir.lastError = err
-		return
-	}
-
-	mutex.Lock()
-	pir.playerStats[playerType][playerID] = score
-	mutex.Unlock()
+	return playerStats.getScore(playerType)
 }
 
 func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[int]PlayerScore, error) {
@@ -159,9 +156,9 @@ func (pir *PlayerInfoRequest) createPlayerScores(playerType db.PlayerType) (map[
 func (ps PlayerStats) getScore(playerType db.PlayerType) (int, error) {
 	switch playerType {
 	case db.PlayerTypeHitter:
-		return ps.lastStatScore("hitting", func(s Stat) int { return s.HomeRuns }), nil
+		return ps.lastStatScore("hitting", Stat.getHomeRuns), nil
 	case db.PlayerTypePitcher:
-		return ps.lastStatScore("pitching", func(s Stat) int { return s.Wins }), nil
+		return ps.lastStatScore("pitching", Stat.getWins), nil
 	default:
 		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)
 	}
@@ -178,4 +175,12 @@ func (ps PlayerStats) lastStatScore(groupDisplayName string, score func(Stat) in
 		}
 	}
 	return 0
+}
+
+func (s Stat) getHomeRuns() int {
+	return s.HomeRuns
+}
+
+func (s Stat) getWins() int {
+	return s.Wins
 }
