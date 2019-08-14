@@ -56,7 +56,7 @@ var populateFriendScoreTests = []populateFriendScoreTest{
 	},
 }
 
-func TestFriendScore_populateScore_sum(t *testing.T) {
+func TestFriendScorePopulateScore(t *testing.T) {
 	for i, test := range populateFriendScoreTests {
 		test.friendScore.populateScore(test.onlySumTopTwoPlayerScores)
 		got := test.friendScore.Score
