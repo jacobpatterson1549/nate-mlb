@@ -29,10 +29,11 @@ func requestTeams(year int) (Teams, error) {
 func newTeamScoreScategory(friends []db.Friend, players []db.Player, teamPlayerType db.PlayerType, year int) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
 	teams, err := requestTeams(year)
-	if err == nil {
-		playerScores := teams.createPlayerScores()
-		err = scoreCategory.populate(friends, players, teamPlayerType, playerScores, false)
+	if err != nil {
+		return scoreCategory, err
 	}
+	playerScores := teams.createPlayerScores()
+	err = scoreCategory.populate(friends, players, teamPlayerType, playerScores, false)
 	return scoreCategory, err
 }
 
