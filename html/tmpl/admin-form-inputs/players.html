@@ -105,20 +105,22 @@
         player.querySelector('.player-player-type-id').value = playerTypeID;
         player.querySelector('.player-friend-id').name = 'player-' + id + '-friend-id';
         player.querySelector('.player-friend-id').value = friendID;
-        var players = document.getElementById("players");
-        var friendScores = players.querySelector('.player-type-id-' + playerTypeID);
-        if (friendScores == null) {
-            friendScores = document.createElement('div');
-            friendScores.classList.add('player-type-id-' + playerTypeID);
-            players.appendChild(friendScores);
+        var scoreCategories = document.getElementById("players");
+        var scoreCategory = scoreCategories.querySelector('.player-type-id-' + playerTypeID);
+        if (scoreCategory == null) {
+            scoreCategory = document.createElement('div');
+            scoreCategory.classList.add('score-category');
+            scoreCategory.classList.add('player-type-id-' + playerTypeID);
+            scoreCategories.appendChild(scoreCategory);
         }
-        var playerScores = friendScores.querySelector('.friend-id-' + friendID);
-        if (playerScores == null) {
-            playerScores = document.createElement('div');
-            playerScores.classList.add('friend-id-' + friendID);
-            friendScores.appendChild(playerScores);
+        var friendScore = scoreCategory.querySelector('.friend-id-' + friendID);
+        if (friendScore == null) {
+            friendScore = document.createElement('div');
+            friendScore.classList.add('friend-score');
+            friendScore.classList.add('friend-id-' + friendID);
+            scoreCategory.appendChild(friendScore);
         }
-        playerScores.appendChild(clone);
+        friendScore.appendChild(clone);
     }
 
     function changePlayerDisplayOrder(playerID, delta) {
@@ -137,10 +139,11 @@
             var player = playerElements[i];
             var currentPlayerTypeID = player.querySelector('.player-player-type-id').value;
             var currentFriendID = player.querySelector('.player-friend-id').value;
+            // TODO: add/remove d-none from .score-category and .friend-score divs
             if (playerTypeID === currentPlayerTypeID && friendID === currentFriendID) {
-                player.classList.remove('player-hidden');
+                player.classList.remove('d-none');
             } else {
-                player.classList.add('player-hidden');
+                player.classList.add('d-none');
             }
         }
         refreshVisiblePlayers2();
