@@ -28,10 +28,6 @@ select {
     display: block;
 }
 
-html {
-    margin: 1rem;
-}
-
 .player-name {
     display: inline-block;
     width: 10rem;
