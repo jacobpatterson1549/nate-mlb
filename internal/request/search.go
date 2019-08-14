@@ -121,21 +121,21 @@ func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) 
 	return playerSearchResults, err
 }
 
-func (row PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
+func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
-	bdTime, err := time.Parse("2006-01-02T15:04:05", row.BirthDate)
+	bdTime, err := time.Parse("2006-01-02T15:04:05", playerBio.BirthDate)
 	if err != nil {
-		return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", row.BirthDate, err)
+		return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", playerBio.BirthDate, err)
 	}
-	birthDate := bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
-	playerID, err := strconv.Atoi(row.PlayerID)   // all players must have valid ids, ignore bad ids
+	birthDate := bdTime.Format(time.RFC3339)[:10]     // YYYY-MM-DD
+	playerID, err := strconv.Atoi(playerBio.PlayerID) // all players must have valid ids, ignore bad ids
 	if err != nil {
-		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, row, err)
+		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, playerBio, err)
 	}
 
 	psr = PlayerSearchResult{
-		Name:     row.PlayerName,
-		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", row.TeamAbbrev, row.Position, row.BirthCountry, birthDate),
+		Name:     playerBio.PlayerName,
+		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", playerBio.TeamAbbrev, playerBio.Position, playerBio.BirthCountry, birthDate),
 		PlayerID: playerID,
 	}
 	return psr, nil
