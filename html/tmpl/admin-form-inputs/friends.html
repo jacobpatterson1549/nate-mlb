@@ -50,9 +50,8 @@
     }
 
     function addFriend() {
-        var friendsParent = event.target.previousElementSibling.lastElementChild;
+        var friendsParent = document.getElementById('friends');
         var maxFriendId = 0
-        // get max friend ID from friends
         var friendElements = friendsParent.children;
         for (var i = 0; i < friendElements.length; i++) {
             var friendElement = friendElements[i]

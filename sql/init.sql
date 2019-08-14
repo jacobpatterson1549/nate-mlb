@@ -19,9 +19,10 @@ CREATE TABLE stats
 
 CREATE TABLE friends
 	( id SERIAL PRIMARY KEY
-	, name VARCHAR(20) UNIQUE NOT NULL
-	, display_order INT DEFAULT 0
+	, name VARCHAR(20) NOT NULL
+	, display_order INT DEFAULT 0 NOT NULL
 	, year INT NOT NULL
+	, CONSTRAINT aname_year_unique_one UNIQUE (year, name)
 	, FOREIGN KEY (year) REFERENCES stats (year) ON DELETE CASCADE
 	);
 
