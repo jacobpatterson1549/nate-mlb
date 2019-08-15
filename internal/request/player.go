@@ -106,25 +106,24 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs map[int]string) {
 
 func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	var wg sync.WaitGroup
-	var mutex sync.Mutex
 	for playerType, playerScores := range pir.playerStats {
 		wg.Add(len(playerScores))
 		for playerID := range playerScores {
-			go func(playerType db.PlayerType, playerID int, playerScores map[int]int, mutex *sync.Mutex) {
-				score, err := requestPlayerScore(playerType, playerID, year)
-				if err != nil {
-					pir.lastError = err
-				} else {
-					mutex.Lock()
-					playerScores[playerID] = score
-					mutex.Unlock()
-				}
-				wg.Done()
-			}(playerType, playerID, playerScores, &mutex)
+			go pir.getPlayerScore(playerType, playerID, year, playerScores, &wg)
 		}
 	}
 	wg.Wait()
 	pir.wg.Done()
+}
+
+func (pir *PlayerInfoRequest) getPlayerScore(playerType db.PlayerType, playerID, year int, playerScores map[int]int, wg *sync.WaitGroup) {
+	score, err := requestPlayerScore(playerType, playerID, year)
+	if err != nil {
+		pir.lastError = err
+	} else {
+		playerScores[playerID] = score // no mutex needed because playerScores map is already initialized
+	}
+	wg.Done()
 }
 
 func requestPlayerScore(playerType db.PlayerType, playerID int, year int) (int, error) {
