@@ -26,9 +26,9 @@
     {{- template "password" . -}}
     {{- end -}}
     <div class="form-group">
-        {{if .Data}}
+        {{if .Data -}}
         <div id="template-support-check-{{.Action}}"></div>
-        {{end}}
+        {{end -}}
         <input name="action" type="hidden" value="{{.Action}}">
         <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
             value="Submit">Submit</button>
