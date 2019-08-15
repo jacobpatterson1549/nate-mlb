@@ -1,43 +1,43 @@
 {{define "content"}}
-<form method="POST" id="{{- .Action -}}-form">
+<form method="POST" id="{{.Action}}-form">
     <div class="form-group">
-        <label class="form-label" for="{{- .Action -}}-username">Username</label>
-        <input class="form-control" id="{{- .Action -}}-username" name="username" type="text" autocomplete="username"
+        <label class="form-label" for="{{.Action}}-username">Username</label>
+        <input class="form-control" id="{{.Action}}-username" name="username" type="text" autocomplete="username"
             required>
     </div>
     <div class="form-group">
-        <label class="form-label" for="{{- .Action -}}-password">Password</label>
-        <input class="form-control" id="{{- .Action -}}-password" name="password" type="password"
+        <label class="form-label" for="{{.Action}}-password">Password</label>
+        <input class="form-control" id="{{.Action}}-password" name="password" type="password"
             autocomplete="current-password" required>
     </div>
     {{- if (eq .Action "players") -}}
-    {{template "players" .}}
+    {{- template "players" . -}}
     {{- end -}}
     {{- if (eq .Action "friends") -}}
-    {{template "friends" .}}
+    {{- template "friends" . -}}
     {{- end -}}
     {{- if (eq .Action "years") -}}
-    {{template "years" .}}
+    {{- template "years" . -}}
     {{- end -}}
     {{- if (eq .Action "cache") -}}
-    {{template "cache" .}}
+    {{- template "cache" . -}}
     {{- end -}}
     {{- if (eq .Action "password") -}}
-    {{template "password" .}}
+    {{- template "password" . -}}
     {{- end -}}
     <div class="form-group">
         {{if .Data}}
-        <div id="template-support-check-{{- .Action -}}"></div>
+        <div id="template-support-check-{{.Action}}"></div>
         {{end}}
-        <input name="action" type="hidden" value="{{- .Action -}}">
-        <button class="btn btn-primary" form="{{- .Action -}}-form" id="{{- .Action -}}-form-submit-button"
+        <input name="action" type="hidden" value="{{.Action}}">
+        <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
             value="Submit">Submit</button>
     </div>
 </form>
-{{- if .Data}}
+{{if .Data -}}
 <script>
     if (!('content' in document.createElement('template'))) {
-        var templateSupportCheckDiv = document.getElementById('template-support-check-{{- .Action -}}');
+        var templateSupportCheckDiv = document.getElementById('template-support-check-{{.Action}}');
         templateSupportCheckDiv.innerText =
             'HTML <template> tag not supported in browser, so {{.Action}} editor cannot be shown.';
         templateSupportCheckDiv.classList.add('text-danger');
