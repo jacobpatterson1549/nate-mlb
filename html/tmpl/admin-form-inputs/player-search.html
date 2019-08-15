@@ -40,14 +40,14 @@
                 <div class="modal-footer form-group">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
-                        data-dismiss="modal" onclick="addPlayer2()" disabled>Add Player</button>
+                        data-dismiss="modal" onclick="addPlayerFromSearch()" disabled>Add Player</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 <script>
-    function addPlayer2() {
+    function addPlayerFromSearch() {
         var playerSearchResults = document.getElementById('player-search-results');
         playerSearchResults = playerSearchResults.getElementsByClassName('form-check');
         for (var i = 0; i < playerSearchResults.length; i++) {
@@ -61,7 +61,7 @@
         }
     }
 
-    function refreshVisiblePlayers2() {
+    function clearPlayerSearch() {
         var resultsDiv = document.getElementById('results')
         resultsDiv.innerHTML = '';
     }
