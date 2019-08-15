@@ -41,6 +41,12 @@ type PlayerScore struct {
 	Score      int
 }
 
+type friendPlayerInfo struct {
+	friends []db.Friend
+	players []db.Player
+	year    int
+}
+
 // GetEtlStats retrieves, calculates, and caches the player stats
 func GetEtlStats() (EtlStats, error) {
 	var es EtlStats
@@ -93,6 +99,11 @@ func getScoreCategories() ([]ScoreCategory, error) {
 	if err != nil {
 		return nil, err
 	}
+	fpi := friendPlayerInfo{
+		friends: friends,
+		players: players,
+		year:    activeYear,
+	}
 
 	numCategories := len(playerTypes)
 	scoreCategories := make([]ScoreCategory, numCategories)
@@ -102,20 +113,20 @@ func getScoreCategories() ([]ScoreCategory, error) {
 	var playerInfoRequest PlayerInfoRequest
 	playerInfoRequest.requestPlayerInfoAsync(players, activeYear)
 	for i, playerType := range playerTypes {
-		go getScoreCategory(scoreCategories, i, playerType, friends, players, activeYear, &playerInfoRequest, &wg, &lastError)
+		go getScoreCategory(scoreCategories, i, playerType, fpi, &playerInfoRequest, &wg, &lastError)
 	}
 	wg.Wait()
 	return scoreCategories, lastError
 }
 
-func getScoreCategory(scoreCategories []ScoreCategory, index int, playerType db.PlayerType, friends []db.Friend, players []db.Player, year int, playerInfoRequest *PlayerInfoRequest, wg *sync.WaitGroup, lastError *error) {
+func getScoreCategory(scoreCategories []ScoreCategory, index int, playerType db.PlayerType, fpi friendPlayerInfo, playerInfoRequest *PlayerInfoRequest, wg *sync.WaitGroup, lastError *error) {
 	var scoreCategory ScoreCategory
 	var err error
 	switch playerType {
 	case db.PlayerTypeTeam:
-		scoreCategory, err = newTeamScoreScategory(friends, players, playerType, year)
+		scoreCategory, err = newTeamScoreScategory(fpi.friends, fpi.players, playerType, fpi.year)
 	case db.PlayerTypeHitter, db.PlayerTypePitcher:
-		scoreCategory, err = playerInfoRequest.newPlayerScoreCategory(friends, players, playerType)
+		scoreCategory, err = playerInfoRequest.newPlayerScoreCategory(fpi.friends, fpi.players, playerType)
 	default:
 		err = fmt.Errorf("unknown playerType: %v", playerType)
 	}
