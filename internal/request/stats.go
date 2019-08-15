@@ -77,7 +77,6 @@ func GetEtlStats() (EtlStats, error) {
 }
 
 func getScoreCategories() ([]ScoreCategory, error) {
-
 	friends, err := db.GetFriends()
 	if err != nil {
 		return nil, err
@@ -103,26 +102,30 @@ func getScoreCategories() ([]ScoreCategory, error) {
 	var playerInfoRequest PlayerInfoRequest
 	playerInfoRequest.requestPlayerInfoAsync(players, activeYear)
 	for i, playerType := range playerTypes {
-		go func(i int, playerType db.PlayerType) {
-			var scoreCategory ScoreCategory
-			switch playerType {
-			case db.PlayerTypeTeam:
-				scoreCategory, err = newTeamScoreScategory(friends, players, playerType, activeYear)
-			case db.PlayerTypeHitter, db.PlayerTypePitcher:
-				scoreCategory, err = playerInfoRequest.newPlayerScoreCategory(friends, players, playerType)
-			default:
-				err = fmt.Errorf("unknown playerType: %v", playerType)
-			}
-			if err != nil {
-				lastError = err // ingore earlier errors - the last one set is shown
-			} else {
-				scoreCategories[i] = scoreCategory
-			}
-			wg.Done()
-		}(i, playerType)
+		go getScoreCategory(scoreCategories, i, playerType, friends, players, activeYear, &playerInfoRequest, &wg, &lastError)
 	}
 	wg.Wait()
 	return scoreCategories, lastError
+}
+
+func getScoreCategory(scoreCategories []ScoreCategory, index int, playerType db.PlayerType, friends []db.Friend, players []db.Player, year int, playerInfoRequest *PlayerInfoRequest, wg *sync.WaitGroup, lastError *error) {
+	var scoreCategory ScoreCategory
+	var err error
+	switch playerType {
+	case db.PlayerTypeTeam:
+		scoreCategory, err = newTeamScoreScategory(friends, players, playerType, year)
+	case db.PlayerTypeHitter, db.PlayerTypePitcher:
+		scoreCategory, err = playerInfoRequest.newPlayerScoreCategory(friends, players, playerType)
+	default:
+		err = fmt.Errorf("unknown playerType: %v", playerType)
+	}
+
+	if err != nil {
+		*lastError = err // ingore earlier errors - the last one set is shown
+	} else {
+		scoreCategories[index] = scoreCategory
+	}
+	wg.Done()
 }
 
 func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
