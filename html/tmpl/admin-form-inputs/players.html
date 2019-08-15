@@ -144,7 +144,6 @@
             var player = playerElements[i];
             var currentPlayerTypeID = player.querySelector('.player-player-type-id').value;
             var currentFriendID = player.querySelector('.player-friend-id').value;
-            // TODO: add/remove d-none from .score-category and .friend-score divs
             if (playerTypeID === currentPlayerTypeID && friendID === currentFriendID) {
                 player.classList.remove('d-none');
             } else {
