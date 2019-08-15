@@ -79,7 +79,7 @@
         var playerElements = players.getElementsByClassName('form-group')
         for (var i = 0; i < playerElements.length; i++) {
             var player = playerElements[i];
-            var ID = parseInt(player.id.substring('player-'.length)); // TOOD: substring HACK!
+            var ID = parseInt(player.id.substring('player-'.length)); // TODO: substring HACK! (friends as well)
             if (ID > maxID) {
                 maxID = ID;
             }
