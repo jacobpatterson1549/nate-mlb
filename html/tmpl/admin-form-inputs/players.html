@@ -5,7 +5,7 @@
         <label for="select-player-type">Player Type</label>
         <select id="select-player-type" class="form-control custom-select" onchange="refreshVisiblePlayers()">
             {{range .Data -}}
-            <option value="{{- .PlayerTypeID -}}">{{.Name}}</option>
+            <option value="{{.PlayerTypeID}}">{{.Name}}</option>
             {{end -}}
         </select>
     </div>
@@ -13,7 +13,7 @@
         <label for="select-friend">Friend</label>
         <select id="select-friend" class="form-control custom-select" onchange="refreshVisiblePlayers()">
             {{range (index .Data 0).FriendScores -}}
-            <option value="{{- .FriendID -}}">{{.FriendName}}</option>
+            <option value="{{.FriendID}}">{{.FriendName}}</option>
             {{end -}}
         </select>
     </div>
