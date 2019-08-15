@@ -50,11 +50,12 @@ CREATE TABLE users
 	, password TEXT
 	);
 
-INSERT INTO stats (year, active) VALUES (2019, TRUE);
+INSERT INTO stats (year, active)
+	VALUES (2019, TRUE);
 
 INSERT INTO friends (id, name, display_order, year)
-	VALUES
-	  (1, 'Bob',   0, 2019)
+	VALUES (
+	   1, 'Bob',   0, 2019)
 	, (2, 'W',     1, 2019)
 	, (3, 'Nate',  2, 2019)
 	, (4, 'Sam',   3, 2019)
@@ -64,16 +65,16 @@ INSERT INTO friends (id, name, display_order, year)
 SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id)+1 FROM friends), 1));
 
 INSERT INTO player_types (id, name, description)
-	VALUES
-	  (1, 'Teams', 'Wins')
+	VALUES (
+	   1, 'Teams', 'Wins')
 	, (2, 'Hitting', 'Home Runs')
 	, (3, 'Pitching', 'Wins')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
-	VALUES
+	VALUES (
 -- teams:  name_display_full
-	  (1, 111, 1, 0, 2019) -- Boston Red Sox
+	   1, 111, 1, 0, 2019) -- Boston Red Sox
 	, (1, 112, 1, 1, 2019) -- Chicago Cubs
 	, (1, 142, 1, 2, 2019) -- Minnesota Twins
 	, (1, 136, 1, 3, 2019) -- Seattle Mariners
@@ -144,6 +145,4 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
 	;
 
 INSERT INTO users (username, password)
-	VALUES
-	  ('admin', 'invalid_hash_value')
-	;
+	VALUES ('admin', 'invalid_hash_value');
