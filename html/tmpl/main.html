@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="Description" content="mlb baseball statistic aggregation">
-  <title>{{- .Title -}}</title>
+  <title>{{.Title}}</title>
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="stylesheet" type="text/css" href="/static/main.css" />
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
@@ -48,26 +48,24 @@
   </nav>
   <div class="mb-3" id="main-tabs" role="tablist">
     <ul class="nav nav-tabs">
-      {{- range .Tabs -}}
+      {{range .Tabs -}}
       <li class="nav-item">
-        <a id="{{- .GetID -}}-tab" class="nav-link" data-toggle="tab" href="#{{- .GetID -}}"
-          role="tab">{{- .GetName -}}</a>
+        <a id="{{.GetID}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID}}" role="tab">{{.GetName}}</a>
       </li>
-      {{- end -}}
+      {{end -}}
     </ul>
   </div>
   <div id="main-tabs-content" class="tab-content" role="main">
     {{range .Tabs -}}
-    <div id="{{- .GetID -}}" class="tab-pane fade" role="tabpanel">
+    <div id="{{.GetID}}" class="tab-pane fade" role="tabpanel">
       {{- template "content" . -}}
     </div>
-    {{- end}}
+    {{end -}}
   </div>
   <div role="contentinfo">
     <p id="times-message"></p>
     <p id="page-load-message"></p>
   </div>
-  {{if .TimesMessage -}}
   <script>
     function twoDigits(num) {
       return num < 10 ? "0" + num : num;
@@ -119,7 +117,6 @@
     initFirstTab();
     initBottomMessages();
   </script>
-  {{- end}}
 </body>
 
 </html>
