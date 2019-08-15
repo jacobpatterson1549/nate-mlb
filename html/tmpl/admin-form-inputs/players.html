@@ -84,7 +84,8 @@
             if (ID > maxID) {
                 maxID = ID;
             }
-            if (!player.classList.contains('d-none')) { // TODO: test if playerTypeId and friendId are equal
+            if (playerTypeID === player.querySelector('.player-player-type-id').value
+                    && friendID === player.querySelector('.player-friend-id').value) {
                 var playerDisplayOrder = parseInt(player.querySelector('.player-display-order').value);
                 if (playerDisplayOrder > maxDisplayOrder) {
                     maxDisplayOrder = playerDisplayOrder;
