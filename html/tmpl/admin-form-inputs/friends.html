@@ -6,6 +6,7 @@
             <label class="friend-name-label form-label" for="friend-0-name">?</label>
             <input class="friend-name-input form-control" id="friend-0-name" name="friend-0-name" required>
             <input class="friend-display-order" name="friend-0-display-order" value="?" type="hidden">
+            <input class="friend-id" value="0" type="hidden">
             <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
             <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
@@ -52,15 +53,14 @@
     function addFriend() {
         var maxFriendId = 0
         var friendsParent = document.getElementById('friends');
-        var friendElements = friendsParent.getElementsByClassName('form-group');
-        for (var i = 0; i < friendElements.length; i++) {
-            var friendElement = friendElements[i]
-            var friendElementId = friendElement.id.substring('friend-'.length);
-            if (friendElementId > maxFriendId) {
-                maxFriendId = friendElementId;
+        var friendIdInputs = friendsParent.querySelectorAll('.friend-id');
+        for (var i = 0; i < friendIdInputs.length; i++) {
+            var friendId = parseInt(friendIdInputs[i].value);
+            if (friendId > maxFriendId) {
+                maxFriendId = friendId;
             }
         }
-        createFriend(parseInt(maxFriendId) + 1, '', friendElements.length, '[NEW]');
+        createFriend(maxFriendId + 1, '', friendIdInputs.length, '[NEW]');
     }
 
     function createFriend(id, name, displayOrder, nameLabel) {
@@ -75,6 +75,7 @@
         friend.querySelector('.friend-name-input').value = name;
         friend.querySelector('.friend-display-order').name = 'friend-' + id + '-display-order';
         friend.querySelector('.friend-display-order').value = displayOrder;
+        friend.querySelector('.friend-id').value = id;
         var friends = document.getElementById("friends");
         friends.appendChild(clone);
     }
