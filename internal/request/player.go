@@ -45,13 +45,13 @@ type Stat struct {
 	Wins     int `json:"wins"`
 }
 
-func newPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerInfoRequest *PlayerInfoRequest) (ScoreCategory, error) {
+func (pir *PlayerInfoRequest) newPlayerScoreCategory(friends []db.Friend, players []db.Player, playerType db.PlayerType) (ScoreCategory, error) {
+	pir.wg.Wait()
 	var scoreCategory ScoreCategory
-	playerInfoRequest.wg.Wait()
-	if playerInfoRequest.lastError != nil {
-		return scoreCategory, playerInfoRequest.lastError
+	if pir.lastError != nil {
+		return scoreCategory, pir.lastError
 	}
-	playerScores, err := playerInfoRequest.createPlayerScores(playerType)
+	playerScores, err := pir.createPlayerScores(playerType)
 	if err != nil {
 		return scoreCategory, nil
 	}
@@ -74,7 +74,7 @@ func (pir *PlayerInfoRequest) requestPlayerInfoAsync(players []db.Player, year i
 			if _, ok := playerIDs[player.PlayerID]; !ok {
 				playerIDs[player.PlayerID] = strconv.Itoa(player.PlayerID)
 			}
-			pir.playerStats[db.PlayerType(player.PlayerType)][player.PlayerID] = 0
+			pir.playerStats[player.PlayerType][player.PlayerID] = 0
 		}
 	}
 
@@ -107,20 +107,20 @@ func (pir *PlayerInfoRequest) requestPlayerNames(playerIDs map[int]string) {
 func (pir *PlayerInfoRequest) requestPlayerStats(year int) {
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	for playerType, players := range pir.playerStats {
-		wg.Add(len(players))
-		for playerID := range players {
-			go func(playerID int, mutex *sync.Mutex) {
+	for playerType, playerScores := range pir.playerStats {
+		wg.Add(len(playerScores))
+		for playerID := range playerScores {
+			go func(playerType db.PlayerType, playerID int, playerScores map[int]int, mutex *sync.Mutex) {
 				score, err := requestPlayerScore(playerType, playerID, year)
 				if err != nil {
 					pir.lastError = err
 				} else {
 					mutex.Lock()
-					pir.playerStats[playerType][playerID] = score
+					playerScores[playerID] = score
 					mutex.Unlock()
 				}
 				wg.Done()
-			}(playerID, &mutex)
+			}(playerType, playerID, playerScores, &mutex)
 		}
 	}
 	wg.Wait()
