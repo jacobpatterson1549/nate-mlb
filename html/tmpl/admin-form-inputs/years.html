@@ -33,9 +33,9 @@
     function addYear() {
         var yearsParent = document.getElementById('years');
         var year = document.getElementById('add-year-input').value;
-        var years = yearsParent.children;
-        for (var i = 0; i < years.length; i++) {
-            var yearI = years[i].querySelector('.year-input').value;
+        var yearInputs = yearsParent.querySelectorAll('.year-input');
+        for (var i = 0; i < yearInputs.length; i++) {
+            var yearI = yearInputs[i].value;
             if (yearI === year) {
                 return;
             }

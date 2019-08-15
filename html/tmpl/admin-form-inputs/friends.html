@@ -50,9 +50,9 @@
     }
 
     function addFriend() {
-        var friendsParent = document.getElementById('friends');
         var maxFriendId = 0
-        var friendElements = friendsParent.children;
+        var friendsParent = document.getElementById('friends');
+        var friendElements = friendsParent.getElementsByClassName('form-group');
         for (var i = 0; i < friendElements.length; i++) {
             var friendElement = friendElements[i]
             var friendElementId = friendElement.id.substring('friend-'.length);
@@ -60,7 +60,7 @@
                 maxFriendId = friendElementId;
             }
         }
-        createFriend(maxFriendId + 1, '', friendElements.length, '[NEW]');
+        createFriend(parseInt(maxFriendId) + 1, '', friendElements.length, '[NEW]');
     }
 
     function createFriend(id, name, displayOrder, nameLabel) {
