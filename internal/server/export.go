@@ -10,11 +10,12 @@ import (
 )
 
 func exportToCsv(es request.EtlStats, w io.Writer) error {
-	records := make([][]string, 2)
+	records := make([][]string, 3)
 	records[0] = []string{"nate-mlb", "2019"}
-	records[1] = []string{"type", "friend", "value", "player", "score"}
+	records[2] = []string{"type", "friend", "value", "player", "score"}
 	for i, sc := range es.ScoreCategories {
 		for _, fs := range sc.FriendScores {
+			records = append(records, nil)
 			for k, ps := range fs.PlayerScores {
 				record := make([]string, 5)
 				if i == 0 {
@@ -28,6 +29,9 @@ func exportToCsv(es request.EtlStats, w io.Writer) error {
 				record[4] = strconv.Itoa(ps.Score)
 				records = append(records, record)
 			}
+		}
+		if i < len(es.ScoreCategories)-1 {
+			records = append(records, nil)
 		}
 	}
 
