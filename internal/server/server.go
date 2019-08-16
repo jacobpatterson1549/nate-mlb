@@ -37,6 +37,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		err = writeStatsPage(w)
 	case r.Method == "GET" && r.RequestURI == "/about":
 		err = writeAboutPage(w)
+	case r.Method == "GET" && r.RequestURI == "/export":
+		err = exportStats(w)
 	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
 		err = handleAdminPage(w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/search":
@@ -129,6 +131,28 @@ func writeAboutPage(w http.ResponseWriter) error {
 	aboutTab := AdminTab{Name: "About"}
 	aboutPage := newPage("About Nate's MLB", []Tab{aboutTab}, timesMessage, "html/tmpl/about.html")
 	return renderTemplate(w, aboutPage)
+}
+
+func exportStats(w http.ResponseWriter) error {
+	es, err := request.GetEtlStats()
+	if err != nil {
+		return err
+	}
+
+	err = exportToCsv(es, w)
+	if err != nil {
+		return fmt.Errorf("problem exporting stats to csv: %v", err)
+	}
+
+	activeYear, err := db.GetActiveYear()
+	if err != nil {
+		return err
+	}
+	asOfDate := es.EtlTime.Format("2006-01-02")
+	fileName := fmt.Sprintf("nate-mlb_%d_on-%s.csv", activeYear, asOfDate)
+	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
+	w.Header().Set("Content-Disposition", contentDisposition)
+	return nil
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
