@@ -77,7 +77,7 @@
         var maxID = 0;
         var maxDisplayOrder = 0;
         var players = document.getElementById('players');
-        var playerElements = players.getElementsByClassName('form-group')
+        var playerElements = players.getElementsByClassName('form-group');
         for (var i = 0; i < playerElements.length; i++) {
             var player = playerElements[i];
             var ID = parseInt(player.querySelector('.player-id').value);
@@ -130,7 +130,7 @@
 
     function changePlayerDisplayOrder(playerID, delta) {
         var player = document.getElementById(playerID);
-        var playerDisplayOrderElement = player.querySelector('.player-display-order')
+        var playerDisplayOrderElement = player.querySelector('.player-display-order');
         var playerDisplayOrder = playerDisplayOrderElement.value;
         playerDisplayOrderElement.value = parseInt(playerDisplayOrder) + delta;
     }
@@ -139,7 +139,7 @@
         var playerTypeID = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var players = document.getElementById('players');
-        var playerElements = players.getElementsByClassName('form-group')
+        var playerElements = players.getElementsByClassName('form-group');
         for (var i = 0; i < playerElements.length; i++) {
             var player = playerElements[i];
             var currentPlayerTypeID = player.querySelector('.player-player-type-id').value;
