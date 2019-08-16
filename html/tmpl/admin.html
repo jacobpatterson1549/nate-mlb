@@ -12,18 +12,16 @@
     </div>
     {{- if (eq .Action "players") -}}
     {{- template "players" . -}}
-    {{- end -}}
-    {{- if (eq .Action "friends") -}}
+    {{- else if (eq .Action "friends") -}}
     {{- template "friends" . -}}
-    {{- end -}}
-    {{- if (eq .Action "years") -}}
+    {{- else if (eq .Action "years") -}}
     {{- template "years" . -}}
-    {{- end -}}
-    {{- if (eq .Action "cache") -}}
+    {{- else if (eq .Action "cache") -}}
     {{- template "cache" . -}}
-    {{- end -}}
-    {{- if (eq .Action "password") -}}
+    {{- else if (eq .Action "password") -}}
     {{- template "password" . -}}
+    {{- else -}}
+    <p class="text-danger">Unknown Action: {{.Action}}</p>
     {{- end -}}
     <div class="form-group">
         {{if .Data -}}

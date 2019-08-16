@@ -73,7 +73,7 @@
 
     function formatDate(utcDate) {
       var localDate = new Date(utcDate);
-      var year = localDate.getFullYear()
+      var year = localDate.getFullYear();
       var month = localDate.getMonth() + 1;
       var date = localDate.getDate();
       var hours = localDate.getHours();
@@ -99,10 +99,10 @@
     }
 
     function initBottomMessages() {
-      var timesMessage = {{.TimesMessage}}
+      var timesMessage = {{.TimesMessage}};
       var messages = timesMessage.Messages;
       var times = timesMessage.Times;
-      var formattedTimesMessage = ""
+      var formattedTimesMessage = "";
       for (var i = 0; i < messages.length; i++) {
         formattedTimesMessage += messages[i];
         if (times && i < times.length) {
