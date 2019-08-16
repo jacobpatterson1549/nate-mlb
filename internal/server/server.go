@@ -139,11 +139,6 @@ func exportStats(w http.ResponseWriter) error {
 		return err
 	}
 
-	err = exportToCsv(es, w)
-	if err != nil {
-		return fmt.Errorf("problem exporting stats to csv: %v", err)
-	}
-
 	activeYear, err := db.GetActiveYear()
 	if err != nil {
 		return err
@@ -152,7 +147,8 @@ func exportStats(w http.ResponseWriter) error {
 	fileName := fmt.Sprintf("nate-mlb_%d_on-%s.csv", activeYear, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	return nil
+
+	return exportToCsv(es, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
