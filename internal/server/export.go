@@ -24,7 +24,7 @@ func exportToCsv(es request.EtlStats, w io.Writer) error {
 			for k, ps := range fs.PlayerScores {
 				record := make([]string, 5)
 				if j == 0 && k == 0 {
-					record[0] = db.PlayerType(sc.PlayerTypeID).Name()
+					record[0] = sc.PlayerTypeID.Name()
 				}
 				if k == 0 {
 					record[1] = fs.FriendName

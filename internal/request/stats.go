@@ -21,7 +21,7 @@ type EtlStats struct {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	PlayerTypeID int // TODO: make this of type PlayerType, rename?
+	PlayerTypeID db.PlayerType
 	FriendScores []FriendScore
 }
 
@@ -142,7 +142,7 @@ func getScoreCategory(scoreCategories []ScoreCategory, index int, playerType db.
 func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
-	sc.PlayerTypeID = int(playerType)
+	sc.PlayerTypeID = playerType
 	sc.FriendScores = make([]FriendScore, len(friends))
 	for i, friend := range friends {
 		friendScore, err := newFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)
