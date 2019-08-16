@@ -10,15 +10,20 @@ import (
 )
 
 func exportToCsv(es request.EtlStats, w io.Writer) error {
+	_, err := db.LoadPlayerTypes()
+	if err != nil {
+		return err
+	}
+
 	records := make([][]string, 3)
 	records[0] = []string{"nate-mlb", "2019"}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
 	for i, sc := range es.ScoreCategories {
-		for _, fs := range sc.FriendScores {
+		for j, fs := range sc.FriendScores {
 			records = append(records, nil)
 			for k, ps := range fs.PlayerScores {
 				record := make([]string, 5)
-				if i == 0 {
+				if j == 0 && k == 0 {
 					record[0] = db.PlayerType(sc.PlayerTypeID).Name()
 				}
 				if k == 0 {
@@ -36,7 +41,7 @@ func exportToCsv(es request.EtlStats, w io.Writer) error {
 	}
 
 	csvWriter := csv.NewWriter(w)
-	err := csvWriter.WriteAll(records)
+	err = csvWriter.WriteAll(records)
 	if err != nil {
 		return fmt.Errorf("problem writing to csv: %v", err)
 	}
