@@ -19,6 +19,9 @@ func exportToCsv(es request.EtlStats, w io.Writer) error {
 	records[0] = []string{"nate-mlb", "2019"}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
 	for i, sc := range es.ScoreCategories {
+		if i != 0 {
+			records = append(records, nil)
+		}
 		for j, fs := range sc.FriendScores {
 			records = append(records, nil)
 			for k, ps := range fs.PlayerScores {
@@ -34,9 +37,6 @@ func exportToCsv(es request.EtlStats, w io.Writer) error {
 				record[4] = strconv.Itoa(ps.Score)
 				records = append(records, record)
 			}
-		}
-		if i < len(es.ScoreCategories)-1 {
-			records = append(records, nil)
 		}
 	}
 
