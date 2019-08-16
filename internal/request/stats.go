@@ -21,7 +21,7 @@ type EtlStats struct {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	PlayerTypeID int
+	PlayerTypeID int // TODO: make this of type PlayerType, rename?
 	FriendScores []FriendScore
 }
 
