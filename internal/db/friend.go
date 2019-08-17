@@ -62,8 +62,8 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	i := 0
 	for _, insertFriend := range insertFriends {
 		queries[i] = query{
-			sql:  "INSERT INTO friends (display_order, name, sport_type_id, year) SELECT $1, $2, $3 year FROM stats AS s WHERE s.sport_type_id = %3 AND s.active",
-			args: make([]interface{}, 2),
+			sql:  "INSERT INTO friends (display_order, name, sport_type_id, year) SELECT $1, $2, $3, year FROM stats AS s WHERE s.sport_type_id = $3 AND s.active",
+			args: make([]interface{}, 3),
 		}
 		queries[i].args[0] = insertFriend.DisplayOrder
 		queries[i].args[1] = insertFriend.Name

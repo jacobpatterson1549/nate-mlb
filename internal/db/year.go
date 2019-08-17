@@ -31,7 +31,7 @@ func GetActiveYear(st SportType) (int, error) {
 func GetYears(st SportType) ([]Year, error) {
 	var years []Year
 
-	rows, err := db.Query("SELECT year, active FROM stats WHERE sport_id = $1 ORDER BY year ASC", st)
+	rows, err := db.Query("SELECT year, active FROM stats WHERE sport_type_id = $1 ORDER BY year ASC", st)
 	if err != nil {
 		return years, fmt.Errorf("problem reading years: %v", err)
 	}

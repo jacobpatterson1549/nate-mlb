@@ -9,6 +9,7 @@ import (
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 )
@@ -180,12 +181,14 @@ func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 	}
 
 	var message string
-	if err := handleAdminRequest(st, r); err != nil {
+	err := handleAdminRequest(st, r)
+	if err != nil {
 		message = err.Error()
 	} else {
 		message = "Change made."
 	}
 	// prevent the post from being made again on refresh
+	message = url.QueryEscape(message)
 	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
 	return nil
 }

@@ -65,7 +65,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	for _, insertPlayer := range insertPlayers {
 		queries[i] = query{
 			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, sport_type_id, year) SELECT $1, $2, $3, $4, $5, year FROM stats AS s WHERE s.sport_type_id = $5 AND s.active",
-			args: make([]interface{}, 4),
+			args: make([]interface{}, 5),
 		}
 		queries[i].args[0] = insertPlayer.DisplayOrder
 		queries[i].args[1] = insertPlayer.PlayerType
