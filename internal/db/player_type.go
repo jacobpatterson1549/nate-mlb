@@ -7,15 +7,21 @@ type PlayerType int
 
 // The expected PlayerTypes
 const (
-	PlayerTypeTeam    PlayerType = 1
+	PlayerTypeTeam    PlayerType = 1 // TODO Rename this when adding NFL PlayerTypes
 	PlayerTypeHitter  PlayerType = 2
 	PlayerTypePitcher PlayerType = 3
 )
 
 var (
+	playerTypeSportTypes   = make(map[PlayerType]SportType)
 	playerTypeNames        = make(map[PlayerType]string)
 	playerTypeDescriptions = make(map[PlayerType]string)
 )
+
+// SportType gets the SportType for a PlayerType
+func (pt PlayerType) SportType() SportType {
+	return playerTypeSportTypes[pt]
+}
 
 // Name gets the name for a PlayerType
 func (pt PlayerType) Name() string {
@@ -28,28 +34,35 @@ func (pt PlayerType) Description() string {
 }
 
 // LoadPlayerTypes loads the PlayerTypes from the database
-func LoadPlayerTypes() ([]PlayerType, error) {
-	rows, err := db.Query("SELECT id, name, description FROM player_types ORDER BY id ASC")
+func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
+	rows, err := db.Query(
+		"SELECT id, sport_type_id, name, description FROM player_types WHERE sport_type_id = $1 ORDER BY id ASC",
+		st,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading playerTypes: %v", err)
 	}
 	defer rows.Close()
 
 	var (
+		playerTypes []PlayerType
 		playerType  PlayerType
+		sportType   SportType
 		name        string
 		description string
 	)
 	i := 0
 	for rows.Next() {
-		err = rows.Scan(&playerType, &name, &description)
+		err = rows.Scan(&playerType, &sportType, &name, &description)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading data: %v", err)
+			return nil, fmt.Errorf("problem reading player type: %v", err)
 		}
 		switch playerType {
 		case PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher:
+			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name
 			playerTypeDescriptions[playerType] = description
+			playerTypes = append(playerTypes, playerType)
 		default:
 			return nil, fmt.Errorf("Unknown PlayerType: id=%d", playerType)
 		}
@@ -58,5 +71,5 @@ func LoadPlayerTypes() ([]PlayerType, error) {
 	if len(playerTypeNames) != 3 {
 		return nil, fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d", len(playerTypeNames))
 	}
-	return []PlayerType{PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher}, nil
+	return playerTypes, nil
 }

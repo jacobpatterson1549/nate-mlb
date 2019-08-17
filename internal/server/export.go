@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-func exportToCsv(es request.EtlStats, w io.Writer) error {
-	_, err := db.LoadPlayerTypes()
+func exportToCsv(st db.SportType, es request.EtlStats, w io.Writer) error {
+	_, err := db.LoadPlayerTypes(st)
 	if err != nil {
 		return err
 	}

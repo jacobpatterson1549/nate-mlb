@@ -7,9 +7,12 @@ import (
 )
 
 // GetEtlStatsJSON gets the stats for the current year
-func GetEtlStatsJSON() (string, error) {
+func GetEtlStatsJSON(st SportType) (string, error) {
 	var etlJSON sql.NullString
-	row := db.QueryRow("SELECT etl_json FROM stats WHERE active")
+	row := db.QueryRow(
+		"SELECT etl_json FROM stats WHERE sport_type_id = $1 AND active",
+		st,
+	)
 	err := row.Scan(&etlJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -27,8 +30,8 @@ func GetEtlStatsJSON() (string, error) {
 }
 
 // SetEtlStats sets the stats for the current year
-func SetEtlStats(etlStatsJSON string) error {
-	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE active", etlStatsJSON)
+func SetEtlStats(st SportType, etlStatsJSON string) error {
+	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE sport_type_id = $2 active", etlStatsJSON, st)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
 	}
@@ -36,8 +39,11 @@ func SetEtlStats(etlStatsJSON string) error {
 }
 
 // ClearEtlStats clears the stats for the current year
-func ClearEtlStats() error {
-	_, err := db.Exec("UPDATE stats SET etl_json = NULL WHERE active")
+func ClearEtlStats(st SportType) error {
+	_, err := db.Exec(
+		"UPDATE stats SET etl_json = NULL WHERE sport_type_id = $1 AND active",
+		st,
+	)
 	if err != nil {
 		return fmt.Errorf("problem clearing saved stats: %v", err)
 	}

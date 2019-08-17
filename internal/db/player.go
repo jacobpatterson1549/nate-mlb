@@ -14,8 +14,11 @@ type Player struct {
 }
 
 // GetPlayers gets the players for the active year
-func GetPlayers() ([]Player, error) {
-	rows, err := db.Query("SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.active ORDER BY p.player_type_id, p.friend_id, p.display_order")
+func GetPlayers(st SportType) ([]Player, error) {
+	rows, err := db.Query(
+		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, p.friend_id, p.display_order",
+		st,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading players: %v", err)
 	}
@@ -27,7 +30,7 @@ func GetPlayers() ([]Player, error) {
 		players = append(players, Player{})
 		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerType, &players[i].PlayerID, &players[i].FriendID)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading data: %v", err)
+			return nil, fmt.Errorf("problem reading player: %v", err)
 		}
 		i++
 	}
@@ -35,8 +38,8 @@ func GetPlayers() ([]Player, error) {
 }
 
 // SavePlayers saves the specified players for the active year
-func SavePlayers(futurePlayers []Player) error {
-	players, err := GetPlayers()
+func SavePlayers(st SportType, futurePlayers []Player) error {
+	players, err := GetPlayers(st)
 	if err != nil {
 		return err
 	}
@@ -61,13 +64,14 @@ func SavePlayers(futurePlayers []Player) error {
 	i := 0
 	for _, insertPlayer := range insertPlayers {
 		queries[i] = query{
-			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, year) SELECT $1, $2, $3, $4, year FROM stats AS s WHERE s.active",
+			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, sport_type_id, year) SELECT $1, $2, $3, $4, $5, year FROM stats AS s WHERE s.sport_type_id = $5 AND s.active",
 			args: make([]interface{}, 4),
 		}
 		queries[i].args[0] = insertPlayer.DisplayOrder
 		queries[i].args[1] = insertPlayer.PlayerType
 		queries[i].args[2] = insertPlayer.PlayerID
 		queries[i].args[3] = insertPlayer.FriendID
+		queries[i].args[4] = st
 		i++
 	}
 	for _, updateplayer := range updatePlayers {

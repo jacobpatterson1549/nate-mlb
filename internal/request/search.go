@@ -41,20 +41,20 @@ type PlayerBio struct {
 }
 
 // SearchPlayers finds the PlayerSearchResults for the specified name prefix
-func SearchPlayers(playerTypeID int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func SearchPlayers(playerType db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	switch {
-	case playerTypeID == 1:
+	case playerType == db.PlayerTypeTeam:
 		return searchTeams(playerNamePrefix)
-	case playerTypeID == 2, playerTypeID == 3:
+	case playerType == db.PlayerTypeHitter, playerType == db.PlayerTypePitcher:
 		return searchPlayerNames(playerNamePrefix, activePlayersOnly)
 	default:
-		return []PlayerSearchResult{}, fmt.Errorf("cannot search for playerTypeID %d", playerTypeID)
+		return []PlayerSearchResult{}, fmt.Errorf("cannot search for playerType %d", playerType)
 	}
 }
 
 func searchTeams(query string) ([]PlayerSearchResult, error) {
 	var teamSearchResults []PlayerSearchResult
-	activeYear, err := db.GetActiveYear()
+	activeYear, err := db.GetActiveYear(db.SportTypeMlb)
 	if err != nil {
 		return teamSearchResults, err
 	}

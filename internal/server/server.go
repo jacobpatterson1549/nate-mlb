@@ -32,17 +32,18 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	st := db.SportTypeMlb
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
-		err = writeStatsPage(w)
+		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/about":
 		err = writeAboutPage(w)
 	case r.Method == "GET" && r.RequestURI == "/export":
-		err = exportStats(w)
+		err = exportStats(st, w)
 	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
-		err = handleAdminPage(w, r)
+		err = handleAdminPage(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/search":
-		err = handlePlayerSearch(w, r)
+		err = handlePlayerSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
 	default:
@@ -54,8 +55,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func writeStatsPage(w http.ResponseWriter) error {
-	es, err := request.GetEtlStats()
+func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
+	es, err := request.GetEtlStats(db.SportTypeMlb)
 	if err != nil {
 		return err
 	}
@@ -72,12 +73,12 @@ func writeStatsPage(w http.ResponseWriter) error {
 	return renderTemplate(w, statsPage)
 }
 
-func writeAdminPage(w http.ResponseWriter, message string) error {
-	es, err := request.GetEtlStats()
+func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) error {
+	es, err := request.GetEtlStats(st)
 	if err != nil {
 		return err
 	}
-	years, err := db.GetYears()
+	years, err := db.GetYears(st)
 	if err != nil {
 		return err
 	}
@@ -133,13 +134,13 @@ func writeAboutPage(w http.ResponseWriter) error {
 	return renderTemplate(w, aboutPage)
 }
 
-func exportStats(w http.ResponseWriter) error {
-	es, err := request.GetEtlStats()
+func exportStats(st db.SportType, w http.ResponseWriter) error {
+	es, err := request.GetEtlStats(st)
 	if err != nil {
 		return err
 	}
 
-	activeYear, err := db.GetActiveYear()
+	activeYear, err := db.GetActiveYear(st)
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func exportStats(w http.ResponseWriter) error {
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
 
-	return exportToCsv(es, w)
+	return exportToCsv(st, es, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
@@ -169,17 +170,17 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	return nil
 }
 
-func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
+func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		message := r.Form.Get("message")
 		if len(message) == 0 {
 			message = "Enter password before submitting."
 		}
-		return writeAdminPage(w, message)
+		return writeAdminPage(st, w, message)
 	}
 
 	var message string
-	if err := handleAdminRequest(r); err != nil {
+	if err := handleAdminRequest(st, r); err != nil {
 		message = err.Error()
 	} else {
 		message = "Change made."
@@ -189,7 +190,7 @@ func handleAdminPage(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
+func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	searchQuery := r.Form.Get("q")
 	if len(searchQuery) == 0 {
 		return errors.New("missing search query param: q")
@@ -205,7 +206,7 @@ func handlePlayerSearch(w http.ResponseWriter, r *http.Request) error {
 	activePlayersOnly := r.Form.Get("apo")
 	activePlayersOnlyB := activePlayersOnly == "true"
 
-	playerSearchResults, err := request.SearchPlayers(playerTypeIDI, searchQuery, activePlayersOnlyB)
+	playerSearchResults, err := request.SearchPlayers(db.PlayerType(playerTypeIDI), searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}

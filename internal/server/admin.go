@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	adminActions = map[string](func(*http.Request) error){
+	adminActions = map[string](func(db.SportType, *http.Request) error){
 		"friends":  updateFriends,
 		"players":  updatePlayers,
 		"years":    updateYears,
@@ -21,15 +21,15 @@ var (
 	}
 )
 
-func handleAdminRequest(r *http.Request) error {
+func handleAdminRequest(st db.SportType, r *http.Request) error {
 	actionParam := r.FormValue("action")
 	if action, ok := adminActions[actionParam]; ok {
-		return action(r)
+		return action(st, r)
 	}
 	return errors.New("invalid admin action")
 }
 
-func updatePlayers(r *http.Request) error {
+func updatePlayers(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
@@ -46,14 +46,14 @@ func updatePlayers(r *http.Request) error {
 		}
 	}
 
-	err := db.SavePlayers(players)
+	err := db.SavePlayers(st, players)
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStats()
+	return db.ClearEtlStats(st)
 }
 
-func updateFriends(r *http.Request) error {
+func updateFriends(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
@@ -70,14 +70,14 @@ func updateFriends(r *http.Request) error {
 		}
 	}
 
-	err := db.SaveFriends(friends)
+	err := db.SaveFriends(st, friends)
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStats()
+	return db.ClearEtlStats(st)
 }
 
-func updateYears(r *http.Request) error {
+func updateYears(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
@@ -92,18 +92,18 @@ func updateYears(r *http.Request) error {
 	}
 
 	// (does not forcefully update cache if active year changed)
-	return db.SaveYears(years)
+	return db.SaveYears(st, years)
 }
 
-func clearCache(r *http.Request) error {
+func clearCache(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
 	}
 
-	return db.ClearEtlStats()
+	return db.ClearEtlStats(st)
 }
 
-func resetPassword(r *http.Request) error {
+func resetPassword(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
 	}

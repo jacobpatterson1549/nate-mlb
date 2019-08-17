@@ -13,10 +13,10 @@ type Year struct {
 }
 
 // GetActiveYear gets the active year for stat retrieval
-func GetActiveYear() (int, error) {
+func GetActiveYear(st SportType) (int, error) {
 	var activeYear int
 
-	row := db.QueryRow("SELECT year FROM stats WHERE active")
+	row := db.QueryRow("SELECT year FROM stats WHERE active AND sport_type_id = $1", st)
 	err := row.Scan(&activeYear)
 	if err == sql.ErrNoRows {
 		return activeYear, errors.New("no active year")
@@ -28,10 +28,10 @@ func GetActiveYear() (int, error) {
 }
 
 // GetYears gets the specified years
-func GetYears() ([]Year, error) {
+func GetYears(st SportType) ([]Year, error) {
 	var years []Year
 
-	rows, err := db.Query("SELECT year, active FROM stats ORDER BY year ASC")
+	rows, err := db.Query("SELECT year, active FROM stats WHERE sport_id = $1 ORDER BY year ASC", st)
 	if err != nil {
 		return years, fmt.Errorf("problem reading years: %v", err)
 	}
@@ -44,7 +44,7 @@ func GetYears() ([]Year, error) {
 		years = append(years, Year{})
 		err = rows.Scan(&years[i].Value, &active)
 		if err != nil {
-			return years, fmt.Errorf("problem reading data: %v", err)
+			return years, fmt.Errorf("problem reading year: %v", err)
 		}
 		if active.Valid && active.Bool {
 			if activeYearFound {
@@ -62,8 +62,8 @@ func GetYears() ([]Year, error) {
 }
 
 // SaveYears saves the specified years and sets the active year
-func SaveYears(futureYears []Year) error {
-	previousYears, err := GetYears()
+func SaveYears(st SportType, futureYears []Year) error {
+	previousYears, err := GetYears(st)
 	if err != nil {
 		return err
 	}
@@ -96,30 +96,35 @@ func SaveYears(futureYears []Year) error {
 	// remove active year
 	// do this first to ensure one row is affected, in the case that the active row is deleted
 	queries[0] = query{
-		sql: "UPDATE stats SET active = NULL WHERE active",
+		sql:  "UPDATE stats SET active = NULL WHERE sport_type_id = $1 AND active",
+		args: make([]interface{}, 1),
 	}
+	queries[0].args[0] = st
 	i := 1
 	for _, insertYear := range insertYears {
 		queries[i] = query{
-			sql:  "INSERT INTO stats (year) VALUES ($1)",
-			args: make([]interface{}, 1),
+			sql:  "INSERT INTO stats (sport_type_id, year) VALUES ($1, $2)",
+			args: make([]interface{}, 2),
 		}
-		queries[i].args[0] = insertYear
+		queries[i].args[0] = st
+		queries[i].args[1] = insertYear
 		i++
 	}
 	for deleteYear := range previousYearsMap {
 		queries[i] = query{
-			sql:  "DELETE FROM stats WHERE year = $1",
-			args: make([]interface{}, 1),
+			sql:  "DELETE FROM stats WHERE sport_type_id = $1 AND year = $1",
+			args: make([]interface{}, 2),
 		}
-		queries[i].args[0] = deleteYear
+		queries[i].args[0] = st
+		queries[i].args[1] = deleteYear
 		i++
 	}
 	// set active year
 	queries[i] = query{
-		sql:  "UPDATE stats SET active = TRUE WHERE year = $1",
-		args: make([]interface{}, 1),
+		sql:  "UPDATE stats SET active = TRUE WHERE sport_type_id = $1 AND year = $2",
+		args: make([]interface{}, 2),
 	}
-	queries[i].args[0] = activeYear
+	queries[i].args[0] = st
+	queries[i].args[1] = activeYear
 	return exececuteInTransaction(&queries)
 }

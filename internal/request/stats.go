@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// EtlStats containS ScoreCategories that were stored at a specific time
+// EtlStats contains ScoreCategories that were stored at a specific time
 type EtlStats struct {
 	EtlTime         time.Time
 	EtlRefreshTime  time.Time
@@ -48,11 +48,11 @@ type friendPlayerInfo struct {
 }
 
 // GetEtlStats retrieves, calculates, and caches the player stats
-func GetEtlStats() (EtlStats, error) {
+func GetEtlStats(st db.SportType) (EtlStats, error) {
 	var es EtlStats
 
 	var year int
-	etlJSON, err := db.GetEtlStatsJSON()
+	etlJSON, err := db.GetEtlStatsJSON(st)
 	if err != nil {
 		return es, err
 	}
@@ -67,7 +67,7 @@ func GetEtlStats() (EtlStats, error) {
 		fetchStats = es.EtlTime.Before(es.EtlRefreshTime)
 	}
 	if fetchStats {
-		scoreCategories, err := getScoreCategories()
+		scoreCategories, err := getScoreCategories(st)
 		if err != nil {
 			return es, err
 		}
@@ -77,25 +77,25 @@ func GetEtlStats() (EtlStats, error) {
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
 		}
-		err = db.SetEtlStats(string(etlJSON))
+		err = db.SetEtlStats(st, string(etlJSON))
 	}
 	return es, err
 }
 
-func getScoreCategories() ([]ScoreCategory, error) {
-	friends, err := db.GetFriends()
+func getScoreCategories(st db.SportType) ([]ScoreCategory, error) {
+	friends, err := db.GetFriends(st)
 	if err != nil {
 		return nil, err
 	}
-	playerTypes, err := db.LoadPlayerTypes()
+	playerTypes, err := db.LoadPlayerTypes(st)
 	if err != nil {
 		return nil, err
 	}
-	players, err := db.GetPlayers()
+	players, err := db.GetPlayers(st)
 	if err != nil {
 		return nil, err
 	}
-	activeYear, err := db.GetActiveYear()
+	activeYear, err := db.GetActiveYear(st)
 	if err != nil {
 		return nil, err
 	}

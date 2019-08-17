@@ -12,8 +12,11 @@ type Friend struct {
 }
 
 // GetFriends gets the friends for the active year
-func GetFriends() ([]Friend, error) {
-	rows, err := db.Query("SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.active ORDER BY f.display_order ASC")
+func GetFriends(st SportType) ([]Friend, error) {
+	rows, err := db.Query(
+		"SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY f.display_order ASC",
+		st,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading friends: %v", err)
 	}
@@ -25,7 +28,7 @@ func GetFriends() ([]Friend, error) {
 		friends = append(friends, Friend{})
 		err = rows.Scan(&friends[i].ID, &friends[i].DisplayOrder, &friends[i].Name)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading data: %v", err)
+			return nil, fmt.Errorf("problem reading friend: %v", err)
 		}
 		i++
 	}
@@ -33,8 +36,8 @@ func GetFriends() ([]Friend, error) {
 }
 
 // SaveFriends saves the specified friends for the active year
-func SaveFriends(futureFriends []Friend) error {
-	friends, err := GetFriends()
+func SaveFriends(st SportType, futureFriends []Friend) error {
+	friends, err := GetFriends(st)
 	if err != nil {
 		return err
 	}
@@ -59,11 +62,12 @@ func SaveFriends(futureFriends []Friend) error {
 	i := 0
 	for _, insertFriend := range insertFriends {
 		queries[i] = query{
-			sql:  "INSERT INTO friends (display_order, name, year) SELECT $1, $2, year FROM stats AS s WHERE s.active",
+			sql:  "INSERT INTO friends (display_order, name, sport_type_id, year) SELECT $1, $2, $3 year FROM stats AS s WHERE s.sport_type_id = %3 AND s.active",
 			args: make([]interface{}, 2),
 		}
 		queries[i].args[0] = insertFriend.DisplayOrder
 		queries[i].args[1] = insertFriend.Name
+		queries[i].args[2] = st
 		i++
 	}
 	for _, updateFriend := range updateFriends {
