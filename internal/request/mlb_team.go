@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// mlbTeamRequestor implemnts the ScoreCategorizer interface
+// mlbTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces
 type mlbTeamRequestor struct{}
 
 // Teams is used to unmarshal a wins request for all teams
