@@ -3,7 +3,6 @@ package request
 import "nate-mlb/internal/db"
 
 // Searchers maps PlayerTypes to Searchers for them.
-// TODO: combine maps with requestor?  Make shared interface?
 var Searchers = map[db.PlayerType]searcher{
 	db.PlayerTypeTeam:    mlbTeamRequestor{},
 	db.PlayerTypeHitter:  mlbPlayerSearcher{},
