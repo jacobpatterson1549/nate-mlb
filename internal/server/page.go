@@ -42,14 +42,15 @@ type TimesMessage struct {
 }
 
 func newPage(title string, tabs []Tab, timesMessage TimesMessage, templateNames ...string) Page {
-	sports := make([]SportEntry, len(db.SportTypes))
-	i := 0
-	for sportTypeName, sportType := range db.SportTypes {
-		sports[i] = SportEntry{
-			URL:  sportTypeName,
-			Name: sportType.Name(),
+	getSportEntry := func(st db.SportType) SportEntry {
+		return SportEntry{
+			URL:  strings.ToLower(st.Name()),
+			Name: st.Name(),
 		}
-		i++
+	}
+	sports := []SportEntry{
+		getSportEntry(db.SportTypeMlb),
+		getSportEntry(db.SportTypeNfl),
 	}
 	return Page{
 		Title:         title,

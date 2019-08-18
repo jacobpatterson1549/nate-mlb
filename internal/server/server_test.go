@@ -2,39 +2,39 @@ package server
 
 import "testing"
 
-type getSportTypeNameTest struct {
-	url  string
-	want string
+type firstPathSegmentTest struct {
+	urlPath string
+	want    string
 }
 
-var getSportTypeNameTests = []getSportTypeNameTest{
+var firstPathSegmentTests = []firstPathSegmentTest{
 	{
-		url:  "",
-		want: "",
+		urlPath: "",
+		want:    "",
 	},
 	{
-		url:  "/",
-		want: "",
+		urlPath: "/",
+		want:    "",
 	},
 	{
-		url:  "/mlb",
-		want: "mlb",
+		urlPath: "/mlb",
+		want:    "mlb",
 	},
 	{
-		url:  "/nfl/admin",
-		want: "nfl",
+		urlPath: "/nfl/admin",
+		want:    "nfl",
 	},
 	{
-		url:  "/admin",
-		want: "admin", // not a valid sportName, but 
+		urlPath: "/admin",
+		want:    "admin", // not a valid sportName, but is still the first path segment
 	},
 }
 
-func TestGetSportTypeName(t *testing.T) {
-	for i, test := range getSportTypeNameTests {
-		got := getSportTypeName(test.url)
+func TestFirstPathSegment(t *testing.T) {
+	for i, test := range firstPathSegmentTests {
+		got := getFirstPathSegment(test.urlPath)
 		if test.want != got {
-			t.Errorf("Test %d: wanted '%v', but got '%v' for url '%v'", i, test.want, got, test.url)
+			t.Errorf("Test %d: wanted '%v', but got '%v' for url '%v'", i, test.want, got, test.urlPath)
 		}
 	}
 }

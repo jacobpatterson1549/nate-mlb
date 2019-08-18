@@ -34,20 +34,20 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	stName := getSportTypeName(r.RequestURI)
-	st := db.SportTypes[stName]
+	firstPathSegment := getFirstPathSegment(r.URL.Path)
+	st := db.GetSportType(firstPathSegment)
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)
-	case r.Method == "GET" && r.RequestURI == "/"+stName:
+	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment:
 		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/about":
 		err = writeAboutPage(w)
-	case r.Method == "GET" && r.RequestURI == "/"+stName+"/export":
+	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/export":
 		err = exportStats(st, w)
-	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/"+stName+"/admin":
+	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/"+firstPathSegment+"/admin":
 		err = handleAdminPage(st, w, r)
-	case r.Method == "GET" && r.URL.Path == "/"+stName+"/admin/search":
+	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handlePlayerSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
@@ -60,8 +60,8 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getSportTypeName(url string) string {
-	parts := strings.Split(url, "/")
+func getFirstPathSegment(urlPath string) string {
+	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
 		return ""
 	}

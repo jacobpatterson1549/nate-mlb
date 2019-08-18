@@ -1,5 +1,7 @@
 package db
 
+import "strings"
+
 // SportType is an enumeration of types of sports
 type SportType int
 
@@ -14,14 +16,20 @@ var (
 		SportTypeMlb: "MLB",
 		SportTypeNfl: "NFL",
 	}
-	// SportTypes maps url names to SportTypes
-	SportTypes = map[string]SportType{
-		"mlb": SportTypeMlb,
-		"nfl": SportTypeNfl,
-	}
 )
 
 // Name gets the name for a SportType
 func (st SportType) Name() string {
 	return sportTypeNames[st]
+}
+
+// GetSportType retrieves a SportType from it's name
+func GetSportType(query string) SportType {
+	query = strings.ToUpper(query)
+	for st, name := range sportTypeNames {
+		if strings.ToUpper(name) == query {
+			return st
+		}
+	}
+	return 0
 }
