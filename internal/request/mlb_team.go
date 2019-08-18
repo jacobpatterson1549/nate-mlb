@@ -30,7 +30,17 @@ func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-	playerScores := teams.createPlayerScores()
+
+	playerScores := make(map[int]*PlayerScore)
+	for _, record := range teams.Records {
+		for _, teamRecord := range record.TeamRecords {
+			playerScores[teamRecord.Team.ID] = &PlayerScore{
+				PlayerName: teamRecord.Team.Name,
+				PlayerID:   teamRecord.Team.ID,
+				Score:      teamRecord.Wins,
+			}
+		}
+	}
 	err = scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
 	return scoreCategory, err
 }
@@ -67,18 +77,4 @@ func (r mlbTeamRequestor) requestTeams(year int) (Teams, error) {
 	var teams Teams
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
 	return teams, requestStruct(url, &teams)
-}
-
-func (t Teams) createPlayerScores() map[int]*PlayerScore {
-	playerScores := make(map[int]*PlayerScore)
-	for _, record := range t.Records {
-		for _, teamRecord := range record.TeamRecords {
-			playerScores[teamRecord.Team.ID] = &PlayerScore{
-				PlayerName: teamRecord.Team.Name,
-				PlayerID:   teamRecord.Team.ID,
-				Score:      teamRecord.Wins,
-			}
-		}
-	}
-	return playerScores
 }
