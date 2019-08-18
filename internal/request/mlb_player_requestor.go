@@ -53,11 +53,11 @@ func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	return scoreCategory, err
 }
 
-func (r mlbPlayerRequestor) requestPlayerScores(players []db.Player, year int) (map[int]PlayerScore, error) {
-	playerScores := make(map[int]PlayerScore)
+func (r mlbPlayerRequestor) requestPlayerScores(players []db.Player, year int) (map[int]*PlayerScore, error) {
+	playerScores := make(map[int]*PlayerScore)
 	for _, player := range players {
 		if player.PlayerType == r.playerType {
-			playerScores[player.PlayerID] = PlayerScore{
+			playerScores[player.PlayerID] = &PlayerScore{
 				PlayerID: player.PlayerID,
 			}
 		}
@@ -72,7 +72,7 @@ func (r mlbPlayerRequestor) requestPlayerScores(players []db.Player, year int) (
 	return playerScores, lastError
 }
 
-func (r *mlbPlayerRequestor) requestPlayerNames(playerScores map[int]PlayerScore, lastError *error, wg *sync.WaitGroup) {
+func (r *mlbPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, lastError *error, wg *sync.WaitGroup) {
 	playerIDStrings := make([]string, len(playerScores))
 	i := 0
 	for playerID := range playerScores {
@@ -95,7 +95,7 @@ func (r *mlbPlayerRequestor) requestPlayerNames(playerScores map[int]PlayerScore
 	wg.Done()
 }
 
-func (r *mlbPlayerRequestor) requestPlayerStats(playerScores map[int]PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
+func (r *mlbPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
 	wg.Add(len(playerScores))
 	for playerID := range playerScores {
 		go r.getPlayerScore(playerID, playerScores, year, lastError, wg)
@@ -103,7 +103,7 @@ func (r *mlbPlayerRequestor) requestPlayerStats(playerScores map[int]PlayerScore
 	wg.Done()
 }
 
-func (r *mlbPlayerRequestor) getPlayerScore(playerID int, playerScores map[int]PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
+func (r *mlbPlayerRequestor) getPlayerScore(playerID int, playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
 	score, err := r.requestPlayerScore(playerID, year)
 	if err != nil {
 		*lastError = err

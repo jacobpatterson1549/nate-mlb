@@ -38,7 +38,7 @@ type FriendPlayerInfo struct {
 	Year    int
 }
 
-func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
+func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
 	sc.PlayerTypeID = playerType
@@ -53,7 +53,7 @@ func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, play
 	return nil
 }
 
-func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
+func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
 	var friendScore FriendScore
 	friendScore.FriendName = friend.Name
 	friendScore.FriendID = friend.ID // must be done before player scores are populated
@@ -75,7 +75,7 @@ func (sc ScoreCategory) GetID() string {
 	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }
 
-func (friendScore *FriendScore) populatePlayerScores(players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore) error {
+func (friendScore *FriendScore) populatePlayerScores(players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore) error {
 	for _, player := range players {
 		if friendScore.FriendID == player.FriendID && playerType == player.PlayerType {
 			playerScore, ok := playerScores[player.PlayerID]
