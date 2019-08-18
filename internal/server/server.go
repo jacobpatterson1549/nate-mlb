@@ -57,7 +57,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
-	es, err := request.GetEtlStats(db.SportTypeMlb)
+	es, err := getEtlStats(db.SportTypeMlb)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 }
 
 func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) error {
-	es, err := request.GetEtlStats(st)
+	es, err := getEtlStats(st)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 }
 
 func exportStats(st db.SportType, w http.ResponseWriter) error {
-	es, err := request.GetEtlStats(st)
+	es, err := getEtlStats(st)
 	if err != nil {
 		return err
 	}
@@ -206,10 +206,15 @@ func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
 	}
+	playerType := db.PlayerType(playerTypeIDI)
 	activePlayersOnly := r.Form.Get("apo")
 	activePlayersOnlyB := activePlayersOnly == "true"
 
-	playerSearchResults, err := request.SearchPlayers(db.PlayerType(playerTypeIDI), searchQuery, activePlayersOnlyB)
+	searcher, ok := request.Searchers[playerType]
+	if !ok {
+		return fmt.Errorf("problem finding searcher for playerType %v", playerType)
+	}
+	playerSearchResults, err := searcher.PlayerSearchResults(searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}

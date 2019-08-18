@@ -1,21 +1,11 @@
 package request
 
 import (
-	"encoding/json"
 	"fmt"
 	"nate-mlb/internal/db"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 )
-
-// EtlStats contains ScoreCategories that were stored at a specific time
-type EtlStats struct {
-	EtlTime         time.Time
-	EtlRefreshTime  time.Time
-	ScoreCategories []ScoreCategory
-}
 
 // ScoreCategory contain the FriendScores for each PlayerType
 type ScoreCategory struct {
@@ -41,102 +31,11 @@ type PlayerScore struct {
 	Score      int
 }
 
-type friendPlayerInfo struct {
-	friends []db.Friend
-	players []db.Player
-	year    int
-}
-
-// GetEtlStats retrieves, calculates, and caches the player stats
-func GetEtlStats(st db.SportType) (EtlStats, error) {
-	var es EtlStats
-
-	var year int
-	etlJSON, err := db.GetEtlStatsJSON(st)
-	if err != nil {
-		return es, err
-	}
-	fetchStats := true
-	currentTime := db.GetUtcTime()
-	if len(etlJSON) > 0 {
-		err = json.Unmarshal([]byte(etlJSON), &es)
-		if err != nil {
-			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
-		}
-		es.EtlRefreshTime = previousMidnight(currentTime)
-		fetchStats = es.EtlTime.Before(es.EtlRefreshTime)
-	}
-	if fetchStats {
-		scoreCategories, err := getScoreCategories(st)
-		if err != nil {
-			return es, err
-		}
-		es.ScoreCategories = scoreCategories
-		es.EtlTime = currentTime
-		etlJSON, err := json.Marshal(es)
-		if err != nil {
-			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
-		}
-		err = db.SetEtlStats(st, string(etlJSON))
-	}
-	return es, err
-}
-
-func getScoreCategories(st db.SportType) ([]ScoreCategory, error) {
-	friends, err := db.GetFriends(st)
-	if err != nil {
-		return nil, err
-	}
-	playerTypes, err := db.LoadPlayerTypes(st)
-	if err != nil {
-		return nil, err
-	}
-	players, err := db.GetPlayers(st)
-	if err != nil {
-		return nil, err
-	}
-	activeYear, err := db.GetActiveYear(st)
-	if err != nil {
-		return nil, err
-	}
-	fpi := friendPlayerInfo{
-		friends: friends,
-		players: players,
-		year:    activeYear,
-	}
-
-	numCategories := len(playerTypes)
-	scoreCategories := make([]ScoreCategory, numCategories)
-	var wg sync.WaitGroup
-	wg.Add(numCategories)
-	var lastError error
-	var playerInfoRequest PlayerInfoRequest
-	playerInfoRequest.requestPlayerInfoAsync(players, activeYear)
-	for i, playerType := range playerTypes {
-		go getScoreCategory(scoreCategories, i, playerType, fpi, &playerInfoRequest, &wg, &lastError)
-	}
-	wg.Wait()
-	return scoreCategories, lastError
-}
-
-func getScoreCategory(scoreCategories []ScoreCategory, index int, playerType db.PlayerType, fpi friendPlayerInfo, playerInfoRequest *PlayerInfoRequest, wg *sync.WaitGroup, lastError *error) {
-	var scoreCategory ScoreCategory
-	var err error
-	switch playerType {
-	case db.PlayerTypeTeam:
-		scoreCategory, err = newTeamScoreScategory(fpi.friends, fpi.players, playerType, fpi.year)
-	case db.PlayerTypeHitter, db.PlayerTypePitcher:
-		scoreCategory, err = playerInfoRequest.newPlayerScoreCategory(fpi.friends, fpi.players, playerType)
-	default:
-		err = fmt.Errorf("unknown playerType: %v", playerType)
-	}
-
-	if err != nil {
-		*lastError = err // ingore earlier errors - the last one set is shown
-	} else {
-		scoreCategories[index] = scoreCategory
-	}
-	wg.Done()
+// FriendPlayerInfo is a helper pojo of information about what is in a ScoreCategory
+type FriendPlayerInfo struct {
+	Friends []db.Friend
+	Players []db.Player
+	Year    int
 }
 
 func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]PlayerScore, onlySumTopTwoPlayerScores bool) error {
@@ -164,15 +63,6 @@ func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerT
 	}
 	friendScore.populateScore(onlySumTopTwoPlayerScores)
 	return friendScore, nil
-}
-
-// previousMidnight returns the previous midnight relative to Honolulu time (UTC-10)
-func previousMidnight(t time.Time) time.Time {
-	midnight := time.Date(t.Year(), t.Month(), t.Day(), 10, 0, 0, 0, t.Location())
-	if midnight.After(t) {
-		midnight = midnight.Add(-24 * time.Hour)
-	}
-	return midnight
 }
 
 // GetName implements the server.Tab interface for ScoreCategory

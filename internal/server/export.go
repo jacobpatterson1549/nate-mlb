@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func exportToCsv(st db.SportType, es request.EtlStats, w io.Writer) error {
+func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
 	_, err := db.LoadPlayerTypes(st)
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func exportToCsv(st db.SportType, es request.EtlStats, w io.Writer) error {
 	return nil
 }
 
-func createRecords(es request.EtlStats) [][]string {
+func createRecords(es EtlStats) [][]string {
 	records := make([][]string, 3)
 	records[0] = []string{"nate-mlb", "2019"}
 	records[2] = []string{"type", "friend", "value", "player", "score"}

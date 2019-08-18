@@ -31,7 +31,7 @@ func GetEtlStatsJSON(st SportType) (string, error) {
 
 // SetEtlStats sets the stats for the current year
 func SetEtlStats(st SportType, etlStatsJSON string) error {
-	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE sport_type_id = $2 active", etlStatsJSON, st)
+	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE sport_type_id = $2 AND active", etlStatsJSON, st)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
 	}

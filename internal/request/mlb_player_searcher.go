@@ -3,19 +3,14 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"nate-mlb/internal/db"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// PlayerSearchResult contains information about the result for a searched player.
-type PlayerSearchResult struct {
-	Name     string
-	Details  string
-	PlayerID int
-}
+// mlbPlayerSearcher implements the searcher interface
+type mlbPlayerSearcher struct{}
 
 // PlayerSearchQueryResult  is used to unmarshal a request for information about players by name
 type PlayerSearchQueryResult struct {
@@ -40,46 +35,8 @@ type PlayerBio struct {
 	PlayerID     string `json:"player_id"`
 }
 
-// SearchPlayers finds the PlayerSearchResults for the specified name prefix
-func SearchPlayers(playerType db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	switch {
-	case playerType == db.PlayerTypeTeam:
-		return searchTeams(playerNamePrefix)
-	case playerType == db.PlayerTypeHitter, playerType == db.PlayerTypePitcher:
-		return searchPlayerNames(playerNamePrefix, activePlayersOnly)
-	default:
-		return []PlayerSearchResult{}, fmt.Errorf("cannot search for playerType %d", playerType)
-	}
-}
-
-func searchTeams(query string) ([]PlayerSearchResult, error) {
-	var teamSearchResults []PlayerSearchResult
-	activeYear, err := db.GetActiveYear(db.SportTypeMlb)
-	if err != nil {
-		return teamSearchResults, err
-	}
-	teams, err := requestTeams(activeYear)
-	if err != nil {
-		return teamSearchResults, err
-	}
-
-	lowerQuery := strings.ToLower(query)
-	for _, record := range teams.Records {
-		for _, teamRecord := range record.TeamRecords {
-			lowerTeamName := strings.ToLower(teamRecord.Team.Name)
-			if strings.Contains(lowerTeamName, lowerQuery) {
-				teamSearchResults = append(teamSearchResults, PlayerSearchResult{
-					Name:     teamRecord.Team.Name,
-					Details:  fmt.Sprintf("%d - %d Record", teamRecord.Wins, teamRecord.Losses),
-					PlayerID: teamRecord.Team.ID,
-				})
-			}
-		}
-	}
-	return teamSearchResults, nil
-}
-
-func searchPlayerNames(playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+// PlayerSearchResults implements the Searcher interface
+func (s mlbPlayerSearcher) PlayerSearchResults(playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"
