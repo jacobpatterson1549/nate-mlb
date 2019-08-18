@@ -89,11 +89,11 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 func (es EtlStats) getScoreCategory(scoreCategories []request.ScoreCategory, index int, playerType db.PlayerType, fpi request.FriendPlayerInfo, wg *sync.WaitGroup, lastError *error) {
 	var scoreCategory request.ScoreCategory
 	var err error
-	requestor, ok := request.Requestors[playerType]
+	scoreCategorizer, ok := request.ScoreCategorizers[playerType]
 	if !ok {
-		err = fmt.Errorf("problem: no requestor for player type %v", playerType)
+		err = fmt.Errorf("problem: no scoreCategorizer for player type %v", playerType)
 	} else {
-		scoreCategory, err = requestor.RequestScoreCategory(fpi, playerType)
+		scoreCategory, err = scoreCategorizer.RequestScoreCategory(fpi, playerType)
 	}
 
 	if err != nil {

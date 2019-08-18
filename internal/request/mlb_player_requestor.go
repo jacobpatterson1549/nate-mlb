@@ -42,7 +42,7 @@ type Stat struct {
 	Wins     int `json:"wins"`
 }
 
-// RequestScoreCategory implements the requestor interface
+// RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	playerScores, lastError := r.requestPlayerScores(fpi.Players, fpi.Year)
 	var scoreCategory ScoreCategory

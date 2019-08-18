@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// mlbTeamRequestor implemnts the requestor interface
+// mlbTeamRequestor implemnts the ScoreCategorizer interface
 type mlbTeamRequestor struct{}
 
 // Teams is used to unmarshal a wins request for all teams
@@ -23,7 +23,7 @@ type Teams struct {
 	} `json:"records"`
 }
 
-// RequestScoreCategory implements the requestor interface
+// RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
 	teams, err := r.requestTeams(fpi.Year)
