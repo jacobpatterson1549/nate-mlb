@@ -15,7 +15,6 @@ var ScoreCategorizers = map[db.PlayerType]ScoreCategorizer{
 }
 
 // ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
-// TODO: move to stats.go
 type ScoreCategorizer interface {
 	RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error)
 }
