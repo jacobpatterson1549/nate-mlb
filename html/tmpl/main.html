@@ -5,7 +5,7 @@
   <base href="/">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="Description" content="mlb baseball statistic aggregation">
+  <meta name="Description" content="sports statistic aggregation">
   <title>{{.Title}}</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -26,7 +26,7 @@
   <nav class="navbar navbar-expand-sm navbar-light bg-light mb-3" id="main-navbar">
     <a class="navbar-brand" href="/">
       <img src="/static/favicon.ico" alt="hat">
-      <span>nate-mlb</span>
+      <span>nate-stats</span>
     </a>
     <button class="navbar-toggler" aria-label="Toggle Navbar" type="button" data-toggle="collapse"
       data-target="#main-navbar-nav">
@@ -35,10 +35,21 @@
     <div class="collapse navbar-collapse" id="main-navbar-nav">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="/">Stats</a>
+          <a class="nav-link" href="/">Home</a>
         </li>
+        {{ range .Sports -}}
         <li class="nav-item">
-          <a class="nav-link" href="/admin">Admin</a>
+          <a class="nav-link" href="/{{.URL}}">{{.Name}} Stats</a>
+        </li>
+        {{ end -}}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">Admin</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            {{ range .Sports -}}
+            <a class="dropdown-item" href="/{{.URL}}/admin">{{.Name}} Admin</a>
+            {{end -}}
+          </div>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/about">About</a>
@@ -46,24 +57,32 @@
       </ul>
     </div>
   </nav>
-  <div class="mb-3" id="main-tabs" role="tablist">
-    <ul class="nav nav-tabs">
-      {{range .Tabs -}}
-      <li class="nav-item">
-        <a id="{{.GetID}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID}}" role="tab">{{.GetName}}</a>
-      </li>
-      {{end -}}
-    </ul>
-  </div>
-  <div id="main-tabs-content" class="tab-content" role="main">
-    {{range .Tabs -}}
-    <div id="{{.GetID}}" class="tab-pane fade" role="tabpanel">
-      {{- template "content" . -}}
+  {{- if (gt (len .Tabs) 1) -}}
+  <div id="main-tabs">
+    <div class="mb-3" id="main-tabs-tabs" role="tablist">
+      <ul class="nav nav-tabs">
+        {{range .Tabs -}}
+        <li class="nav-item">
+          <a id="{{.GetID}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID}}" role="tab">{{.GetName}}</a>
+        </li>
+        {{end -}}
+      </ul>
     </div>
-    {{end -}}
+    <div id="main-tabs-content" class="tab-content" role="main">
+      {{range .Tabs -}}
+      <div id="{{.GetID}}" class="tab-pane fade" role="tabpanel">
+        {{- template "content" . -}}
+      </div>
+      {{end -}}
+    </div>
   </div>
+  {{- else -}}
+  {{- template "content" . -}}
+  {{- end -}}
   <div role="contentinfo">
+    {{- if .TimesMessage.Messages -}}
     <p id="times-message"></p>
+    {{- end -}}
     <p id="page-load-message"></p>
   </div>
   <script>
@@ -93,23 +112,27 @@
     }
 
     function initFirstTab() {
-      document.getElementById('main-tabs').querySelector('.nav-link').classList.add('active');
-      document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('active');
-      document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('show');
+      if (document.getElementById('main-tabs-tabs') != null) {
+        document.getElementById('main-tabs-tabs').querySelector('.nav-link').classList.add('active');
+        document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('active');
+        document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('show');
+      }
     }
 
     function initBottomMessages() {
-      var timesMessage = {{.TimesMessage}};
-      var messages = timesMessage.Messages;
-      var times = timesMessage.Times;
-      var formattedTimesMessage = "";
-      for (var i = 0; i < messages.length; i++) {
-        formattedTimesMessage += messages[i];
-        if (times && i < times.length) {
-          formattedTimesMessage += formatDate(times[i]);
+      if (document.getElementById('times-message') != null) {
+        var timesMessage = {{.TimesMessage}};
+        var messages = timesMessage.Messages;
+        var times = timesMessage.Times;
+        var formattedTimesMessage = "";
+        for (var i = 0; i < messages.length; i++) {
+          formattedTimesMessage += messages[i];
+          if (times && i < times.length) {
+            formattedTimesMessage += formatDate(times[i]);
+          }
         }
+        document.getElementById('times-message').innerText = formattedTimesMessage;
       }
-      document.getElementById('times-message').innerText = formattedTimesMessage;
       document.getElementById('page-load-message').innerText = 'Page loaded at ' + formatDate({{.PageLoadTime}});
     }
 

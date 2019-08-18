@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,17 +34,20 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	st := db.SportTypeMlb
+	stName := getSportTypeName(r.RequestURI)
+	st := db.SportTypes[stName]
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
+		err = writeHomePage(w)
+	case r.Method == "GET" && r.RequestURI == "/"+stName:
 		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/about":
 		err = writeAboutPage(w)
-	case r.Method == "GET" && r.RequestURI == "/export":
+	case r.Method == "GET" && r.RequestURI == "/"+stName+"/export":
 		err = exportStats(st, w)
-	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/admin":
+	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/"+stName+"/admin":
 		err = handleAdminPage(st, w, r)
-	case r.Method == "GET" && r.URL.Path == "/admin/search":
+	case r.Method == "GET" && r.URL.Path == "/"+stName+"/admin/search":
 		err = handlePlayerSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
@@ -56,8 +60,22 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getSportTypeName(url string) string {
+	parts := strings.Split(url, "/")
+	if len(parts) < 2 {
+		return ""
+	}
+	return parts[1]
+}
+
+func writeHomePage(w http.ResponseWriter) error {
+	homeTab := AdminTab{Name: "Home"}
+	homePage := newPage("Nate's Stats", []Tab{homeTab}, TimesMessage{}, "html/tmpl/home.html")
+	return renderTemplate(w, homePage)
+}
+
 func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
-	es, err := getEtlStats(db.SportTypeMlb)
+	es, err := getEtlStats(st)
 	if err != nil {
 		return err
 	}

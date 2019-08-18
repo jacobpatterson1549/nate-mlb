@@ -10,6 +10,7 @@ import (
 type Page struct {
 	Title         string
 	Tabs          []Tab
+	Sports        []SportEntry
 	TimesMessage  TimesMessage
 	templateNames []string
 	PageLoadTime  time.Time
@@ -28,6 +29,12 @@ type AdminTab struct {
 	Data   []interface{} // each template knows what data to expect
 }
 
+// SportEntry contains the url and name of a SportType
+type SportEntry struct {
+	URL  string
+	Name string
+}
+
 // TimesMessage contains times to insert between messages
 type TimesMessage struct {
 	Messages []string
@@ -35,9 +42,19 @@ type TimesMessage struct {
 }
 
 func newPage(title string, tabs []Tab, timesMessage TimesMessage, templateNames ...string) Page {
+	sports := make([]SportEntry, len(db.SportTypes))
+	i := 0
+	for sportTypeName, sportType := range db.SportTypes {
+		sports[i] = SportEntry{
+			URL:  sportTypeName,
+			Name: sportType.Name(),
+		}
+		i++
+	}
 	return Page{
 		Title:         title,
 		Tabs:          tabs,
+		Sports:        sports,
 		TimesMessage:  timesMessage,
 		templateNames: templateNames,
 		PageLoadTime:  db.GetUtcTime(),

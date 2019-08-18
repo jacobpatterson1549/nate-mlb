@@ -14,6 +14,11 @@ var (
 		SportTypeMlb: "MLB",
 		SportTypeNfl: "NFL",
 	}
+	// SportTypes maps url names to SportTypes
+	SportTypes = map[string]SportType{
+		"mlb": SportTypeMlb,
+		"nfl": SportTypeNfl,
+	}
 )
 
 // Name gets the name for a SportType
