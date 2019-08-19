@@ -3,6 +3,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"nate-mlb/internal/db"
 	"net/url"
 	"strconv"
 	"strings"
@@ -36,7 +37,7 @@ type PlayerBio struct {
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (s mlbPlayerSearcher) PlayerSearchResults(playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (s mlbPlayerSearcher) PlayerSearchResults(st db.SportType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"

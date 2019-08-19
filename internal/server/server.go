@@ -232,7 +232,7 @@ func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request)
 	if !ok {
 		return fmt.Errorf("problem finding searcher for playerType %v", playerType)
 	}
-	playerSearchResults, err := searcher.PlayerSearchResults(searchQuery, activePlayersOnlyB)
+	playerSearchResults, err := searcher.PlayerSearchResults(st, searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}
