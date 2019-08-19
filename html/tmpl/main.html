@@ -57,7 +57,9 @@
       </ul>
     </div>
   </nav>
-  {{- if (gt (len .Tabs) 1) -}}
+  {{- if (and (eq (len .Tabs) 1) (or (eq (index .Tabs 0).Name "Home") (eq (index .Tabs 0).Name "About"))) -}}
+  {{- template "content" . -}}
+  {{- else -}}
   <div id="main-tabs">
     <div class="mb-3" id="main-tabs-tabs" role="tablist">
       <ul class="nav nav-tabs">
@@ -76,8 +78,6 @@
       {{end -}}
     </div>
   </div>
-  {{- else -}}
-  {{- template "content" . -}}
   {{- end -}}
   <div role="contentinfo">
     {{- if .TimesMessage.Messages -}}

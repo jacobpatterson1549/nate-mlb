@@ -10,6 +10,7 @@ const (
 	PlayerTypeTeam    PlayerType = 1 // TODO Rename this when adding NFL PlayerTypes
 	PlayerTypeHitter  PlayerType = 2
 	PlayerTypePitcher PlayerType = 3
+	PlayerTypeNflTeam PlayerType = 4
 )
 
 var (
@@ -58,7 +59,8 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 			return nil, fmt.Errorf("problem reading player type: %v", err)
 		}
 		switch playerType {
-		case PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher:
+		case PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher,
+			PlayerTypeNflTeam:
 			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name
 			playerTypeDescriptions[playerType] = description
@@ -68,8 +70,11 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 		}
 		i++
 	}
-	if len(playerTypeNames) != 3 {
-		return nil, fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d", len(playerTypeNames))
+	switch {
+	case st == SportTypeMlb && len(playerTypes) == 3,
+		st == SportTypeNfl && len(playerTypes) == 1:
+		return playerTypes, nil
+	default:
+		return nil, fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d", len(playerTypes))
 	}
-	return playerTypes, nil
 }

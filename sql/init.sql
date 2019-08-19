@@ -39,9 +39,10 @@ CREATE TABLE friends
 CREATE TABLE player_types
 	( id INT PRIMARY KEY
 	, sport_type_id INT
-	, name VARCHAR(20) UNIQUE NOT NULL
+	, name VARCHAR(20) NOT NULL
 	, description TEXT
 	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
+	, CONSTRAINT sport_type_id_name_unique UNIQUE (sport_type_id, name)
 	);
 
 CREATE TABLE players
@@ -70,8 +71,9 @@ INSERT INTO sport_types (id, name) VALUES (
 SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types), 1));
 
 INSERT INTO stats (sport_type_id, year, active)
-	VALUES (1, 2019, TRUE);
-
+	VALUES (
+	   1, 2019, TRUE)
+	, (2, 2018, TRUE))
 INSERT INTO friends (id, name, display_order, sport_type_id, year)
 	VALUES (
 	   1, 'Bob',   0, 1, 2019)
@@ -88,6 +90,7 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	   1, 1, 'Teams', 'Wins')
 	, (2, 1, 'Hitting', 'Home Runs')
 	, (3, 1, 'Pitching', 'Wins')
+	, (4, 2, 'Teams', 'Wins')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_type_id, year)

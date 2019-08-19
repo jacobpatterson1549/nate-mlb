@@ -39,14 +39,14 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)
-	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment:
-		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/about":
 		err = writeAboutPage(w)
+	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment:
+		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/export":
 		err = exportStats(st, w)
 	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/"+firstPathSegment+"/admin":
-		err = handleAdminPage(st, w, r)
+		err = handleAdminPage(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handlePlayerSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
@@ -189,7 +189,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	return nil
 }
 
-func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
+func handleAdminPage(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) error {
 	if r.Method == "GET" {
 		message := r.Form.Get("message")
 		if len(message) == 0 {
@@ -207,7 +207,7 @@ func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 	}
 	// prevent the post from being made again on refresh
 	message = url.QueryEscape(message)
-	http.Redirect(w, r, fmt.Sprintf("/admin?message=%s", message), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/%s/admin?message=%s", firstPathSegment, message), http.StatusSeeOther)
 	return nil
 }
 
