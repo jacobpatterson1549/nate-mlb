@@ -16,7 +16,7 @@ type Player struct {
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
-		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, p.friend_id, p.display_order",
+		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year JOIN friends AS f ON p.friend_id = f.id WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, f.display_order, p.display_order",
 		st,
 	)
 	if err != nil {
