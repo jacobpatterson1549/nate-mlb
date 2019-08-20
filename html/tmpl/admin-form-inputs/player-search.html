@@ -71,7 +71,8 @@
         var playerTypeID = document.getElementById('select-player-type').value;
         var activePlayersOnly = document.getElementById("active-players-only").checked;
         var query = document.getElementById('player-search').value;
-        var url = '/admin/search?q=' + query + '&pt=' + playerTypeID + '&apo=' + activePlayersOnly;
+        var pathSegments = location.pathname.split("/");
+        var url = '/' + pathSegments[1] + '/admin/search?q=' + query + '&pt=' + playerTypeID + '&apo=' + activePlayersOnly;
         var httpRequest = new XMLHttpRequest();
         httpRequest.onload = searchSuccess;
         httpRequest.onerror = searchError;
