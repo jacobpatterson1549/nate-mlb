@@ -43,8 +43,8 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 		}
 		i++
 	}
-	scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
-	return scoreCategory, nil
+	err = scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
+	return scoreCategory, err
 }
 
 // PlayerSearchResults implements the Searcher interface
