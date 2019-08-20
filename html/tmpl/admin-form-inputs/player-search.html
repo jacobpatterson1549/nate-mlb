@@ -86,7 +86,7 @@
             return;
         }
         var playerSearchResults = JSON.parse(this.responseText);
-        if (playerSearchResults.length == 0) {
+        if (playerSearchResults === null || playerSearchResults.length == 0) {
             searchError(new Error('No results'));
             return;
         }
