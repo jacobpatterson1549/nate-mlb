@@ -40,9 +40,10 @@ func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 	cacheSize := 10
 	cache := newCache(cacheSize)
 	url := "url"
-	cache.add(url, "abc")
+	cache.add(url, nil)
 	for i := 0; i < cacheSize; i++ {
-		cache.add(strconv.Itoa(i), i)
+		j := strconv.Itoa(i)
+		cache.add(j, []byte(j))
 	}
 	got := cache.contains(url)
 	want := false
@@ -54,12 +55,12 @@ func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 func TestGet(t *testing.T) {
 	cache := newCache(10)
 	url := "url"
-	value := "abc"
+	value := []byte("abc")
 	cache.add(url, value)
-	got := cache.get(url)
+	got, ok := cache.get(url)
 	want := value
-	if want != got {
-		t.Errorf("wanted %v too be in the cache for %v, but %v was present instead", want, url, got)
+	if ok && !equalBytes(want, got) {
+		t.Errorf("wanted %v to be in the cache for %v, but %v was present instead", string(want), url, string(got))
 	}
 }
 
@@ -73,4 +74,16 @@ func TestClear(t *testing.T) {
 	if want != got {
 		t.Errorf("wanted cache to not contain url %v after clearing, but it was present", url)
 	}
+}
+
+func equalBytes(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

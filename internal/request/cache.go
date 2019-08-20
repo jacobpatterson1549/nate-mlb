@@ -1,11 +1,15 @@
 package request
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type cache struct {
-	requestValues map[string]interface{}
+	requestValues map[string][]byte
 	requestUrls   []string
 	index         int
+	mutex         *sync.Mutex
 }
 
 func newCache(cacheSize int) cache {
@@ -13,9 +17,10 @@ func newCache(cacheSize int) cache {
 		panic(fmt.Sprintf("cache size must be positive - got %v", cacheSize))
 	}
 	return cache{
-		requestValues: make(map[string]interface{}),
+		requestValues: make(map[string][]byte),
 		requestUrls:   make([]string, cacheSize),
 		index:         0,
+		mutex:         &sync.Mutex{},
 	}
 }
 
@@ -24,7 +29,9 @@ func (c *cache) contains(url string) bool {
 	return ok
 }
 
-func (c *cache) add(url string, value interface{}) {
+func (c *cache) add(url string, value []byte) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	delete(c.requestValues, c.requestUrls[c.index])
 	c.requestValues[url] = value
 	c.requestUrls[c.index] = url
@@ -34,11 +41,14 @@ func (c *cache) add(url string, value interface{}) {
 	}
 }
 
-func (c *cache) get(url string) interface{} {
-	return c.requestValues[url]
+func (c *cache) get(url string) ([]byte, bool) {
+	b, ok := c.requestValues[url]
+	return b, ok
 }
 
 func (c *cache) clear() {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	for k := range c.requestValues {
 		delete(c.requestValues, k)
 	}
