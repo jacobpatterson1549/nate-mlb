@@ -39,7 +39,7 @@ CREATE TABLE friends
 CREATE TABLE player_types
 	( id INT PRIMARY KEY
 	, sport_type_id INT
-	, name VARCHAR(20) NOT NULL
+	, name VARCHAR(30) NOT NULL
 	, description TEXT
 	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
 	, CONSTRAINT sport_type_id_name_unique UNIQUE (sport_type_id, name)
@@ -91,6 +91,8 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	, (2, 1, 'Hitting', 'Home Runs')
 	, (3, 1, 'Pitching', 'Wins')
 	, (4, 2, 'Teams', 'Wins')
+	, (5, 2, 'Quarterbacks', 'Touchdown passes + runs')
+	, (6, 2, 'Runningbacks & Wide Recievers', 'Touchdowns')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_type_id, year)

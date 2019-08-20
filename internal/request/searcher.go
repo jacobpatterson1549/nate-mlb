@@ -8,6 +8,8 @@ var Searchers = map[db.PlayerType]searcher{
 	db.PlayerTypeHitter:  mlbPlayerSearcher{},
 	db.PlayerTypePitcher: mlbPlayerSearcher{},
 	db.PlayerTypeNflTeam: nflTeamRequestor{},
+	db.PlayerTypeNflQB:   nflPlayerRequestor{},
+	db.PlayerTypeNflRBWR: nflPlayerRequestor{},
 }
 
 // PlayerSearchResult contains information about the result for a searched player.
