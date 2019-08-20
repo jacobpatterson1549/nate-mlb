@@ -30,18 +30,16 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 		return scoreCategory, err
 	}
 	playerScores := make(map[int]*PlayerScore)
-	i := 0
 	for id, nt := range nflTeams {
 		wins, err := nt.wins()
 		if err != nil {
 			return scoreCategory, err
 		}
-		playerScores[i] = &PlayerScore{
+		playerScores[id] = &PlayerScore{
 			PlayerName: nt.Name,
 			PlayerID:   id,
 			Score:      wins,
 		}
-		i++
 	}
 	err = scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
 	return scoreCategory, err
