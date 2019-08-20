@@ -175,9 +175,10 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 -- nfl teams:
 	, (4, 21,  7, 0) -- New England Patriots
 	, (4, 30,  7, 1) -- Seattle Seahawks
-	, (4, 10,  7, 2) -- Detroit Lions
-	, (4,  6,  7, 3) -- Cincinnati Bengals
-	, (4, 24,  7, 4) -- New York Jets
+	, (4,  1,  7, 2) -- Atlanta Falcons
+	, (4, 10,  7, 3) -- Detroit Lions
+	, (4,  6,  7, 4) -- Cincinnati Bengals
+	, (4, 24,  7, 5) -- New York Jets
 	, (4, 20,  8, 0) -- Minnesota Vikings
 	, (4, 27,  8, 1) -- Pittsburgh Steelers
 	, (4,  4,  8, 2) -- Carolina Panthers
