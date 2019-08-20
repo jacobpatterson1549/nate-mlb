@@ -82,6 +82,12 @@ INSERT INTO friends (id, name, display_order, sport_type_id, year)
 	, (4, 'Sam',   3, 1, 2019)
 	, (5, 'Steve', 4, 1, 2019)
 	, (6, 'Mike',  5, 1, 2019)
+	, ( 7, 'Mark',   0, 2, 2018)
+	, ( 8, 'Nate',   1, 2, 2018)
+	, ( 9, 'Warren', 2, 2, 2018)
+	, (10, 'Viet',   3, 2, 2018)
+	, (11, 'Sam',    4, 2, 2018)
+
 	;
 SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id)+1 FROM friends), 1));
 
@@ -166,6 +172,36 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (3, 434378, 6, 0, 1, 2019) -- Justin Verlander
 	, (3, 543037, 6, 1, 1, 2019) -- Gerrit Cole
 	, (3, 545333, 6, 2, 1, 2019) -- Trevor Bauer
+-- nfl teams:
+	, (4, 21,  7, 0) -- New England Patriots	
+	, (4, 30,  7, 1) -- Seattle Seahawks	
+	, (4, 10,  7, 2) -- Detroit Lions	
+	, (4,  6,  7, 3) -- Cincinnati Bengals	
+	, (4, 24,  7, 4) -- New York Jets	
+	, (4, 20,  8, 0) -- Minnesota Vikings	
+	, (4, 27,  8, 1) -- Pittsburgh Steelers	
+	, (4,  4,  8, 2) -- Carolina Panthers	
+	, (4, 29,  8, 3) -- San Francisco 49ers	
+	, (4,  5,  8, 4) -- Chicago Bears	
+	, (4,  3,  8, 5) -- Buffalo Bills	
+	, (4, 15,  9, 0) -- Jacksonville Jaguars	
+	, (4, 22,  9, 1) -- New Orleans Saints	
+	, (4, 12,  9, 2) -- Tennessee Titans	
+	, (4,  9,  9, 3) -- Denver Broncos	
+	, (4, 31,  9, 4) -- Tampa Bay Buccaneers	
+	, (4,  7,  9, 5) -- Cleveland Browns	
+	, (4, 25, 10, 0) -- Philadelphia Eagles	
+	, (4, 28, 10, 1) -- Los Angeles Chargers	
+	, (4, 13, 10, 2) -- Houston Texans	
+	, (4,  8, 10, 3) -- Dallas Cowboys	
+	, (4, 23, 10, 4) -- New York Giants	
+	, (4, 14, 10, 5) -- Indianapolis Colts	
+	, (4, 17, 11, 0) -- Los Angeles Rams	
+	, (4, 11, 11, 1) -- Green Bay Packers	
+	, (4, 18, 11, 2) -- Oakland Raiders	
+	, (4, 16, 11, 3) -- Kansas City Chiefs	
+	, (4,  2, 11, 4) -- Baltimore Ravens	
+	, (4, 32, 11, 5) -- Washington Redskins	
 	;
 
 INSERT INTO users (username, password)
