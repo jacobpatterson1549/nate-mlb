@@ -203,6 +203,22 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (4, 16, 11, 3) -- Kansas City Chiefs
 	, (4,  2, 11, 4) -- Baltimore Ravens
 	, (4, 32, 11, 5) -- Washington Redskins
+-- quarterbacks
+	, (5, 2504775,  7, 0) -- Drew Brees
+	, (5, 2506109,  7, 1) -- Ben Roethlisberger
+	, (5, 2555334,  7, 2) -- Jared Goff
+	, (5, 2532975,  8, 0) -- Russell Wilson
+	, (5,   79860,  8, 1) -- Matthew Stafford
+	, (5, 2495455,  8, 2) -- Cam Newton
+	, (5, 2558063,  9, 0) -- Deshaun Watson
+	, (5, 2532820,  9, 1) -- Kirk Cousins
+	, (5, 2552466,  9, 2) -- Marcus Mariota
+	, (5, 2506363, 10, 0) -- Aaron Rodgers
+	, (5, 2506121, 10, 1) -- Philip Rivers
+	, (5, 2543801, 10, 2) -- Jimmy Garoppolo
+	, (5, 2504211, 11, 0) -- Tom Brady
+	, (5, 2555259, 11, 1) -- Carson Wentz
+	, (5, 2555334, 11, 2) -- Jared Goff
 	;
 
 INSERT INTO users (username, password)
