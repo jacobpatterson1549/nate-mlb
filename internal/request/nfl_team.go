@@ -47,16 +47,16 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 
 // PlayerSearchResults implements the Searcher interface
 func (r nflTeamRequestor) PlayerSearchResults(st db.SportType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	var nflTeamSearchResults []PlayerSearchResult
 	activeYear, err := db.GetActiveYear(st)
 	if err != nil {
-		return nflTeamSearchResults, err
+		return nil, err
 	}
 	nflTeams, err := r.requestNflTeams(activeYear)
 	if err != nil {
-		return nflTeamSearchResults, err
+		return nil, err
 	}
 
+	var nflTeamSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
 	for id, nflTeam := range nflTeams {
 		lowerTeamName := strings.ToLower(nflTeam.Name)
@@ -82,7 +82,7 @@ func (r nflTeamRequestor) requestNflTeams(year int) (map[int]NflTeam, error) {
 	for _, nt := range nflSchedule.Teams {
 		id, err := nt.id()
 		if err != nil {
-			return nflTeams, err
+			return nil, err
 		}
 		nflTeams[id] = nt
 	}
