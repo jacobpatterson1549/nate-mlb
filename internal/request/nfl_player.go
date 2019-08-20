@@ -131,7 +131,6 @@ func (r nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore
 		}
 		playerScore.PlayerName = nflPlayerInfo.fullName()
 	}
-	fmt.Println("names retrieved")
 	wg.Done()
 }
 
@@ -159,7 +158,6 @@ func (r nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore
 			playerScore.Score = score
 		}
 	}
-	fmt.Println("stats retrieved")
 	wg.Done()
 }
 
