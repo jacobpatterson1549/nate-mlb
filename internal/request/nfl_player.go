@@ -117,46 +117,64 @@ func (r nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlayer
 	return nflPlayerDetails, nil
 }
 
+func (r nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerStat, error) {
+	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&week=1&format=json", year)
+	var nflPlayerStatList NflPlayerStatList
+	err := requestStruct(url, &nflPlayerStatList)
+	if err != nil {
+		return nil, err
+	}
+	nflPlayerStats := make(map[int]NflPlayerStat)
+	for _, nps := range nflPlayerStatList.Players {
+		id, err := nps.id()
+		if err != nil {
+			return nil, err
+		}
+		nflPlayerStats[id] = nps
+	}
+	return nflPlayerStats, nil
+}
+
 func (r nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(year)
+	if err == nil {
+		for playerID, playerScore := range playerScores {
+			if err == nil {
+				nflPlayerInfo, ok := nflPlayerDetails[playerID]
+				if ok {
+					playerScore.PlayerName = nflPlayerInfo.fullName()
+				} else {
+					err = fmt.Errorf("No player details (name) found for player %v", playerID)
+				}
+			}
+		}
+	}
 	if err != nil {
 		*lastError = err
-		return
-	}
-	for playerID, playerScore := range playerScores {
-		nflPlayerInfo, ok := nflPlayerDetails[playerID]
-		if !ok {
-			*lastError = fmt.Errorf("No player details (name) found for player %v", playerID)
-			return
-		}
-		playerScore.PlayerName = nflPlayerInfo.fullName()
 	}
 	wg.Done()
 }
 
 func (r nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, pt db.PlayerType, lastError *error, wg *sync.WaitGroup) {
-	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&week=1&format=json", year)
-	var nflPlayerStatList NflPlayerStatList
-	err := requestStruct(url, &nflPlayerStatList)
+	nflPlayerStats, err := r.requestNflPlayerStats(year)
+	if err == nil {
+		var score int
+		for playerID, playerScore := range playerScores {
+			if err == nil {
+				nflPlayerStat, ok := nflPlayerStats[playerID]
+				if ok {
+					score, err = nflPlayerStat.Stat.score(pt)
+					if err != nil {
+						playerScore.Score = score
+					}
+				} else {
+					err = fmt.Errorf("No player details (name) found for player %v", playerID)
+				}
+			}
+		}
+	}
 	if err != nil {
 		*lastError = err
-		return
-	}
-
-	for _, nps := range nflPlayerStatList.Players {
-		playerID, err := nps.id()
-		if err != nil {
-			*lastError = err
-			return
-		}
-		if playerScore, ok := playerScores[playerID]; ok {
-			score, err := nps.Stat.getScore(pt)
-			if err != nil {
-				*lastError = err
-				return
-			}
-			playerScore.Score = score
-		}
 	}
 	wg.Done()
 }
@@ -181,23 +199,23 @@ func (nps NflPlayerStat) id() (int, error) {
 	return idI, nil
 }
 
-func (ns NflStat) getScore(pt db.PlayerType) (int, error) {
+func (ns NflStat) score(pt db.PlayerType) (int, error) {
 	score := 0
-	if pt == db.PlayerTypeNflQB {
+	if pt == db.PlayerTypeNflQB && len(ns.PassingTD) != 0 {
 		td, err := strconv.Atoi(ns.PassingTD)
 		if err != nil {
 			return score, fmt.Errorf("problem: could not get PassingTD from %v", ns)
 		}
 		score += td
 	}
-	if pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflRBWR {
+	if (pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflRBWR) && len(ns.RushingTD) != 0 {
 		td, err := strconv.Atoi(ns.RushingTD)
 		if err != nil {
 			return score, fmt.Errorf("problem: could not get RushingTD from %v", ns)
 		}
 		score += td
 	}
-	if pt == db.PlayerTypeNflRBWR {
+	if pt == db.PlayerTypeNflRBWR && len(ns.ReceivingTD) != 0 {
 		td, err := strconv.Atoi(ns.ReceivingTD)
 		if err != nil {
 			return score, fmt.Errorf("problem: could not get ReceivingTD from %v", ns)
