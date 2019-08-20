@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/server"
@@ -13,14 +11,6 @@ import (
 )
 
 func main() {
-	data := `{"lastUpdated":"2019-08-20 03:01:34","players":[{"id":"100029","esbid":null,"gsisPlayerId":false,"firstName":"San Francisco","lastName":"49ers","teamAbbr":"SF","opponentTeamAbbr":"@MIN","position":"DEF","percentOwned":false,"percentOwnedChange":false,"percentStarted":false,"percentStartedChange":false,"depthChartOrder":null,"numAdds":78,"numDrops":49}]}`
-	var playerList NflPlayerList
-	errJ := json.Unmarshal([]byte(data), &playerList)
-	if errJ != nil {
-		panic(errJ)
-	}
-	fmt.Println("playerList:", playerList)
-
 	driverName := "postgres"
 	dataSourceName, ok := os.LookupEnv("DATABASE_URL")
 	if !ok {
@@ -44,18 +34,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-// NflPlayerList contains information about all the players for a particular year
-type NflPlayerList struct {
-	Date    string          `json:"lastUpdated"`
-	Players []NflPlayerInfo `json:"players"`
-}
-
-// NflPlayerInfo is information about a player for a year
-type NflPlayerInfo struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Team      string `json:"teamAbbr"`
 }
