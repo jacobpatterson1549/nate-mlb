@@ -7,7 +7,7 @@ type PlayerType int
 
 // The expected PlayerTypes
 const (
-	PlayerTypeTeam    PlayerType = 1 // TODO Rename this when adding NFL PlayerTypes
+	PlayerTypeMlbTeam PlayerType = 1
 	PlayerTypeHitter  PlayerType = 2
 	PlayerTypePitcher PlayerType = 3
 	PlayerTypeNflTeam PlayerType = 4
@@ -61,7 +61,7 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 			return nil, fmt.Errorf("problem reading player type: %v", err)
 		}
 		switch playerType {
-		case PlayerTypeTeam, PlayerTypeHitter, PlayerTypePitcher,
+		case PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
 			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflRBWR:
 			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name

@@ -9,7 +9,7 @@ import (
 
 // ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
 var ScoreCategorizers = map[db.PlayerType]ScoreCategorizer{
-	db.PlayerTypeTeam:    mlbTeamRequestor{},
+	db.PlayerTypeMlbTeam: mlbTeamRequestor{},
 	db.PlayerTypeHitter:  mlbPlayerRequestor{playerType: db.PlayerTypeHitter},
 	db.PlayerTypePitcher: mlbPlayerRequestor{playerType: db.PlayerTypePitcher},
 	db.PlayerTypeNflTeam: nflTeamRequestor{},

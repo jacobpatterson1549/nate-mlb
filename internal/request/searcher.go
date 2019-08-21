@@ -4,7 +4,7 @@ import "nate-mlb/internal/db"
 
 // Searchers maps PlayerTypes to Searchers for them.
 var Searchers = map[db.PlayerType]searcher{
-	db.PlayerTypeTeam:    mlbTeamRequestor{},
+	db.PlayerTypeMlbTeam: mlbTeamRequestor{},
 	db.PlayerTypeHitter:  mlbPlayerSearcher{},
 	db.PlayerTypePitcher: mlbPlayerSearcher{},
 	db.PlayerTypeNflTeam: nflTeamRequestor{},
