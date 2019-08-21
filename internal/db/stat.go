@@ -16,7 +16,7 @@ func GetEtlStatsJSON(st SportType) (string, error) {
 	err := row.Scan(&etlJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = errors.New("no active year")
+			err = errors.New("no active year to get previous stats for")
 		} else {
 			err = fmt.Errorf("problem getting stats: %v", err)
 		}
