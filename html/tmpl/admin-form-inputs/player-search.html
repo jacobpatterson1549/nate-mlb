@@ -8,10 +8,10 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form">
+                <form id="player-search-form" method="GET" onsubmit="return searchPlayers()">
                     <div class="form-inline">
                         <input class="form-control mr-2" type="search" id="player-search" placeholder="Search">
-                        <button class="btn btn-outline-success" type="button" onclick="searchPlayers()">Search</button>
+                        <button class="btn btn-outline-success" type="submit" form="player-search-form">Search</button>
                     </div>
                     <div class="form-check my-1">
                         <input class="form-check-input" type="checkbox" name="active-players-only"
@@ -36,7 +36,7 @@
                         </div>
                     </template>
                     <div id="results"></div>
-                </div>
+                </form>
                 <div class="modal-footer form-group">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
@@ -78,6 +78,7 @@
         httpRequest.onerror = searchError;
         httpRequest.open('GET', url, true);
         httpRequest.send();
+        return false;
     }
 
     function searchSuccess() {
