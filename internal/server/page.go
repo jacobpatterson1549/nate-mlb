@@ -3,6 +3,7 @@ package server
 import (
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -21,16 +22,21 @@ type Page struct {
 // Tab is a tab which gets rendered by the main template
 type Tab interface {
 	GetName() string
+	GetID(string) string
 }
+
+type jsTab struct{}
 
 // StatsTab provides stats information
 type StatsTab struct {
+	jsTab
 	ScoreCategory request.ScoreCategory
 	ExportURL     string
 }
 
 // AdminTab provides tabs with admin tasks.
 type AdminTab struct {
+	jsTab
 	Name   string
 	Action string
 	Data   []interface{} // each template knows what data to expect
@@ -68,6 +74,13 @@ func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage,
 		templateNames: templateNames,
 		PageLoadTime:  db.GetUtcTime(),
 	}
+}
+
+// GetID returns the js-safe id for the specified name
+// https://www.w3.org/TR/html4/types.html#type-id
+func (jsTab) GetID(name string) string {
+	invalidCharacterRegex := regexp.MustCompile("[^-_:.A-Za-z0-9]")
+	return invalidCharacterRegex.ReplaceAllString(name, "x")
 }
 
 // GetName implements the Tab interface for AdminTab
