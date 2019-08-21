@@ -97,8 +97,8 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	, (2, 1, 'Hitting', 'Home Runs')
 	, (3, 1, 'Pitching', 'Wins')
 	, (4, 2, 'Teams', 'Wins')
-	, (5, 2, 'Quarterbacks', 'Touchdown passes + runs')
-	, (6, 2, 'Runningbacks & Wide Recievers', 'Touchdowns')
+	, (5, 2, 'Quarterbacks', 'Touchdown passes and runs')
+	, (6, 2, 'Runningbacks and Wide Recievers', 'Touchdowns')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_type_id, year)
