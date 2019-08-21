@@ -26,7 +26,7 @@ func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
 
 func createRecords(es EtlStats) [][]string {
 	records := make([][]string, 3)
-	records[0] = []string{"nate-mlb", strconv.Itoa(es.Year())}
+	records[0] = []string{"nate-mlb", strconv.Itoa(es.year)}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
 	for i, sc := range es.ScoreCategories {
 		if i != 0 {

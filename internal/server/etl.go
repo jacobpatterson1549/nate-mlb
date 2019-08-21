@@ -118,18 +118,3 @@ func previousMidnight(t time.Time) time.Time {
 	}
 	return midnight
 }
-
-// EtlRefreshTime is the time the last refresh of the stats should have occurred
-func (es *EtlStats) EtlRefreshTime() time.Time {
-	return es.etlRefreshTime
-}
-
-// SportType is the SportType of the stats
-func (es *EtlStats) SportType() db.SportType {
-	return es.sportType
-}
-
-// Year is the year the stats are for
-func (es *EtlStats) Year() int {
-	return es.year
-}

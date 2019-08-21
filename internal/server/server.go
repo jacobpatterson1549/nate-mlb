@@ -84,14 +84,14 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	for i, sc := range es.ScoreCategories {
 		tabs[i] = StatsTab{
 			ScoreCategory: sc,
-			ExportURL:     fmt.Sprintf("/%s/export", es.SportType().URL()),
+			ExportURL:     fmt.Sprintf("/%s/export", es.sportType.URL()),
 		}
 	}
 	timesMessage := TimesMessage{
 		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
-		Times:    []time.Time{es.EtlRefreshTime(), es.EtlTime},
+		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
-	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.Year())
+	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
 	statsPage := newPage(title, tabs, true, timesMessage, "html/tmpl/stats.html")
 	return renderTemplate(w, statsPage)
 }
