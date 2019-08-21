@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 )
 
@@ -16,7 +15,7 @@ func GetEtlStatsJSON(st SportType) (string, error) {
 	err := row.Scan(&etlJSON)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = errors.New("no active year to get previous stats for")
+			err = fmt.Errorf("no active year to get previous stats for (sportType %v)", st)
 		} else {
 			err = fmt.Errorf("problem getting stats: %v", err)
 		}
