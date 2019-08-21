@@ -12,9 +12,11 @@ import (
 // EtlStats contains ScoreCategories that were stored at a specific time
 type EtlStats struct {
 	EtlTime         time.Time
-	EtlRefreshTime  time.Time
 	ScoreCategories []request.ScoreCategory
-	SportType       db.SportType
+	// do not serialize these fields:
+	etlRefreshTime time.Time
+	sportType      db.SportType
+	year           int
 }
 
 // getEtlStats retrieves, calculates, and caches the player stats
@@ -22,19 +24,21 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	var es EtlStats
 
 	var year int
-	etlJSON, err := db.GetEtlStatsJSON(st)
+	stat, err := db.GetEtlStatsJSON(st)
 	if err != nil {
 		return es, err
 	}
 	fetchStats := true
 	currentTime := db.GetUtcTime()
-	if len(etlJSON) > 0 {
-		err = json.Unmarshal([]byte(etlJSON), &es)
+	es.etlRefreshTime = previousMidnight(currentTime)
+	es.sportType = st
+	es.year = stat.Year
+	if len(stat.EtlStatsJSON) > 0 {
+		err = json.Unmarshal([]byte(stat.EtlStatsJSON), &es)
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
 		}
-		es.EtlRefreshTime = previousMidnight(currentTime)
-		fetchStats = es.EtlTime.Before(es.EtlRefreshTime)
+		fetchStats = es.EtlTime.Before(es.etlRefreshTime)
 	}
 	if fetchStats {
 		scoreCategories, err := es.getScoreCategories(st)
@@ -43,7 +47,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		}
 		es.EtlTime = currentTime
 		es.ScoreCategories = scoreCategories
-		es.SportType = st
+		es.sportType = st
 		etlJSON, err := json.Marshal(es)
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
@@ -113,4 +117,19 @@ func previousMidnight(t time.Time) time.Time {
 		midnight = midnight.Add(-24 * time.Hour)
 	}
 	return midnight
+}
+
+// EtlRefreshTime is the time the last refresh of the stats should have occurred
+func (es *EtlStats) EtlRefreshTime() time.Time {
+	return es.etlRefreshTime
+}
+
+// SportType is the SportType of the stats
+func (es *EtlStats) SportType() db.SportType {
+	return es.sportType
+}
+
+// Year is the year the stats are for
+func (es *EtlStats) Year() int {
+	return es.year
 }

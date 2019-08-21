@@ -5,27 +5,34 @@ import (
 	"fmt"
 )
 
+// Stat is a wrapper for EtlStatsJSON and the year the stats are for
+type Stat struct {
+	EtlStatsJSON string
+	Year         int
+}
+
 // GetEtlStatsJSON gets the stats for the current year
-func GetEtlStatsJSON(st SportType) (string, error) {
+func GetEtlStatsJSON(st SportType) (Stat, error) {
 	var etlJSON sql.NullString
+	var stat Stat
 	row := db.QueryRow(
-		"SELECT etl_json FROM stats WHERE sport_type_id = $1 AND active",
+		"SELECT etl_json, year FROM stats WHERE sport_type_id = $1 AND active",
 		st,
 	)
-	err := row.Scan(&etlJSON)
+	err := row.Scan(&etlJSON, &stat.Year)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = fmt.Errorf("no active year to get previous stats for (sportType %v)", st)
 		} else {
 			err = fmt.Errorf("problem getting stats: %v", err)
 		}
-		return "", err
+		return stat, err
 	}
 
-	if !etlJSON.Valid {
-		return "", nil
+	if etlJSON.Valid {
+		stat.EtlStatsJSON = etlJSON.String
 	}
-	return etlJSON.String, nil
+	return stat, nil
 }
 
 // SetEtlStats sets the stats for the current year
