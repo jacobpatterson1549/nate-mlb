@@ -57,27 +57,27 @@
       </ul>
     </div>
   </nav>
-  {{- if (and (eq (len .Tabs) 1) (or (eq (index .Tabs 0).Name "Home") (eq (index .Tabs 0).Name "About"))) -}}
-  {{- template "content" . -}}
-  {{- else -}}
+  {{- if .ShowTabs -}}
   <div id="main-tabs">
     <div class="mb-3" id="main-tabs-tabs" role="tablist">
       <ul class="nav nav-tabs">
         {{range .Tabs -}}
         <li class="nav-item">
-          <a id="{{.GetID}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID}}" role="tab">{{.GetName}}</a>
+          <a id="{{js .GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{js .GetName}}" role="tab">{{.GetName}}</a>
         </li>
         {{end -}}
       </ul>
     </div>
     <div id="main-tabs-content" class="tab-content" role="main">
       {{range .Tabs -}}
-      <div id="{{.GetID}}" class="tab-pane fade" role="tabpanel">
+      <div id="{{js .GetName}}" class="tab-pane fade" role="tabpanel">
         {{- template "content" . -}}
       </div>
       {{end -}}
     </div>
   </div>
+  {{- else -}}
+  {{- template "content" . -}}
   {{- end -}}
   <div role="contentinfo">
     {{- if .TimesMessage.Messages -}}

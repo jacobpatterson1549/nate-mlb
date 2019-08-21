@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"nate-mlb/internal/db"
 	"sort"
-	"strings"
 )
 
 // ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
@@ -78,16 +77,6 @@ func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerT
 	}
 	friendScore.populateScore(onlySumTopTwoPlayerScores)
 	return friendScore, nil
-}
-
-// GetName implements the server.Tab interface for ScoreCategory
-func (sc ScoreCategory) GetName() string {
-	return sc.Name
-}
-
-// GetID implements the server.Tab interface for ScoreCategory
-func (sc ScoreCategory) GetID() string {
-	return strings.ReplaceAll(sc.GetName(), " ", "-")
 }
 
 func (friendScore *FriendScore) populatePlayerScores(players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore) error {

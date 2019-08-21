@@ -35,7 +35,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
-	st := db.GetSportType(firstPathSegment)
+	st := db.SportTypeFromURL(firstPathSegment)
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)
@@ -70,7 +70,7 @@ func getFirstPathSegment(urlPath string) string {
 
 func writeHomePage(w http.ResponseWriter) error {
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage("Nate's Stats", []Tab{homeTab}, TimesMessage{}, "html/tmpl/home.html")
+	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/tmpl/home.html")
 	return renderTemplate(w, homePage)
 }
 
@@ -82,13 +82,16 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 
 	tabs := make([]Tab, len(es.ScoreCategories))
 	for i, sc := range es.ScoreCategories {
-		tabs[i] = sc
+		tabs[i] = StatsTab{
+			ScoreCategory: sc,
+			ExportURL:     fmt.Sprintf("/%s/export", es.SportType.URL()),
+		}
 	}
 	timesMessage := TimesMessage{
 		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
 		Times:    []time.Time{es.EtlRefreshTime, es.EtlTime},
 	}
-	statsPage := newPage("Nate's MLB pool", tabs, timesMessage, "html/tmpl/stats.html")
+	statsPage := newPage("Nate's MLB pool", tabs, true, timesMessage, "html/tmpl/stats.html")
 	return renderTemplate(w, statsPage)
 }
 
@@ -134,7 +137,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) erro
 		templateNames[i+2] = fmt.Sprintf("html/tmpl/admin-form-inputs/%s.html", adminTab.Action)
 	}
 	timesMessage := TimesMessage{Messages: []string{message}}
-	adminPage := newPage("Nate's MLB pool [ADMIN MODE]", tabs, timesMessage, templateNames...)
+	adminPage := newPage("Nate's MLB pool [ADMIN MODE]", tabs, true, timesMessage, templateNames...)
 	return renderTemplate(w, adminPage)
 }
 
@@ -149,7 +152,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's MLB", []Tab{aboutTab}, timesMessage, "html/tmpl/about.html")
+	aboutPage := newPage("About Nate's MLB", []Tab{aboutTab}, false, timesMessage, "html/tmpl/about.html")
 	return renderTemplate(w, aboutPage)
 }
 

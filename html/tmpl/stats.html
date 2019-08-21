@@ -1,8 +1,9 @@
 {{define "content"}}
-<h2 class="text-primary">{{.Description}}</h2>
+{{- with $sc := .ScoreCategory -}}
+<h2 class="text-primary">{{$sc.Description}}</h2>
 <div class="container">
     <div class="row">
-        {{range .FriendScores -}}
+        {{range $sc.FriendScores -}}
         <div class="col-sm m-2">
             <div class="card">
                 <div class="card-body">
@@ -36,5 +37,6 @@
         {{end -}}
     </div>
 </div>
-<a href="/export" download>CSV Spreadsheet Export</a>
+{{- end -}}
+<a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
 {{end}}

@@ -2,6 +2,7 @@ package server
 
 import (
 	"nate-mlb/internal/db"
+	"nate-mlb/internal/request"
 	"strings"
 	"time"
 )
@@ -10,6 +11,7 @@ import (
 type Page struct {
 	Title         string
 	Tabs          []Tab
+	ShowTabs      bool
 	Sports        []SportEntry
 	TimesMessage  TimesMessage
 	templateNames []string
@@ -19,7 +21,12 @@ type Page struct {
 // Tab is a tab which gets rendered by the main template
 type Tab interface {
 	GetName() string
-	GetID() string
+}
+
+// StatsTab provides stats information
+type StatsTab struct {
+	ScoreCategory request.ScoreCategory
+	ExportURL     string
 }
 
 // AdminTab provides tabs with admin tasks.
@@ -41,7 +48,7 @@ type TimesMessage struct {
 	Times    []time.Time
 }
 
-func newPage(title string, tabs []Tab, timesMessage TimesMessage, templateNames ...string) Page {
+func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, templateNames ...string) Page {
 	getSportEntry := func(st db.SportType) SportEntry {
 		return SportEntry{
 			URL:  strings.ToLower(st.Name()),
@@ -56,6 +63,7 @@ func newPage(title string, tabs []Tab, timesMessage TimesMessage, templateNames 
 		Title:         title,
 		Tabs:          tabs,
 		Sports:        sports,
+		ShowTabs:      showTabs,
 		TimesMessage:  timesMessage,
 		templateNames: templateNames,
 		PageLoadTime:  db.GetUtcTime(),
@@ -67,7 +75,7 @@ func (at AdminTab) GetName() string {
 	return at.Name
 }
 
-// GetID implements the Tab interface for AdminTab
-func (at AdminTab) GetID() string {
-	return strings.ReplaceAll(at.GetName(), " ", "-")
+// GetName implements the Tab interface for StatsTab
+func (st StatsTab) GetName() string {
+	return st.ScoreCategory.Name
 }

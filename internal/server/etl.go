@@ -14,6 +14,7 @@ type EtlStats struct {
 	EtlTime         time.Time
 	EtlRefreshTime  time.Time
 	ScoreCategories []request.ScoreCategory
+	SportType       db.SportType
 }
 
 // getEtlStats retrieves, calculates, and caches the player stats
@@ -40,8 +41,9 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		if err != nil {
 			return es, err
 		}
-		es.ScoreCategories = scoreCategories
 		es.EtlTime = currentTime
+		es.ScoreCategories = scoreCategories
+		es.SportType = st
 		etlJSON, err := json.Marshal(es)
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
