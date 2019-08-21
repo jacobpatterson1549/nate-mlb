@@ -219,6 +219,19 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (5, 2504211, 11, 2, 0, 2, 2018) -- Tom Brady
 	, (5, 2555259, 11, 2, 1, 2, 2018) -- Carson Wentz
 	, (5, 2555334, 11, 2, 2, 2, 2018) -- Jared Goff
+-- running backs and wide receivers
+	, (6, 2556841,  7, 0, 2, 2018) -- Byron Marshall	
+	, (6, 2543496,  7, 1, 2, 2018) -- Odell Beckham	
+	, (6, 2508061,  8, 0, 2, 2018) -- Antonio Brown	
+	, (6, 2557997,  8, 1, 2, 2018) -- Christian McCaffrey	
+	, (6, 2558019,  9, 0, 2, 2018) -- Alvin Kamara	
+	, (6, 2555224,  9, 1, 2, 2018) -- Ezekiel Elliott	
+	, (6, 2552487,  9, 2, 2, 2018) -- Amari Cooper	
+	, (6, 2553435, 10, 0, 2, 2018) -- David Johnson	
+	, (6, 2557973, 10, 1, 2, 2018) -- Leonard Fournette	
+	, (6, 2552475, 10, 0, 2, 2018) -- Todd Gurley	
+	, (6, 2540165, 11, 1, 2, 2018) -- DeAndre Hopkins	
+	, (6, 2530747, 11, 2, 2, 2018) -- Doug Baldwin	
 	;
 
 INSERT INTO users (username, password)
