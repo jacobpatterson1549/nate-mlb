@@ -5,7 +5,14 @@
 -- \q
 -- $ PGPASSWORD=Have19_each%Iowa psql nate -h 127.0.0.1 -d nate_mlb_db
 
---DROP TABLE sport_types, stats, friends, player_types, players;--, users;
+CREATE TABLE users
+	( username VARCHAR(20) PRIMARY KEY
+	, password TEXT
+	);
+INSERT INTO users (username, password)
+	VALUES ('admin', 'invalid_hash_value');
+
+--DROP TABLE sport_types, stats, friends, player_types, players;
 
 CREATE TABLE sport_types
 	( id SERIAL PRIMARY KEY
@@ -59,11 +66,6 @@ CREATE TABLE players
 	, FOREIGN KEY (sport_type_id, year) REFERENCES stats (sport_type_id, year) ON DELETE CASCADE
 	);
 
-CREATE TABLE users
-	( username VARCHAR(20) PRIMARY KEY
-	, password TEXT
-	);
-
 INSERT INTO sport_types (id, name) VALUES (
 	   1, 'mlb')
 	, (2, 'nfl')
@@ -73,7 +75,9 @@ SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types)
 INSERT INTO stats (sport_type_id, year, active)
 	VALUES (
 	   1, 2019, TRUE)
-	, (2, 2018, TRUE))
+	, (2, 2018, TRUE)
+	;
+
 INSERT INTO friends (id, name, display_order, sport_type_id, year)
 	VALUES (
 	   1, 'Bob',   0, 1, 2019)
@@ -97,8 +101,8 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	, (2, 1, 'Hitting', 'Home Runs')
 	, (3, 1, 'Pitching', 'Wins')
 	, (4, 2, 'Teams', 'Wins')
-	, (5, 2, 'Quarterbacks', 'Touchdown passes and runs')
-	, (6, 2, 'Runningbacks and Wide Recievers', 'Touchdowns')
+	, (5, 2, 'Quarterbacks', 'Touchdown (passes+runs)')
+	, (6, 2, 'Runningbacks & Recievers', 'Touchdowns')
 	;
 
 INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_type_id, year)
@@ -204,21 +208,21 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (4,  2, 11, 4, 2, 2018) -- Baltimore Ravens
 	, (4, 32, 11, 5, 2, 2018) -- Washington Redskins
 -- quarterbacks
-	, (5, 2504775,  7, 2, 0, 2, 2018) -- Drew Brees
-	, (5, 2506109,  7, 2, 1, 2, 2018) -- Ben Roethlisberger
-	, (5, 2555334,  7, 2, 2, 2, 2018) -- Jared Goff
-	, (5, 2532975,  8, 2, 0, 2, 2018) -- Russell Wilson
-	, (5,   79860,  8, 2, 1, 2, 2018) -- Matthew Stafford
-	, (5, 2495455,  8, 2, 2, 2, 2018) -- Cam Newton
-	, (5, 2558063,  9, 2, 0, 2, 2018) -- Deshaun Watson
-	, (5, 2532820,  9, 2, 1, 2, 2018) -- Kirk Cousins
-	, (5, 2552466,  9, 2, 2, 2, 2018) -- Marcus Mariota
-	, (5, 2506363, 10, 2, 0, 2, 2018) -- Aaron Rodgers
-	, (5, 2506121, 10, 2, 1, 2, 2018) -- Philip Rivers
-	, (5, 2543801, 10, 2, 2, 2, 2018) -- Jimmy Garoppolo
-	, (5, 2504211, 11, 2, 0, 2, 2018) -- Tom Brady
-	, (5, 2555259, 11, 2, 1, 2, 2018) -- Carson Wentz
-	, (5, 2555334, 11, 2, 2, 2, 2018) -- Jared Goff
+	, (5, 2504775,  7, 0, 2, 2018) -- Drew Brees
+	, (5, 2506109,  7, 1, 2, 2018) -- Ben Roethlisberger
+	, (5, 2555334,  7, 2, 2, 2018) -- Jared Goff
+	, (5, 2532975,  8, 0, 2, 2018) -- Russell Wilson
+	, (5,   79860,  8, 1, 2, 2018) -- Matthew Stafford
+	, (5, 2495455,  8, 2, 2, 2018) -- Cam Newton
+	, (5, 2558063,  9, 0, 2, 2018) -- Deshaun Watson
+	, (5, 2532820,  9, 1, 2, 2018) -- Kirk Cousins
+	, (5, 2552466,  9, 2, 2, 2018) -- Marcus Mariota
+	, (5, 2506363, 10, 0, 2, 2018) -- Aaron Rodgers
+	, (5, 2506121, 10, 1, 2, 2018) -- Philip Rivers
+	, (5, 2543801, 10, 2, 2, 2018) -- Jimmy Garoppolo
+	, (5, 2504211, 11, 0, 2, 2018) -- Tom Brady
+	, (5, 2555259, 11, 1, 2, 2018) -- Carson Wentz
+	, (5, 2555334, 11, 2, 2, 2018) -- Jared Goff
 -- running backs and wide receivers
 	, (6, 2556841,  7, 0, 2, 2018) -- Byron Marshall	
 	, (6, 2543496,  7, 1, 2, 2018) -- Odell Beckham	
@@ -233,6 +237,3 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (6, 2540165, 11, 1, 2, 2018) -- DeAndre Hopkins	
 	, (6, 2530747, 11, 2, 2, 2018) -- Doug Baldwin	
 	;
-
-INSERT INTO users (username, password)
-	VALUES ('admin', 'invalid_hash_value');
