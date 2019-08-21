@@ -38,6 +38,13 @@ var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDep
 		},
 		wantError: true,
 	},
+	{
+		// long version should be trucnated like it is on github
+		grd: []GithubRepoDeployment{
+			GithubRepoDeployment{Version: "1234567890", Time: "2019-08-13T02:47:32Z"},
+		},
+		want: Deployment{Version: "1234567", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
+	},
 }
 
 func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {

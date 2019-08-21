@@ -47,5 +47,8 @@ func (d *Deployment) setFromGithubRepoDeployment(grd GithubRepoDeployment) error
 		return fmt.Errorf("problem parsing %v into date: %v", grd.Time, err)
 	}
 	d.Version = grd.Version
+	if len(d.Version) > 7 {
+		d.Version = d.Version[:7]
+	}
 	return nil
 }
