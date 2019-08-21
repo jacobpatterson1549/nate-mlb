@@ -108,11 +108,11 @@ func (es EtlStats) getScoreCategory(scoreCategories []request.ScoreCategory, ind
 
 // previousMidnight returns the previous midnight relative to Honolulu time (UTC-10)
 func previousMidnight(t time.Time) time.Time {
-	midnight := time.Date(t.Year(), t.Month(), t.Day(), 10, 0, 0, 0, t.Location())
+	midnight := time.Date(t.Year(), t.Month(), t.Day(), 10, 0, 0, 0, time.UTC)
 	if midnight.After(t) {
 		midnight = midnight.Add(-24 * time.Hour)
 	}
-	return midnight
+	return midnight.In(t.Location())
 }
 
 func (es EtlStats) toStat() (db.Stat, error) {
