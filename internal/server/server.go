@@ -91,7 +91,8 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
 		Times:    []time.Time{es.EtlRefreshTime, es.EtlTime},
 	}
-	statsPage := newPage("Nate's MLB pool", tabs, true, timesMessage, "html/tmpl/stats.html")
+	title := fmt.Sprintf("Nate's %s pool", st.Name())
+	statsPage := newPage(title, tabs, true, timesMessage, "html/tmpl/stats.html")
 	return renderTemplate(w, statsPage)
 }
 
@@ -137,7 +138,8 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) erro
 		templateNames[i+2] = fmt.Sprintf("html/tmpl/admin-form-inputs/%s.html", adminTab.Action)
 	}
 	timesMessage := TimesMessage{Messages: []string{message}}
-	adminPage := newPage("Nate's MLB pool [ADMIN MODE]", tabs, true, timesMessage, templateNames...)
+	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
+	adminPage := newPage(title, tabs, true, timesMessage, templateNames...)
 	return renderTemplate(w, adminPage)
 }
 
@@ -152,7 +154,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's MLB", []Tab{aboutTab}, false, timesMessage, "html/tmpl/about.html")
+	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/tmpl/about.html")
 	return renderTemplate(w, aboutPage)
 }
 
