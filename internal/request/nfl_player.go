@@ -98,7 +98,7 @@ func (r nflPlayerRequestor) PlayerSearchResults(st db.SportType, playerNamePrefi
 	return nflPlayerSearchResults, nil
 }
 
-func (r nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlayerInfo, error) {
+func (r *nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlayerInfo, error) {
 	var nflPlayerList NflPlayerList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
@@ -117,7 +117,7 @@ func (r nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlayer
 	return nflPlayerDetails, nil
 }
 
-func (r nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerStat, error) {
+func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerStat, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&week=1&format=json", year)
 	var nflPlayerStatList NflPlayerStatList
 	err := requestStruct(url, &nflPlayerStatList)
@@ -135,7 +135,7 @@ func (r nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerSt
 	return nflPlayerStats, nil
 }
 
-func (r nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
+func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(year)
 	if err == nil {
 		for playerID, playerScore := range playerScores {
@@ -155,7 +155,7 @@ func (r nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore
 	wg.Done()
 }
 
-func (r nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, pt db.PlayerType, lastError *error, wg *sync.WaitGroup) {
+func (r *nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, pt db.PlayerType, lastError *error, wg *sync.WaitGroup) {
 	nflPlayerStats, err := r.requestNflPlayerStats(year)
 	if err == nil {
 		var score int
@@ -164,7 +164,7 @@ func (r nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore
 				nflPlayerStat, ok := nflPlayerStats[playerID]
 				if ok {
 					score, err = nflPlayerStat.Stat.score(pt)
-					if err != nil {
+					if err == nil {
 						playerScore.Score = score
 					}
 				} else {
@@ -179,7 +179,7 @@ func (r nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore
 	wg.Done()
 }
 
-func (npi NflPlayerInfo) id() (int, error) {
+func (npi *NflPlayerInfo) id() (int, error) {
 	idI, err := strconv.Atoi(npi.ID)
 	if err != nil {
 		return -1, fmt.Errorf("Invalid Id number for %v", npi)
@@ -187,11 +187,11 @@ func (npi NflPlayerInfo) id() (int, error) {
 	return idI, nil
 }
 
-func (npi NflPlayerInfo) fullName() string {
+func (npi *NflPlayerInfo) fullName() string {
 	return fmt.Sprintf("%s %s", npi.FirstName, npi.LastName)
 }
 
-func (nps NflPlayerStat) id() (int, error) {
+func (nps *NflPlayerStat) id() (int, error) {
 	idI, err := strconv.Atoi(nps.ID)
 	if err != nil {
 		return -1, fmt.Errorf("Invalid Id number for %v", nps)
@@ -199,7 +199,7 @@ func (nps NflPlayerStat) id() (int, error) {
 	return idI, nil
 }
 
-func (ns NflStat) score(pt db.PlayerType) (int, error) {
+func (ns *NflStat) score(pt db.PlayerType) (int, error) {
 	score := 0
 	if pt == db.PlayerTypeNflQB && len(ns.PassingTD) != 0 {
 		td, err := strconv.Atoi(ns.PassingTD)
