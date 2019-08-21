@@ -23,7 +23,7 @@ func PreviousDeployment() (Deployment, error) {
 	repo := "nate-mlb"
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
 	var grd []GithubRepoDeployment
-	err := requestStruct(url, grd)
+	err := requestStruct(url, &grd)
 
 	var previousDeployment Deployment
 	if err != nil {
