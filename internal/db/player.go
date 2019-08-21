@@ -16,7 +16,7 @@ type Player struct {
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
-		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN stats AS s ON p.year = s.year JOIN friends AS f ON p.friend_id = f.id WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, f.display_order, p.display_order",
+		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN friends AS f ON p.friend_id = f.id JOIN stats AS s ON f.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, f.display_order, p.display_order",
 		st,
 	)
 	if err != nil {
@@ -64,7 +64,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	i := 0
 	for _, insertPlayer := range insertPlayers {
 		queries[i] = query{
-			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, sport_type_id, year) SELECT $1, $2, $3, $4, $5, year FROM stats AS s WHERE s.sport_type_id = $5 AND s.active",
+			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, sport_type_id) SELECT $1, $2, $3, $4, $5 FROM stats AS s WHERE s.sport_type_id = $5 AND s.active",
 			args: make([]interface{}, 5),
 		}
 		queries[i].args[0] = insertPlayer.DisplayOrder

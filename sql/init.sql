@@ -58,13 +58,13 @@ CREATE TABLE players
 	, player_id INT NOT NULL
 	, friend_id INT NOT NULL
 	, display_order INT DEFAULT 0
-	, year INT NOT NULL
 	, CONSTRAINT player_type_id_player_id_friend_id_unique UNIQUE (player_type_id, player_id, friend_id)
 	, FOREIGN KEY (player_type_id) REFERENCES player_types (id) ON DELETE RESTRICT
 	, FOREIGN KEY (friend_id) REFERENCES friends (id) ON DELETE CASCADE
 	);
 
-INSERT INTO sport_types (id, name) VALUES (
+INSERT INTO sport_types (id, name)
+	VALUES (
 	   1, 'mlb')
 	, (2, 'nfl')
 	;
@@ -103,135 +103,135 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	, (6, 2, 'Runningbacks & Recievers', 'Touchdowns')
 	;
 
-INSERT INTO players (player_type_id, player_id, friend_id, display_order, year)
+INSERT INTO players (player_type_id, player_id, friend_id, display_order)
 	VALUES (
 -- teams:  name_display_full
-	   1, 111, 1, 0, 2019) -- Boston Red Sox
-	, (1, 112, 1, 1, 2019) -- Chicago Cubs
-	, (1, 142, 1, 2, 2019) -- Minnesota Twins
-	, (1, 136, 1, 3, 2019) -- Seattle Mariners
-	, (1, 118, 1, 4, 2019) -- Kansas City Royal
-	, (1, 147, 2, 0, 2019) -- New York Yankees
-	, (1, 143, 2, 1, 2019) -- Philadelphia Phillies
-	, (1, 115, 2, 2, 2019) -- Colorado Rockies
-	, (1, 134, 2, 3, 2019) -- Pittsburgh Pirates
-	, (1, 146, 2, 4, 2019) -- Miami Marlins
-	, (1, 158, 3, 0, 2019) -- Milwaukee Brewers
-	, (1, 138, 3, 1, 2019) -- St. Louis Cardinals
-	, (1, 108, 3, 2, 2019) -- Los Angeles Angels
-	, (1, 145, 3, 3, 2019) -- Chicago White Sox
-	, (1, 137, 3, 4, 2019) -- San Francisco Giants
-	, (1, 117, 4, 0, 2019) -- Houston Astros
-	, (1, 139, 4, 1, 2019) -- Tampa Bay Rays
-	, (1, 121, 4, 2, 2019) -- New York Mets
-	, (1, 141, 4, 3, 2019) -- Toronto Blue Jays
-	, (1, 137, 4, 4, 2019) -- San Francisco Giants
-	, (1, 119, 5, 0, 2019) -- Los Angeles Dodgers
-	, (1, 144, 5, 1, 2019) -- Atlanta Braves
-	, (1, 109, 5, 2, 2019) -- Arizona Diamondbacks
-	, (1, 113, 5, 3, 2019) -- Cincinnati Reds
-	, (1, 116, 5, 4, 2019) -- Detroit Tigers
-	, (1, 114, 6, 0, 2019) -- Cleveland Indians
-	, (1, 120, 6, 1, 2019) -- Washington Nationals
-	, (1, 133, 6, 2, 2019) -- Oakland Athletics
-	, (1, 135, 6, 3, 2019) -- San Diego Padres
-	, (1, 137, 6, 4, 2019) -- San Francisco Giants
+	   1, 111, 1, 0) -- Boston Red Sox
+	, (1, 112, 1, 1) -- Chicago Cubs
+	, (1, 142, 1, 2) -- Minnesota Twins
+	, (1, 136, 1, 3) -- Seattle Mariners
+	, (1, 118, 1, 4) -- Kansas City Royal
+	, (1, 147, 2, 0) -- New York Yankees
+	, (1, 143, 2, 1) -- Philadelphia Phillies
+	, (1, 115, 2, 2) -- Colorado Rockies
+	, (1, 134, 2, 3) -- Pittsburgh Pirates
+	, (1, 146, 2, 4) -- Miami Marlins
+	, (1, 158, 3, 0) -- Milwaukee Brewers
+	, (1, 138, 3, 1) -- St. Louis Cardinals
+	, (1, 108, 3, 2) -- Los Angeles Angels
+	, (1, 145, 3, 3) -- Chicago White Sox
+	, (1, 137, 3, 4) -- San Francisco Giants
+	, (1, 117, 4, 0) -- Houston Astros
+	, (1, 139, 4, 1) -- Tampa Bay Rays
+	, (1, 121, 4, 2) -- New York Mets
+	, (1, 141, 4, 3) -- Toronto Blue Jays
+	, (1, 137, 4, 4) -- San Francisco Giants
+	, (1, 119, 5, 0) -- Los Angeles Dodgers
+	, (1, 144, 5, 1) -- Atlanta Braves
+	, (1, 109, 5, 2) -- Arizona Diamondbacks
+	, (1, 113, 5, 3) -- Cincinnati Reds
+	, (1, 116, 5, 4) -- Detroit Tigers
+	, (1, 114, 6, 0) -- Cleveland Indians
+	, (1, 120, 6, 1) -- Washington Nationals
+	, (1, 133, 6, 2) -- Oakland Athletics
+	, (1, 135, 6, 3) -- San Diego Padres
+	, (1, 137, 6, 4) -- San Francisco Giants
 -- hitters: name_display_first_last
-	, (2, 502110, 1, 0, 2019) -- J.D. Martinez
-	, (2, 605141, 1, 1, 2019) -- Mookie Betts
-	, (2, 608070, 1, 2, 2019) -- Jose Ramirez
-	, (2, 547180, 2, 0, 2019) -- Bryce Harper
-	, (2, 656555, 2, 1, 2019) -- Rhys Hoskins
-	, (2, 660670, 2, 2, 2019) -- Ronald Acuna Jr.
-	, (2, 545361, 3, 0, 2019) -- Mike Trout
-	, (2, 571448, 3, 1, 2019) -- Nolan Arenado
-	, (2, 592518, 3, 2, 2019) -- Manny Machado
-	, (2, 501981, 4, 0, 2019) -- Khris Davis
-	, (2, 608336, 4, 1, 2019) -- Joey Gallo
-	, (2, 596019, 4, 2, 2019) -- Francisco Lindor
-	, (2, 519317, 5, 0, 2019) -- Giancarlo Stanton
-	, (2, 429665, 5, 1, 2019) -- Edwin Encarnacion
-	, (2, 592885, 5, 2, 2019) -- Christian Yelich
-	, (2, 592450, 6, 0, 2019) -- Aaron Judge
-	, (2, 596115, 6, 1, 2019) -- Trevor Story
-	, (2, 502671, 6, 2, 2019) -- Paul Goldschmidt
+	, (2, 502110, 1, 0) -- J.D. Martinez
+	, (2, 605141, 1, 1) -- Mookie Betts
+	, (2, 608070, 1, 2) -- Jose Ramirez
+	, (2, 547180, 2, 0) -- Bryce Harper
+	, (2, 656555, 2, 1) -- Rhys Hoskins
+	, (2, 660670, 2, 2) -- Ronald Acuna Jr.
+	, (2, 545361, 3, 0) -- Mike Trout
+	, (2, 571448, 3, 1) -- Nolan Arenado
+	, (2, 592518, 3, 2) -- Manny Machado
+	, (2, 501981, 4, 0) -- Khris Davis
+	, (2, 608336, 4, 1) -- Joey Gallo
+	, (2, 596019, 4, 2) -- Francisco Lindor
+	, (2, 519317, 5, 0) -- Giancarlo Stanton
+	, (2, 429665, 5, 1) -- Edwin Encarnacion
+	, (2, 592885, 5, 2) -- Christian Yelich
+	, (2, 592450, 6, 0) -- Aaron Judge
+	, (2, 596115, 6, 1) -- Trevor Story
+	, (2, 502671, 6, 2) -- Paul Goldschmidt
 -- pitchers: name_display_first_last
-	, (3, 605483, 1, 0, 2019) -- Blake Snell
-	, (3, 622663, 1, 1, 2019) -- Luis Severino
-	, (3, 605400, 1, 2, 2019) -- Aaron Nola
-	, (3, 594798, 2, 0, 2019) -- Jacob deGrom
-	, (3, 621111, 2, 1, 2019) -- Walker Buehler
-	, (3, 572020, 2, 2, 2019) -- James Paxton
-	, (3, 453286, 3, 0, 2019) -- Max Scherzer
-	, (3, 519144, 3, 1, 2019) -- Rick Porcello
-	, (3, 605400, 3, 2, 2019) -- Aaron Nola
-	, (3, 446372, 4, 0, 2019) -- Corey Kluber
-	, (3, 471911, 4, 1, 2019) -- Carlos Carrasco
-	, (3, 452657, 4, 2, 2019) -- Jon Lester
-	, (3, 519242, 5, 0, 2019) -- Chris Sale
-	, (3, 456034, 5, 1, 2019) -- David Price
-	, (3, 592789, 5, 2, 2019) -- Noah Syndergaard
-	, (3, 434378, 6, 0, 2019) -- Justin Verlander
-	, (3, 543037, 6, 1, 2019) -- Gerrit Cole
-	, (3, 545333, 6, 2, 2019) -- Trevor Bauer
+	, (3, 605483, 1, 0) -- Blake Snell
+	, (3, 622663, 1, 1) -- Luis Severino
+	, (3, 605400, 1, 2) -- Aaron Nola
+	, (3, 594798, 2, 0) -- Jacob deGrom
+	, (3, 621111, 2, 1) -- Walker Buehler
+	, (3, 572020, 2, 2) -- James Paxton
+	, (3, 453286, 3, 0) -- Max Scherzer
+	, (3, 519144, 3, 1) -- Rick Porcello
+	, (3, 605400, 3, 2) -- Aaron Nola
+	, (3, 446372, 4, 0) -- Corey Kluber
+	, (3, 471911, 4, 1) -- Carlos Carrasco
+	, (3, 452657, 4, 2) -- Jon Lester
+	, (3, 519242, 5, 0) -- Chris Sale
+	, (3, 456034, 5, 1) -- David Price
+	, (3, 592789, 5, 2) -- Noah Syndergaard
+	, (3, 434378, 6, 0) -- Justin Verlander
+	, (3, 543037, 6, 1) -- Gerrit Cole
+	, (3, 545333, 6, 2) -- Trevor Bauer
 -- nfl teams:
-	, (4, 21,  7, 0, 2018) -- New England Patriots
-	, (4, 30,  7, 1, 2018) -- Seattle Seahawks
-	, (4,  1,  7, 2, 2018) -- Atlanta Falcons
-	, (4, 10,  7, 3, 2018) -- Detroit Lions
-	, (4,  6,  7, 4, 2018) -- Cincinnati Bengals
-	, (4, 24,  7, 5, 2018) -- New York Jets
-	, (4, 20,  8, 0, 2018) -- Minnesota Vikings
-	, (4, 27,  8, 1, 2018) -- Pittsburgh Steelers
-	, (4,  4,  8, 2, 2018) -- Carolina Panthers
-	, (4, 29,  8, 3, 2018) -- San Francisco 49ers
-	, (4,  5,  8, 4, 2018) -- Chicago Bears
-	, (4,  3,  8, 5, 2018) -- Buffalo Bills
-	, (4, 15,  9, 0, 2018) -- Jacksonville Jaguars
-	, (4, 22,  9, 1, 2018) -- New Orleans Saints
-	, (4, 12,  9, 2, 2018) -- Tennessee Titans
-	, (4,  9,  9, 3, 2018) -- Denver Broncos
-	, (4, 31,  9, 4, 2018) -- Tampa Bay Buccaneers
-	, (4,  7,  9, 5, 2018) -- Cleveland Browns
-	, (4, 25, 10, 0, 2018) -- Philadelphia Eagles
-	, (4, 28, 10, 1, 2018) -- Los Angeles Chargers
-	, (4, 13, 10, 2, 2018) -- Houston Texans
-	, (4,  8, 10, 3, 2018) -- Dallas Cowboys
-	, (4, 23, 10, 4, 2018) -- New York Giants
-	, (4, 14, 10, 5, 2018) -- Indianapolis Colts
-	, (4, 17, 11, 0, 2018) -- Los Angeles Rams
-	, (4, 11, 11, 1, 2018) -- Green Bay Packers
-	, (4, 18, 11, 2, 2018) -- Oakland Raiders
-	, (4, 16, 11, 3, 2018) -- Kansas City Chiefs
-	, (4,  2, 11, 4, 2018) -- Baltimore Ravens
-	, (4, 32, 11, 5, 2018) -- Washington Redskins
+	, (4, 21,  7, 0) -- New England Patriots
+	, (4, 30,  7, 1) -- Seattle Seahawks
+	, (4,  1,  7, 2) -- Atlanta Falcons
+	, (4, 10,  7, 3) -- Detroit Lions
+	, (4,  6,  7, 4) -- Cincinnati Bengals
+	, (4, 24,  7, 5) -- New York Jets
+	, (4, 20,  8, 0) -- Minnesota Vikings
+	, (4, 27,  8, 1) -- Pittsburgh Steelers
+	, (4,  4,  8, 2) -- Carolina Panthers
+	, (4, 29,  8, 3) -- San Francisco 49ers
+	, (4,  5,  8, 4) -- Chicago Bears
+	, (4,  3,  8, 5) -- Buffalo Bills
+	, (4, 15,  9, 0) -- Jacksonville Jaguars
+	, (4, 22,  9, 1) -- New Orleans Saints
+	, (4, 12,  9, 2) -- Tennessee Titans
+	, (4,  9,  9, 3) -- Denver Broncos
+	, (4, 31,  9, 4) -- Tampa Bay Buccaneers
+	, (4,  7,  9, 5) -- Cleveland Browns
+	, (4, 25, 10, 0) -- Philadelphia Eagles
+	, (4, 28, 10, 1) -- Los Angeles Chargers
+	, (4, 13, 10, 2) -- Houston Texans
+	, (4,  8, 10, 3) -- Dallas Cowboys
+	, (4, 23, 10, 4) -- New York Giants
+	, (4, 14, 10, 5) -- Indianapolis Colts
+	, (4, 17, 11, 0) -- Los Angeles Rams
+	, (4, 11, 11, 1) -- Green Bay Packers
+	, (4, 18, 11, 2) -- Oakland Raiders
+	, (4, 16, 11, 3) -- Kansas City Chiefs
+	, (4,  2, 11, 4) -- Baltimore Ravens
+	, (4, 32, 11, 5) -- Washington Redskins
 -- quarterbacks
-	, (5, 2504775,  7, 0, 2018) -- Drew Brees
-	, (5, 2506109,  7, 1, 2018) -- Ben Roethlisberger
-	, (5, 2555334,  7, 2, 2018) -- Jared Goff
-	, (5, 2532975,  8, 0, 2018) -- Russell Wilson
-	, (5,   79860,  8, 1, 2018) -- Matthew Stafford
-	, (5, 2495455,  8, 2, 2018) -- Cam Newton
-	, (5, 2558063,  9, 0, 2018) -- Deshaun Watson
-	, (5, 2532820,  9, 1, 2018) -- Kirk Cousins
-	, (5, 2552466,  9, 2, 2018) -- Marcus Mariota
-	, (5, 2506363, 10, 0, 2018) -- Aaron Rodgers
-	, (5, 2506121, 10, 1, 2018) -- Philip Rivers
-	, (5, 2543801, 10, 2, 2018) -- Jimmy Garoppolo
-	, (5, 2504211, 11, 0, 2018) -- Tom Brady
-	, (5, 2555259, 11, 1, 2018) -- Carson Wentz
-	, (5, 2555334, 11, 2, 2018) -- Jared Goff
+	, (5, 2504775,  7, 0) -- Drew Brees
+	, (5, 2506109,  7, 1) -- Ben Roethlisberger
+	, (5, 2555334,  7, 2) -- Jared Goff
+	, (5, 2532975,  8, 0) -- Russell Wilson
+	, (5,   79860,  8, 1) -- Matthew Stafford
+	, (5, 2495455,  8, 2) -- Cam Newton
+	, (5, 2558063,  9, 0) -- Deshaun Watson
+	, (5, 2532820,  9, 1) -- Kirk Cousins
+	, (5, 2552466,  9, 2) -- Marcus Mariota
+	, (5, 2506363, 10, 0) -- Aaron Rodgers
+	, (5, 2506121, 10, 1) -- Philip Rivers
+	, (5, 2543801, 10, 2) -- Jimmy Garoppolo
+	, (5, 2504211, 11, 0) -- Tom Brady
+	, (5, 2555259, 11, 1) -- Carson Wentz
+	, (5, 2555334, 11, 2) -- Jared Goff
 -- running backs and wide receivers
-	, (6, 2556841,  7, 0, 2018) -- Byron Marshall	
-	, (6, 2543496,  7, 1, 2018) -- Odell Beckham	
-	, (6, 2508061,  8, 0, 2018) -- Antonio Brown	
-	, (6, 2557997,  8, 1, 2018) -- Christian McCaffrey	
-	, (6, 2558019,  9, 0, 2018) -- Alvin Kamara	
-	, (6, 2555224,  9, 1, 2018) -- Ezekiel Elliott	
-	, (6, 2552487,  9, 2, 2018) -- Amari Cooper	
-	, (6, 2553435, 10, 0, 2018) -- David Johnson	
-	, (6, 2557973, 10, 1, 2018) -- Leonard Fournette	
-	, (6, 2552475, 10, 0, 2018) -- Todd Gurley	
-	, (6, 2540165, 11, 1, 2018) -- DeAndre Hopkins	
-	, (6, 2530747, 11, 2, 2018) -- Doug Baldwin	
+	, (6, 2556841,  7, 0) -- Byron Marshall	
+	, (6, 2543496,  7, 1) -- Odell Beckham	
+	, (6, 2508061,  8, 0) -- Antonio Brown	
+	, (6, 2557997,  8, 1) -- Christian McCaffrey	
+	, (6, 2558019,  9, 0) -- Alvin Kamara	
+	, (6, 2555224,  9, 1) -- Ezekiel Elliott	
+	, (6, 2552487,  9, 2) -- Amari Cooper	
+	, (6, 2553435, 10, 0) -- David Johnson	
+	, (6, 2557973, 10, 1) -- Leonard Fournette	
+	, (6, 2552475, 10, 0) -- Todd Gurley	
+	, (6, 2540165, 11, 1) -- DeAndre Hopkins	
+	, (6, 2530747, 11, 2) -- Doug Baldwin	
 	;
