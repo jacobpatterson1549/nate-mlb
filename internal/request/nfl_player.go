@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"log"
 	"nate-mlb/internal/db"
 	"strconv"
 	"strings"
@@ -137,44 +138,40 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerS
 
 func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(year)
-	if err == nil {
-		for playerID, playerScore := range playerScores {
-			if err == nil {
-				nflPlayerInfo, ok := nflPlayerDetails[playerID]
-				if ok {
-					playerScore.PlayerName = nflPlayerInfo.fullName()
-				} else {
-					err = fmt.Errorf("No player details (name) found for player %v", playerID)
-				}
-			}
-		}
-	}
 	if err != nil {
 		*lastError = err
+	} else {
+		for playerID, playerScore := range playerScores {
+			nflPlayerInfo, ok := nflPlayerDetails[playerID]
+			if ok {
+				playerScore.PlayerName = nflPlayerInfo.fullName()
+			} else {
+				log.Println("No player details (name) found for player", playerID)
+			}
+		}
 	}
 	wg.Done()
 }
 
 func (r *nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, pt db.PlayerType, lastError *error, wg *sync.WaitGroup) {
 	nflPlayerStats, err := r.requestNflPlayerStats(year)
-	if err == nil {
-		var score int
-		for playerID, playerScore := range playerScores {
-			if err == nil {
-				nflPlayerStat, ok := nflPlayerStats[playerID]
-				if ok {
-					score, err = nflPlayerStat.Stat.score(pt)
-					if err == nil {
-						playerScore.Score = score
-					}
-				} else {
-					err = fmt.Errorf("No player details (name) found for player %v", playerID)
-				}
-			}
-		}
-	}
 	if err != nil {
 		*lastError = err
+	} else {
+		var score int
+		for playerID, playerScore := range playerScores {
+			nflPlayerStat, ok := nflPlayerStats[playerID]
+			if ok {
+				score, err = nflPlayerStat.Stat.score(pt)
+				if err != nil {
+					log.Println(playerID, err)
+				} else {
+					playerScore.Score = score
+				}
+			} else {
+				log.Println("No player details (name) found for player", playerID)
+			}
+		}
 	}
 	wg.Done()
 }
