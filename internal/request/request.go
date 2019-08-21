@@ -17,7 +17,7 @@ func requestStruct(url string, v interface{}) error {
 		ok  bool
 	)
 	if b, ok = requestCache.get(url); !ok {
-		b, err = requestBytes(url)
+		b, err = requestCache.requestBytes(url)
 		if err != nil {
 			return err
 		}
@@ -30,7 +30,7 @@ func requestStruct(url string, v interface{}) error {
 	return nil
 }
 
-func requestBytes(url string) ([]byte, error) {
+func (cache) requestBytes(url string) ([]byte, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
