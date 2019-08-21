@@ -173,52 +173,52 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order, sport_
 	, (3, 543037, 6, 1, 1, 2019) -- Gerrit Cole
 	, (3, 545333, 6, 2, 1, 2019) -- Trevor Bauer
 -- nfl teams:
-	, (4, 21,  7, 0) -- New England Patriots
-	, (4, 30,  7, 1) -- Seattle Seahawks
-	, (4,  1,  7, 2) -- Atlanta Falcons
-	, (4, 10,  7, 3) -- Detroit Lions
-	, (4,  6,  7, 4) -- Cincinnati Bengals
-	, (4, 24,  7, 5) -- New York Jets
-	, (4, 20,  8, 0) -- Minnesota Vikings
-	, (4, 27,  8, 1) -- Pittsburgh Steelers
-	, (4,  4,  8, 2) -- Carolina Panthers
-	, (4, 29,  8, 3) -- San Francisco 49ers
-	, (4,  5,  8, 4) -- Chicago Bears
-	, (4,  3,  8, 5) -- Buffalo Bills
-	, (4, 15,  9, 0) -- Jacksonville Jaguars
-	, (4, 22,  9, 1) -- New Orleans Saints
-	, (4, 12,  9, 2) -- Tennessee Titans
-	, (4,  9,  9, 3) -- Denver Broncos
-	, (4, 31,  9, 4) -- Tampa Bay Buccaneers
-	, (4,  7,  9, 5) -- Cleveland Browns
-	, (4, 25, 10, 0) -- Philadelphia Eagles
-	, (4, 28, 10, 1) -- Los Angeles Chargers
-	, (4, 13, 10, 2) -- Houston Texans
-	, (4,  8, 10, 3) -- Dallas Cowboys
-	, (4, 23, 10, 4) -- New York Giants
-	, (4, 14, 10, 5) -- Indianapolis Colts
-	, (4, 17, 11, 0) -- Los Angeles Rams
-	, (4, 11, 11, 1) -- Green Bay Packers
-	, (4, 18, 11, 2) -- Oakland Raiders
-	, (4, 16, 11, 3) -- Kansas City Chiefs
-	, (4,  2, 11, 4) -- Baltimore Ravens
-	, (4, 32, 11, 5) -- Washington Redskins
+	, (4, 21,  7, 0, 2, 2018) -- New England Patriots
+	, (4, 30,  7, 1, 2, 2018) -- Seattle Seahawks
+	, (4,  1,  7, 2, 2, 2018) -- Atlanta Falcons
+	, (4, 10,  7, 3, 2, 2018) -- Detroit Lions
+	, (4,  6,  7, 4, 2, 2018) -- Cincinnati Bengals
+	, (4, 24,  7, 5, 2, 2018) -- New York Jets
+	, (4, 20,  8, 0, 2, 2018) -- Minnesota Vikings
+	, (4, 27,  8, 1, 2, 2018) -- Pittsburgh Steelers
+	, (4,  4,  8, 2, 2, 2018) -- Carolina Panthers
+	, (4, 29,  8, 3, 2, 2018) -- San Francisco 49ers
+	, (4,  5,  8, 4, 2, 2018) -- Chicago Bears
+	, (4,  3,  8, 5, 2, 2018) -- Buffalo Bills
+	, (4, 15,  9, 0, 2, 2018) -- Jacksonville Jaguars
+	, (4, 22,  9, 1, 2, 2018) -- New Orleans Saints
+	, (4, 12,  9, 2, 2, 2018) -- Tennessee Titans
+	, (4,  9,  9, 3, 2, 2018) -- Denver Broncos
+	, (4, 31,  9, 4, 2, 2018) -- Tampa Bay Buccaneers
+	, (4,  7,  9, 5, 2, 2018) -- Cleveland Browns
+	, (4, 25, 10, 0, 2, 2018) -- Philadelphia Eagles
+	, (4, 28, 10, 1, 2, 2018) -- Los Angeles Chargers
+	, (4, 13, 10, 2, 2, 2018) -- Houston Texans
+	, (4,  8, 10, 3, 2, 2018) -- Dallas Cowboys
+	, (4, 23, 10, 4, 2, 2018) -- New York Giants
+	, (4, 14, 10, 5, 2, 2018) -- Indianapolis Colts
+	, (4, 17, 11, 0, 2, 2018) -- Los Angeles Rams
+	, (4, 11, 11, 1, 2, 2018) -- Green Bay Packers
+	, (4, 18, 11, 2, 2, 2018) -- Oakland Raiders
+	, (4, 16, 11, 3, 2, 2018) -- Kansas City Chiefs
+	, (4,  2, 11, 4, 2, 2018) -- Baltimore Ravens
+	, (4, 32, 11, 5, 2, 2018) -- Washington Redskins
 -- quarterbacks
-	, (5, 2504775,  7, 0) -- Drew Brees
-	, (5, 2506109,  7, 1) -- Ben Roethlisberger
-	, (5, 2555334,  7, 2) -- Jared Goff
-	, (5, 2532975,  8, 0) -- Russell Wilson
-	, (5,   79860,  8, 1) -- Matthew Stafford
-	, (5, 2495455,  8, 2) -- Cam Newton
-	, (5, 2558063,  9, 0) -- Deshaun Watson
-	, (5, 2532820,  9, 1) -- Kirk Cousins
-	, (5, 2552466,  9, 2) -- Marcus Mariota
-	, (5, 2506363, 10, 0) -- Aaron Rodgers
-	, (5, 2506121, 10, 1) -- Philip Rivers
-	, (5, 2543801, 10, 2) -- Jimmy Garoppolo
-	, (5, 2504211, 11, 0) -- Tom Brady
-	, (5, 2555259, 11, 1) -- Carson Wentz
-	, (5, 2555334, 11, 2) -- Jared Goff
+	, (5, 2504775,  7, 2, 0, 2, 2018) -- Drew Brees
+	, (5, 2506109,  7, 2, 1, 2, 2018) -- Ben Roethlisberger
+	, (5, 2555334,  7, 2, 2, 2, 2018) -- Jared Goff
+	, (5, 2532975,  8, 2, 0, 2, 2018) -- Russell Wilson
+	, (5,   79860,  8, 2, 1, 2, 2018) -- Matthew Stafford
+	, (5, 2495455,  8, 2, 2, 2, 2018) -- Cam Newton
+	, (5, 2558063,  9, 2, 0, 2, 2018) -- Deshaun Watson
+	, (5, 2532820,  9, 2, 1, 2, 2018) -- Kirk Cousins
+	, (5, 2552466,  9, 2, 2, 2, 2018) -- Marcus Mariota
+	, (5, 2506363, 10, 2, 0, 2, 2018) -- Aaron Rodgers
+	, (5, 2506121, 10, 2, 1, 2, 2018) -- Philip Rivers
+	, (5, 2543801, 10, 2, 2, 2, 2018) -- Jimmy Garoppolo
+	, (5, 2504211, 11, 2, 0, 2, 2018) -- Tom Brady
+	, (5, 2555259, 11, 2, 1, 2, 2018) -- Carson Wentz
+	, (5, 2555334, 11, 2, 2, 2, 2018) -- Jared Goff
 	;
 
 INSERT INTO users (username, password)
