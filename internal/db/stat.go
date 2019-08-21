@@ -3,49 +3,48 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 )
 
-// Stat is a wrapper for EtlStatsJSON and the year the stats are for
+// Stat is a wrapper for EtlJSON
+// It is for a particular year and SportType.  It has an etl timestamp.
 type Stat struct {
-	EtlStatsJSON string
+	SportType    SportType
 	Year         int
+	EtlTimestamp *time.Time
+	EtlJSON      *string
 }
 
-// GetEtlStatsJSON gets the stats for the current year
-func GetEtlStatsJSON(st SportType) (Stat, error) {
+// GetStat gets the Stat for the active year
+func GetStat(st SportType) (Stat, error) {
 	var etlJSON sql.NullString
 	var stat Stat
 	row := db.QueryRow(
-		"SELECT etl_json, year FROM stats WHERE sport_type_id = $1 AND active",
+		"SELECT sport_type_id, year, etl_timestamp, etl_json FROM stats WHERE sport_type_id = $1 AND active",
 		st,
 	)
-	err := row.Scan(&etlJSON, &stat.Year)
+	err := row.Scan(&stat.SportType, &stat.Year, &stat.EtlTimestamp, &etlJSON)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = fmt.Errorf("no active year to get previous stats for (sportType %v)", st)
-		} else {
-			err = fmt.Errorf("problem getting stats: %v", err)
-		}
-		return stat, err
+		return stat, fmt.Errorf("problem getting stats: %v", err)
 	}
 
 	if etlJSON.Valid {
-		stat.EtlStatsJSON = etlJSON.String
+		stat.EtlJSON = &etlJSON.String
 	}
 	return stat, nil
 }
 
-// SetEtlStats sets the stats for the current year
-func SetEtlStats(st SportType, etlStatsJSON string) error {
-	result, err := db.Exec("UPDATE stats SET etl_json = $1 WHERE sport_type_id = $2 AND active", etlStatsJSON, st)
+// SetStat sets the etl timestamp and json for the year (which must be active)
+func SetStat(stat Stat) error {
+	result, err := db.Exec("UPDATE stats SET etl_timestamp = $1, etl_json = $2 WHERE sport_type_id = $3 AND year = $4 AND active", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
 	}
 	return expectSingleRowAffected(result)
 }
 
-// ClearEtlStats clears the stats for the current year
-func ClearEtlStats(st SportType) error {
+// ClearStat clears the stats for the active year
+func ClearStat(st SportType) error {
 	_, err := db.Exec(
 		"UPDATE stats SET etl_json = NULL WHERE sport_type_id = $1 AND active",
 		st,

@@ -164,12 +164,8 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 		return err
 	}
 
-	activeYear, err := db.GetActiveYear(st)
-	if err != nil {
-		return err
-	}
 	asOfDate := es.EtlTime.Format("2006-01-02")
-	fileName := fmt.Sprintf("nate-mlb_%d_%s.csv", activeYear, asOfDate)
+	fileName := fmt.Sprintf("nate-mlb_%d_%s.csv", es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
 

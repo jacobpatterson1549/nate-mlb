@@ -24,7 +24,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	var es EtlStats
 
 	var year int
-	stat, err := db.GetEtlStatsJSON(st)
+	stat, err := db.GetStat(st)
 	if err != nil {
 		return es, err
 	}
@@ -33,8 +33,8 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	es.etlRefreshTime = previousMidnight(currentTime)
 	es.sportType = st
 	es.year = stat.Year
-	if len(stat.EtlStatsJSON) > 0 {
-		err = json.Unmarshal([]byte(stat.EtlStatsJSON), &es)
+	if stat.EtlJSON != nil {
+		err = json.Unmarshal([]byte(*stat.EtlJSON), &es.ScoreCategories)
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
 		}
@@ -48,11 +48,11 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		es.EtlTime = currentTime
 		es.ScoreCategories = scoreCategories
 		es.sportType = st
-		etlJSON, err := json.Marshal(es)
+		stat, err = es.toStat()
 		if err != nil {
-			return es, fmt.Errorf("problem converting stats to json for year %v: %v", year, err)
+			return es, err
 		}
-		err = db.SetEtlStats(st, string(etlJSON))
+		err = db.SetStat(stat)
 	}
 	return es, err
 }
@@ -70,14 +70,10 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 	if err != nil {
 		return nil, err
 	}
-	activeYear, err := db.GetActiveYear(st)
-	if err != nil {
-		return nil, err
-	}
 	fpi := request.FriendPlayerInfo{
 		Friends: friends,
 		Players: players,
-		Year:    activeYear,
+		Year:    es.year,
 	}
 
 	numCategories := len(playerTypes)
@@ -117,4 +113,19 @@ func previousMidnight(t time.Time) time.Time {
 		midnight = midnight.Add(-24 * time.Hour)
 	}
 	return midnight
+}
+
+func (es EtlStats) toStat() (db.Stat, error) {
+	var stat db.Stat
+	etlJSON, err := json.Marshal(es.ScoreCategories)
+	if err != nil {
+		return stat, fmt.Errorf("problem converting stats to json for sportType %v, year %v: %v", es.sportType, es.year, err)
+	}
+	etlJSONS := string(etlJSON)
+
+	stat.SportType = es.sportType
+	stat.Year = es.year
+	stat.EtlTimestamp = &es.EtlTime
+	stat.EtlJSON = &etlJSONS
+	return stat, nil
 }

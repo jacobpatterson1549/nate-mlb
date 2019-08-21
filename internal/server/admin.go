@@ -51,7 +51,7 @@ func updatePlayers(st db.SportType, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStats(st)
+	return db.ClearStat(st)
 }
 
 func updateFriends(st db.SportType, r *http.Request) error {
@@ -75,7 +75,7 @@ func updateFriends(st db.SportType, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.ClearEtlStats(st)
+	return db.ClearStat(st)
 }
 
 func updateYears(st db.SportType, r *http.Request) error {
@@ -102,7 +102,7 @@ func clearCache(st db.SportType, r *http.Request) error {
 	}
 
 	request.ClearCache()
-	return db.ClearEtlStats(st)
+	return db.ClearStat(st)
 }
 
 func resetPassword(st db.SportType, r *http.Request) error {
