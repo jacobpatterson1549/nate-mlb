@@ -231,11 +231,15 @@ func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request)
 	activePlayersOnly := r.Form.Get("apo")
 	activePlayersOnlyB := activePlayersOnly == "true"
 
+	_, err = db.LoadPlayerTypes(st)
+	if err != nil {
+		return err
+	}
 	searcher, ok := request.Searchers[playerType]
 	if !ok {
 		return fmt.Errorf("problem finding searcher for playerType %v", playerType)
 	}
-	playerSearchResults, err := searcher.PlayerSearchResults(st, searchQuery, activePlayersOnlyB)
+	playerSearchResults, err := searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
 	if err != nil {
 		return err
 	}

@@ -37,7 +37,7 @@ type PlayerBio struct {
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (s mlbPlayerSearcher) PlayerSearchResults(st db.SportType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"
@@ -50,10 +50,10 @@ func (s mlbPlayerSearcher) PlayerSearchResults(st db.SportType, playerNamePrefix
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}
-	return playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults()
+	return playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(pt)
 }
 
-func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) {
+func (psqr QueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
 	var playerBios []PlayerBio
 	var err error
 	switch psqr.TotalSize {
@@ -71,14 +71,28 @@ func (psqr QueryResults) getPlayerSearchResults() ([]PlayerSearchResult, error) 
 	if err != nil {
 		return playerSearchResults, err
 	}
-	playerSearchResults = make([]PlayerSearchResult, len(playerBios))
-	for i, pb := range playerBios {
-		playerSearchResults[i], err = pb.toPlayerSearchResult()
-		if err != nil {
-			return playerSearchResults, err
+	var playerSearchResult PlayerSearchResult
+	for _, pb := range playerBios {
+		if pb.matches(pt) {
+			playerSearchResult, err = pb.toPlayerSearchResult()
+			if err != nil {
+				return playerSearchResults, err
+			}
+			playerSearchResults = append(playerSearchResults, playerSearchResult)
 		}
 	}
 	return playerSearchResults, nil
+}
+
+func (playerBio PlayerBio) matches(pt db.PlayerType) bool {
+	switch pt {
+	case db.PlayerTypeHitter:
+		return playerBio.Position != "P"
+	case db.PlayerTypePitcher:
+		return playerBio.Position == "P"
+	default:
+		return false
+	}
 }
 
 func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {

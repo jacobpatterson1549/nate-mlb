@@ -61,7 +61,7 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	var wg sync.WaitGroup
 	var lastError error
 	wg.Add(2)
-	go r.requestPlayerNames(playerScores, fpi.Year, &lastError, &wg)
+	go r.requestPlayerNames(playerScores, pt, fpi.Year, &lastError, &wg)
 	go r.requestPlayerStats(playerScores, fpi.Year, pt, &lastError, &wg)
 	wg.Wait()
 
@@ -74,12 +74,12 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (r nflPlayerRequestor) PlayerSearchResults(st db.SportType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	activeYear, err := db.GetActiveYear(st)
+func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+	activeYear, err := db.GetActiveYear(pt.SportType())
 	if err != nil {
 		return nil, err
 	}
-	nflPlayerDetails, err := r.requestNflPlayerDetails(activeYear)
+	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, activeYear)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func (r nflPlayerRequestor) PlayerSearchResults(st db.SportType, playerNamePrefi
 	return nflPlayerSearchResults, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlayerInfo, error) {
+func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[int]NflPlayerInfo, error) {
 	var nflPlayerList NflPlayerList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
@@ -109,11 +109,13 @@ func (r *nflPlayerRequestor) requestNflPlayerDetails(year int) (map[int]NflPlaye
 	}
 	nflPlayerDetails := make(map[int]NflPlayerInfo)
 	for _, npi := range nflPlayerList.Players {
-		id, err := npi.id()
-		if err != nil {
-			return nil, err
+		if npi.matches(pt) {
+			id, err := npi.id()
+			if err != nil {
+				return nil, err
+			}
+			nflPlayerDetails[id] = npi
 		}
-		nflPlayerDetails[id] = npi
 	}
 	return nflPlayerDetails, nil
 }
@@ -136,8 +138,8 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerS
 	return nflPlayerStats, nil
 }
 
-func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
-	nflPlayerDetails, err := r.requestNflPlayerDetails(year)
+func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, pt db.PlayerType, year int, lastError *error, wg *sync.WaitGroup) {
+	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
 		*lastError = err
 	} else {
@@ -186,6 +188,17 @@ func (npi *NflPlayerInfo) id() (int, error) {
 
 func (npi *NflPlayerInfo) fullName() string {
 	return fmt.Sprintf("%s %s", npi.FirstName, npi.LastName)
+}
+
+func (npi *NflPlayerInfo) matches(pt db.PlayerType) bool {
+	switch pt {
+	case db.PlayerTypeNflQB:
+		return npi.Position == "QB"
+	case db.PlayerTypeNflRBWR:
+		return npi.Position == "RB" || npi.Position == "WR"
+	default:
+		return false
+	}
 }
 
 func (nps *NflPlayerStat) id() (int, error) {
