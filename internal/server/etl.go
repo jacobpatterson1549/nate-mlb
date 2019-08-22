@@ -38,7 +38,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		if err != nil {
 			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
 		}
-		fetchStats = es.EtlTime.Before(es.etlRefreshTime)
+		fetchStats = stat.EtlTimestamp == nil || stat.EtlTimestamp.Before(es.etlRefreshTime)
 	}
 	if fetchStats {
 		scoreCategories, err := es.getScoreCategories(st)
@@ -53,6 +53,9 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 			return es, err
 		}
 		err = db.SetStat(stat)
+	} else {
+		es.EtlTime = *stat.EtlTimestamp
+		err = es.setScoreCategories(stat)
 	}
 	return es, err
 }
@@ -128,4 +131,17 @@ func (es EtlStats) toStat() (db.Stat, error) {
 	stat.EtlTimestamp = &es.EtlTime
 	stat.EtlJSON = &etlJSONS
 	return stat, nil
+}
+
+func (es *EtlStats) setScoreCategories(stat db.Stat) error {
+	if stat.EtlJSON == nil {
+		return fmt.Errorf("Stat has no etlJSON: %v", stat)
+	}
+	var scoreCategories []request.ScoreCategory
+	err := json.Unmarshal([]byte(*stat.EtlJSON), &scoreCategories)
+	if err != nil {
+		return fmt.Errorf("problem deserializing Stat etlJSON: %v", err)
+	}
+	es.ScoreCategories = scoreCategories
+	return nil
 }
