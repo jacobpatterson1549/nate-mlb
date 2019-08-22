@@ -1,7 +1,7 @@
 {{define "content"}}
 {{- if (eq .Action "players") -}}
 {{- template "player-search" . -}}
-{{- end -}}
+{{end}}
 <form method="POST" id="{{.Action}}-form">
     <div class="form-group">
         <label class="form-label" for="{{.Action}}-username">Username</label>

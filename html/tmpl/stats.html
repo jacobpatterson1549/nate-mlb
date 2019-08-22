@@ -1,5 +1,5 @@
 {{define "content"}}
-{{- with $sc := .ScoreCategory -}}
+{{- with $sc := .ScoreCategory}}
 <h2 class="text-primary">{{$sc.Description}}</h2>
 <div class="container">
     <div class="row">
@@ -37,6 +37,6 @@
         {{end -}}
     </div>
 </div>
-{{- end -}}
+{{- end}}
 <a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
 {{end}}
