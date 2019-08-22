@@ -16,7 +16,7 @@ func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
 	}
 
 	csvWriter := csv.NewWriter(w)
-	records := createRecords(es)
+	records := createCsvRecords(es)
 	err = csvWriter.WriteAll(records)
 	if err != nil {
 		return fmt.Errorf("problem writing to csv: %v", err)
@@ -24,7 +24,7 @@ func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
 	return nil
 }
 
-func createRecords(es EtlStats) [][]string {
+func createCsvRecords(es EtlStats) [][]string {
 	records := make([][]string, 3)
 	records[0] = []string{"nate-mlb", strconv.Itoa(es.year)}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
@@ -35,7 +35,7 @@ func createRecords(es EtlStats) [][]string {
 		for j, fs := range sc.FriendScores {
 			records = append(records, nil)
 			for k, ps := range fs.PlayerScores {
-				record := createRecord(sc, fs, ps, j, k)
+				record := createCsvRecord(sc, fs, ps, j, k)
 				records = append(records, record)
 			}
 		}
@@ -43,7 +43,7 @@ func createRecords(es EtlStats) [][]string {
 	return records
 }
 
-func createRecord(sc request.ScoreCategory, fs request.FriendScore, ps request.PlayerScore, fsIndex, psIndex int) []string {
+func createCsvRecord(sc request.ScoreCategory, fs request.FriendScore, ps request.PlayerScore, fsIndex, psIndex int) []string {
 	record := make([]string, 5)
 	if psIndex == 0 {
 		if fsIndex == 0 {
