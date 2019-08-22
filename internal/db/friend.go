@@ -14,7 +14,12 @@ type Friend struct {
 // GetFriends gets the friends for the active year
 func GetFriends(st SportType) ([]Friend, error) {
 	rows, err := db.Query(
-		"SELECT f.id, f.display_order, f.name FROM friends AS f JOIN stats AS s ON f.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY f.display_order ASC",
+		`SELECT f.id, f.display_order, f.name
+		FROM friends AS f
+		JOIN stats AS s ON f.year = s.year
+		WHERE s.sport_type_id = $1
+		AND s.active
+		ORDER BY f.display_order ASC`,
 		st,
 	)
 	if err != nil {
@@ -61,8 +66,14 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	queries := make([]query, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	i := 0
 	for _, insertFriend := range insertFriends {
+		// [friends are added for the active year]
 		queries[i] = query{
-			sql:  "INSERT INTO friends (display_order, name, sport_type_id, year) SELECT $1, $2, $3, year FROM stats AS s WHERE s.sport_type_id = $3 AND s.active",
+			sql: `INSERT INTO friends
+				(display_order, name, sport_type_id, year)
+				SELECT $1, $2, $3, year
+				FROM stats
+				WHERE sport_type_id = $3
+				AND active`,
 			args: make([]interface{}, 3),
 		}
 		queries[i].args[0] = insertFriend.DisplayOrder
@@ -72,7 +83,10 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	}
 	for _, updateFriend := range updateFriends {
 		queries[i] = query{
-			sql:  "UPDATE friends SET display_order = $1, name = $2 WHERE id = $3",
+			sql: `UPDATE friends
+				SET display_order = $1
+				, name = $2
+				WHERE id = $3`,
 			args: make([]interface{}, 3),
 		}
 		queries[i].args[0] = updateFriend.DisplayOrder
@@ -82,7 +96,8 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	}
 	for deleteFriendID := range previousFriends {
 		queries[i] = query{
-			sql:  "DELETE FROM friends WHERE id = $1",
+			sql: `DELETE FROM friends
+				WHERE id = $1`,
 			args: make([]interface{}, 1),
 		}
 		queries[i].args[0] = deleteFriendID

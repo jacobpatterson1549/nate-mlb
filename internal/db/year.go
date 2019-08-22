@@ -16,7 +16,11 @@ type Year struct {
 func GetActiveYear(st SportType) (int, error) {
 	var activeYear int
 
-	row := db.QueryRow("SELECT year FROM stats WHERE active AND sport_type_id = $1", st)
+	row := db.QueryRow(
+		`SELECT year FROM stats
+		WHERE sport_type_id = $1
+		AND active`,
+		st)
 	err := row.Scan(&activeYear)
 	if err == sql.ErrNoRows {
 		return activeYear, errors.New("no active year")
@@ -31,7 +35,12 @@ func GetActiveYear(st SportType) (int, error) {
 func GetYears(st SportType) ([]Year, error) {
 	var years []Year
 
-	rows, err := db.Query("SELECT year, active FROM stats WHERE sport_type_id = $1 ORDER BY year ASC", st)
+	rows, err := db.Query(
+		`SELECT year, active
+		FROM stats
+		WHERE sport_type_id = $1
+		ORDER BY year ASC`,
+		st)
 	if err != nil {
 		return years, fmt.Errorf("problem reading years: %v", err)
 	}
@@ -96,14 +105,19 @@ func SaveYears(st SportType, futureYears []Year) error {
 	// remove active year
 	// do this first to ensure one row is affected, in the case that the active row is deleted
 	queries[0] = query{
-		sql:  "UPDATE stats SET active = NULL WHERE sport_type_id = $1 AND active",
+		sql: `UPDATE stats
+			SET active = NULL
+			WHERE sport_type_id = $1
+			AND active`,
 		args: make([]interface{}, 1),
 	}
 	queries[0].args[0] = st
 	i := 1
 	for _, insertYear := range insertYears {
 		queries[i] = query{
-			sql:  "INSERT INTO stats (sport_type_id, year) VALUES ($1, $2)",
+			sql: `INSERT INTO stats
+				(sport_type_id, year)
+				VALUES ($1, $2)`,
 			args: make([]interface{}, 2),
 		}
 		queries[i].args[0] = st
@@ -112,7 +126,9 @@ func SaveYears(st SportType, futureYears []Year) error {
 	}
 	for deleteYear := range previousYearsMap {
 		queries[i] = query{
-			sql:  "DELETE FROM stats WHERE sport_type_id = $1 AND year = $1",
+			sql: `DELETE FROM stats
+				WHERE sport_type_id = $1
+				AND year = $2`,
 			args: make([]interface{}, 2),
 		}
 		queries[i].args[0] = st
@@ -121,7 +137,10 @@ func SaveYears(st SportType, futureYears []Year) error {
 	}
 	// set active year
 	queries[i] = query{
-		sql:  "UPDATE stats SET active = TRUE WHERE sport_type_id = $1 AND year = $2",
+		sql: `UPDATE stats
+			SET active = TRUE
+			WHERE sport_type_id = $1
+			AND year = $2`,
 		args: make([]interface{}, 2),
 	}
 	queries[i].args[0] = st

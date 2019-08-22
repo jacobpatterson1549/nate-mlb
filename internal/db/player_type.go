@@ -39,7 +39,10 @@ func (pt PlayerType) Description() string {
 // LoadPlayerTypes loads the PlayerTypes from the database
 func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 	rows, err := db.Query(
-		"SELECT id, sport_type_id, name, description FROM player_types WHERE sport_type_id = $1 ORDER BY id ASC",
+		`SELECT id, sport_type_id, name, description
+		FROM player_types
+		WHERE sport_type_id = $1
+		ORDER BY id ASC`,
 		st,
 	)
 	if err != nil {

@@ -16,7 +16,13 @@ type Player struct {
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
-		"SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id FROM players AS p JOIN friends AS f ON p.friend_id = f.id JOIN stats AS s ON f.year = s.year WHERE s.sport_type_id = $1 AND s.active ORDER BY p.player_type_id, f.display_order, p.display_order",
+		`SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id
+		FROM players AS p
+		JOIN friends AS f ON p.friend_id = f.id
+		JOIN stats AS s ON f.year = s.year
+		WHERE s.sport_type_id = $1
+		AND s.active
+		ORDER BY p.player_type_id, f.display_order, p.display_order`,
 		st,
 	)
 	if err != nil {
@@ -64,7 +70,12 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	i := 0
 	for _, insertPlayer := range insertPlayers {
 		queries[i] = query{
-			sql:  "INSERT INTO players (display_order, player_type_id, player_id, friend_id, sport_type_id) SELECT $1, $2, $3, $4, $5 FROM stats AS s WHERE s.sport_type_id = $5 AND s.active",
+			sql: `INSERT INTO players
+			(display_order, player_type_id, player_id, friend_id, sport_type_id)
+			SELECT $1, $2, $3, $4, $5
+			FROM stats
+			WHERE sport_type_id = $5
+			AND active`,
 			args: make([]interface{}, 5),
 		}
 		queries[i].args[0] = insertPlayer.DisplayOrder
@@ -76,7 +87,9 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	}
 	for _, updateplayer := range updatePlayers {
 		queries[i] = query{
-			sql:  "UPDATE players SET display_order = $1 WHERE id = $2",
+			sql: `UPDATE players
+			SET display_order = $1
+			WHERE id = $2`,
 			args: make([]interface{}, 2),
 		}
 		queries[i].args[0] = updateplayer.DisplayOrder
@@ -85,7 +98,8 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	}
 	for deleteID := range previousPlayers {
 		queries[i] = query{
-			sql:  "DELETE FROM players WHERE id = $1",
+			sql: `DELETE FROM players
+			WHERE id = $1`,
 			args: make([]interface{}, 1),
 		}
 		queries[i].args[0] = deleteID
