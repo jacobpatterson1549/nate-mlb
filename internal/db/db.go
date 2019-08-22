@@ -31,7 +31,6 @@ func GetUtcTime() time.Time {
 }
 
 func exececuteInTransaction(queries *[]query) error {
-	var err error
 	tx, err := db.Begin()
 	if err != nil {
 		err = fmt.Errorf("problem starting transaction to save: %v", err)

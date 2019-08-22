@@ -23,7 +23,8 @@ func SavePassword(username, password string) error {
 		`UPDATE users
 		SET password = $1
 		WHERE username = $2`,
-		password, username)
+		password,
+		username)
 	if err != nil {
 		return fmt.Errorf("problem updating password for user %v: %v", username, err)
 	}
