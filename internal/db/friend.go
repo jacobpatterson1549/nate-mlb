@@ -16,7 +16,7 @@ func GetFriends(st SportType) ([]Friend, error) {
 	rows, err := db.Query(
 		`SELECT f.id, f.display_order, f.name
 		FROM friends AS f
-		JOIN stats AS s ON f.year = s.year
+		JOIN stats AS s ON f.year = s.year AND f.sport_type_id = s.sport_type_id
 		WHERE s.sport_type_id = $1
 		AND s.active
 		ORDER BY f.display_order ASC`,

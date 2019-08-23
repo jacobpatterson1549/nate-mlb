@@ -19,7 +19,7 @@ func GetPlayers(st SportType) ([]Player, error) {
 		`SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id
 		FROM players AS p
 		JOIN friends AS f ON p.friend_id = f.id
-		JOIN stats AS s ON f.year = s.year
+		JOIN stats AS s ON f.year = s.year AND f.sport_type_id = s.sport_type_id
 		WHERE s.sport_type_id = $1
 		AND s.active
 		ORDER BY p.player_type_id, f.display_order, p.display_order`,
