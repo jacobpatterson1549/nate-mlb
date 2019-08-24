@@ -26,6 +26,7 @@
     {{- else -}}
     <p class="text-danger">Unknown Action: {{.Action}}</p>
     {{- end -}}
+    <p class="bg-warning">Removing {{.Action}} will delete them permanently on submit.</p>
     <div class="form-group">
         {{if .Data -}}
         <div id="template-support-check-{{.Action}}"></div>
