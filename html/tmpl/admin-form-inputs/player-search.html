@@ -8,7 +8,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="player-search-form" method="GET" onsubmit="return searchPlayers()">
+                <form id="player-search-form">
                     <div class="form-inline">
                         <input class="form-control mr-2" type="search" id="player-search" placeholder="Search">
                         <button class="btn btn-outline-success" type="submit" form="player-search-form">Search</button>
@@ -40,7 +40,7 @@
                 <div class="modal-footer form-group">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
-                        data-dismiss="modal" onclick="addPlayerFromSearch()" disabled>Add Player</button>
+                        data-dismiss="modal" disabled>Add Player</button>
                 </div>
             </div>
         </div>
@@ -67,32 +67,39 @@
         resultsDiv.innerHTML = '';
     }
 
-    function searchPlayers() {
-        setNewPlayerSelected(false);
-        var playerTypeID = document.getElementById('select-player-type').value;
-        var activePlayersOnly = document.getElementById("active-players-only").checked;
-        var query = document.getElementById('player-search').value;
-        var pathSegments = location.pathname.split("/");
-        var url = '/' + pathSegments[1] + '/admin/search?q=' + query + '&pt=' + playerTypeID + '&apo=' + activePlayersOnly;
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.onload = searchSuccess;
-        httpRequest.onerror = searchError;
-        httpRequest.open('GET', url, true);
-        httpRequest.send();
-        return false;
-    }
+    document.getElementById("player-search-form")
+        .addEventListener('submit', e => {
+            e.preventDefault();
+            setNewPlayerSelected(false);
+            var playerTypeID = document.getElementById('select-player-type').value;
+            var activePlayersOnly = document.getElementById("active-players-only").checked;
+            var query = document.getElementById('player-search').value;
+            var pathSegments = location.pathname.split("/");
+            var url = '/' + pathSegments[1] + '/admin/search?q=' + query + '&pt=' + playerTypeID + '&apo=' +
+                activePlayersOnly;
+            url += "?" + new URLSearchParams(new FormData(e.target));
+            fetch(url, {
+                method: 'GET',
+            }).then(res => {
+                if (res.status == 200) {
+                    return res.json();
+                } else {
+                    return Promise.reject("Server error");
+                }
+            }).then(playerSearchResults => {
+                if (playerSearchResults != null && playerSearchResults.length > 0) {
+                    searchSuccess(playerSearchResults)
+                    return Promise.resolve();
+                } else {
+                    return Promise.reject('No results');
+                }
+            }).catch(err => {
+                var resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = err;
+            });
+        });
 
-    function searchSuccess() {
-        if (this.status != 200) {
-            searchError(new Error(this.responseText));
-            return;
-        }
-        var playerSearchResults = JSON.parse(this.responseText);
-        if (playerSearchResults === null || playerSearchResults.length == 0) {
-            searchError(new Error('No results'));
-            return;
-        }
-
+    function searchSuccess(playerSearchResults) {
         var template = document.getElementById("player-search-results-template");
         var playerSearchResultsDiv = document.importNode(template.content, true);
         var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
@@ -117,11 +124,6 @@
         var resultsDiv = document.getElementById('results');
         resultsDiv.innerHTML = '';
         resultsDiv.appendChild(playerSearchResultsFieldSet);
-    }
-
-    function searchError(err) {
-        var resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = err;
     }
 
     function setNewPlayerSelected(isSelected) {
