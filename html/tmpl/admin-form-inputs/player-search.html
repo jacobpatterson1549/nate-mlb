@@ -55,7 +55,8 @@
             if (psr.querySelector('.psr-radio').checked) {
                 var playerID = psr.querySelector('.psr-player-id').value;
                 var playerName = psr.querySelector('.psr-player-name').value;
-                addPlayer(playerName, playerID);
+                var newPlayer = addPlayer(playerName, playerID);
+                newPlayer.focus();
                 return;
             }
         }

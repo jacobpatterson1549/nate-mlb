@@ -60,7 +60,8 @@
                 maxFriendId = friendId;
             }
         }
-        createFriend(maxFriendId + 1, '', friendIdInputs.length, '[NEW]');
+        var newFriend = createFriend(maxFriendId + 1, '', friendIdInputs.length, '[NEW]');
+        newFriend.querySelector('.friend-name-input').focus();
     }
 
     function createFriend(id, name, displayOrder, nameLabel) {
@@ -78,6 +79,7 @@
         friend.querySelector('.friend-id').value = id;
         var friends = document.getElementById("friends");
         friends.appendChild(clone);
+        return friend;
     }
 
     function changeFriendDisplayOrder(friendID, delta) {

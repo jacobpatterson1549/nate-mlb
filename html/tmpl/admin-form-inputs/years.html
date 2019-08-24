@@ -13,8 +13,8 @@
     </div>
 </fieldset>
 <div class="form-inline my-3">
-    <button class="btn btn-secondary mr-2" type="button" title="Add Year" onclick="addYear()">Add Year</button>
-    <input id="add-year-input" class="form-control" type="number" min="2000" max="3000" , step="1">
+    <input class="form-control mr-2" id="add-year-input" type="number" min="2000" max="3000" , step="1">
+    <button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
 </div>
 <script>
     function removeYear() {
@@ -40,7 +40,8 @@
                 return;
             }
         }
-        createYear(year, true);
+        var newYear = createYear(year, true);
+        newYear.querySelector('.year-radio').focus();
     }
 
     function createYear(yearNum, active) {
@@ -58,6 +59,7 @@
         newYear.querySelector('.year-input').value = yearNum;
         var years = document.getElementById("years");
         years.appendChild(clone);
+        return newYear;
     }
 
     {{range .Data -}}
