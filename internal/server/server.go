@@ -10,7 +10,6 @@ import (
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -66,8 +65,10 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/export":
 		err = exportStats(st, w)
-	case (r.Method == "GET" || r.Method == "POST") && r.URL.Path == "/"+firstPathSegment+"/admin":
-		err = handleAdminPage(st, firstPathSegment, w, r)
+	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin":
+		err = writeAdminPage(st, w)
+	case r.Method == "POST" && r.URL.Path == "/"+firstPathSegment+"/admin":
+		handleAdminPost(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handlePlayerSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
@@ -117,7 +118,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	return renderTemplate(w, statsPage)
 }
 
-func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) error {
+func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	es, err := getEtlStats(st)
 	if err != nil {
 		return err
@@ -158,7 +159,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter, message string) erro
 		tabs[i] = adminTab
 		templateNames[i+2] = fmt.Sprintf("html/tmpl/admin-form-inputs/%s.html", adminTab.Action)
 	}
-	timesMessage := TimesMessage{Messages: []string{message}}
+	timesMessage := TimesMessage{}
 	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
 	adminPage := newPage(title, tabs, true, timesMessage, templateNames...)
 	return renderTemplate(w, adminPage)
@@ -211,26 +212,16 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	return nil
 }
 
-func handleAdminPage(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) error {
-	if r.Method == "GET" {
-		message := r.Form.Get("message")
-		if len(message) == 0 {
-			message = "Enter password before submitting."
-		}
-		return writeAdminPage(st, w, message)
-	}
-
+func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) {
 	var message string
 	err := handleAdminRequest(st, r)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		message = err.Error()
 	} else {
 		message = "Change made."
 	}
-	// prevent the post from being made again on refresh
-	message = url.QueryEscape(message)
-	http.Redirect(w, r, fmt.Sprintf("/%s/admin?message=%s", firstPathSegment, message), http.StatusSeeOther)
-	return nil
+	w.Write([]byte(message))
 }
 
 func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
