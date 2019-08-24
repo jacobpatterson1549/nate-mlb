@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
@@ -17,18 +18,38 @@ import (
 
 // Run configures and starts the server
 func Run(portNumber int) error {
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	http.HandleFunc("/", handle)
+	err := initStaticHandler()
+	if err != nil {
+		return err
+	}
+	http.HandleFunc("/", handleRoot)
 
 	addr := fmt.Sprintf(":%d", portNumber)
-	err := http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil)
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %v", err)
 	}
 	return nil
 }
 
-func handle(w http.ResponseWriter, r *http.Request) {
+func initStaticHandler() error {
+	fileInfo, err := ioutil.ReadDir("static")
+	if err != nil {
+		return fmt.Errorf("problem serving static files %v", err)
+	}
+	for _, file := range fileInfo {
+		path := "/" + file.Name()
+		http.HandleFunc(path, handleStatic)
+	}
+	return nil
+}
+
+func handleStatic(w http.ResponseWriter, r *http.Request) {
+	path := "static" + r.URL.Path
+	http.ServeFile(w, r, path)
+}
+
+func handleRoot(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
