@@ -24,12 +24,12 @@
     {{- else if (eq .Action "password") -}}
     {{- template "password" . -}}
     {{- else -}}
-    <p class="text-danger">Unknown Action: {{.Action}}</p>
+    <p class="bg-danger d-inline">Unknown Action: {{.Action}}</p>
     {{- end -}}
-    <p class="bg-warning">Removing {{.Action}} will delete them permanently on submit.</p>
+    <p class="bg-warning d-inline">Removing {{.Action}} will delete them permanently on submit.</p>
     <div class="form-group">
         {{if .Data -}}
-        <div id="template-support-check-{{.Action}}"></div>
+        <p id="template-support-check-{{.Action}}" class="bg-danger d-inline"></p>
         {{end -}}
         <input name="action" type="hidden" value="{{.Action}}">
         <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
@@ -42,7 +42,6 @@
         var templateSupportCheckDiv = document.getElementById('template-support-check-{{.Action}}');
         templateSupportCheckDiv.innerText =
             'HTML <template> tag not supported in browser, so {{.Action}} editor cannot be shown.';
-        templateSupportCheckDiv.classList.add('text-danger');
     }
 </script>
 {{end -}}
