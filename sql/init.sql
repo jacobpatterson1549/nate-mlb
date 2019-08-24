@@ -39,7 +39,7 @@ CREATE TABLE friends
 	, display_order INT DEFAULT 0 NOT NULL
 	, sport_type_id INT
 	, year INT NOT NULL
-	, CONSTRAINT name_year_unique UNIQUE (year, name)
+	, CONSTRAINT name_sport_type_id_year_unique UNIQUE (name, sport_type_id, year)
 	, FOREIGN KEY (sport_type_id, year) REFERENCES stats (sport_type_id, year) ON DELETE CASCADE
 	);
 
