@@ -13,7 +13,7 @@ var ScoreCategorizers = map[db.PlayerType]ScoreCategorizer{
 	db.PlayerTypePitcher: mlbPlayerRequestor{playerType: db.PlayerTypePitcher},
 	db.PlayerTypeNflTeam: nflTeamRequestor{},
 	db.PlayerTypeNflQB:   nflPlayerRequestor{},
-	db.PlayerTypeNflRBWR: nflPlayerRequestor{},
+	db.PlayerTypeNflMisc: nflPlayerRequestor{},
 }
 
 // ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo

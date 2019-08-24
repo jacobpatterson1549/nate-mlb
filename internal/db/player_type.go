@@ -12,7 +12,7 @@ const (
 	PlayerTypePitcher PlayerType = 3
 	PlayerTypeNflTeam PlayerType = 4
 	PlayerTypeNflQB   PlayerType = 5
-	PlayerTypeNflRBWR PlayerType = 6
+	PlayerTypeNflMisc PlayerType = 6
 )
 
 var (
@@ -65,7 +65,7 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 		}
 		switch playerType {
 		case PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
-			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflRBWR:
+			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflMisc:
 			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name
 			playerTypeDescriptions[playerType] = description

@@ -194,8 +194,8 @@ func (npi *NflPlayerInfo) matches(pt db.PlayerType) bool {
 	switch pt {
 	case db.PlayerTypeNflQB:
 		return npi.Position == "QB"
-	case db.PlayerTypeNflRBWR:
-		return npi.Position == "RB" || npi.Position == "WR"
+	case db.PlayerTypeNflMisc:
+		return npi.Position == "RB" || npi.Position == "WR" || npi.Position == "TE"
 	default:
 		return false
 	}
@@ -218,14 +218,14 @@ func (ns *NflStat) score(pt db.PlayerType) (int, error) {
 		}
 		score += td
 	}
-	if (pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflRBWR) && len(ns.RushingTD) != 0 {
+	if (pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflMisc) && len(ns.RushingTD) != 0 {
 		td, err := strconv.Atoi(ns.RushingTD)
 		if err != nil {
 			return score, fmt.Errorf("problem: could not get RushingTD from %v", ns)
 		}
 		score += td
 	}
-	if pt == db.PlayerTypeNflRBWR && len(ns.ReceivingTD) != 0 {
+	if pt == db.PlayerTypeNflMisc && len(ns.ReceivingTD) != 0 {
 		td, err := strconv.Atoi(ns.ReceivingTD)
 		if err != nil {
 			return score, fmt.Errorf("problem: could not get ReceivingTD from %v", ns)
