@@ -73,7 +73,8 @@ SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types)
 INSERT INTO stats (sport_type_id, year, active)
 	VALUES (
 	   1, 2019, TRUE)
-	, (2, 2018, TRUE)
+	, (2, 2018, NULL)
+	, (2, 2019, TRUE)
 	;
 
 INSERT INTO friends (id, name, display_order, sport_type_id, year)
@@ -84,12 +85,12 @@ INSERT INTO friends (id, name, display_order, sport_type_id, year)
 	, (4, 'Sam',   3, 1, 2019)
 	, (5, 'Steve', 4, 1, 2019)
 	, (6, 'Mike',  5, 1, 2019)
-	, ( 7, 'Mark',   0, 2, 2018)
-	, ( 8, 'Nate',   1, 2, 2018)
-	, ( 9, 'Warren', 2, 2, 2018)
-	, (10, 'Viet',   3, 2, 2018)
-	, (11, 'Sam',    4, 2, 2018)
-
+	, ( 7, 'Nate',  0, 2, 2019)
+	, ( 8, 'Sam',   1, 2, 2019)
+	, ( 9, 'Viet',  2, 2, 2019)
+	, (10, 'W',     3, 2, 2019)
+	, (11, 'Bob',   4, 2, 2019)
+	, (12, 'Steve', 5, 2, 2019)
 	;
 SELECT setVal('friends_id_seq', COALESCE((SELECT MAX(id)+1 FROM friends), 1));
 
@@ -175,63 +176,72 @@ INSERT INTO players (player_type_id, player_id, friend_id, display_order)
 	, (3, 543037, 6, 1) -- Gerrit Cole
 	, (3, 545333, 6, 2) -- Trevor Bauer
 -- nfl teams:
-	, (4, 21,  7, 0) -- New England Patriots
-	, (4, 30,  7, 1) -- Seattle Seahawks
+	, (4, 17,  7, 0) -- Los Angeles Rams
+	, (4, 13,  7, 1) -- Houston Texans
 	, (4,  1,  7, 2) -- Atlanta Falcons
-	, (4, 10,  7, 3) -- Detroit Lions
-	, (4,  6,  7, 4) -- Cincinnati Bengals
-	, (4, 24,  7, 5) -- New York Jets
-	, (4, 20,  8, 0) -- Minnesota Vikings
-	, (4, 27,  8, 1) -- Pittsburgh Steelers
-	, (4,  4,  8, 2) -- Carolina Panthers
-	, (4, 29,  8, 3) -- San Francisco 49ers
-	, (4,  5,  8, 4) -- Chicago Bears
-	, (4,  3,  8, 5) -- Buffalo Bills
-	, (4, 15,  9, 0) -- Jacksonville Jaguars
-	, (4, 22,  9, 1) -- New Orleans Saints
-	, (4, 12,  9, 2) -- Tennessee Titans
-	, (4,  9,  9, 3) -- Denver Broncos
-	, (4, 31,  9, 4) -- Tampa Bay Buccaneers
-	, (4,  7,  9, 5) -- Cleveland Browns
-	, (4, 25, 10, 0) -- Philadelphia Eagles
-	, (4, 28, 10, 1) -- Los Angeles Chargers
-	, (4, 13, 10, 2) -- Houston Texans
-	, (4,  8, 10, 3) -- Dallas Cowboys
-	, (4, 23, 10, 4) -- New York Giants
-	, (4, 14, 10, 5) -- Indianapolis Colts
-	, (4, 17, 11, 0) -- Los Angeles Rams
-	, (4, 11, 11, 1) -- Green Bay Packers
-	, (4, 18, 11, 2) -- Oakland Raiders
-	, (4, 16, 11, 3) -- Kansas City Chiefs
-	, (4,  2, 11, 4) -- Baltimore Ravens
-	, (4, 32, 11, 5) -- Washington Redskins
+	, (4, 12,  7, 3) -- Tennessee Titans
+	, (4, 31,  7, 4) -- Tampa Bay Buccaneers
+	, (4, 28,  8, 0) -- Los Angeles Chargers
+	, (4, 14,  8, 1) -- Indianapolis Colts
+	, (4, 11,  8, 2) -- Green Bay Packers
+	, (4,  4,  8, 3) -- Carolina Panthers
+	, (4,  3,  8, 4) -- Buffalo Bills
+	, (4, 22,  9, 0) -- New Orleans Saints
+	, (4, 25,  9, 1) -- Philadelphia Eagles
+	, (4,  2,  9, 2) -- Baltimore Ravens
+	, (4, 18,  9, 3) -- Oakland Raiders
+	, (4, 10,  9, 4) -- Detroit Lions
+	, (4, 16, 10, 0) -- Kansas City Chiefs
+	, (4, 15, 10, 1) -- Jacksonville Jaguars
+	, (4, 20, 10, 2) -- Minnesota Vikings
+	, (4,  9, 10, 3) -- Denver Broncos
+	, (4, 26, 10, 4) -- Arizona Cardinals
+	, (4,  7, 11, 0) -- Cleveland Browns
+	, (4,  8, 11, 1) -- Dallas Cowboys
+	, (4, 30, 11, 2) -- Seattle Seahawks
+	, (4, 29, 11, 3) -- San Francisco 49ers
+	, (4, 23, 11, 4) -- New York Giants
+	, (4, 21, 12, 0) -- New England Patriots
+	, (4,  5, 12, 1) -- Chicago Bears
+	, (4, 27, 12, 2) -- Pittsburgh Steelers
+	, (4, 24, 12, 3) -- New York Jets
+	, (4, 32, 12, 4) -- Washington Redskins
 -- quarterbacks
-	, (5, 2504775,  7, 0) -- Drew Brees
-	, (5, 2506109,  7, 1) -- Ben Roethlisberger
-	, (5, 2555334,  7, 2) -- Jared Goff
-	, (5, 2532975,  8, 0) -- Russell Wilson
-	, (5,   79860,  8, 1) -- Matthew Stafford
-	, (5, 2495455,  8, 2) -- Cam Newton
-	, (5, 2558063,  9, 0) -- Deshaun Watson
-	, (5, 2532820,  9, 1) -- Kirk Cousins
-	, (5, 2552466,  9, 2) -- Marcus Mariota
-	, (5, 2506363, 10, 0) -- Aaron Rodgers
-	, (5, 2506121, 10, 1) -- Philip Rivers
-	, (5, 2543801, 10, 2) -- Jimmy Garoppolo
+	, (5, 2558125, 07, 0) -- Patrick Mahomes
+	, (5, 2506109, 07, 1) -- Ben Roethlisberger
+	, (5, 79860,   07, 2) -- Matthew Stafford
+	, (5, 2504775, 08, 0) -- Drew Brees
+	, (5, 2533031, 08, 1) -- Andrew Luck
+	, (5, 2555260, 08, 2) -- Dak Prescott
+	, (5, 2558063, 09, 0) -- Deshaun Watson
+	, (5, 2555259, 09, 1) -- Carson Wentz
+	, (5, 2562382, 09, 2) -- Kyler Murray
+	, (5, 2560800, 10, 0) -- Baker Mayfield
+	, (5, 2560757, 10, 1) -- Lamar Jackson
+	, (5, 2532820, 10, 2) -- Kirk Cousins
 	, (5, 2504211, 11, 0) -- Tom Brady
-	, (5, 2555259, 11, 1) -- Carson Wentz
-	, (5, 2555334, 11, 2) -- Jared Goff
+	, (5, 2555334, 11, 1) -- Jared Goff
+	, (5, 310,     11, 2) -- Matt Ryan
+	, (5, 2506363, 12, 0) -- Aaron Rodgers
+	, (5, 2532975, 12, 1) -- Russell Wilson
+	, (5, 2506121, 12, 2) -- Philip Rivers
 -- running backs and wide receivers
-	, (6, 2556841,  7, 0) -- Byron Marshall	
-	, (6, 2543496,  7, 1) -- Odell Beckham	
-	, (6, 2508061,  8, 0) -- Antonio Brown	
-	, (6, 2557997,  8, 1) -- Christian McCaffrey	
-	, (6, 2558019,  9, 0) -- Alvin Kamara	
-	, (6, 2555224,  9, 1) -- Ezekiel Elliott	
-	, (6, 2552487,  9, 2) -- Amari Cooper	
-	, (6, 2553435, 10, 0) -- David Johnson	
-	, (6, 2557973, 10, 1) -- Leonard Fournette	
-	, (6, 2552475, 10, 0) -- Todd Gurley	
-	, (6, 2540165, 11, 1) -- DeAndre Hopkins	
-	, (6, 2530747, 11, 2) -- Doug Baldwin	
+	, (6, 2552475, 07, 0) -- Todd Gurley
+	, (6, 2557997, 07, 1) -- Christian McCaffrey
+	, (6, 2561021, 07, 2) -- Nick Chubb
+	, (6, 2540165, 08, 0) -- DeAndre Hopkins
+	, (6, 2543496, 08, 1) -- Odell Beckham
+	, (6, 2495454, 08, 2) -- Julio Jones
+	, (6, 2540175, 09, 0) -- Le'Veon Bell
+	, (6, 2553435, 09, 1) -- David Johnson
+	, (6, 2557976, 09, 2) -- Joe Mixon
+	, (6, 2560968, 10, 0) -- Saquon Barkley
+	, (6, 2540258, 10, 1) -- Travis Kelce
+	, (6, 2556214, 10, 2) -- Tyreek Hill
+	, (6, 2555224, 11, 0) -- Ezekiel Elliott
+	, (6, 2557978, 11, 1) -- James Conner
+	, (6, 2543495, 11, 2) -- Davante Adams
+	, (6, 2558019, 12, 0) -- Alvin Kamara
+	, (6, 2561358, 12, 1) -- J.J. Jones
+	, (6, 2552487, 12, 2) -- Amari Cooper
 	;
