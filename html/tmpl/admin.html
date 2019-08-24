@@ -52,7 +52,10 @@
                     if (res.status == 200) {
                         return res.text()
                     } else {
-                        return Promise.reject(res);
+                        return res.text()
+                        .then(message => {
+                            return Promise.reject(message);
+                        })
                     }
                 })
                 .then(message => {
@@ -62,7 +65,6 @@
                             .then(() => {
                                 return Promise.resolve(message);
                             });
-
                     } else {
                         return Promise.resolve(message);
                     }
@@ -72,17 +74,7 @@
                 }).catch(message => {
                     var actionInfo = document.getElementById("{{.Action}}-info");
                     actionInfo.classList.add('text-danger');
-                    if (message instanceof Response) {
-                        message.text()
-                            .then(message => {
-                                actionInfo.innerText = message;
-                            })
-                            .catch(message => {
-                                actionInfo.innerText = message;
-                            })
-                    } else {
-                        actionInfo.innerText = message;
-                    }
+                    actionInfo.innerText = message;
                 });
         });
     var queryParams = new URLSearchParams(window.location.search);
