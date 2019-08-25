@@ -239,7 +239,7 @@ func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request)
 	}
 	playerType := db.PlayerType(playerTypeIDI)
 	activePlayersOnly := r.Form.Get("apo")
-	activePlayersOnlyB := activePlayersOnly == "true"
+	activePlayersOnlyB := activePlayersOnly == "on"
 
 	_, err = db.LoadPlayerTypes(st)
 	if err != nil {
