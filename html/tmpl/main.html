@@ -113,20 +113,31 @@
     }
 
     function initFirstTab() {
-      if (document.getElementById('main-tabs-tabs') != null) {
-        document.getElementById('main-tabs-tabs').querySelector('.nav-link').classList.add('active');
-        document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('active');
-        document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('show');
+      if (document.getElementById('main-tabs-tabs') == null) {
+        return;
+      }
+      var tabs = document.getElementById('main-tabs-tabs').querySelectorAll(".nav-link");
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].hash === window.location.hash) {
+          activateTab(tabs[i]);
+          return;
+        }
+      }
+      if (tabs.length > 0) {
+        activateTab(tabs[0]);
       }
     }
 
     function tabClick(e) {
       e.preventDefault();
-      var clickedTab = e.srcElement;
+      window.location.hash = e.srcElement.hash;
+      activateTab(e.srcElement);
+    }
+
+    function activateTab(clickedTab) {
       if (clickedTab.classList.contains('active')) {
         return;
       }
-      window.location.hash = clickedTab.hash;
 
       var tabs = document.getElementById('main-tabs-tabs').querySelectorAll(".nav-link");
       for (var i = 0; i < tabs.length; i++) {
