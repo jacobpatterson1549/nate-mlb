@@ -35,8 +35,8 @@
     {{- end -}}
     <div class="form-group">
         {{if .Data -}}
-        <p id="template-support-check-{{.Action}}" class="bg-danger d-inline"></p>
-        <p class="text-info" id="{{.Action}}-info"></p>
+        <p id="template-support-check-{{.Action}}" class="bg-danger"></p>
+        <p id="{{.Action}}-info"></p>
         {{end -}}
         <input name="action" type="hidden" value="{{.Action}}">
         <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
@@ -79,7 +79,7 @@
                     window.location = pathname + '?message=' + message;
                 }).catch(message => {
                     var actionInfo = document.getElementById("{{.Action}}-info");
-                    actionInfo.classList.add('text-danger');
+                    actionInfo.classList.add('bg-danger');
                     actionInfo.innerText = message;
                 });
         });
