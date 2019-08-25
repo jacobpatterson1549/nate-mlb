@@ -63,15 +63,15 @@
       <ul class="nav nav-tabs">
         {{range .Tabs -}}
         <li class="nav-item">
-          <a id="{{.GetID .GetName}}-tab" class="nav-link" data-toggle="tab" href="#{{.GetID .GetName}}"
-            role="tab">{{.GetName}}</a>
+          <a id="{{.GetID .GetName}}-tab" class="nav-link" href="#{{.GetID .GetName}}"
+            role="tab" onclick="tabClick(event)">{{.GetName}}</a>
         </li>
         {{end -}}
       </ul>
     </div>
     <div id="main-tabs-content" class="tab-content" role="main">
       {{range .Tabs -}}
-      <div id="{{.GetID .GetName}}" class="tab-pane fade" role="tabpanel">
+      <div id="{{.GetID .GetName}}" class="tab-pane" role="tabpanel">
         {{- template "content" . -}}
       </div>
       {{end -}}
@@ -117,6 +117,28 @@
         document.getElementById('main-tabs-tabs').querySelector('.nav-link').classList.add('active');
         document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('active');
         document.getElementById('main-tabs-content').querySelector('.tab-pane').classList.add('show');
+      }
+    }
+
+    function tabClick(e) {
+      e.preventDefault();
+      var clickedTab = e.srcElement;
+      if (clickedTab.classList.contains('active')) {
+        return;
+      }
+      window.location.hash = clickedTab.hash;
+
+      var tabs = document.getElementById('main-tabs-tabs').querySelectorAll(".nav-link");
+      for (var i = 0; i < tabs.length; i++) {
+        var selectedTab = tabs[i].id === clickedTab.id;
+        tabs[i].classList.toggle('active', selectedTab);
+      }
+
+      var tabContents = document.getElementById('main-tabs-content').querySelectorAll('.tab-pane');
+      for (var i = 0; i < tabContents.length; i++) {
+        var selectedTabContent = "#"+tabContents[i].id === clickedTab.hash;
+        tabContents[i].classList.toggle('active', selectedTabContent);
+        tabContents[i].classList.toggle('show', selectedTabContent);
       }
     }
 
