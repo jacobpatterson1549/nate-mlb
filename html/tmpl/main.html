@@ -27,8 +27,7 @@
       <img src="/favicon.ico" alt="hat">
       <span>nate-stats</span>
     </a>
-    <button class="navbar-toggler" aria-label="Toggle Navbar" type="button" data-toggle="collapse"
-      data-target="#main-navbar-nav">
+    <button class="navbar-toggler" id="navbar-toggler" type="button" onclick="toggleNavbar(event)">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="main-navbar-nav">
@@ -42,9 +41,8 @@
         </li>
         {{ end -}}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false">Admin</a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <a class="nav-link dropdown-toggle" href="#" id="admin-dropdown-toggler" onclick="toggleAdminMenu(event)">Admin</a>
+          <div class="dropdown-menu" id="admin-dropdown-menu">
             {{ range .Sports -}}
             <a class="dropdown-item" href="/{{.URL}}/admin">{{.Name}} Admin</a>
             {{end -}}
@@ -108,8 +106,21 @@
     }
 
     function initCurrentNavbarPage() {
-      document.getElementById('main-navbar-nav').querySelector('[href="' + this.location.pathname + '"]').classList.add(
-        'active');
+      var mainNavbarNav = document.getElementById('main-navbar-nav');
+      var currentNavAnchor = mainNavbarNav.querySelector('[href="' + this.location.pathname + '"]');
+      if (currentNavAnchor != null) {
+        currentNavAnchor.classList.add('active');
+      }
+    }
+
+    function toggleNavbar(event) {
+      var mainNavbarNav = document.getElementById('main-navbar-nav');
+      mainNavbarNav.classList.toggle('show');
+    }
+
+    function toggleAdminMenu(event) {
+      var adminDropdownMenu = document.getElementById('admin-dropdown-menu');
+      adminDropdownMenu.classList.toggle('show');
     }
 
     function initFirstTab() {
