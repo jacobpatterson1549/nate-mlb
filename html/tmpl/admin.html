@@ -1,9 +1,25 @@
 {{define "content"}}
-<p class="text-info" id="{{.Action}}-info"></p>
 {{- if (eq .Action "players") -}}
 {{- template "player-search" . -}}
 {{end}}
 <form id="{{.Action}}-form">
+
+    {{- if (eq .Action "players") -}}
+    {{- template "players" . -}}
+    {{- else if (eq .Action "friends") -}}
+    {{- template "friends" . -}}
+    {{- else if (eq .Action "years") -}}
+    {{- template "years" . -}}
+    {{- else if (eq .Action "cache") -}}
+    {{- template "cache" . -}}
+    {{- else if (ne .Action "password") -}}
+    <p class="bg-danger d-inline">Unknown Action: {{.Action}}</p>
+    {{- end -}}
+    {{- if .Data -}}
+    <div class="form-group">
+        <p class="bg-warning d-inline my-3">Removing {{.Action}} will delete them permanently on submit.</p>
+    </div>
+    {{- end -}}
     <div class="form-group">
         <label class="form-label" for="{{.Action}}-username">Username</label>
         <input class="form-control" id="{{.Action}}-username" name="username" type="text" autocomplete="username"
@@ -14,23 +30,13 @@
         <input class="form-control" id="{{.Action}}-password" name="password" type="password"
             autocomplete="current-password" required>
     </div>
-    {{- if (eq .Action "players") -}}
-    {{- template "players" . -}}
-    {{- else if (eq .Action "friends") -}}
-    {{- template "friends" . -}}
-    {{- else if (eq .Action "years") -}}
-    {{- template "years" . -}}
-    {{- else if (eq .Action "cache") -}}
-    {{- template "cache" . -}}
-    {{- else if (eq .Action "password") -}}
+    {{- if (eq .Action "password") -}}
     {{- template "password" . -}}
-    {{- else -}}
-    <p class="bg-danger d-inline">Unknown Action: {{.Action}}</p>
     {{- end -}}
-    <p class="bg-warning d-inline">Removing {{.Action}} will delete them permanently on submit.</p>
     <div class="form-group">
         {{if .Data -}}
         <p id="template-support-check-{{.Action}}" class="bg-danger d-inline"></p>
+        <p class="text-info" id="{{.Action}}-info"></p>
         {{end -}}
         <input name="action" type="hidden" value="{{.Action}}">
         <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
