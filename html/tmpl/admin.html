@@ -59,9 +59,9 @@
                         return res.text()
                     } else {
                         return res.text()
-                        .then(message => {
-                            return Promise.reject(message);
-                        })
+                            .then(message => {
+                                return Promise.reject(message);
+                            });
                     }
                 })
                 .then(message => {
