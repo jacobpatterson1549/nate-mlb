@@ -97,12 +97,15 @@ func (playerBio PlayerBio) matches(pt db.PlayerType) bool {
 
 func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
-	bdTime, err := time.Parse("2006-01-02T15:04:05", playerBio.BirthDate)
-	if err != nil {
-		return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", playerBio.BirthDate, err)
+	birthDate := "?"
+	if len(playerBio.BirthDate) > 0 {
+		bdTime, err := time.Parse("2006-01-02T15:04:05", playerBio.BirthDate)
+		if err != nil {
+			return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", playerBio.BirthDate, err)
+		}
+		birthDate = bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
 	}
-	birthDate := bdTime.Format(time.RFC3339)[:10]     // YYYY-MM-DD
-	playerID, err := strconv.Atoi(playerBio.PlayerID) // all players must have valid ids, ignore bad ids
+	playerID, err := strconv.Atoi(playerBio.PlayerID)
 	if err != nil {
 		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, playerBio, err)
 	}
