@@ -10,18 +10,27 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func main() {
-	driverName := "postgres"
-	dataSourceName, ok := os.LookupEnv("DATABASE_URL")
+var (
+	driverName     string
+	dataSourceName string
+	port           string
+)
+
+func init() {
+	driverName = "postgres"
+	var ok bool
+	dataSourceName, ok = os.LookupEnv("DATABASE_URL")
 	if !ok {
 		log.Fatal("DATABASE_URL environment variable not set")
 	}
-	port, ok := os.LookupEnv("PORT")
+	port, ok = os.LookupEnv("PORT")
 	if !ok {
 		log.Fatal("PORT environment variable not set")
 	}
+}
 
-	err := db.InitDB(driverName, dataSourceName)
+func main() {
+	err := db.Init(driverName, dataSourceName)
 	if err != nil {
 		log.Fatal("Could not set database ", err)
 	}

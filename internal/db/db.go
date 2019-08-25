@@ -15,8 +15,8 @@ type query struct {
 	args []interface{}
 }
 
-// InitDB initializes the pointer to the database
-func InitDB(driverName, dataSourceName string) error {
+// Init initializes the pointer to the database
+func Init(driverName, dataSourceName string) error {
 	var err error
 	db, err = sql.Open(driverName, dataSourceName)
 	if err != nil {

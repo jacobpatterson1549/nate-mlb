@@ -15,30 +15,24 @@ import (
 	"time"
 )
 
-// Run configures and starts the server
-func Run(portNumber int) error {
-	err := initStaticHandler()
-	if err != nil {
-		return err
-	}
-	http.HandleFunc("/", handleRoot)
-
-	addr := fmt.Sprintf(":%d", portNumber)
-	err = http.ListenAndServe(addr, nil)
-	if err != http.ErrServerClosed {
-		return fmt.Errorf("server stopped unexpectedly: %v", err)
-	}
-	return nil
-}
-
-func initStaticHandler() error {
+func init() {
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
-		return fmt.Errorf("problem serving static files %v", err)
+		log.Fatal("problem serving static files", err)
 	}
 	for _, file := range fileInfo {
 		path := "/" + file.Name()
 		http.HandleFunc(path, handleStatic)
+	}
+	http.HandleFunc("/", handleRoot)
+}
+
+// Run configures and starts the server
+func Run(portNumber int) error {
+	addr := fmt.Sprintf(":%d", portNumber)
+	err := http.ListenAndServe(addr, nil)
+	if err != http.ErrServerClosed {
+		return fmt.Errorf("server stopped unexpectedly: %v", err)
 	}
 	return nil
 }
