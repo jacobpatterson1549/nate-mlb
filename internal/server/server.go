@@ -15,22 +15,20 @@ import (
 	"time"
 )
 
-func init() {
+// Run configures and starts the server
+func Run(portNumber int) error {
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
-		log.Fatal("problem serving static files", err)
+		return fmt.Errorf("problem reading static dir: %v", err)
 	}
 	for _, file := range fileInfo {
 		path := "/" + file.Name()
 		http.HandleFunc(path, handleStatic)
 	}
 	http.HandleFunc("/", handleRoot)
-}
 
-// Run configures and starts the server
-func Run(portNumber int) error {
 	addr := fmt.Sprintf(":%d", portNumber)
-	err := http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil)
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %v", err)
 	}
