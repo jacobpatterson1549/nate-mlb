@@ -80,7 +80,7 @@ func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage,
 // https://www.w3.org/TR/html4/types.html#type-id
 func (jsTab) GetID(name string) string {
 	invalidCharacterRegex := regexp.MustCompile("[^-_:.A-Za-z0-9]")
-	return invalidCharacterRegex.ReplaceAllString(name, "x")
+	return invalidCharacterRegex.ReplaceAllString(name, "-")
 }
 
 // GetName implements the Tab interface for AdminTab
