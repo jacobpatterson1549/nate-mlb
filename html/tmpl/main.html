@@ -18,7 +18,8 @@
       <img src="/favicon.ico" alt="hat">
       <span>nate-stats</span>
     </a>
-    <button class="navbar-toggler" id="navbar-toggler" type="button" onclick="toggleNavbar(event)" aria-label="Toggle Navbar">
+    <button class="navbar-toggler" id="navbar-toggler" type="button" onclick="toggleNavbar(event)"
+      aria-label="Toggle Navbar">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="main-navbar-nav">
@@ -32,7 +33,8 @@
         </li>
         {{ end -}}
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="admin-dropdown-toggler" onclick="toggleAdminMenu(event)">Admin</a>
+          <a class="nav-link dropdown-toggle" href="#" id="admin-dropdown-toggler"
+            onclick="toggleAdminMenu(event)">Admin</a>
           <div class="dropdown-menu" id="admin-dropdown-menu">
             {{ range .Sports -}}
             <a class="dropdown-item" href="/{{.URL}}/admin">{{.Name}} Admin</a>
@@ -52,8 +54,8 @@
       <ul class="nav nav-tabs">
         {{range .Tabs -}}
         <li class="nav-item">
-          <a id="{{.GetID .GetName}}-tab" class="nav-link" href="#{{.GetID .GetName}}"
-            role="tab" onclick="tabClick(event)">{{.GetName}}</a>
+          <a id="{{.GetID .GetName}}-tab" class="nav-link" href="#{{.GetID .GetName}}" role="tab"
+            onclick="tabClick(event)">{{.GetName}}</a>
         </li>
         {{end -}}
       </ul>
@@ -149,7 +151,7 @@
 
       var tabContents = document.getElementById('main-tabs-content').querySelectorAll('.tab-pane');
       for (var i = 0; i < tabContents.length; i++) {
-        var selectedTabContent = "#"+tabContents[i].id === clickedTab.hash;
+        var selectedTabContent = "#" + tabContents[i].id === clickedTab.hash;
         tabContents[i].classList.toggle('active', selectedTabContent);
         tabContents[i].classList.toggle('show', selectedTabContent);
       }
