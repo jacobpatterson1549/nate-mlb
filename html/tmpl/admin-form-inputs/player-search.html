@@ -79,7 +79,7 @@ integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07j
             var playerTypeID = document.getElementById('select-player-type').value;
             var formData = new FormData(e.target);
             formData.append('pt', playerTypeID);
-            var url = location.pathname + "/search?" + new URLSearchParams(formData);
+            var url = window.location.pathname + "/search?" + new URLSearchParams(formData);
             fetch(url, {
                 method: 'GET',
             }).then(res => {

@@ -100,7 +100,7 @@
 
     function initCurrentNavbarPage() {
       var mainNavbarNav = document.getElementById('main-navbar-nav');
-      var currentNavAnchor = mainNavbarNav.querySelector('[href="' + this.location.pathname + '"]');
+      var currentNavAnchor = mainNavbarNav.querySelector('[href="' + window.location.pathname + '"]');
       if (currentNavAnchor != null) {
         currentNavAnchor.classList.add('active');
       }

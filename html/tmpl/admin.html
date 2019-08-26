@@ -47,7 +47,7 @@
     document.getElementById("{{.Action}}-form")
         .addEventListener('submit', e => {
             e.preventDefault();
-            var pathname = location.pathname;
+            var pathname = window.location.pathname;
             const data = new URLSearchParams(new FormData(e.target));
             fetch(pathname, {
                     method: 'POST',
