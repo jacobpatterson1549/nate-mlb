@@ -84,7 +84,7 @@ func getFirstPathSegment(urlPath string) string {
 
 func writeHomePage(w http.ResponseWriter) error {
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/tmpl/home.html")
+	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/home.html")
 	return renderTemplate(w, homePage)
 }
 
@@ -106,7 +106,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
-	statsPage := newPage(title, tabs, true, timesMessage, "html/tmpl/stats.html")
+	statsPage := newPage(title, tabs, true, timesMessage, "html/stats.html")
 	return renderTemplate(w, statsPage)
 }
 
@@ -145,11 +145,11 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	}
 	tabs := make([]Tab, len(adminTabs))
 	templateNames := make([]string, len(adminTabs)+2)
-	templateNames[0] = "html/tmpl/admin.html"
-	templateNames[1] = fmt.Sprintf("html/tmpl/admin-form-inputs/player-search.html")
+	templateNames[0] = "html/admin.html"
+	templateNames[1] = fmt.Sprintf("html/admin-form-inputs/player-search.html")
 	for i, adminTab := range adminTabs {
 		tabs[i] = adminTab
-		templateNames[i+2] = fmt.Sprintf("html/tmpl/admin-form-inputs/%s.html", adminTab.Action)
+		templateNames[i+2] = fmt.Sprintf("html/admin-form-inputs/%s.html", adminTab.Action)
 	}
 	timesMessage := TimesMessage{}
 	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
@@ -168,7 +168,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/tmpl/about.html")
+	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/about.html")
 	return renderTemplate(w, aboutPage)
 }
 
@@ -188,7 +188,7 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
 	templateNames := make([]string, len(p.templateNames)+1)
-	templateNames[0] = "html/tmpl/main.html"
+	templateNames[0] = "html/main.html"
 	for i, templateName := range p.templateNames {
 		templateNames[i+1] = templateName
 	}
