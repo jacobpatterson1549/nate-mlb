@@ -24,7 +24,7 @@ Built with the [Go](https://github.com/golang/go) programming language.  Runs on
 ```
 PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> go run main.go
 ```
-* **Heroku** To run locally with the [Heroku CLI](https://github.com/heroku/cli), create a `.env` file next in the project root with the PORT AND DATABASE_URL properties and run `heroku local`.  Example .env file contents: 
+* **Heroku** To run locally with the [Heroku CLI](https://github.com/heroku/cli), create an `.env` file in the project root.  It should contain the environment variables on separate lines.  Run with `heroku local`.  Example .env file: 
 ```
 PORT=<SERVER_PORT>
 DATABASE_URL=<DATA_SOURCE_NAME>
