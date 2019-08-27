@@ -15,9 +15,9 @@ var populateFriendScoreTests = []populateFriendScoreTest{
 		// basic sum
 		friendScore: FriendScore{
 			PlayerScores: []PlayerScore{
-				PlayerScore{Score: 1},
-				PlayerScore{Score: 2},
-				PlayerScore{Score: 3},
+				{Score: 1},
+				{Score: 2},
+				{Score: 3},
 			},
 		},
 		onlySumTopTwoPlayerScores: false,
@@ -27,9 +27,9 @@ var populateFriendScoreTests = []populateFriendScoreTest{
 		// basic sum top two
 		friendScore: FriendScore{
 			PlayerScores: []PlayerScore{
-				PlayerScore{Score: 1},
-				PlayerScore{Score: 2},
-				PlayerScore{Score: 3},
+				{Score: 1},
+				{Score: 2},
+				{Score: 3},
 			},
 		},
 		onlySumTopTwoPlayerScores: true,
@@ -39,7 +39,7 @@ var populateFriendScoreTests = []populateFriendScoreTest{
 		// one playerScore
 		friendScore: FriendScore{
 			PlayerScores: []PlayerScore{
-				PlayerScore{Score: 44},
+				{Score: 44},
 			},
 		},
 		onlySumTopTwoPlayerScores: true,
@@ -48,8 +48,7 @@ var populateFriendScoreTests = []populateFriendScoreTest{
 	{
 		// no playerScores
 		friendScore: FriendScore{
-			PlayerScores: []PlayerScore{},
-			Score:        17, // [should be overwritten]
+			Score: 17, // [should be overwritten]
 		},
 		onlySumTopTwoPlayerScores: true,
 		want:                      0,
