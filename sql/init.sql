@@ -3,7 +3,7 @@
 -- * DATABASE_IP_ADDRESS : The ip address of the database.  Eg: 127.0.0.1 if running on localhost
 -- * DATABASE_PORT : The port used to connect to the database.  Eg: 5432
 -- * DATABASE_USERNAME: The username of the user not run all database operations as.  Eg: nate
--- * DATABASE_PASSWORD: The password of the user.  Eg: Have19_each+Iowa
+-- * DATABASE_PASSWORD: The password of the user.
 -- The DATABASE_URL environment variable will be postgres://<DATABASE_USERNAME>:<DATABASE_PASSWORD>@<DATABASE_IP_ADDRESS>:<DATABASE_PORT>/<DATABASE_NAME>
 
 -- Database Creation code:
@@ -15,6 +15,12 @@
 
 -- Connect to the database with the command-line tool:
 -- $ PGPASSWORD=<DATABASE_PASSWORD> psql <DATABASE_USERNAME> -h <DATABASE_IP_ADDRESS> -d <DATABASE_NAME>
+
+-- Remove the database and the user
+-- $ sudo -u postgres psql
+-- DROP DATABASE <DATABASE_NAME>;
+-- DROP USER <DATABASE_USERNAME>;
+-- \q # (exit psql)
 
 CREATE TABLE users
 	( username VARCHAR(20) PRIMARY KEY
