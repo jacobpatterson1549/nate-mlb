@@ -148,7 +148,7 @@ func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScor
 			if ok {
 				playerScore.PlayerName = nflPlayerInfo.fullName()
 			} else {
-				log.Println("No player details (name) found for player", playerID)
+				log.Println("No player name found for nfl player", playerID)
 			}
 		}
 	}
@@ -171,7 +171,7 @@ func (r *nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScor
 					playerScore.Score = score
 				}
 			} else {
-				log.Println("No player details (name) found for player", playerID)
+				log.Println("No player stats found for nfl player", playerID)
 			}
 		}
 	}
