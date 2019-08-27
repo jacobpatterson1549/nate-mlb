@@ -157,9 +157,8 @@
       }
     }
 
-    function initBottomMessages() {
+    function initBottomMessages(timesMessage, pageLoadTime) {
       if (document.getElementById('times-message') != null) {
-        var timesMessage = {{.TimesMessage}};
         var messages = timesMessage.Messages;
         var times = timesMessage.Times;
         var formattedTimesMessage = "";
@@ -171,12 +170,12 @@
         }
         document.getElementById('times-message').innerText = formattedTimesMessage;
       }
-      document.getElementById('page-load-message').innerText = 'Page loaded at ' + formatDate({{.PageLoadTime}});
+      document.getElementById('page-load-message').innerText = 'Page loaded at ' + formatDate(pageLoadTime);
     }
 
     initCurrentNavbarPage();
     initFirstTab();
-    initBottomMessages();
+    initBottomMessages({{.TimesMessage}}, {{.PageLoadTime}});
   </script>
 </body>
 
