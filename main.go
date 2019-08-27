@@ -9,10 +9,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// names of variables which should be specied in the runtime environment or be in the .env file
 const (
-	EnvironmentVariableDatabaseURL = "DATABASE_URL"
-	EnvironmentVariablePort        = "PORT"
+	environmentVariableDatabaseURL = "DATABASE_URL"
+	environmentVariablePort        = "PORT"
 )
 
 var (
@@ -28,18 +27,18 @@ func init() {
 
 	dataSourceName, ok = os.LookupEnv("DATABASE_URL")
 	if !ok {
-		log.Fatal(EnvironmentVariableDatabaseURL, " environment variable not set")
+		log.Fatal(environmentVariableDatabaseURL, " environment variable not set")
 	}
 
 	var port string
-	port, ok = os.LookupEnv(EnvironmentVariablePort)
+	port, ok = os.LookupEnv(environmentVariablePort)
 	if !ok {
-		log.Fatal(EnvironmentVariablePort, " environment variable not set")
+		log.Fatal(environmentVariablePort, " environment variable not set")
 	}
 	var err error
 	portNumber, err = strconv.Atoi(port)
 	if err != nil {
-		log.Fatal(EnvironmentVariablePort, " environment variable is invalid: ", port)
+		log.Fatal(environmentVariablePort, " environment variable is invalid: ", port)
 	}
 }
 
