@@ -19,7 +19,7 @@
 -- -- (run sql code in this file)
 -- \quit
 
--- Initialize admin password:
+-- Initialize Admin Password:
 -- $ printf "UPDATE users SET password='%s' WHERE username='admin';" \
 --   $(curl -s http://<SERVER_HOST>:<SERVER_PORT>/admin/password?v=<ADMIN_PASSWORD>) |
 --   psql -d <DATABASE_NAME> -U <DATABASE_USER> -h <DATABASE_IP_ADDRESS> -W
