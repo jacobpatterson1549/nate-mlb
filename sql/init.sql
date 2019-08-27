@@ -19,6 +19,11 @@
 -- -- (run sql code in this file)
 -- \quit
 
+-- Initialize admin password:
+-- $ NATE_MLB_ADMIN_PASSWORD="$(curl http://<SERVER_HOST>:<SERVER_PORT>/admin/password?v=<ADMIN_PASSWORD>)"
+-- echo "UPDATE users SET password='$NATE_MLB_ADMIN_PASSWORD' WHERE username='admin';" | psql -d <DATABASE_NAME> -U <DATABASE_USERNAME> -h <DATABASE_IP_ADDRESS> -W
+-- [enter <DATABASE_PASSWORD>]
+
 -- Remove the database and the user
 -- $ sudo -u postgres psql
 -- DROP DATABASE <DATABASE_NAME>;
