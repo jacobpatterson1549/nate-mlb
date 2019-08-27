@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"nate-mlb/internal/db"
 	"nate-mlb/internal/server"
 	"os"
 	"strconv"
@@ -17,15 +16,15 @@ const (
 )
 
 var (
-	driverName     string
-	dataSourceName string
-	portNumber     int
+	databaseDriverName string
+	dataSourceName     string
+	portNumber         int
 )
 
 func init() {
 	var ok bool
 
-	driverName = "postgres"
+	databaseDriverName = "postgres"
 
 	dataSourceName, ok = os.LookupEnv("DATABASE_URL")
 	if !ok {
@@ -45,12 +44,7 @@ func init() {
 }
 
 func main() {
-	err := db.Init(driverName, dataSourceName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = server.Run(portNumber)
+	err := server.Run(portNumber, databaseDriverName, dataSourceName)
 	if err != nil {
 		log.Fatal(err)
 	}

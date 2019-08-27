@@ -16,7 +16,12 @@ import (
 )
 
 // Run configures and starts the server
-func Run(portNumber int) error {
+func Run(portNumber int, databaseDriverName string, dataSourceName string) error {
+	err := db.Init(databaseDriverName, dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
 		return fmt.Errorf("problem reading static dir: %v", err)
