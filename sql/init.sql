@@ -101,7 +101,6 @@ SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types)
 INSERT INTO stats (sport_type_id, year, active)
 	VALUES (
 	   1, 2019, TRUE)
-	, (2, 2018, NULL)
 	, (2, 2019, TRUE)
 	;
 
