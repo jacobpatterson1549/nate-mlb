@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
 	"testing"
 )
@@ -44,13 +43,13 @@ func TestCreateCsvRecords(t *testing.T) {
 				},
 			},
 		},
-		sportType: db.SportTypeNfl,
-		year:      2018,
+		sportTypeName: "american football",
+		year:          2018,
 	}
 	got := createCsvRecords(es)
 
 	want := [][]string{
-		{"nate-mlb", "2018 NFL scores"},
+		{"nate-mlb", "2018 american football scores"},
 		nil,
 		{"type", "friend", "value", "player", "score"},
 		nil,

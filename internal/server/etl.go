@@ -15,6 +15,7 @@ type EtlStats struct {
 	ScoreCategories []request.ScoreCategory
 	// do not serialize these fields:
 	etlRefreshTime time.Time
+	sportTypeName  string
 	sportType      db.SportType
 	year           int
 }
@@ -31,6 +32,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	fetchStats := true
 	currentTime := db.GetUtcTime()
 	es.etlRefreshTime = previousMidnight(currentTime)
+	es.sportTypeName = st.Name()
 	es.sportType = st
 	es.year = stat.Year
 	if stat.EtlJSON != nil {
