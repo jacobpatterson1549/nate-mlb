@@ -25,7 +25,7 @@ type ScoreCategorizer interface {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	PlayerTypeID db.PlayerType
+	PlayerTypeID db.PlayerType // TODO: rename to PlayerType
 	FriendScores []FriendScore
 }
 
