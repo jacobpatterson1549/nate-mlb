@@ -25,7 +25,7 @@ type ScoreCategorizer interface {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	PlayerTypeID db.PlayerType // TODO: rename to PlayerType
+	PlayerType   db.PlayerType
 	FriendScores []FriendScore
 }
 
@@ -55,7 +55,7 @@ type FriendPlayerInfo struct {
 func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
-	sc.PlayerTypeID = playerType
+	sc.PlayerType = playerType
 	sc.FriendScores = make([]FriendScore, len(friends))
 	for i, friend := range friends {
 		friendScore, err := newFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)

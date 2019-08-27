@@ -5,7 +5,7 @@
         <label for="select-player-type">Player Type</label>
         <select id="select-player-type" class="form-control" onchange="refreshVisiblePlayers()">
             {{range .Data -}}
-            <option value="{{.PlayerTypeID}}">{{.Name}}</option>
+            <option value="{{.PlayerType}}">{{.Name}}</option>
             {{end -}}
         </select>
     </div>
@@ -22,7 +22,7 @@
             <label class="player-name-label forrm-label">?</label>
             <input class="player-player-id" name="player-0-player-id" value="?" type="hidden" required>
             <input class="player-display-order" name="player-0-display-order" value="?" type="hidden">
-            <input class="player-player-type-id" name="player-0-player-type-id" value="?" type="hidden">
+            <input class="player-player-type" name="player-0-player-type" value="?" type="hidden">
             <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
             <input class="player-id" value="0" type="hidden">
             <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
@@ -71,7 +71,7 @@
     }
 
     function addPlayer(playerName, playerID) {
-        var playerTypeID = document.getElementById('select-player-type').value;
+        var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var maxID = 0;
         var maxDisplayOrder = 0;
@@ -83,7 +83,7 @@
             if (ID > maxID) {
                 maxID = ID;
             }
-            if (playerTypeID === player.querySelector('.player-player-type-id').value &&
+            if (playerType === player.querySelector('.player-player-type').value &&
                 friendID === player.querySelector('.player-friend-id').value) {
                 var playerDisplayOrder = parseInt(player.querySelector('.player-display-order').value);
                 if (playerDisplayOrder > maxDisplayOrder) {
@@ -91,10 +91,10 @@
                 }
             }
         }
-        createPlayer(maxID + 1, playerName, playerID, maxDisplayOrder + 1, playerTypeID, friendID);
+        createPlayer(maxID + 1, playerName, playerID, maxDisplayOrder + 1, playerType, friendID);
     }
 
-    function createPlayer(id, playerName, playerID, displayOrder, playerTypeID, friendID) {
+    function createPlayer(id, playerName, playerID, displayOrder, playerType, friendID) {
         var template = document.getElementById("player-template");
         var clone = document.importNode(template.content, true);
         var player = clone.querySelector('.form-group');
@@ -104,17 +104,17 @@
         player.querySelector('.player-player-id').value = playerID;
         player.querySelector('.player-display-order').name = 'player-' + id + '-display-order';
         player.querySelector('.player-display-order').value = displayOrder;
-        player.querySelector('.player-player-type-id').name = 'player-' + id + '-player-type-id';
-        player.querySelector('.player-player-type-id').value = playerTypeID;
+        player.querySelector('.player-player-type').name = 'player-' + id + '-player-type';
+        player.querySelector('.player-player-type').value = playerType;
         player.querySelector('.player-friend-id').name = 'player-' + id + '-friend-id';
         player.querySelector('.player-friend-id').value = friendID;
         player.querySelector('.player-id').value = id;
         var scoreCategories = document.getElementById("players");
-        var scoreCategory = scoreCategories.querySelector('.player-type-id-' + playerTypeID);
+        var scoreCategory = scoreCategories.querySelector('.player-type-' + playerType);
         if (scoreCategory == null) {
             scoreCategory = document.createElement('div');
             scoreCategory.classList.add('score-category');
-            scoreCategory.classList.add('player-type-id-' + playerTypeID);
+            scoreCategory.classList.add('player-type-' + playerType);
             scoreCategories.appendChild(scoreCategory);
         }
         var friendScore = scoreCategory.querySelector('.friend-id-' + friendID);
@@ -136,15 +136,15 @@
     }
 
     function refreshVisiblePlayers() {
-        var playerTypeID = document.getElementById('select-player-type').value;
+        var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var players = document.getElementById('players');
         var playerElements = players.getElementsByClassName('form-group');
         for (var i = 0; i < playerElements.length; i++) {
             var player = playerElements[i];
-            var currentPlayerTypeID = player.querySelector('.player-player-type-id').value;
+            var currentPlayerType = player.querySelector('.player-player-type').value;
             var currentFriendID = player.querySelector('.player-friend-id').value;
-            if (playerTypeID === currentPlayerTypeID && friendID === currentFriendID) {
+            if (playerType === currentPlayerType && friendID === currentFriendID) {
                 player.classList.remove('d-none');
             } else {
                 player.classList.add('d-none');
@@ -155,7 +155,7 @@
     {{range $scoreCategory := .Data -}}
     {{range $friendScore := $scoreCategory.FriendScores -}}
     {{range $index, $playerScore := $friendScore.PlayerScores -}}
-    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.PlayerID}}, {{$index}}, {{$scoreCategory.PlayerTypeID}}, {{$friendScore.FriendID}});
+    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.PlayerID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
     {{end -}}
     {{end -}}
     {{end -}}
