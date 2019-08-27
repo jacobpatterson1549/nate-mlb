@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
 	"testing"
@@ -63,21 +64,26 @@ func TestCreateCsvRecords(t *testing.T) {
 		{"qb", "Charlie", "29", "Tom Brady", "29"},
 	}
 
+	if err := equal2DArrays(want, got); err != nil {
+		t.Errorf("different CSV: %v", err)
+	}
+}
+
+func equal2DArrays(want, got [][]string) error {
 	if len(want) != len(got) {
-		t.Errorf("different csv row counts: wanted %d, got %d", len(want), len(got))
-	} else {
+		return fmt.Errorf("row counts: wanted %d, got %d", len(want), len(got))
+	}
 	for i := range want {
 		wantRow, gotRow := want[i], got[i]
 		if len(wantRow) != len(gotRow) {
-			t.Errorf("different csv column counts at row %d: wanted %d, got %d", i, len(wantRow), len(gotRow))
-		} else {
+			return fmt.Errorf("column counts at row %d: wanted %d, got %d", i, len(wantRow), len(gotRow))
+		}
 		for j := range wantRow {
 			wantValue, gotValue := wantRow[j], gotRow[j]
 			if wantValue != gotValue {
-				t.Errorf("different csv values at row %d, column %d: %s, %s", i, j, wantValue, gotValue)
+				return fmt.Errorf("values at row %d, column %d: %s, %s", i, j, wantValue, gotValue)
 			}
 		}
 	}
-	}
-}
+	return nil
 }
