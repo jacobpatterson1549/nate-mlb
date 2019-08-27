@@ -29,18 +29,18 @@ func init() {
 
 	dataSourceName, ok = os.LookupEnv("DATABASE_URL")
 	if !ok {
-		log.Fatal(EnvironmentVariableDatabaseURL, "environment variable not set")
+		log.Fatal(EnvironmentVariableDatabaseURL, " environment variable not set")
 	}
 
 	var port string
 	port, ok = os.LookupEnv(EnvironmentVariablePort)
 	if !ok {
-		log.Fatal(EnvironmentVariablePort, "environment variable not set")
+		log.Fatal(EnvironmentVariablePort, " environment variable not set")
 	}
 	var err error
 	portNumber, err = strconv.Atoi(port)
 	if err != nil {
-		log.Fatal(EnvironmentVariablePort, "invalid number:", port)
+		log.Fatal(EnvironmentVariablePort, " environment variable is invalid: ", port)
 	}
 }
 

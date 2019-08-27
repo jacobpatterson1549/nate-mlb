@@ -1,9 +1,20 @@
+-- To create and set up the database, run the Database Creation code after setting the following fields:
+-- * DATABASE_NAME : The name of the database.  Eg: nate_mlb
+-- * DATABASE_IP_ADDRESS : The ip address of the database.  Eg: 127.0.0.1 if running on localhost
+-- * DATABASE_PORT : The port used to connect to the database.  Eg: 5432
+-- * DATABASE_USERNAME: The username of the user not run all database operations as.  Eg: nate
+-- * DATABASE_PASSWORD: The password of the user.  Eg: Have19_each+Iowa
+-- The DATABASE_URL environment variable will be postgres://<DATABASE_USERNAME>:<DATABASE_PASSWORD>@<DATABASE_IP_ADDRESS>:<DATABASE_PORT>/<DATABASE_NAME>
+
+-- Database Creation code:
 -- $ sudo -u postgres psql
--- CREATE DATABASE nate_mlb_db;
--- CREATE user nate WITH ENCRYPTED PASSWORD 'Have19_each+Iowa';
--- GRANT ALL PRIVILEGES ON DATABASE nate_mlb_db to nate;
--- \q
--- $ PGPASSWORD=Have19_each%Iowa psql nate -h 127.0.0.1 -d nate_mlb_db
+-- CREATE DATABASE <DATABASE_NAME>;
+-- CREATE USER <DATABASE_USERNAME> WITH ENCRYPTED PASSWORD '<DATABASE_PASSWORD>';
+-- GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
+-- \q # (exit psql)
+
+-- Connect to the database with the command-line tool:
+-- $ PGPASSWORD=<DATABASE_PASSWORD> psql <DATABASE_USERNAME> -h <DATABASE_IP_ADDRESS> -d <DATABASE_NAME>
 
 CREATE TABLE users
 	( username VARCHAR(20) PRIMARY KEY
