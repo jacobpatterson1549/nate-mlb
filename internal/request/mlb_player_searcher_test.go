@@ -61,6 +61,12 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		playerType:       db.PlayerTypePitcher,
 		want:             []PlayerSearchResult{}, // (default)
 	},
+	{
+		// no results (wrong playerType)
+		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
+		playerType:       db.PlayerTypeMlbTeam,
+		want:             []PlayerSearchResult{}, // (default)
+	},
 }
 
 func TestGetPlayerSearchResults(t *testing.T) {
