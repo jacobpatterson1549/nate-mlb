@@ -11,16 +11,21 @@
 -- CREATE DATABASE <DATABASE_NAME>;
 -- CREATE USER <DATABASE_USERNAME> WITH ENCRYPTED PASSWORD '<DATABASE_PASSWORD>';
 -- GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
--- \q # (exit psql)
+-- \quit
 
--- Connect to the database with the command-line tool:
--- $ PGPASSWORD=<DATABASE_PASSWORD> psql <DATABASE_USERNAME> -h <DATABASE_IP_ADDRESS> -d <DATABASE_NAME>
+-- Initialization:
+-- psql -d <DATABASE_NAME> -U <DATABASE_USERNAME> -h <DATABASE_IP_ADDRESS> -W
+-- [enter <DATABASE_PASSWORD>]
+-- -- (run sql code in this file)
+-- \quit
 
 -- Remove the database and the user
 -- $ sudo -u postgres psql
 -- DROP DATABASE <DATABASE_NAME>;
 -- DROP USER <DATABASE_USERNAME>;
--- \q # (exit psql)
+-- \quit
+
+-- DROP TABLE users;
 
 CREATE TABLE users
 	( username VARCHAR(20) PRIMARY KEY
