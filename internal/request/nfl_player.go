@@ -103,7 +103,7 @@ func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int)
 	var nflPlayerList NflPlayerList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
-	err := requestStruct(url, &nflPlayerList)
+	err := request.structPointerFromURL(url, &nflPlayerList)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int)
 func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerStat, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	var nflPlayerStatList NflPlayerStatList
-	err := requestStruct(url, &nflPlayerStatList)
+	err := request.structPointerFromURL(url, &nflPlayerStatList)
 	if err != nil {
 		return nil, err
 	}

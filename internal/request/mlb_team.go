@@ -76,5 +76,6 @@ func (r mlbTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 func (r mlbTeamRequestor) requestTeams(year int) (Teams, error) {
 	var teams Teams
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	return teams, requestStruct(url, &teams)
+	err := request.structPointerFromURL(url, &teams)
+	return teams, err
 }

@@ -8,20 +8,36 @@ import (
 	"time"
 )
 
-var requestCache = newCache(100)
+type requestor struct {
+	cache          cache
+	httpClient     *http.Client
+	logRequestUrls bool
+}
 
-func requestStruct(url string, v interface{}) error {
+var request requestor
+
+func init() {
+	request = requestor{
+		cache: newCache(100),
+		httpClient: &http.Client{
+			Timeout: 5 * time.Second,
+		},
+		logRequestUrls: true,
+	}
+}
+
+func (r *requestor) structPointerFromURL(url string, v interface{}) error {
 	var (
 		b   []byte
 		err error
 		ok  bool
 	)
-	if b, ok = requestCache.get(url); !ok {
-		b, err = requestCache.requestBytes(url)
+	if b, ok = request.cache.get(url); !ok {
+		b, err = request.bytes(url)
 		if err != nil {
 			return err
 		}
-		requestCache.add(url, b)
+		request.cache.add(url, b)
 	}
 	json.Unmarshal(b, v)
 	if err != nil {
@@ -30,16 +46,13 @@ func requestStruct(url string, v interface{}) error {
 	return nil
 }
 
-func (cache) requestBytes(url string) ([]byte, error) {
+func (r *requestor) bytes(url string) ([]byte, error) {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
 	}
 	request.Header.Add("Accept", "application/json")
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-	response, err := client.Do(request)
+	response, err := r.httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
 	}
@@ -54,5 +67,5 @@ func (cache) requestBytes(url string) ([]byte, error) {
 
 // ClearCache clears the request cache
 func ClearCache() {
-	requestCache.clear()
+	request.cache.clear()
 }

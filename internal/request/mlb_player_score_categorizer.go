@@ -81,7 +81,7 @@ func (r *mlbPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScor
 	}
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDStrings, ",")), ",", "%2C")
 	var playerNames PlayerNames
-	err := requestStruct(playerNamesURL, &playerNames)
+	err := request.structPointerFromURL(playerNamesURL, &playerNames)
 
 	if err != nil {
 		*lastError = err
@@ -118,7 +118,7 @@ func (r *mlbPlayerRequestor) getPlayerScore(playerID int, playerScores map[int]*
 func (r *mlbPlayerRequestor) requestPlayerScore(playerID int, year int) (int, error) {
 	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	var playerStats PlayerStats
-	err := requestStruct(playerStatsURL, &playerStats)
+	err := request.structPointerFromURL(playerStatsURL, &playerStats)
 	if err != nil {
 		return -1, err
 	}

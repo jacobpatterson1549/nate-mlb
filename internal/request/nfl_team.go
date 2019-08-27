@@ -74,7 +74,7 @@ func (r nflTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 func (r nflTeamRequestor) requestNflTeams(year int) (map[int]NflTeam, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v2/nfl/schedule?season=%d&appKey=test_key_1", year)
 	var nflSchedule NflSchedule
-	err := requestStruct(url, &nflSchedule)
+	err := request.structPointerFromURL(url, &nflSchedule)
 	if err != nil {
 		return nil, err
 	}
