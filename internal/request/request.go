@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"time"
 )
@@ -22,7 +23,7 @@ func init() {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		logRequestUrls: true,
+		logRequestUrls: false,
 	}
 }
 
@@ -47,6 +48,9 @@ func (r *requestor) structPointerFromURL(url string, v interface{}) error {
 }
 
 func (r *requestor) bytes(url string) ([]byte, error) {
+	if r.logRequestUrls {
+		log.Println("Requesting", url)
+	}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
@@ -54,6 +58,9 @@ func (r *requestor) bytes(url string) ([]byte, error) {
 	request.Header.Add("Accept", "application/json")
 	response, err := r.httpClient.Do(request)
 	if err != nil {
+		if r.logRequestUrls {
+			log.Panicln(" -> FAILED")
+		}
 		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
 	}
 	defer response.Body.Close()
