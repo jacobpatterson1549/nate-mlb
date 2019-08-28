@@ -31,6 +31,8 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 
 ### Compile and run server
 
+* **Dependencies** Run `dep ensure` do download all depencies.  This will create the `vendor/` directory.
+
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 
 * **1-Command** To set environment variables, compile, and run the server with one command, run the command below and open a browser to http://<SERVER_HOST>:<SERVER_PORT> (eg: http://localhost:8000)
