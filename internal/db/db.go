@@ -12,7 +12,7 @@ var (
 
 type query struct {
 	sql  string
-	args []interface{}
+	args []interface{} // TODO: make this ...interface{}
 }
 
 // Init initializes the pointer to the database
@@ -30,13 +30,13 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func exececuteInTransaction(queries *[]query) error {
+func exececuteInTransaction(queries <-chan query, quit chan<- error) {
 	tx, err := db.Begin()
 	if err != nil {
 		err = fmt.Errorf("problem starting transaction to save: %v", err)
 	}
 	var result sql.Result
-	for _, query := range *queries {
+	for query := range queries {
 		result, err = tx.Exec(query.sql, query.args...)
 		if err != nil {
 			break
@@ -48,7 +48,7 @@ func exececuteInTransaction(queries *[]query) error {
 	}
 	if err != nil {
 		err = fmt.Errorf("problem saving: %v", err)
-		if err2 := tx.Rollback(); err2 != nil {
+		if err2 := tx.Rollback(); err2 != nil { // TODO: rename to errRollback
 			err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, err2)
 		}
 	} else {
@@ -57,7 +57,7 @@ func exececuteInTransaction(queries *[]query) error {
 			err = fmt.Errorf("problem committing transaction to save: %v", err)
 		}
 	}
-	return err
+	quit <- err
 }
 
 func expectSingleRowAffected(r sql.Result) error {

@@ -63,45 +63,47 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 		delete(previousFriends, friend.ID)
 	}
 
-	queries := make([]query, len(insertFriends)+len(updateFriends)+len(previousFriends))
-	i := 0
+	queries := make(chan query, len(insertFriends)+len(updateFriends)+len(previousFriends))
+	quit := make(chan error)
+	go exececuteInTransaction(queries, quit)
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
-		queries[i] = query{
+		queries <- query{
 			sql: `INSERT INTO friends
 				(display_order, name, sport_type_id, year)
 				SELECT $1, $2, $3, year
 				FROM stats
 				WHERE sport_type_id = $3
 				AND active`,
-			args: make([]interface{}, 3),
+			args: []interface{}{
+				insertFriend.DisplayOrder,
+				insertFriend.Name,
+				st,
+			},
 		}
-		queries[i].args[0] = insertFriend.DisplayOrder
-		queries[i].args[1] = insertFriend.Name
-		queries[i].args[2] = st
-		i++
 	}
 	for _, updateFriend := range updateFriends {
-		queries[i] = query{
+		queries <- query{
 			sql: `UPDATE friends
 				SET display_order = $1
 				, name = $2
 				WHERE id = $3`,
-			args: make([]interface{}, 3),
+			args: []interface{}{
+				updateFriend.DisplayOrder,
+				updateFriend.Name,
+				updateFriend.ID,
+			},
 		}
-		queries[i].args[0] = updateFriend.DisplayOrder
-		queries[i].args[1] = updateFriend.Name
-		queries[i].args[2] = updateFriend.ID
-		i++
 	}
-	for deleteFriendID := range previousFriends {
-		queries[i] = query{
+	for deleteFriendID := range previousFriends { // TODO: delete before inserting/updating, do this for players, years
+		queries <- query{
 			sql: `DELETE FROM friends
 				WHERE id = $1`,
-			args: make([]interface{}, 1),
+			args: []interface{}{
+				deleteFriendID,
+			},
 		}
-		queries[i].args[0] = deleteFriendID
-		i++
 	}
-	return exececuteInTransaction(&queries)
+	close(queries)
+	return <-quit
 }

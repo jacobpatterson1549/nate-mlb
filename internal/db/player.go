@@ -66,44 +66,46 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 		delete(previousPlayers, player.ID)
 	}
 
-	queries := make([]query, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
-	i := 0
+	queries := make(chan query, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
+	quit := make(chan error)
+	go exececuteInTransaction(queries, quit)
 	for _, insertPlayer := range insertPlayers {
-		queries[i] = query{
+		queries <- query{
 			sql: `INSERT INTO players
 			(display_order, player_type_id, player_id, friend_id)
 			SELECT $1, $2, $3, $4
 			FROM stats
 			WHERE sport_type_id = $5
 			AND active`,
-			args: make([]interface{}, 5),
+			args: []interface{}{
+				insertPlayer.DisplayOrder,
+				insertPlayer.PlayerType,
+				insertPlayer.PlayerID,
+				insertPlayer.FriendID,
+				st,
+			},
 		}
-		queries[i].args[0] = insertPlayer.DisplayOrder
-		queries[i].args[1] = insertPlayer.PlayerType
-		queries[i].args[2] = insertPlayer.PlayerID
-		queries[i].args[3] = insertPlayer.FriendID
-		queries[i].args[4] = st
-		i++
 	}
 	for _, updateplayer := range updatePlayers {
-		queries[i] = query{
+		queries <- query{
 			sql: `UPDATE players
 			SET display_order = $1
 			WHERE id = $2`,
-			args: make([]interface{}, 2),
+			args: []interface{}{
+				updateplayer.DisplayOrder,
+				updateplayer.ID,
+			},
 		}
-		queries[i].args[0] = updateplayer.DisplayOrder
-		queries[i].args[1] = updateplayer.ID
-		i++
 	}
 	for deleteID := range previousPlayers {
-		queries[i] = query{
+		queries <- query{
 			sql: `DELETE FROM players
 			WHERE id = $1`,
-			args: make([]interface{}, 1),
+			args: []interface{}{
+				deleteID,
+			},
 		}
-		queries[i].args[0] = deleteID
-		i++
 	}
-	return exececuteInTransaction(&queries)
+	close(queries)
+	return <-quit
 }

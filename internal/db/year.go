@@ -101,49 +101,53 @@ func SaveYears(st SportType, futureYears []Year) error {
 		return fmt.Errorf("active year not present in years: %v", futureYears)
 	}
 
-	queries := make([]query, len(insertYears)+len(previousYearsMap)+2)
+	queries := make(chan query, len(insertYears)+len(previousYearsMap)+2)
+	quit := make(chan error)
+	go exececuteInTransaction(queries, quit)
 	// remove active year
-	// do this first to ensure one row is affected, in the case that the active row is deleted
-	queries[0] = query{
+	// do this first to ensure one row is affected, in the case that the active row is deleted (TODO: do this right before setting after delete is done first)
+	queries <- query{
 		sql: `UPDATE stats
 			SET active = NULL
 			WHERE sport_type_id = $1
 			AND active`,
-		args: make([]interface{}, 1),
+		args: []interface{}{
+			st,
+		},
 	}
-	queries[0].args[0] = st
-	i := 1
 	for _, insertYear := range insertYears {
-		queries[i] = query{
+		queries <- query{
 			sql: `INSERT INTO stats
 				(sport_type_id, year)
 				VALUES ($1, $2)`,
-			args: make([]interface{}, 2),
+			args: []interface{}{
+				st,
+				insertYear,
+			},
 		}
-		queries[i].args[0] = st
-		queries[i].args[1] = insertYear
-		i++
 	}
 	for deleteYear := range previousYearsMap {
-		queries[i] = query{
+		queries <- query{
 			sql: `DELETE FROM stats
 				WHERE sport_type_id = $1
 				AND year = $2`,
-			args: make([]interface{}, 2),
+			args: []interface{}{
+				st,
+				deleteYear,
+			},
 		}
-		queries[i].args[0] = st
-		queries[i].args[1] = deleteYear
-		i++
 	}
 	// set active year
-	queries[i] = query{
+	queries <- query{
 		sql: `UPDATE stats
 			SET active = TRUE
 			WHERE sport_type_id = $1
 			AND year = $2`,
-		args: make([]interface{}, 2),
+		args: []interface{}{
+			st,
+			activeYear,
+		},
 	}
-	queries[i].args[0] = st
-	queries[i].args[1] = activeYear
-	return exececuteInTransaction(&queries)
+	close(queries)
+	return <-quit
 }
