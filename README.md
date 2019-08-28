@@ -12,7 +12,7 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 * [jQuery](https://github.com/jquery/jquery) (Javascript functions for Bootstrap modals)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
-* [godep](Godeps/Readme) dependency tool for Go. -> After altering dependencies, [run godep to update Heroku](https://devcenter.heroku.com/articles/go-dependencies-via-godep).
+* [dep](https://github.com/golang/dep) (Go dependency management tool) Run `dep ensure` to update dependencies.
 
 
 # Installation
