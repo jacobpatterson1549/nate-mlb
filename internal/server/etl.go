@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
-	"sync"
 	"time"
 )
 
@@ -81,34 +80,41 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 		Year:    es.year,
 	}
 
-	numCategories := len(playerTypes)
-	scoreCategories := make([]request.ScoreCategory, numCategories)
-	var wg sync.WaitGroup
-	wg.Add(numCategories)
-	var lastError error
+	numScoreCategories := len(playerTypes)
+	playerTypeOrders := make(map[db.PlayerType]int)
+	scoreCategoriesCh := make(chan request.ScoreCategory, len(playerTypes))
+	quit := make(chan error)
 	for i, playerType := range playerTypes {
-		go es.getScoreCategory(scoreCategories, i, playerType, fpi, &wg, &lastError)
+		go es.getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
+		playerTypeOrders[playerType] = i
 	}
-	wg.Wait()
-	return scoreCategories, lastError
+	scoreCategories := make([]request.ScoreCategory, numScoreCategories)
+	finishedScoreCategories := 0
+	for {
+		select {
+		case err = <-quit:
+			return nil, err
+		case scoreCategory := <-scoreCategoriesCh:
+			i := playerTypeOrders[scoreCategory.PlayerType]
+			scoreCategories[i] = scoreCategory
+			finishedScoreCategories++
+			if finishedScoreCategories == numScoreCategories {
+				return scoreCategories, nil
+			}
+		}
+	}
 }
 
-func (es EtlStats) getScoreCategory(scoreCategories []request.ScoreCategory, index int, playerType db.PlayerType, fpi request.FriendPlayerInfo, wg *sync.WaitGroup, lastError *error) {
-	var scoreCategory request.ScoreCategory
-	var err error
-	scoreCategorizer, ok := request.ScoreCategorizers[playerType]
-	if !ok {
-		err = fmt.Errorf("problem: no scoreCategorizer for player type %v", playerType)
+func (es EtlStats) getScoreCategory(playerType db.PlayerType, fpi request.FriendPlayerInfo, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+	if scoreCategorizer, ok := request.ScoreCategorizers[playerType]; ok {
+		scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
+		if err != nil {
+			quit <- err
+		}
+		scoreCategories <- scoreCategory
 	} else {
-		scoreCategory, err = scoreCategorizer.RequestScoreCategory(fpi, playerType)
+		quit <- fmt.Errorf("problem: no scoreCategorizer for player type %v", playerType)
 	}
-
-	if err != nil {
-		*lastError = err // ingore earlier errors - the last one set is shown
-	} else {
-		scoreCategories[index] = scoreCategory
-	}
-	wg.Done()
 }
 
 // previousMidnight returns the previous midnight relative to Honolulu time (UTC-10)
