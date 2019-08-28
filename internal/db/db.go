@@ -48,8 +48,8 @@ func exececuteInTransaction(queries <-chan query, quit chan<- error) {
 	}
 	if err != nil {
 		err = fmt.Errorf("problem saving: %v", err)
-		if err2 := tx.Rollback(); err2 != nil { // TODO: rename to errRollback
-			err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, err2)
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, rollbackErr)
 		}
 	} else {
 		err = tx.Commit()
