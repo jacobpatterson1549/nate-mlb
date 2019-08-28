@@ -159,12 +159,12 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	}
 	player.DisplayOrder = displayOrderI
 
-	playerTypeID := r.Form.Get(fmt.Sprintf("player-%s-player-type-id", id))
-	playerTypeIDI, err := strconv.Atoi(playerTypeID)
+	playerType := r.Form.Get(fmt.Sprintf("player-%s-player-type", id))
+	playerTypeI, err := strconv.Atoi(playerType)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player type id '%v' to number: %v", playerTypeID, err)
+		return player, fmt.Errorf("problem converting player type '%v' to number: %v", playerType, err)
 	}
-	player.PlayerType = db.PlayerType(playerTypeIDI)
+	player.PlayerType = db.PlayerType(playerTypeI)
 
 	playerID := r.Form.Get(fmt.Sprintf("player-%s-player-id", id))
 	playerIDI, err := strconv.Atoi(playerID)
