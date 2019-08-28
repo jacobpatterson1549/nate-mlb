@@ -98,9 +98,9 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 			i := playerTypeOrders[scoreCategory.PlayerType]
 			scoreCategories[i] = scoreCategory
 			finishedScoreCategories++
-			if finishedScoreCategories == numScoreCategories {
-				return scoreCategories, nil
-			}
+		}
+		if finishedScoreCategories == numScoreCategories {
+			return scoreCategories, nil
 		}
 	}
 }
