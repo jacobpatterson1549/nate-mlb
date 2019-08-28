@@ -75,7 +75,10 @@
                     }
                 })
                 .then(message => {
-                    window.location = pathname + '?message=' + message + window.location.hash;
+                    var queryParams = new URLSearchParams();
+                    queryParams.set("message", message)
+                    var search = "?" + queryParams.toString();
+                    window.location.search = search;
                 }).catch(message => {
                     var actionInfo = document.getElementById("{{.Action}}-info");
                     actionInfo.classList.add('bg-danger');
