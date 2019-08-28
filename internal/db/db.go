@@ -12,7 +12,14 @@ var (
 
 type query struct {
 	sql  string
-	args []interface{} // TODO: make this ...interface{}
+	args []interface{}
+}
+
+func newQuery(sql string, args ...interface{}) query {
+	return query{
+		sql:  sql,
+		args: args,
+	}
 }
 
 // Init initializes the pointer to the database

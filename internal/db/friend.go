@@ -67,42 +67,36 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	for deleteFriendID := range previousFriends {
-		queries <- query{
-			sql: `DELETE FROM friends
-				WHERE id = $1`,
-			args: []interface{}{
-				deleteFriendID,
-			},
-		}
+		queries <- newQuery(
+			`DELETE FROM friends
+			WHERE id = $1`,
+			deleteFriendID,
+		)
 	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
-		queries <- query{
-			sql: `INSERT INTO friends
-				(display_order, name, sport_type_id, year)
-				SELECT $1, $2, $3, year
-				FROM stats
-				WHERE sport_type_id = $3
-				AND active`,
-			args: []interface{}{
-				insertFriend.DisplayOrder,
-				insertFriend.Name,
-				st,
-			},
-		}
+		queries <- newQuery(
+			`INSERT INTO friends
+			(display_order, name, sport_type_id, year)
+			SELECT $1, $2, $3, year
+			FROM stats
+			WHERE sport_type_id = $3
+			AND active`,
+			insertFriend.DisplayOrder,
+			insertFriend.Name,
+			st,
+		)
 	}
 	for _, updateFriend := range updateFriends {
-		queries <- query{
-			sql: `UPDATE friends
-				SET display_order = $1
-				, name = $2
-				WHERE id = $3`,
-			args: []interface{}{
-				updateFriend.DisplayOrder,
-				updateFriend.Name,
-				updateFriend.ID,
-			},
-		}
+		queries <- newQuery(
+			`UPDATE friends
+			SET display_order = $1
+			, name = $2
+			WHERE id = $3`,
+			updateFriend.DisplayOrder,
+			updateFriend.Name,
+			updateFriend.ID,
+		)
 	}
 	close(queries)
 	return <-quit

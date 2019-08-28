@@ -106,36 +106,30 @@ func SaveYears(st SportType, futureYears []Year) error {
 	go exececuteInTransaction(queries, quit)
 	// remove active year
 	// do this first to ensure one row is affected, in the case that the active row is deleted
-	queries <- query{
-		sql: `UPDATE stats
-			SET active = NULL
-			WHERE sport_type_id = $1
-			AND active`,
-		args: []interface{}{
-			st,
-		},
-	}
+	queries <- newQuery(
+		`UPDATE stats
+		SET active = NULL
+		WHERE sport_type_id = $1
+		AND active`,
+		st,
+	)
 	for deleteYear := range previousYearsMap {
-		queries <- query{
-			sql: `DELETE FROM stats
-				WHERE sport_type_id = $1
-				AND year = $2`,
-			args: []interface{}{
-				st,
-				deleteYear,
-			},
-		}
+		queries <- newQuery(
+			`DELETE FROM stats
+			WHERE sport_type_id = $1
+			AND year = $2`,
+			st,
+			deleteYear,
+		)
 	}
 	for _, insertYear := range insertYears {
-		queries <- query{
-			sql: `INSERT INTO stats
-				(sport_type_id, year)
-				VALUES ($1, $2)`,
-			args: []interface{}{
-				st,
-				insertYear,
-			},
-		}
+		queries <- newQuery(
+			`INSERT INTO stats
+			(sport_type_id, year)
+			VALUES ($1, $2)`,
+			st,
+			insertYear,
+		)
 	}
 
 	// set active year

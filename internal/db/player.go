@@ -70,41 +70,35 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	for deleteID := range previousPlayers {
-		queries <- query{
-			sql: `DELETE FROM players
+		queries <- newQuery(
+			`DELETE FROM players
 			WHERE id = $1`,
-			args: []interface{}{
-				deleteID,
-			},
-		}
+			deleteID,
+		)
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries <- query{
-			sql: `INSERT INTO players
+		queries <- newQuery(
+			`INSERT INTO players
 			(display_order, player_type_id, player_id, friend_id)
 			SELECT $1, $2, $3, $4
 			FROM stats
 			WHERE sport_type_id = $5
 			AND active`,
-			args: []interface{}{
-				insertPlayer.DisplayOrder,
-				insertPlayer.PlayerType,
-				insertPlayer.PlayerID,
-				insertPlayer.FriendID,
-				st,
-			},
-		}
+			insertPlayer.DisplayOrder,
+			insertPlayer.PlayerType,
+			insertPlayer.PlayerID,
+			insertPlayer.FriendID,
+			st,
+		)
 	}
 	for _, updateplayer := range updatePlayers {
-		queries <- query{
-			sql: `UPDATE players
+		queries <- newQuery(
+			`UPDATE players
 			SET display_order = $1
 			WHERE id = $2`,
-			args: []interface{}{
-				updateplayer.DisplayOrder,
-				updateplayer.ID,
-			},
-		}
+			updateplayer.DisplayOrder,
+			updateplayer.ID,
+		)
 	}
 	close(queries)
 	return <-quit
