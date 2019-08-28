@@ -52,6 +52,7 @@ type FriendPlayerInfo struct {
 	Year    int
 }
 
+// TODO: make this not require a map[int]*PlayerScore (POINTER to player score) after channels unilized
 func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) error {
 	sc.Name = playerType.Name()
 	sc.Description = playerType.Description()
