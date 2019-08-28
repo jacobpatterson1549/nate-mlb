@@ -66,6 +66,15 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	queries := make(chan query, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
+	for deleteFriendID := range previousFriends {
+		queries <- query{
+			sql: `DELETE FROM friends
+				WHERE id = $1`,
+			args: []interface{}{
+				deleteFriendID,
+			},
+		}
+	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
 		queries <- query{
@@ -92,15 +101,6 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 				updateFriend.DisplayOrder,
 				updateFriend.Name,
 				updateFriend.ID,
-			},
-		}
-	}
-	for deleteFriendID := range previousFriends { // TODO: delete before inserting/updating, do this for players, years
-		queries <- query{
-			sql: `DELETE FROM friends
-				WHERE id = $1`,
-			args: []interface{}{
-				deleteFriendID,
 			},
 		}
 	}

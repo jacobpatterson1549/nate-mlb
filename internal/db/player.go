@@ -69,6 +69,15 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	queries := make(chan query, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
+	for deleteID := range previousPlayers {
+		queries <- query{
+			sql: `DELETE FROM players
+			WHERE id = $1`,
+			args: []interface{}{
+				deleteID,
+			},
+		}
+	}
 	for _, insertPlayer := range insertPlayers {
 		queries <- query{
 			sql: `INSERT INTO players
@@ -94,15 +103,6 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 			args: []interface{}{
 				updateplayer.DisplayOrder,
 				updateplayer.ID,
-			},
-		}
-	}
-	for deleteID := range previousPlayers {
-		queries <- query{
-			sql: `DELETE FROM players
-			WHERE id = $1`,
-			args: []interface{}{
-				deleteID,
 			},
 		}
 	}
