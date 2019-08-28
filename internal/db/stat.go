@@ -43,9 +43,9 @@ func SetStat(stat Stat) error {
 		`UPDATE stats
 		SET etl_timestamp = $1
 		, etl_json = $2
-		 WHERE sport_type_id = $3
-		 AND year = $4
-		 AND active`,
+		WHERE sport_type_id = $3
+		AND year = $4
+		AND active`,
 		stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
