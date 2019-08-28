@@ -1,5 +1,12 @@
-__debug_bin
-.vscode
-.scannerwork
-.env
+# dependencies added by dep
 vendor/
+
+# environment variables
+.env
+
+# Visual Studio Code files
+.vscode
+__debug_bin
+
+# SonarQube static analysis
+.scannerwork
