@@ -31,7 +31,7 @@
 -- DROP USER <DATABASE_USERNAME>;
 -- \quit
 
--- DROP TABLE users;
+-- DROP TABLE IF EXISTS users;
 
 CREATE TABLE users
 	( username VARCHAR(20) PRIMARY KEY
@@ -40,7 +40,7 @@ CREATE TABLE users
 INSERT INTO users (username, password)
 	VALUES ('admin', 'invalid_hash_value');
 
---DROP TABLE sport_types, stats, friends, player_types, players;
+--DROP TABLE IF EXISTS sport_types, stats, friends, player_types, players;
 
 CREATE TABLE sport_types
 	( id INT PRIMARY KEY
