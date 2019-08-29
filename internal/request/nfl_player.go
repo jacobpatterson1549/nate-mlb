@@ -6,7 +6,6 @@ import (
 	"nate-mlb/internal/db"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // nflPlayerRequestor implemnts the ScoreCategorizer and Searcher interfaces
@@ -58,19 +57,34 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 		}
 	}
 
-	var wg sync.WaitGroup
-	var lastError error
-	wg.Add(2)
-	go r.requestPlayerNames(playerScores, pt, fpi.Year, &lastError, &wg)
-	go r.requestPlayerStats(playerScores, fpi.Year, pt, &lastError, &wg)
-	wg.Wait()
+	playerNames := make(chan playerName, len(playerScores))
+	playerStats := make(chan playerStat, len(playerScores))
+	quit := make(chan error)
+	go r.requestPlayerNames(pt, fpi.Year, playerScores, playerNames, quit)
+	go r.requestPlayerStats(pt, fpi.Year, playerScores, playerStats, quit)
 
+	i := 0
 	var scoreCategory ScoreCategory
-	if lastError != nil {
-		return scoreCategory, lastError
+	for {
+		select {
+		case err := <-quit:
+			return scoreCategory, err
+		case playerName := <-playerNames:
+			if playerScore, ok := playerScores[playerName.id]; ok {
+				playerScore.PlayerName = playerName.name
+				i++
+			}
+		case playerStat := <-playerStats:
+			if playerScore, ok := playerScores[playerStat.id]; ok {
+				playerScore.Score = playerStat.stat
+				i++
+			}
+		}
+		if i == len(playerScores)*2 {
+			scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, true)
+			return scoreCategory, nil
+		}
 	}
-	scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, true)
-	return scoreCategory, nil
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -86,7 +100,7 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 
 	var nflPlayerSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
-	for id, npi := range nflPlayerDetails {
+	for id, npi := range nflPlayerDetails { // TODO: rename npi
 		lowerTeamName := strings.ToLower(npi.fullName())
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflPlayerSearchResults = append(nflPlayerSearchResults, PlayerSearchResult{
@@ -138,44 +152,48 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerS
 	return nflPlayerStats, nil
 }
 
-func (r *nflPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, pt db.PlayerType, year int, lastError *error, wg *sync.WaitGroup) {
+func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, playerIDs map[int]*PlayerScore, playerNames chan<- playerName, quit chan<- error) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
-		*lastError = err
+		quit <- err
 	} else {
-		for playerID, playerScore := range playerScores {
-			nflPlayerInfo, ok := nflPlayerDetails[playerID]
-			if ok {
-				playerScore.PlayerName = nflPlayerInfo.fullName()
-			} else {
-				log.Println("No player name found for nfl player", playerID)
-			}
-		}
-	}
-	wg.Done()
-}
-
-func (r *nflPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, pt db.PlayerType, lastError *error, wg *sync.WaitGroup) {
-	nflPlayerStats, err := r.requestNflPlayerStats(year)
-	if err != nil {
-		*lastError = err
-	} else {
-		var score int
-		for playerID, playerScore := range playerScores {
-			nflPlayerStat, ok := nflPlayerStats[playerID]
-			if ok {
-				score, err = nflPlayerStat.Stat.score(pt)
-				if err != nil {
-					log.Println(playerID, err)
-				} else {
-					playerScore.Score = score
+		for id := range playerIDs {
+			if npd, ok := nflPlayerDetails[id]; ok {
+				playerNames <- playerName{
+					id:   id,
+					name: npd.fullName(),
 				}
 			} else {
-				log.Println("No player stats found for nfl player", playerID)
+				playerNames <- playerName{id: id}
+				log.Println("No player name found for nfl player", id)
 			}
 		}
 	}
-	wg.Done()
+}
+
+func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, playerIDs map[int]*PlayerScore, playerStats chan<- playerStat, quit chan<- error) {
+	nflPlayerStats, err := r.requestNflPlayerStats(year)
+	if err != nil {
+		quit <- err
+		return
+	}
+	var stat int
+	for id := range playerIDs {
+		if nflPlayerStat, ok := nflPlayerStats[id]; ok {
+			stat, err = nflPlayerStat.Stat.stat(pt)
+			if err != nil {
+				quit <- err
+				return
+			}
+			playerStats <- playerStat{
+				id:   id,
+				stat: stat,
+			}
+		} else {
+			playerStats <- playerStat{id: id}
+			log.Println("No player stat found for nfl player", id)
+		}
+	}
 }
 
 func (npi *NflPlayerInfo) id() (int, error) {
@@ -209,7 +227,7 @@ func (nps *NflPlayerStat) id() (int, error) {
 	return idI, nil
 }
 
-func (ns *NflStat) score(pt db.PlayerType) (int, error) {
+func (ns *NflStat) stat(pt db.PlayerType) (int, error) {
 	score := 0
 	if pt == db.PlayerTypeNflQB && len(ns.PassingTD) != 0 {
 		td, err := strconv.Atoi(ns.PassingTD)

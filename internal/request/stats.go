@@ -45,6 +45,16 @@ type PlayerScore struct {
 	Score      int
 }
 
+type playerName struct {
+	id   int
+	name string
+}
+
+type playerStat struct {
+	id   int
+	stat int
+}
+
 // FriendPlayerInfo is a helper pojo of information about what is in a ScoreCategory
 type FriendPlayerInfo struct {
 	Friends []db.Friend
