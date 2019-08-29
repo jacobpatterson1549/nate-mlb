@@ -43,8 +43,9 @@ INSERT INTO users (username, password)
 --DROP TABLE sport_types, stats, friends, player_types, players;
 
 CREATE TABLE sport_types
-	( id SERIAL PRIMARY KEY
+	( id INT PRIMARY KEY
 	, name TEXT UNIQUE NOT NULL
+	, url TEXT UNIQUE NOT NULL
 	);
 
 CREATE TABLE stats
@@ -91,10 +92,10 @@ CREATE TABLE players
 	, FOREIGN KEY (friend_id) REFERENCES friends (id) ON DELETE CASCADE
 	);
 
-INSERT INTO sport_types (id, name)
+INSERT INTO sport_types (id, name, url)
 	VALUES (
-	   1, 'mlb')
-	, (2, 'nfl')
+	   1, 'MLB', 'mlb')
+	, (2, 'NFL', 'nfl')
 	;
 SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types), 1));
 

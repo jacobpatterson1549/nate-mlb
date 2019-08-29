@@ -51,6 +51,10 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if _, err := db.LoadSportTypes(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
 	st := db.SportTypeFromURL(firstPathSegment)
 	switch {
