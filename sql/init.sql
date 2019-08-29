@@ -94,14 +94,13 @@ CREATE TABLE players
 	, FOREIGN KEY (player_type_id) REFERENCES player_types (id) ON DELETE RESTRICT
 	, FOREIGN KEY (friend_id) REFERENCES friends (id) ON DELETE CASCADE
 	);
-CREATE INDEX get_players_idx (player_type_id, friend_id, display_order);
+CREATE INDEX get_players_idx ON players (player_type_id, friend_id, display_order);
 
 INSERT INTO sport_types (id, name, url)
 	VALUES (
 	   1, 'MLB', 'mlb')
 	, (2, 'NFL', 'nfl')
 	;
-SELECT setVal('sport_types_id_seq', COALESCE((SELECT MAX(id)+1 FROM sport_types), 1));
 
 INSERT INTO stats (sport_type_id, year, active)
 	VALUES (
