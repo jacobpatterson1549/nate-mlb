@@ -14,12 +14,13 @@ type Player struct {
 }
 
 // GetPlayers gets the players for the active year
+// TODO: return map[PlayerType]Player -> this rwill reduce filtering later on -> maybe use map[PlayerType]map[int]Player (int=friendId)
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
 		`SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id
-		FROM players AS p
-		JOIN friends AS f ON p.friend_id = f.id
-		JOIN stats AS s ON f.year = s.year AND f.sport_type_id = s.sport_type_id
+		FROM stats AS s
+		JOIN friends AS f ON s.year = f.year AND s.sport_type_id = f.sport_type_id
+		JOIN players AS p ON f.id = p.friend_id
 		WHERE s.sport_type_id = $1
 		AND s.active
 		ORDER BY p.player_type_id, f.display_order, p.display_order`,
