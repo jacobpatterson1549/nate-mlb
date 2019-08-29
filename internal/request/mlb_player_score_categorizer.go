@@ -139,7 +139,7 @@ func (r *mlbPlayerRequestor) getPlayerStat(playerID int, year int, playerStats c
 	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerStat(playerID int, year int) (int, error) { // TODO: make return (playerStat, error)
+func (r *mlbPlayerRequestor) requestPlayerStat(playerID int, year int) (int, error) {
 	mlbPlayerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
 	var mlbPlayerStats MlbPlayerStats
 	err := request.structPointerFromURL(mlbPlayerStatsURL, &mlbPlayerStats)
