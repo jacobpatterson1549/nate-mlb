@@ -76,8 +76,8 @@ CREATE TABLE player_types
 	, sport_type_id INT
 	, name VARCHAR(30) NOT NULL
 	, description TEXT
-	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
 	, CONSTRAINT sport_type_id_name_unique UNIQUE (sport_type_id, name)
+	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
 	);
 
 CREATE TABLE players
