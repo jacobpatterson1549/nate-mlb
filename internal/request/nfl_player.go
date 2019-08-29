@@ -100,7 +100,7 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 
 	var nflPlayerSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
-	for id, nflPlayerDetail := range nflPlayerDetails { // TODO: rename nflPlayerDetail
+	for id, nflPlayerDetail := range nflPlayerDetails {
 		lowerTeamName := strings.ToLower(nflPlayerDetail.fullName())
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflPlayerSearchResults = append(nflPlayerSearchResults, PlayerSearchResult{
