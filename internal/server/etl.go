@@ -110,6 +110,7 @@ func (es EtlStats) getScoreCategory(playerType db.PlayerType, fpi request.Friend
 		scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
 		if err != nil {
 			quit <- err
+			return
 		}
 		scoreCategories <- scoreCategory
 	} else {

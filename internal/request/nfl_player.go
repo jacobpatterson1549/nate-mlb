@@ -156,17 +156,17 @@ func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, play
 	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
 		quit <- err
-	} else {
-		for id := range playerIDs {
-			if npd, ok := nflPlayerDetails[id]; ok {
-				playerNames <- playerName{
-					id:   id,
-					name: npd.fullName(),
-				}
-			} else {
-				playerNames <- playerName{id: id}
-				log.Println("No player name found for nfl player", id)
+		return
+	}
+	for id := range playerIDs {
+		if npd, ok := nflPlayerDetails[id]; ok {
+			playerNames <- playerName{
+				id:   id,
+				name: npd.fullName(),
 			}
+		} else {
+			playerNames <- playerName{id: id}
+			log.Println("No player name found for nfl player", id)
 		}
 	}
 }
