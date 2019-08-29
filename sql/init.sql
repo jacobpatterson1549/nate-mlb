@@ -61,6 +61,7 @@ CREATE TABLE stats
 	, CONSTRAINT valid_year CHECK (year >= 2000 AND year <= 3000)
 	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE RESTRICT
 	);
+CREATE INDEX get_years on stats (year);
 
 CREATE TABLE friends
 	( id SERIAL PRIMARY KEY
@@ -71,6 +72,7 @@ CREATE TABLE friends
 	, CONSTRAINT name_sport_type_id_year_unique UNIQUE (name, sport_type_id, year)
 	, FOREIGN KEY (sport_type_id, year) REFERENCES stats (sport_type_id, year) ON DELETE CASCADE
 	);
+CREATE INDEX get_friends_idx ON friends (sport_type_id, year, display_order);
 
 CREATE TABLE player_types
 	( id INT PRIMARY KEY
@@ -80,6 +82,7 @@ CREATE TABLE player_types
 	, CONSTRAINT sport_type_id_name_unique UNIQUE (sport_type_id, name)
 	, FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
 	);
+CREATE INDEX get_player_types_idx ON player_types (sport_type_id);
 
 CREATE TABLE players
 	( id SERIAL PRIMARY KEY
@@ -91,6 +94,7 @@ CREATE TABLE players
 	, FOREIGN KEY (player_type_id) REFERENCES player_types (id) ON DELETE RESTRICT
 	, FOREIGN KEY (friend_id) REFERENCES friends (id) ON DELETE CASCADE
 	);
+CREATE INDEX get_players_idx (player_type_id, friend_id, display_order);
 
 INSERT INTO sport_types (id, name, url)
 	VALUES (
