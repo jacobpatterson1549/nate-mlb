@@ -5,7 +5,6 @@ import (
 	"nate-mlb/internal/db"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 // mlbPlayerRequestor contains invormation about requests for hitter/pitcher names/stats
@@ -13,31 +12,31 @@ type mlbPlayerRequestor struct {
 	playerType db.PlayerType
 }
 
-// PlayerNames is used to unmarshal a request for player names
-type PlayerNames struct {
+// MlbPlayerNames is used to unmarshal a request for player names
+type MlbPlayerNames struct {
 	People []struct {
 		ID       int    `json:"id"`
 		FullName string `json:"fullName"`
 	} `json:"people"`
 }
 
-// PlayerStats is used to unmarshal a player homeRuns/wins request
-type PlayerStats struct {
-	PlayerTypeStats []PlayerTypeStat `json:"stats"`
+// MlbPlayerStats is used to unmarshal a player homeRuns/wins request
+type MlbPlayerStats struct {
+	MlbPlayerTypeStats []MlbPlayerTypeStat `json:"stats"`
 }
 
-// PlayerTypeStat contains stats for a type of position for a player
-type PlayerTypeStat struct {
+// MlbPlayerTypeStat contains stats for a type of position for a player
+type MlbPlayerTypeStat struct {
 	Group struct {
 		DisplayName string `json:"displayName"`
 	} `json:"group"`
 	Splits []struct {
-		Stat Stat `json:"stat"`
+		Stat MlbStat `json:"stat"`
 	} `json:"splits"`
 }
 
-// Stat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
-type Stat struct {
+// MlbStat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
+type MlbStat struct {
 	HomeRuns int `json:"homeRuns"`
 	Wins     int `json:"wins"`
 }
@@ -63,96 +62,121 @@ func (r mlbPlayerRequestor) requestPlayerScores(players []db.Player, year int) (
 		}
 	}
 
-	var wg sync.WaitGroup
-	var lastError error
-	wg.Add(2)
-	go r.requestPlayerNames(playerScores, &lastError, &wg)
-	go r.requestPlayerStats(playerScores, year, &lastError, &wg)
-	wg.Wait()
-	return playerScores, lastError
+	playerNames := make(chan playerName, len(playerScores))
+	playerStats := make(chan playerStat, len(playerScores))
+	quit := make(chan error)
+	go r.requestPlayerNames(playerScores, playerNames, quit)
+	go r.requestPlayerStats(year, playerScores, playerStats, quit)
+
+	i := 0
+	for {
+		select {
+		case err := <-quit:
+			return playerScores, err
+		case playerName := <-playerNames:
+			if playerScore, ok := playerScores[playerName.id]; ok {
+				playerScore.PlayerName = playerName.name
+				i++
+			}
+		case playerStat := <-playerStats:
+			if playerScore, ok := playerScores[playerStat.id]; ok {
+				playerScore.Score = playerStat.stat
+				i++
+			}
+		}
+		if i == len(playerScores)*2 {
+			return playerScores, nil
+		}
+	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerNames(playerScores map[int]*PlayerScore, lastError *error, wg *sync.WaitGroup) {
-	playerIDStrings := make([]string, len(playerScores))
+func (r *mlbPlayerRequestor) requestPlayerNames(playerIDs map[int]*PlayerScore, playerNames chan<- playerName, quit chan<- error) {
+	playerIDStrings := make([]string, len(playerIDs))
 	i := 0
-	for playerID := range playerScores {
+	for playerID := range playerIDs {
 		playerIDStrings[i] = strconv.Itoa(playerID)
 		i++
 	}
 	playerNamesURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName", strings.Join(playerIDStrings, ",")), ",", "%2C")
-	var playerNames PlayerNames
-	err := request.structPointerFromURL(playerNamesURL, &playerNames)
-
+	var mlbPlayerNames MlbPlayerNames
+	err := request.structPointerFromURL(playerNamesURL, &mlbPlayerNames)
 	if err != nil {
-		*lastError = err
-	} else {
-		for _, person := range playerNames.People {
-			if playerScore, ok := playerScores[person.ID]; ok {
-				playerScore.PlayerName = person.FullName
+		quit <- err
+		return
+	}
+
+	i = 0
+	for _, person := range mlbPlayerNames.People {
+		if _, ok := playerIDs[person.ID]; ok {
+			playerNames <- playerName{
+				id:   person.ID,
+				name: person.FullName,
 			}
+			i++
 		}
 	}
-	wg.Done()
-}
-
-func (r *mlbPlayerRequestor) requestPlayerStats(playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
-	wg.Add(len(playerScores))
-	for playerID := range playerScores {
-		go r.getPlayerScore(playerID, playerScores, year, lastError, wg)
+	if i < len(playerIDs) {
+		quit <- fmt.Errorf("Expected recieve %d player names, but only got %d", len(playerIDs), i)
 	}
-	wg.Done()
 }
 
-func (r *mlbPlayerRequestor) getPlayerScore(playerID int, playerScores map[int]*PlayerScore, year int, lastError *error, wg *sync.WaitGroup) {
-	score, err := r.requestPlayerScore(playerID, year)
+func (r *mlbPlayerRequestor) requestPlayerStats(year int, playerIDs map[int]*PlayerScore, playerStats chan<- playerStat, quit chan<- error) {
+	for playerID := range playerIDs {
+		go r.getPlayerStat(playerID, year, playerStats, quit)
+	}
+}
+
+func (r *mlbPlayerRequestor) getPlayerStat(playerID int, year int, playerStats chan<- playerStat, quit chan<- error) {
+	stat, err := r.requestPlayerStat(playerID, year)
 	if err != nil {
-		*lastError = err
-	} else {
-		if playerScore, ok := playerScores[playerID]; ok {
-			playerScore.Score = score
-		}
+		quit <- err
+		return
 	}
-	wg.Done()
+
+	playerStats <- playerStat{
+		id:   playerID,
+		stat: stat,
+	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerScore(playerID int, year int) (int, error) {
-	playerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
-	var playerStats PlayerStats
-	err := request.structPointerFromURL(playerStatsURL, &playerStats)
+func (r *mlbPlayerRequestor) requestPlayerStat(playerID int, year int) (int, error) { // TODO: make return (playerStat, error)
+	mlbPlayerStatsURL := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins", playerID, year), ",", "%2C")
+	var mlbPlayerStats MlbPlayerStats
+	err := request.structPointerFromURL(mlbPlayerStatsURL, &mlbPlayerStats)
 	if err != nil {
 		return -1, err
 	}
-	return playerStats.getScore(r.playerType)
+	return mlbPlayerStats.getStat(r.playerType)
 }
 
-func (ps PlayerStats) getScore(playerType db.PlayerType) (int, error) {
+func (mps MlbPlayerStats) getStat(playerType db.PlayerType) (int, error) {
 	switch playerType {
 	case db.PlayerTypeHitter:
-		return ps.lastStatScore("hitting", Stat.getHomeRuns), nil
+		return mps.lastStat("hitting", MlbStat.getHomeRuns), nil
 	case db.PlayerTypePitcher:
-		return ps.lastStatScore("pitching", Stat.getWins), nil
+		return mps.lastStat("pitching", MlbStat.getWins), nil
 	default:
-		return -1, fmt.Errorf("Cannot get score of playerType %v for player", playerType)
+		return -1, fmt.Errorf("Cannot get stat of playerType %v for player", playerType)
 	}
 }
 
-func (ps PlayerStats) lastStatScore(groupDisplayName string, score func(Stat) int) int {
-	for _, playerTypeStat := range ps.PlayerTypeStats {
+func (mps MlbPlayerStats) lastStat(groupDisplayName string, stat func(MlbStat) int) int {
+	for _, playerTypeStat := range mps.MlbPlayerTypeStats {
 		if groupDisplayName == playerTypeStat.Group.DisplayName {
 			splits := playerTypeStat.Splits
 			if len(splits) > 0 {
 				lastStat := splits[len(splits)-1].Stat
-				return score(lastStat)
+				return stat(lastStat)
 			}
 		}
 	}
 	return 0
 }
 
-func (s Stat) getHomeRuns() int {
-	return s.HomeRuns
+func (ms MlbStat) getHomeRuns() int {
+	return ms.HomeRuns
 }
 
-func (s Stat) getWins() int {
-	return s.Wins
+func (ms MlbStat) getWins() int {
+	return ms.Wins
 }
