@@ -142,12 +142,12 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerS
 		return nil, err
 	}
 	nflPlayerStats := make(map[int]NflPlayerStat)
-	for _, nps := range nflPlayerStatList.Players {
-		id, err := nps.id()
+	for _, nflPlayerStat := range nflPlayerStatList.Players {
+		id, err := nflPlayerStat.id()
 		if err != nil {
 			return nil, err
 		}
-		nflPlayerStats[id] = nps
+		nflPlayerStats[id] = nflPlayerStat
 	}
 	return nflPlayerStats, nil
 }
@@ -219,10 +219,10 @@ func (nflPlayerDetail *NflPlayerDetail) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (nps *NflPlayerStat) id() (int, error) {
-	idI, err := strconv.Atoi(nps.ID)
+func (nflPlayerStat *NflPlayerStat) id() (int, error) {
+	idI, err := strconv.Atoi(nflPlayerStat.ID)
 	if err != nil {
-		return -1, fmt.Errorf("Invalid Id number for %v", nps)
+		return -1, fmt.Errorf("Invalid Id number for %v", nflPlayerStat)
 	}
 	return idI, nil
 }
