@@ -57,7 +57,6 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 		name        string
 		description string
 	)
-	i := 0
 	for rows.Next() {
 		err = rows.Scan(&playerType, &sportType, &name, &description)
 		if err != nil {
@@ -73,7 +72,6 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 		default:
 			return nil, fmt.Errorf("Unknown PlayerType: id=%d", playerType)
 		}
-		i++
 	}
 	switch {
 	case st == SportTypeMlb && len(playerTypes) == 3,
