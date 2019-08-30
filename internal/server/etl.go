@@ -95,7 +95,7 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 		}
 		if finishedScoreCategories == numScoreCategories {
 			sort.Slice(scoreCategories, func(i, j int) bool {
-				return scoreCategories[i].DisplayOrder < scoreCategories[j].DisplayOrder
+				return scoreCategories[i].PlayerType.DisplayOrder() < scoreCategories[j].PlayerType.DisplayOrder()
 			})
 			return scoreCategories, nil
 		}

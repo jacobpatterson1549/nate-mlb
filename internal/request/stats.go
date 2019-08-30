@@ -25,7 +25,7 @@ type ScoreCategorizer interface {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	DisplayOrder int
+	PlayerType   db.PlayerType // Used as an int on the website
 	FriendScores []FriendScore
 }
 
@@ -90,7 +90,7 @@ func NewFriendPlayerInfo(friends []db.Friend, players []db.Player, playerTypes [
 func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
 	return ScoreCategory{
 		Name:         playerType.Name(),
-		DisplayOrder: playerType.DisplayOrder(),
+		PlayerType:   playerType,
 		Description:  playerType.Description(),
 		FriendScores: newFriendScores(fpi, playerType, playerNameScores, onlySumTopTwoPlayerScores),
 	}
