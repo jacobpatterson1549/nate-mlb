@@ -57,23 +57,25 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	playerNamesCh := make(chan playerName, numPlayers)
 	playerStatsCh := make(chan playerStat, numPlayers)
 	quit := make(chan error)
-	go r.requestPlayerNames(pt, fpi.Year, sourceIDs, playerNamesCh, quit)
-	go r.requestPlayerStats(pt, fpi.Year, sourceIDs, playerStatsCh, quit)
 
-	i := 0
 	var scoreCategory ScoreCategory
-	for {
-		select {
-		case err := <-quit:
-			return scoreCategory, err
-		case playerName := <-playerNamesCh:
-			playerNames[playerName.sourceID] = playerName.name
-		case playerStat := <-playerStatsCh:
-			playerStats[playerStat.sourceID] = playerStat.stat
-		}
-		i++
-		if i == numPlayers*2 {
-			break
+	if len(sourceIDs) > 0 {
+		go r.requestPlayerNames(pt, fpi.Year, sourceIDs, playerNamesCh, quit)
+		go r.requestPlayerStats(pt, fpi.Year, sourceIDs, playerStatsCh, quit)
+		i := 0
+		for {
+			select {
+			case err := <-quit:
+				return scoreCategory, err
+			case playerName := <-playerNamesCh:
+				playerNames[playerName.sourceID] = playerName.name
+			case playerStat := <-playerStatsCh:
+				playerStats[playerStat.sourceID] = playerStat.stat
+			}
+			i++
+			if i == numPlayers*2 {
+				break
+			}
 		}
 	}
 	mlbPlayerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
