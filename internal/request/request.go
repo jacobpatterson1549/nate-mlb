@@ -58,9 +58,6 @@ func (r *requestor) bytes(url string) ([]byte, error) {
 	request.Header.Add("Accept", "application/json")
 	response, err := r.httpClient.Do(request)
 	if err != nil {
-		if r.logRequestUrls {
-			log.Panicln(" -> FAILED")
-		}
 		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
 	}
 	defer response.Body.Close()
