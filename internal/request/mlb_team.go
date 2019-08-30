@@ -15,7 +15,7 @@ type Teams struct {
 		TeamRecords []struct {
 			Team struct {
 				Name string      `json:"name"`
-				ID   db.SourceID `json:"id,string"`
+				ID   db.SourceID `json:"id,int"` // TODO: is the `int` necessary?
 			} `json:"team"`
 			Wins   int `json:"wins"`
 			Losses int `json:"losses"`
