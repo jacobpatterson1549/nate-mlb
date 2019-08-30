@@ -11,7 +11,6 @@ type nflPlayerRequestor struct{}
 
 // NflPlayerDetailList contains information about all the players for a particular year
 type NflPlayerDetailList struct {
-	Date    string            `json:"lastUpdated"`
 	Players []NflPlayerDetail `json:"players"`
 }
 
