@@ -80,7 +80,7 @@ func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	return newScoreCategory(fpi, pt, mlbPlayerNameScores, true), nil
 }
 
-func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
+func (r mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
 	sourceIDStrings := make([]string, len(sourceIDs))
 	i := 0
 	for sourceID := range sourceIDs {
@@ -116,13 +116,13 @@ func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, 
 	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerStats(year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
+func (r mlbPlayerRequestor) requestPlayerStats(year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
 	for sourceID := range sourceIDs {
 		go r.getPlayerStat(sourceID, year, playerStats, quit)
 	}
 }
 
-func (r *mlbPlayerRequestor) getPlayerStat(sourceID db.SourceID, year int, playerStats chan<- playerStat, quit chan<- error) {
+func (r mlbPlayerRequestor) getPlayerStat(sourceID db.SourceID, year int, playerStats chan<- playerStat, quit chan<- error) {
 	stat, err := r.requestPlayerStat(sourceID, year)
 	if err != nil {
 		quit <- err
@@ -134,7 +134,7 @@ func (r *mlbPlayerRequestor) getPlayerStat(sourceID db.SourceID, year int, playe
 	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerStat(sourceID db.SourceID, year int) (int, error) {
+func (r mlbPlayerRequestor) requestPlayerStat(sourceID db.SourceID, year int) (int, error) {
 	mlbPlayerStatsURL := strings.ReplaceAll(
 		fmt.Sprintf(
 			"http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins",

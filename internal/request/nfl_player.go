@@ -109,7 +109,7 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 	return nflPlayerSearchResults, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[db.SourceID]NflPlayerDetail, error) {
+func (r nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[db.SourceID]NflPlayerDetail, error) {
 	var nflPlayerList NflPlayerList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
@@ -126,7 +126,7 @@ func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int)
 	return nflPlayerDetails, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[db.SourceID]NflPlayerStat, error) {
+func (r nflPlayerRequestor) requestNflPlayerStats(year int) (map[db.SourceID]NflPlayerStat, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	var nflPlayerStatList NflPlayerStatList
 	err := request.structPointerFromURL(url, &nflPlayerStatList)
@@ -140,7 +140,7 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[db.SourceID]Nf
 	return nflPlayerStats, nil
 }
 
-func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
+func (r nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
 		quit <- err
@@ -158,7 +158,7 @@ func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sour
 	}
 }
 
-func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
+func (r nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
 	nflPlayerStats, err := r.requestNflPlayerStats(year)
 	if err != nil {
 		quit <- err
@@ -180,11 +180,11 @@ func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sour
 	}
 }
 
-func (nflPlayerDetail *NflPlayerDetail) fullName() string {
+func (nflPlayerDetail NflPlayerDetail) fullName() string {
 	return fmt.Sprintf("%s %s", nflPlayerDetail.FirstName, nflPlayerDetail.LastName)
 }
 
-func (nflPlayerDetail *NflPlayerDetail) matches(pt db.PlayerType) bool {
+func (nflPlayerDetail NflPlayerDetail) matches(pt db.PlayerType) bool {
 	switch pt {
 	case db.PlayerTypeNflQB:
 		return nflPlayerDetail.Position == "QB"
@@ -195,7 +195,7 @@ func (nflPlayerDetail *NflPlayerDetail) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (ns *NflStat) stat(pt db.PlayerType) (int, error) {
+func (ns NflStat) stat(pt db.PlayerType) (int, error) {
 	score := 0
 	if pt == db.PlayerTypeNflQB && len(ns.PassingTD) != 0 {
 		td, err := strconv.Atoi(ns.PassingTD)
