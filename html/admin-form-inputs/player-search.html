@@ -36,7 +36,7 @@
                                 <strong class="psr-label-name">?</strong>
                                 <span class="psr-label-details">?</span>
                             </label>
-                            <input class="psr-player-id" value="?" type="hidden">
+                            <input class="psr-source-id" value="?" type="hidden">
                             <input class="psr-player-name" value="?" type="hidden">
                         </div>
                     </template>
@@ -58,7 +58,7 @@
         for (var i = 0; i < playerSearchResults.length; i++) {
             var psr = playerSearchResults[i];
             if (psr.querySelector('.psr-radio').checked) {
-                var playerID = psr.querySelector('.psr-player-id').value;
+                var playerID = psr.querySelector('.psr-source-id').value;
                 var playerName = psr.querySelector('.psr-player-name').value;
                 var newPlayer = addPlayer(playerName, playerID);
                 newPlayer.focus();
@@ -76,9 +76,9 @@
         .addEventListener('submit', e => {
             e.preventDefault();
             setNewPlayerSelected(false);
-            var playerTypeID = document.getElementById('select-player-type').value;
+            var playerType = document.getElementById('select-player-type').value;
             var formData = new FormData(e.target);
-            formData.append('pt', playerTypeID);
+            formData.append('pt', playerType);
             var url = window.location.pathname + "/search?" + new URLSearchParams(formData);
             fetch(url, {
                 method: 'GET',
@@ -117,7 +117,7 @@
             psr.querySelector('.psr-label').htmlFor = 'psr-' + playerSearchResult.PlayerID;
             psr.querySelector('.psr-label-name').innerText = playerSearchResult.Name;
             psr.querySelector('.psr-label-details').innerText = playerSearchResult.Details;
-            psr.querySelector('.psr-player-id').value = playerSearchResult.PlayerID;
+            psr.querySelector('.psr-source-id').value = playerSearchResult.PlayerID;
             psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
             playerSearchResultsFieldSet.appendChild(psr);
         }

@@ -20,11 +20,11 @@
     <template id="player-template">
         <div class="form-group" id="player-0">
             <label class="player-name-label forrm-label">?</label>
-            <input class="player-player-id" name="player-0-player-id" value="?" type="hidden" required>
+            <input class="player-source-id" name="player-0-source-id" value="?" type="hidden" required>
             <input class="player-display-order" name="player-0-display-order" value="?" type="hidden">
             <input class="player-player-type" name="player-0-player-type" value="?" type="hidden">
             <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
-            <input class="player-id" value="0" type="hidden">
+            <input class="source-id" value="0" type="hidden">
             <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
             <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
@@ -70,7 +70,7 @@
         removePlayer.remove();
     }
 
-    function addPlayer(playerName, playerID) {
+    function addPlayer(playerName, sourceID) {
         var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var maxID = 0;
@@ -91,17 +91,17 @@
                 }
             }
         }
-        createPlayer(maxID + 1, playerName, playerID, maxDisplayOrder + 1, playerType, friendID);
+        createPlayer(maxID + 1, playerName, sourceID, maxDisplayOrder + 1, playerType, friendID);
     }
 
-    function createPlayer(id, playerName, playerID, displayOrder, playerType, friendID) {
+    function createPlayer(id, playerName, sourceID, displayOrder, playerType, friendID) {
         var template = document.getElementById("player-template");
         var clone = document.importNode(template.content, true);
         var player = clone.querySelector('.form-group');
         player.id = 'player-' + id;
         player.querySelector('.player-name-label').innerText = playerName;
-        player.querySelector('.player-player-id').name = 'player-' + id + '-player-id';
-        player.querySelector('.player-player-id').value = playerID;
+        player.querySelector('.player-source-id').name = 'player-' + id + '-source-id';
+        player.querySelector('.player-source-id').value = sourceID;
         player.querySelector('.player-display-order').name = 'player-' + id + '-display-order';
         player.querySelector('.player-display-order').value = displayOrder;
         player.querySelector('.player-player-type').name = 'player-' + id + '-player-type';
@@ -155,7 +155,7 @@
     {{range $scoreCategory := .Data -}}
     {{range $friendScore := $scoreCategory.FriendScores -}}
     {{range $index, $playerScore := $friendScore.PlayerScores -}}
-    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.PlayerID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
+    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.SourceID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
     {{end -}}
     {{end -}}
     {{end -}}
