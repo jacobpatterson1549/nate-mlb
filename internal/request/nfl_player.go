@@ -9,8 +9,8 @@ import (
 // nflPlayerRequestor implemnts the ScoreCategorizer and Searcher interfaces
 type nflPlayerRequestor struct{}
 
-// NflPlayerList contains information about all the players for a particular year
-type NflPlayerList struct {
+// NflPlayerDetailList contains information about all the players for a particular year
+type NflPlayerDetailList struct {
 	Date    string            `json:"lastUpdated"`
 	Players []NflPlayerDetail `json:"players"`
 }
@@ -31,14 +31,14 @@ type NflPlayerStatList struct {
 
 // NflPlayerStat contains the Stats for a nfl player for a particular year
 type NflPlayerStat struct {
-	ID   db.SourceID `json:"id,string"`
-	Stat NflStat     `json:"stats"`
+	ID   db.SourceID         `json:"id,string"`
+	Stat NflPlayerStatValues `json:"stats"`
 }
 
-// NflStat contains the stats totals a NflPlayerStat has accumulated during a particular year
+// NflPlayerStatValues contains the stats totals a NflPlayerStat has accumulated during a particular year
 // The meaning of these stats can be found at
 // https://api.fantasy.nfl.com/v1/game/stats?format=json
-type NflStat struct {
+type NflPlayerStatValues struct {
 	PassingTD   int `json:"6,int"`
 	RushingTD   int `json:"15,int"`
 	ReceivingTD int `json:"22,int"`
@@ -111,15 +111,15 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 }
 
 func (r nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[db.SourceID]NflPlayerDetail, error) {
-	var nflPlayerList NflPlayerList
+	var nflPlayerDetailList NflPlayerDetailList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
-	err := request.structPointerFromURL(url, &nflPlayerList)
+	err := request.structPointerFromURL(url, &nflPlayerDetailList)
 	if err != nil {
 		return nil, err
 	}
 	nflPlayerDetails := make(map[db.SourceID]NflPlayerDetail)
-	for _, nflPlayerDetail := range nflPlayerList.Players {
+	for _, nflPlayerDetail := range nflPlayerDetailList.Players {
 		if nflPlayerDetail.matches(pt) {
 			nflPlayerDetails[nflPlayerDetail.ID] = nflPlayerDetail
 		}
@@ -196,16 +196,16 @@ func (nflPlayerDetail NflPlayerDetail) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (ns NflStat) stat(pt db.PlayerType) (int, error) { // TODO Rename NflStat to NflPlayerStat
+func (nflPlayerStat NflPlayerStatValues) stat(pt db.PlayerType) (int, error) {
 	score := 0
 	if pt == db.PlayerTypeNflQB {
-		score += ns.PassingTD
+		score += nflPlayerStat.PassingTD
 	}
 	if pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflMisc {
-		score += ns.RushingTD
+		score += nflPlayerStat.RushingTD
 	}
 	if pt == db.PlayerTypeNflMisc {
-		score += ns.ReceivingTD
+		score += nflPlayerStat.ReceivingTD
 	}
 	return score, nil
 }
