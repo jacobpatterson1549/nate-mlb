@@ -10,9 +10,6 @@ var (
 	db *sql.DB
 )
 
-// ID is an database id in a table
-type ID int // TODO: use this everywhere possible
-
 type query struct {
 	sql  string
 	args []interface{}
