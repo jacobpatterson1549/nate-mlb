@@ -87,10 +87,10 @@ CREATE INDEX get_player_types_idx ON player_types (sport_type_id);
 CREATE TABLE players
 	( id SERIAL PRIMARY KEY
 	, player_type_id INT
-	, player_id INT NOT NULL
+	, source_id INT NOT NULL
 	, friend_id INT NOT NULL
 	, display_order INT DEFAULT 0
-	, CONSTRAINT player_type_id_player_id_friend_id_unique UNIQUE (player_type_id, player_id, friend_id)
+	, CONSTRAINT player_type_id_source_id_friend_id_unique UNIQUE (player_type_id, source_id, friend_id)
 	, FOREIGN KEY (player_type_id) REFERENCES player_types (id) ON DELETE RESTRICT
 	, FOREIGN KEY (friend_id) REFERENCES friends (id) ON DELETE CASCADE
 	);
@@ -135,7 +135,7 @@ INSERT INTO player_types (id, sport_type_id, name, description)
 	, (6, 2, 'Misc', 'Touchdowns (RB/WR/TE) (Rushing/Receiving)')
 	;
 
-INSERT INTO players (player_type_id, player_id, friend_id, display_order)
+INSERT INTO players (player_type_id, source_id, friend_id, display_order)
 	VALUES (
 -- teams:  name_display_full
 	   1, 111, 1, 0) -- Boston Red Sox

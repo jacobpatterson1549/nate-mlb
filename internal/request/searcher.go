@@ -16,7 +16,7 @@ var Searchers = map[db.PlayerType]searcher{
 type PlayerSearchResult struct {
 	Name     string
 	Details  string
-	PlayerID int
+	SourceID db.SourceID
 }
 
 // PlayerSearchResults requests PlayerSearchResults

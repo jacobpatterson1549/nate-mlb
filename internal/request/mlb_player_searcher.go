@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"nate-mlb/internal/db"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -28,12 +27,12 @@ type QueryResults struct {
 
 // PlayerBio contains the results of a player search for a single player
 type PlayerBio struct {
-	Position     string `json:"position"`
-	BirthCountry string `json:"birth_country"`
-	BirthDate    string `json:"birth_date"`
-	TeamAbbrev   string `json:"team_abbrev"`
-	PlayerName   string `json:"name_display_first_last"`
-	PlayerID     string `json:"player_id"`
+	Position     string      `json:"position"`
+	BirthCountry string      `json:"birth_country"`
+	BirthDate    string      `json:"birth_date"`
+	TeamAbbrev   string      `json:"team_abbrev"`
+	PlayerName   string      `json:"name_display_first_last"`
+	PlayerID     db.SourceID `json:"player_id,string"`
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -105,15 +104,11 @@ func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 		}
 		birthDate = bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
 	}
-	playerID, err := strconv.Atoi(playerBio.PlayerID)
-	if err != nil {
-		return psr, fmt.Errorf("problem converting playerId (%v) to number for playerSearch %v: %v", playerID, playerBio, err)
-	}
 
 	psr = PlayerSearchResult{
 		Name:     playerBio.PlayerName,
 		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", playerBio.TeamAbbrev, playerBio.Position, playerBio.BirthCountry, birthDate),
-		PlayerID: playerID,
+		SourceID: playerBio.PlayerID,
 	}
 	return psr, nil
 }

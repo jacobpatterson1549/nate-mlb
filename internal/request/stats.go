@@ -44,17 +44,17 @@ type PlayerScore struct {
 	Name         string
 	Score        int
 	DisplayOrder int
-	SourceID     sourceID
+	SourceID     db.SourceID
 }
 
 type playerName struct {
-	id   int
-	name string
+	sourceID db.SourceID
+	name     string
 }
 
 type playerStat struct {
-	id   int
-	stat int
+	sourceID db.SourceID
+	stat     int
 }
 
 type sourceID int
@@ -135,7 +135,7 @@ func newPlayerScore(player db.Player, playerNameScore NameScore) PlayerScore {
 		Name:         playerNameScore.Name,
 		Score:        playerNameScore.Score,
 		DisplayOrder: player.DisplayOrder,
-		SourceID:     player.PlayerID, // TODO: rename playerID to sourceID EVERYWHERE (ui, ws, db)
+		SourceID:     player.SourceID,
 	}
 }
 
@@ -155,14 +155,14 @@ func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) 
 	return friendScore
 }
 
-func playerNameScores(players []db.Player, names map[int]string, stats map[int]int) (map[int]NameScore, error) {
+func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[int]NameScore, error) {
 	playerNameScores := make(map[int]NameScore, len(players))
 	for _, player := range players {
-		name, ok := names[player.PlayerID]
+		name, ok := names[player.SourceID]
 		if !ok {
 			return playerNameScores, fmt.Errorf("No player name for player %d", player.ID)
 		}
-		stat, ok := stats[player.PlayerID]
+		stat, ok := stats[player.SourceID]
 		if !ok {
 			return playerNameScores, fmt.Errorf("No player stat for player %d", player.ID)
 		}

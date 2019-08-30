@@ -171,7 +171,7 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	if err != nil {
 		return player, fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
 	}
-	player.PlayerID = playerIDI
+	player.SourceID = db.SourceID(playerIDI)
 
 	friendID := r.Form.Get(fmt.Sprintf("player-%s-friend-id", id))
 	friendIDI, err := strconv.Atoi(friendID)

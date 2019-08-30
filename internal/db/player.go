@@ -9,15 +9,18 @@ type Player struct {
 	ID           int
 	DisplayOrder int
 	PlayerType   PlayerType
-	PlayerID     int
+	SourceID     SourceID
 	FriendID     int
 }
+
+// SourceID is the id used to retrieve information about the player from external sources
+type SourceID int
 
 // GetPlayers gets the players for the active year
 // TODO: return map[PlayerType]Player -> this rwill reduce filtering later on -> maybe use map[PlayerType]map[int]Player (int=friendId)
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
-		`SELECT p.id, p.display_order, p.player_type_id, p.player_id, p.friend_id
+		`SELECT p.id, p.display_order, p.player_type_id, p.source_id, p.friend_id
 		FROM stats AS s
 		JOIN friends AS f ON s.year = f.year AND s.sport_type_id = f.sport_type_id
 		JOIN players AS p ON f.id = p.friend_id
@@ -34,7 +37,7 @@ func GetPlayers(st SportType) ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerType, &players[i].PlayerID, &players[i].FriendID)
+		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerType, &players[i].SourceID, &players[i].FriendID)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading player: %v", err)
 		}
@@ -79,14 +82,14 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	for _, insertPlayer := range insertPlayers {
 		queries <- newQuery(
 			`INSERT INTO players
-			(display_order, player_type_id, player_id, friend_id)
+			(display_order, player_type_id, source_id, friend_id)
 			SELECT $1, $2, $3, $4
 			FROM stats
 			WHERE sport_type_id = $5
 			AND active`,
 			insertPlayer.DisplayOrder,
 			insertPlayer.PlayerType,
-			insertPlayer.PlayerID,
+			insertPlayer.SourceID,
 			insertPlayer.FriendID,
 			st,
 		)

@@ -19,11 +19,11 @@ type NflPlayerList struct {
 
 // NflPlayerDetail is information about a player for a year
 type NflPlayerDetail struct {
-	ID        string `json:"id"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	Team      string `json:"teamAbbr"`
-	Position  string `json:"position"`
+	ID        db.SourceID `json:"id,string"`
+	FirstName string      `json:"firstName"`
+	LastName  string      `json:"lastName"`
+	Team      string      `json:"teamAbbr"`
+	Position  string      `json:"position"`
 }
 
 // NflPlayerStatList contains information about the stats for all players for a particular year
@@ -33,8 +33,8 @@ type NflPlayerStatList struct {
 
 // NflPlayerStat contains the Stats for a nfl player for a particular year
 type NflPlayerStat struct {
-	ID   string  `json:"id"`
-	Stat NflStat `json:"stats"`
+	ID   db.SourceID `json:"id,string"`
+	Stat NflStat     `json:"stats"`
 }
 
 // NflStat contains the stats totals a NflPlayerStat has accumulated during a particular year
@@ -49,18 +49,18 @@ type NflStat struct {
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	numPlayers := len(fpi.Players)
-	playerIDs := make(map[int]bool, numPlayers)
+	sourceIDs := make(map[db.SourceID]bool, numPlayers)
 	for _, player := range fpi.Players[pt] {
-		playerIDs[player.PlayerID] = true // TODO: rename these to sourceIDs
+		sourceIDs[player.SourceID] = true
 	}
 
-	playerNames := make(map[int]string, numPlayers)
-	playerStats := make(map[int]int, numPlayers)
+	playerNames := make(map[db.SourceID]string, numPlayers)
+	playerStats := make(map[db.SourceID]int, numPlayers)
 	playerNamesCh := make(chan playerName, numPlayers)
 	playerStatsCh := make(chan playerStat, numPlayers)
 	quit := make(chan error)
-	go r.requestPlayerNames(pt, fpi.Year, playerIDs, playerNamesCh, quit)
-	go r.requestPlayerStats(pt, fpi.Year, playerIDs, playerStatsCh, quit)
+	go r.requestPlayerNames(pt, fpi.Year, sourceIDs, playerNamesCh, quit)
+	go r.requestPlayerStats(pt, fpi.Year, sourceIDs, playerStatsCh, quit)
 
 	i := 0
 	var scoreCategory ScoreCategory
@@ -69,9 +69,9 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 		case err := <-quit:
 			return scoreCategory, err
 		case playerName := <-playerNamesCh:
-			playerNames[playerName.id] = playerName.name
+			playerNames[playerName.sourceID] = playerName.name
 		case playerStat := <-playerStatsCh:
-			playerStats[playerStat.id] = playerStat.stat
+			playerStats[playerStat.sourceID] = playerStat.stat
 		}
 		i++
 		if i == numPlayers*2 {
@@ -98,20 +98,20 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 
 	var nflPlayerSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
-	for id, nflPlayerDetail := range nflPlayerDetails {
+	for sourceID, nflPlayerDetail := range nflPlayerDetails {
 		lowerTeamName := strings.ToLower(nflPlayerDetail.fullName())
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflPlayerSearchResults = append(nflPlayerSearchResults, PlayerSearchResult{
 				Name:     nflPlayerDetail.fullName(),
 				Details:  fmt.Sprintf("Team: %s, Position: %s", nflPlayerDetail.Team, nflPlayerDetail.Position),
-				PlayerID: id,
+				SourceID: sourceID,
 			})
 		}
 	}
 	return nflPlayerSearchResults, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[int]NflPlayerDetail, error) {
+func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[db.SourceID]NflPlayerDetail, error) {
 	var nflPlayerList NflPlayerList
 	maxCount := 10000
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
@@ -119,87 +119,71 @@ func (r *nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int)
 	if err != nil {
 		return nil, err
 	}
-	nflPlayerDetails := make(map[int]NflPlayerDetail)
+	nflPlayerDetails := make(map[db.SourceID]NflPlayerDetail)
 	for _, nflPlayerDetail := range nflPlayerList.Players {
 		if nflPlayerDetail.matches(pt) {
-			id, err := nflPlayerDetail.id()
-			if err != nil {
-				return nil, err
-			}
-			nflPlayerDetails[id] = nflPlayerDetail
+			nflPlayerDetails[nflPlayerDetail.ID] = nflPlayerDetail
 		}
 	}
 	return nflPlayerDetails, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerStat, error) {
+func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[db.SourceID]NflPlayerStat, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	var nflPlayerStatList NflPlayerStatList
 	err := request.structPointerFromURL(url, &nflPlayerStatList)
 	if err != nil {
 		return nil, err
 	}
-	nflPlayerStats := make(map[int]NflPlayerStat)
+	nflPlayerStats := make(map[db.SourceID]NflPlayerStat)
 	for _, nflPlayerStat := range nflPlayerStatList.Players {
-		id, err := nflPlayerStat.id()
-		if err != nil {
-			return nil, err
-		}
-		nflPlayerStats[id] = nflPlayerStat
+		nflPlayerStats[nflPlayerStat.ID] = nflPlayerStat
 	}
 	return nflPlayerStats, nil
 }
 
-func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, playerIDs map[int]bool, playerNames chan<- playerName, quit chan<- error) {
+func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
 		quit <- err
 		return
 	}
-	for id := range playerIDs {
-		if npd, ok := nflPlayerDetails[id]; ok {
+	for sourceID := range sourceIDs {
+		if npd, ok := nflPlayerDetails[sourceID]; ok {
 			playerNames <- playerName{
-				id:   id,
-				name: npd.fullName(),
+				sourceID: sourceID,
+				name:     npd.fullName(),
 			}
 		} else {
-			playerNames <- playerName{id: id}
-			log.Println("No player name found for nfl player", id)
+			playerNames <- playerName{sourceID: sourceID}
+			log.Println("No player name found for nfl player", sourceID)
 		}
 	}
 }
 
-func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, playerIDs map[int]bool, playerStats chan<- playerStat, quit chan<- error) {
+func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
 	nflPlayerStats, err := r.requestNflPlayerStats(year)
 	if err != nil {
 		quit <- err
 		return
 	}
 	var stat int
-	for id := range playerIDs {
-		if nflPlayerStat, ok := nflPlayerStats[id]; ok {
+	for sourceID := range sourceIDs {
+		if nflPlayerStat, ok := nflPlayerStats[sourceID]; ok {
 			stat, err = nflPlayerStat.Stat.stat(pt)
 			if err != nil {
 				quit <- err
 				return
 			}
 			playerStats <- playerStat{
-				id:   id,
-				stat: stat,
+				sourceID: sourceID,
+				stat:     stat,
 			}
 		} else {
-			playerStats <- playerStat{id: id}
-			log.Println("No player stat found for nfl player", id)
+			playerStats <- playerStat{sourceID: sourceID} // TODO: EWWW
+			log.Println("No player stat found for nfl player", sourceID)
 		}
 	}
-}
-
-func (nflPlayerDetail *NflPlayerDetail) id() (int, error) {
-	idI, err := strconv.Atoi(nflPlayerDetail.ID)
-	if err != nil {
-		return -1, fmt.Errorf("Invalid Id number for %v", nflPlayerDetail)
-	}
-	return idI, nil
 }
 
 func (nflPlayerDetail *NflPlayerDetail) fullName() string {
@@ -215,14 +199,6 @@ func (nflPlayerDetail *NflPlayerDetail) matches(pt db.PlayerType) bool {
 	default:
 		return false
 	}
-}
-
-func (nflPlayerStat *NflPlayerStat) id() (int, error) {
-	idI, err := strconv.Atoi(nflPlayerStat.ID)
-	if err != nil {
-		return -1, fmt.Errorf("Invalid Id number for %v", nflPlayerStat)
-	}
-	return idI, nil
 }
 
 func (ns *NflStat) stat(pt db.PlayerType) (int, error) {

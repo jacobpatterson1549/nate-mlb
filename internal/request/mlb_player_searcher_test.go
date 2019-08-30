@@ -31,7 +31,7 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
 		playerType:       db.PlayerTypeHitter,
 		want: []PlayerSearchResult{
-			PlayerSearchResult{Name: "Mike Trout", Details: "team:LAA, position:CF, born:USA,1991-08-07", PlayerID: 545361},
+			PlayerSearchResult{Name: "Mike Trout", Details: "team:LAA, position:CF, born:USA,1991-08-07", SourceID: 545361},
 		},
 	},
 	{
@@ -39,8 +39,8 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"2","row":[{"position":"1B","birth_country":"USA","birth_date":"1994-12-07T00:00:00","team_abbrev":"NYM","name_display_first_last":"Pete Alonso","player_id":"624413"},{"position":"1B","birth_country":"Cuba","birth_date":"1987-04-08T00:00:00","team_abbrev":"COL","name_display_first_last":"Yonder Alonso","player_id":"475174"}]}}}`,
 		playerType:       db.PlayerTypeHitter,
 		want: []PlayerSearchResult{
-			PlayerSearchResult{Name: "Pete Alonso", Details: "team:NYM, position:1B, born:USA,1994-12-07", PlayerID: 624413},
-			PlayerSearchResult{Name: "Yonder Alonso", Details: "team:COL, position:1B, born:Cuba,1987-04-08", PlayerID: 475174},
+			PlayerSearchResult{Name: "Pete Alonso", Details: "team:NYM, position:1B, born:USA,1994-12-07", SourceID: 624413},
+			PlayerSearchResult{Name: "Yonder Alonso", Details: "team:COL, position:1B, born:Cuba,1987-04-08", SourceID: 475174},
 		},
 	},
 	{

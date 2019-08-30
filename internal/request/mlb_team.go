@@ -14,8 +14,8 @@ type Teams struct {
 	Records []struct {
 		TeamRecords []struct {
 			Team struct {
-				Name string `json:"name"`
-				ID   int    `json:"id"`
+				Name string      `json:"name"`
+				ID   db.SourceID `json:"id,string"`
 			} `json:"team"`
 			Wins   int `json:"wins"`
 			Losses int `json:"losses"`
@@ -30,8 +30,8 @@ func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-	teamNames := make(map[int]string)
-	teamStats := make(map[int]int)
+	teamNames := make(map[db.SourceID]string)
+	teamStats := make(map[db.SourceID]int)
 	for _, record := range teams.Records {
 		for _, teamRecord := range record.TeamRecords {
 			teamNames[teamRecord.Team.ID] = teamRecord.Team.Name
@@ -65,7 +65,7 @@ func (r mlbTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 				teamSearchResults = append(teamSearchResults, PlayerSearchResult{
 					Name:     teamRecord.Team.Name,
 					Details:  fmt.Sprintf("%d - %d Record", teamRecord.Wins, teamRecord.Losses),
-					PlayerID: teamRecord.Team.ID,
+					SourceID: teamRecord.Team.ID,
 				})
 			}
 		}

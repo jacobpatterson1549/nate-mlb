@@ -17,9 +17,9 @@ type NflSchedule struct {
 
 // NflTeam contains information about an NFL team for a specifc year
 type NflTeam struct {
-	ID     string `json:"nflTeamId"`
-	Name   string `json:"fullName"`
-	Record string `json:"record"`
+	ID     db.SourceID `json:"nflTeamId,string"`
+	Name   string      `json:"fullName"`
+	Record string      `json:"record"`
 }
 
 // RequestScoreCategory implements the ScoreCategorizer interface
@@ -29,15 +29,15 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-	teamNames := make(map[int]string, len(nflTeams))
-	teamStats := make(map[int]int, len(nflTeams))
-	for id, nflTeam := range nflTeams {
+	teamNames := make(map[db.SourceID]string, len(nflTeams))
+	teamStats := make(map[db.SourceID]int, len(nflTeams))
+	for sourceID, nflTeam := range nflTeams {
 		wins, err := nflTeam.wins()
 		if err != nil {
 			return scoreCategory, err
 		}
-		teamNames[id] = nflTeam.Name
-		teamStats[id] = wins
+		teamNames[sourceID] = nflTeam.Name
+		teamStats[sourceID] = wins
 	}
 	teamNameScores, err := playerNameScores(fpi.Players[pt], teamNames, teamStats)
 	if err != nil {
@@ -59,43 +59,31 @@ func (r nflTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 
 	var nflTeamSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
-	for id, nflTeam := range nflTeams {
+	for sourceID, nflTeam := range nflTeams {
 		lowerTeamName := strings.ToLower(nflTeam.Name)
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflTeamSearchResults = append(nflTeamSearchResults, PlayerSearchResult{
 				Name:     nflTeam.Name,
 				Details:  fmt.Sprintf("%s Record", nflTeam.Record),
-				PlayerID: id,
+				SourceID: sourceID,
 			})
 		}
 	}
 	return nflTeamSearchResults, nil
 }
 
-func (r nflTeamRequestor) requestNflTeams(year int) (map[int]NflTeam, error) {
+func (r nflTeamRequestor) requestNflTeams(year int) (map[db.SourceID]NflTeam, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v2/nfl/schedule?season=%d&appKey=test_key_1", year)
 	var nflSchedule NflSchedule
 	err := request.structPointerFromURL(url, &nflSchedule)
 	if err != nil {
 		return nil, err
 	}
-	nflTeams := make(map[int]NflTeam)
-	for _, nt := range nflSchedule.Teams {
-		id, err := nt.id()
-		if err != nil {
-			return nil, err
-		}
-		nflTeams[id] = nt
+	nflTeams := make(map[db.SourceID]NflTeam)
+	for _, nflTeam := range nflSchedule.Teams {
+		nflTeams[nflTeam.ID] = nflTeam
 	}
 	return nflTeams, nil
-}
-
-func (nt NflTeam) id() (int, error) {
-	idI, err := strconv.Atoi(nt.ID)
-	if err != nil {
-		return -1, fmt.Errorf("Invalid Id number for %v", nt)
-	}
-	return idI, nil
 }
 
 func (nt NflTeam) wins() (int, error) {
