@@ -3,7 +3,6 @@ package request
 import (
 	"fmt"
 	"nate-mlb/internal/db"
-	"strconv"
 	"strings"
 )
 
@@ -40,9 +39,9 @@ type NflPlayerStat struct {
 // The meaning of these stats can be found at
 // https://api.fantasy.nfl.com/v1/game/stats?format=json
 type NflStat struct {
-	PassingTD   string `json:"6"`
-	RushingTD   string `json:"15"`
-	ReceivingTD string `json:"22"`
+	PassingTD   int `json:"6,int"`
+	RushingTD   int `json:"15,int"`
+	ReceivingTD int `json:"22,int"`
 }
 
 // RequestScoreCategory implements the ScoreCategorizer interface
@@ -197,28 +196,16 @@ func (nflPlayerDetail NflPlayerDetail) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (ns NflStat) stat(pt db.PlayerType) (int, error) {
+func (ns NflStat) stat(pt db.PlayerType) (int, error) { // TODO Rename NflStat to NflPlayerStat
 	score := 0
-	if pt == db.PlayerTypeNflQB && len(ns.PassingTD) != 0 {
-		td, err := strconv.Atoi(ns.PassingTD)
-		if err != nil {
-			return score, fmt.Errorf("problem: could not get PassingTD from %v", ns)
-		}
-		score += td
+	if pt == db.PlayerTypeNflQB {
+		score += ns.PassingTD
 	}
-	if (pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflMisc) && len(ns.RushingTD) != 0 {
-		td, err := strconv.Atoi(ns.RushingTD)
-		if err != nil {
-			return score, fmt.Errorf("problem: could not get RushingTD from %v", ns)
-		}
-		score += td
+	if pt == db.PlayerTypeNflQB || pt == db.PlayerTypeNflMisc {
+		score += ns.RushingTD
 	}
-	if pt == db.PlayerTypeNflMisc && len(ns.ReceivingTD) != 0 {
-		td, err := strconv.Atoi(ns.ReceivingTD)
-		if err != nil {
-			return score, fmt.Errorf("problem: could not get ReceivingTD from %v", ns)
-		}
-		score += td
+	if pt == db.PlayerTypeNflMisc {
+		score += ns.ReceivingTD
 	}
 	return score, nil
 }
