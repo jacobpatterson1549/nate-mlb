@@ -29,20 +29,21 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-	playerScores := make(map[int]*PlayerScore)
-	for id, nt := range nflTeams {
-		wins, err := nt.wins()
+	teamNames := make(map[int]string, len(nflTeams))
+	teamStats := make(map[int]int, len(nflTeams))
+	for id, nflTeam := range nflTeams {
+		wins, err := nflTeam.wins()
 		if err != nil {
 			return scoreCategory, err
 		}
-		playerScores[id] = &PlayerScore{
-			PlayerName: nt.Name,
-			PlayerID:   id,
-			Score:      wins,
-		}
+		teamNames[id] = nflTeam.Name
+		teamStats[id] = wins
 	}
-	err = scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
-	return scoreCategory, err
+	teamNameScores, err := playerNameScores(fpi.Players[pt], teamNames, teamStats)
+	if err != nil {
+		return scoreCategory, err
+	}
+	return newScoreCategory(fpi, pt, teamNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface

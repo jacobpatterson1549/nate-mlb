@@ -43,54 +43,44 @@ type MlbStat struct {
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	playerScores, lastError := r.requestPlayerScores(fpi.Players, fpi.Year)
-	var scoreCategory ScoreCategory
-	if lastError != nil {
-		return scoreCategory, lastError
+	playerIDs := make(map[int]bool)
+	for _, player := range fpi.Players[pt] {
+		playerIDs[player.PlayerID] = true
 	}
-	err := scoreCategory.populate(fpi.Friends, fpi.Players, r.playerType, playerScores, true)
-	return scoreCategory, err
-}
+	numPlayers := len(playerIDs)
 
-func (r mlbPlayerRequestor) requestPlayerScores(players []db.Player, year int) (map[int]*PlayerScore, error) {
-	playerScores := make(map[int]*PlayerScore)
-	for _, player := range players {
-		if player.PlayerType == r.playerType {
-			playerScores[player.PlayerID] = &PlayerScore{
-				PlayerID: player.PlayerID,
-			}
-		}
-	}
-
-	playerNames := make(chan playerName, len(playerScores))
-	playerStats := make(chan playerStat, len(playerScores))
+	playerNames := make(map[int]string, numPlayers)
+	playerStats := make(map[int]int, numPlayers)
+	playerNamesCh := make(chan playerName, numPlayers)
+	playerStatsCh := make(chan playerStat, numPlayers)
 	quit := make(chan error)
-	go r.requestPlayerNames(playerScores, playerNames, quit)
-	go r.requestPlayerStats(year, playerScores, playerStats, quit)
+	go r.requestPlayerNames(playerIDs, playerNamesCh, quit)
+	go r.requestPlayerStats(fpi.Year, playerIDs, playerStatsCh, quit)
 
 	i := 0
+	var scoreCategory ScoreCategory
 	for {
 		select {
 		case err := <-quit:
-			return playerScores, err
-		case playerName := <-playerNames:
-			if playerScore, ok := playerScores[playerName.id]; ok {
-				playerScore.PlayerName = playerName.name
-				i++
-			}
-		case playerStat := <-playerStats:
-			if playerScore, ok := playerScores[playerStat.id]; ok {
-				playerScore.Score = playerStat.stat
-				i++
-			}
+			return scoreCategory, err
+		case playerName := <-playerNamesCh:
+			playerNames[playerName.id] = playerName.name
+		case playerStat := <-playerStatsCh:
+			playerStats[playerStat.id] = playerStat.stat
 		}
-		if i == len(playerScores)*2 {
-			return playerScores, nil
+		i++
+		if i == numPlayers*2 {
+			break
 		}
 	}
+	mlbPlayerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
+	if err != nil {
+		return scoreCategory, err
+	}
+	return newScoreCategory(fpi, pt, mlbPlayerNameScores, true), nil
 }
 
-func (r *mlbPlayerRequestor) requestPlayerNames(playerIDs map[int]*PlayerScore, playerNames chan<- playerName, quit chan<- error) {
+func (r *mlbPlayerRequestor) requestPlayerNames(playerIDs map[int]bool, playerNames chan<- playerName, quit chan<- error) {
 	playerIDStrings := make([]string, len(playerIDs))
 	i := 0
 	for playerID := range playerIDs {
@@ -120,7 +110,7 @@ func (r *mlbPlayerRequestor) requestPlayerNames(playerIDs map[int]*PlayerScore, 
 	}
 }
 
-func (r *mlbPlayerRequestor) requestPlayerStats(year int, playerIDs map[int]*PlayerScore, playerStats chan<- playerStat, quit chan<- error) {
+func (r *mlbPlayerRequestor) requestPlayerStats(year int, playerIDs map[int]bool, playerStats chan<- playerStat, quit chan<- error) {
 	for playerID := range playerIDs {
 		go r.getPlayerStat(playerID, year, playerStats, quit)
 	}

@@ -48,20 +48,19 @@ type NflStat struct {
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	playerScores := make(map[int]*PlayerScore)
-	for _, player := range fpi.Players {
-		if player.PlayerType == pt {
-			playerScores[player.PlayerID] = &PlayerScore{
-				PlayerID: player.PlayerID,
-			}
-		}
+	numPlayers := len(fpi.Players)
+	playerIDs := make(map[int]bool, numPlayers)
+	for _, player := range fpi.Players[pt] {
+		playerIDs[player.PlayerID] = true // TODO: rename these to sourceIDs
 	}
 
-	playerNames := make(chan playerName, len(playerScores))
-	playerStats := make(chan playerStat, len(playerScores))
+	playerNames := make(map[int]string, numPlayers)
+	playerStats := make(map[int]int, numPlayers)
+	playerNamesCh := make(chan playerName, numPlayers)
+	playerStatsCh := make(chan playerStat, numPlayers)
 	quit := make(chan error)
-	go r.requestPlayerNames(pt, fpi.Year, playerScores, playerNames, quit)
-	go r.requestPlayerStats(pt, fpi.Year, playerScores, playerStats, quit)
+	go r.requestPlayerNames(pt, fpi.Year, playerIDs, playerNamesCh, quit)
+	go r.requestPlayerStats(pt, fpi.Year, playerIDs, playerStatsCh, quit)
 
 	i := 0
 	var scoreCategory ScoreCategory
@@ -69,22 +68,21 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 		select {
 		case err := <-quit:
 			return scoreCategory, err
-		case playerName := <-playerNames:
-			if playerScore, ok := playerScores[playerName.id]; ok {
-				playerScore.PlayerName = playerName.name
-				i++
-			}
-		case playerStat := <-playerStats:
-			if playerScore, ok := playerScores[playerStat.id]; ok {
-				playerScore.Score = playerStat.stat
-				i++
-			}
+		case playerName := <-playerNamesCh:
+			playerNames[playerName.id] = playerName.name
+		case playerStat := <-playerStatsCh:
+			playerStats[playerStat.id] = playerStat.stat
 		}
-		if i == len(playerScores)*2 {
-			scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, true)
-			return scoreCategory, nil
+		i++
+		if i == numPlayers*2 {
+			break
 		}
 	}
+	mlbPlayerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
+	if err != nil {
+		return scoreCategory, err
+	}
+	return newScoreCategory(fpi, pt, mlbPlayerNameScores, true), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -152,7 +150,7 @@ func (r *nflPlayerRequestor) requestNflPlayerStats(year int) (map[int]NflPlayerS
 	return nflPlayerStats, nil
 }
 
-func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, playerIDs map[int]*PlayerScore, playerNames chan<- playerName, quit chan<- error) {
+func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, playerIDs map[int]bool, playerNames chan<- playerName, quit chan<- error) {
 	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
 	if err != nil {
 		quit <- err
@@ -171,7 +169,7 @@ func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, play
 	}
 }
 
-func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, playerIDs map[int]*PlayerScore, playerStats chan<- playerStat, quit chan<- error) {
+func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, playerIDs map[int]bool, playerStats chan<- playerStat, quit chan<- error) {
 	nflPlayerStats, err := r.requestNflPlayerStats(year)
 	if err != nil {
 		quit <- err

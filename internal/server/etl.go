@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
+	"sort"
 	"time"
 )
 
@@ -66,40 +67,36 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 	if err != nil {
 		return nil, err
 	}
-	playerTypes, err := db.LoadPlayerTypes(st)
-	if err != nil {
-		return nil, err
-	}
 	players, err := db.GetPlayers(st)
 	if err != nil {
 		return nil, err
 	}
-	fpi := request.FriendPlayerInfo{
-		Friends: friends,
-		Players: players,
-		Year:    es.year,
+	playerTypes, err := db.LoadPlayerTypes(st)
+	if err != nil {
+		return nil, err
 	}
+	fpi := request.NewFriendPlayerInfo(friends, players, playerTypes, es.year)
 
 	numScoreCategories := len(playerTypes)
-	playerTypeOrders := make(map[db.PlayerType]int)
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(playerTypes))
 	quit := make(chan error)
-	for i, playerType := range playerTypes {
+	for _, playerType := range playerTypes {
 		go es.getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
-		playerTypeOrders[playerType] = i
 	}
-	scoreCategories := make([]request.ScoreCategory, numScoreCategories)
+	scoreCategories := []request.ScoreCategory{}
 	finishedScoreCategories := 0
 	for {
 		select {
 		case err = <-quit:
 			return nil, err
 		case scoreCategory := <-scoreCategoriesCh:
-			i := playerTypeOrders[scoreCategory.PlayerType]
-			scoreCategories[i] = scoreCategory
+			scoreCategories = append(scoreCategories, scoreCategory)
 			finishedScoreCategories++
 		}
 		if finishedScoreCategories == numScoreCategories {
+			sort.Slice(scoreCategories, func(i, j int) bool {
+				return scoreCategories[i].DisplayOrder < scoreCategories[j].DisplayOrder
+			})
 			return scoreCategories, nil
 		}
 	}

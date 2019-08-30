@@ -50,10 +50,10 @@ func createCsvRecord(sc request.ScoreCategory, fs request.FriendScore, ps reques
 		if fsIndex == 0 {
 			record[0] = sc.Name
 		}
-		record[1] = fs.FriendName
+		record[1] = fs.Name
 		record[2] = strconv.Itoa(fs.Score)
 	}
-	record[3] = ps.PlayerName
+	record[3] = ps.Name
 	record[4] = strconv.Itoa(ps.Score)
 	return record
 }

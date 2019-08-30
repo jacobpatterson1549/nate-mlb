@@ -16,9 +16,10 @@ const (
 )
 
 var (
-	playerTypeSportTypes   = make(map[PlayerType]SportType)
-	playerTypeNames        = make(map[PlayerType]string)
-	playerTypeDescriptions = make(map[PlayerType]string)
+	playerTypeSportTypes    = make(map[PlayerType]SportType)
+	playerTypeNames         = make(map[PlayerType]string)
+	playerTypeDescriptions  = make(map[PlayerType]string)
+	playerTypeDisplayOrders = make(map[PlayerType]int)
 )
 
 // SportType gets the SportType for a PlayerType
@@ -36,13 +37,17 @@ func (pt PlayerType) Description() string {
 	return playerTypeDescriptions[pt]
 }
 
+// DisplayOrder gets the display order for a PlayerType
+func (pt PlayerType) DisplayOrder() int {
+	return playerTypeDisplayOrders[pt]
+}
+
 // LoadPlayerTypes loads the PlayerTypes from the database
 func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 	rows, err := db.Query(
 		`SELECT id, sport_type_id, name, description
 		FROM player_types
-		WHERE sport_type_id = $1
-		ORDER BY id ASC`,
+		WHERE sport_type_id = $1`,
 		st,
 	)
 	if err != nil {
@@ -57,6 +62,7 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 		name        string
 		description string
 	)
+	displayOrder := 0
 	for rows.Next() {
 		err = rows.Scan(&playerType, &sportType, &name, &description)
 		if err != nil {
@@ -68,10 +74,12 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name
 			playerTypeDescriptions[playerType] = description
+			playerTypeDisplayOrders[playerType] = displayOrder
 			playerTypes = append(playerTypes, playerType)
 		default:
 			return nil, fmt.Errorf("Unknown PlayerType: id=%d", playerType)
 		}
+		displayOrder++
 	}
 	switch {
 	case st == SportTypeMlb && len(playerTypes) == 3,

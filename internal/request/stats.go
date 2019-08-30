@@ -25,24 +25,26 @@ type ScoreCategorizer interface {
 type ScoreCategory struct {
 	Name         string
 	Description  string
-	PlayerType   db.PlayerType
+	DisplayOrder int
 	FriendScores []FriendScore
 }
 
 // FriendScore contain the scores for a Friend for a PlayerType
 type FriendScore struct {
-	FriendName   string
-	FriendID     int
-	PlayerScores []PlayerScore
+	ID           int
+	Name         string
 	Score        int
+	DisplayOrder int
+	PlayerScores []PlayerScore
 }
 
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
-	PlayerName string
-	PlayerID   int
-	ID         int
-	Score      int
+	ID           int
+	Name         string
+	Score        int
+	DisplayOrder int
+	SourceID     sourceID
 }
 
 type playerName struct {
@@ -55,71 +57,121 @@ type playerStat struct {
 	stat int
 }
 
+type sourceID int
+
+// NameScore is a base score structure: it has an id, name, score, and display order
+type NameScore struct { // TOOD: make package-private
+	ID           int
+	Name         string
+	Score        int
+	DisplayOrder int
+}
+
 // FriendPlayerInfo is a helper pojo of information about what is in a ScoreCategory
 type FriendPlayerInfo struct {
 	Friends []db.Friend
-	Players []db.Player
+	Players map[db.PlayerType][]db.Player
 	Year    int
 }
 
-// requires a map of pointers to playerScores because the Playerscore may be created in multiple goroutines.
-func (sc *ScoreCategory) populate(friends []db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) error {
-	sc.Name = playerType.Name()
-	sc.Description = playerType.Description()
-	sc.PlayerType = playerType
-	sc.FriendScores = make([]FriendScore, len(friends))
-	for i, friend := range friends {
-		friendScore, err := newFriendScore(friend, players, playerType, playerScores, onlySumTopTwoPlayerScores)
-		if err != nil {
-			return err
-		}
-		sc.FriendScores[i] = friendScore
-	}
-	return nil
-}
-
-func newFriendScore(friend db.Friend, players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore, onlySumTopTwoPlayerScores bool) (FriendScore, error) {
-	var friendScore FriendScore
-	friendScore.FriendName = friend.Name
-	friendScore.FriendID = friend.ID // must be done before player scores are populated
-	err := friendScore.populatePlayerScores(players, playerType, playerScores)
-	if err != nil {
-		return friendScore, err
-	}
-	friendScore.populateScore(onlySumTopTwoPlayerScores)
-	return friendScore, nil
-}
-
-func (friendScore *FriendScore) populatePlayerScores(players []db.Player, playerType db.PlayerType, playerScores map[int]*PlayerScore) error {
+// NewFriendPlayerInfo creates a FriendPlayerInfo from Friends, Players, PlayerTypes, and a year
+func NewFriendPlayerInfo(friends []db.Friend, players []db.Player, playerTypes []db.PlayerType, year int) FriendPlayerInfo {
+	playersMap := make(map[db.PlayerType][]db.Player, len(playerTypes))
 	for _, player := range players {
-		if friendScore.FriendID == player.FriendID && playerType == player.PlayerType {
-			playerScore, ok := playerScores[player.PlayerID]
-			if !ok {
-				return fmt.Errorf("no PlayerScore for player id = %v, type = %v", player.PlayerID, playerType)
-			}
-			playerScoreWithID := PlayerScore{
-				PlayerName: playerScore.PlayerName,
-				PlayerID:   playerScore.PlayerID,
-				ID:         player.ID,
-				Score:      playerScore.Score,
-			}
-			friendScore.PlayerScores = append(friendScore.PlayerScores, playerScoreWithID)
-		}
+		playersMap[player.PlayerType] = append(playersMap[player.PlayerType], player)
 	}
-	return nil
+	return FriendPlayerInfo{
+		Friends: friends,
+		Players: playersMap,
+		Year:    year,
+	}
 }
 
-func (friendScore *FriendScore) populateScore(onlySumTopTwoPlayerScores bool) {
-	scores := make([]int, len(friendScore.PlayerScores))
-	for i, playerScore := range friendScore.PlayerScores {
-		scores[i] = playerScore.Score
+func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
+	return ScoreCategory{
+		Name:         playerType.Name(),
+		DisplayOrder: playerType.DisplayOrder(),
+		Description:  playerType.Description(),
+		FriendScores: newFriendScores(fpi, playerType, playerNameScores, onlySumTopTwoPlayerScores),
+	}
+}
+
+func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
+	friendScores := make([]FriendScore, len(fpi.Friends))
+	for i, friend := range fpi.Friends {
+		friendPlayers := []db.Player{}
+		for _, player := range fpi.Players[playerType] { // TODO: loop is annoying
+			if player.FriendID == friend.ID {
+				friendPlayers = append(friendPlayers, player)
+			}
+		}
+		friendScores[i] = newFriendScore(friend, friendPlayers, playerNameScores, onlySumTopTwoPlayerScores)
+	}
+	return friendScores
+}
+
+func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) FriendScore {
+	playerScores := newPlayerScores(players, playerNameScores)
+	return FriendScore{
+		ID:           friend.ID,
+		Name:         friend.Name,
+		Score:        getFriendScore(playerScores, onlySumTopTwoPlayerScores),
+		DisplayOrder: friend.DisplayOrder,
+		PlayerScores: playerScores,
+	}
+}
+
+func newPlayerScores(players []db.Player, playerNameScores map[int]NameScore) []PlayerScore {
+	playerScores := make([]PlayerScore, len(players))
+	for i, player := range players {
+		playerScores[i] = newPlayerScore(player, playerNameScores[player.ID])
+	}
+	return playerScores
+}
+
+func newPlayerScore(player db.Player, playerNameScore NameScore) PlayerScore {
+	return PlayerScore{
+		ID:           player.ID,
+		Name:         playerNameScore.Name,
+		Score:        playerNameScore.Score,
+		DisplayOrder: player.DisplayOrder,
+		SourceID:     player.PlayerID, // TODO: rename playerID to sourceID EVERYWHERE (ui, ws, db)
+	}
+}
+
+func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) int {
+	scores := make([]int, len(playerScores))
+	for i, playerNameScore := range playerScores {
+		scores[i] = playerNameScore.Score
 	}
 	if onlySumTopTwoPlayerScores && len(scores) > 2 {
 		sort.Ints(scores) // ex: 1 2 3 4 5
 		scores = scores[len(scores)-2:]
 	}
-	friendScore.Score = 0
+	friendScore := 0
 	for _, score := range scores {
-		friendScore.Score += score
+		friendScore += score
 	}
+	return friendScore
+}
+
+func playerNameScores(players []db.Player, names map[int]string, stats map[int]int) (map[int]NameScore, error) {
+	playerNameScores := make(map[int]NameScore, len(players))
+	for _, player := range players {
+		name, ok := names[player.PlayerID]
+		if !ok {
+			return playerNameScores, fmt.Errorf("No player name for player %d", player.ID)
+		}
+		stat, ok := stats[player.PlayerID]
+		if !ok {
+			return playerNameScores, fmt.Errorf("No player stat for player %d", player.ID)
+		}
+		playerNameScores[player.ID] = NameScore{
+			ID:           player.ID,
+			Name:         name,
+			Score:        stat,
+			DisplayOrder: player.DisplayOrder,
+		}
+	}
+	return playerNameScores, nil
 }

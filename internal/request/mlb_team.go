@@ -30,19 +30,19 @@ func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-
-	playerScores := make(map[int]*PlayerScore)
+	teamNames := make(map[int]string)
+	teamStats := make(map[int]int)
 	for _, record := range teams.Records {
 		for _, teamRecord := range record.TeamRecords {
-			playerScores[teamRecord.Team.ID] = &PlayerScore{
-				PlayerName: teamRecord.Team.Name,
-				PlayerID:   teamRecord.Team.ID,
-				Score:      teamRecord.Wins,
-			}
+			teamNames[teamRecord.Team.ID] = teamRecord.Team.Name
+			teamStats[teamRecord.Team.ID] = teamRecord.Wins
 		}
 	}
-	err = scoreCategory.populate(fpi.Friends, fpi.Players, pt, playerScores, false)
-	return scoreCategory, err
+	teamNameScores, err := playerNameScores(fpi.Players[pt], teamNames, teamStats)
+	if err != nil {
+		return scoreCategory, err
+	}
+	return newScoreCategory(fpi, pt, teamNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -74,7 +74,7 @@ func (r mlbTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 }
 
 func (r mlbTeamRequestor) requestTeams(year int) (Teams, error) {
-	var teams Teams
+	var teams Teams // TODO: rename to MlbTeams, rename func
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
 	err := request.structPointerFromURL(url, &teams)
 	return teams, err

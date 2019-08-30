@@ -13,18 +13,18 @@ func TestCreateCsvRecords(t *testing.T) {
 				Name: "teams",
 				FriendScores: []request.FriendScore{
 					{
-						FriendName: "Arnie",
+						Name: "Arnie",
 						PlayerScores: []request.PlayerScore{
-							{PlayerName: "San Francisco 49ers", Score: 4},
-							{PlayerName: "Arizona Cardinals", Score: 3},
+							{Name: "San Francisco 49ers", Score: 4},
+							{Name: "Arizona Cardinals", Score: 3},
 						},
 						Score: 7,
 					},
 					{
-						FriendName: "Bert",
+						Name: "Bert",
 						PlayerScores: []request.PlayerScore{
-							{PlayerName: "Green Bay Packers", Score: 6},
-							{PlayerName: "Cleveland Browns", Score: 7},
+							{Name: "Green Bay Packers", Score: 6},
+							{Name: "Cleveland Browns", Score: 7},
 						},
 						Score: 13,
 					},
@@ -34,9 +34,9 @@ func TestCreateCsvRecords(t *testing.T) {
 				Name: "qb",
 				FriendScores: []request.FriendScore{
 					{
-						FriendName: "Charlie",
+						Name: "Charlie",
 						PlayerScores: []request.PlayerScore{
-							{PlayerName: "Tom Brady", Score: 29},
+							{Name: "Tom Brady", Score: 29},
 						},
 						Score: 29,
 					},
