@@ -30,7 +30,11 @@ type NflPlayerStatList struct {
 
 // NflPlayerStat contains the Stats for a nfl player for a particular year
 type NflPlayerStat struct {
-	ID   db.SourceID         `json:"id,string"`
+	ID db.SourceID `json:"id,string"`
+	// TODO: there is a 'name' field on the NflPlayerStat.
+	// - Use this, don't request nflplayer details, don't use goroutines
+	// , rename this to NflPlayerDetails
+	// , rename NflPlayerStatValues to NflPlayerStats
 	Stat NflPlayerStatValues `json:"stats"`
 }
 

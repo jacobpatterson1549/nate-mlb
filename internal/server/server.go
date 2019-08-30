@@ -225,7 +225,7 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 	w.Write([]byte(message))
 }
 
-func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
+func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error { // TODO make getPlayerSearchResults in admin.go, do most of this there
 	searchQuery := r.Form.Get("q")
 	if len(searchQuery) == 0 {
 		return errors.New("missing search query param: q")
