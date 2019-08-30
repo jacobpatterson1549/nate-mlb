@@ -57,8 +57,6 @@ type playerStat struct {
 	stat     int
 }
 
-type sourceID int // TODO: DELETEME (use db.SourceID)
-
 type nameScore struct {
 	name  string
 	score int
