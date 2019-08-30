@@ -97,15 +97,13 @@ func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerName
 }
 
 func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
+	friendPlayers := make(map[int][]db.Player)
+	for _, player := range fpi.Players[playerType] {
+		friendPlayers[player.FriendID] = append(friendPlayers[player.FriendID], player)
+	}
 	friendScores := make([]FriendScore, len(fpi.Friends))
 	for i, friend := range fpi.Friends {
-		friendPlayers := []db.Player{}
-		for _, player := range fpi.Players[playerType] { // TODO: loop is annoying
-			if player.FriendID == friend.ID {
-				friendPlayers = append(friendPlayers, player)
-			}
-		}
-		friendScores[i] = newFriendScore(friend, friendPlayers, playerNameScores, onlySumTopTwoPlayerScores)
+		friendScores[i] = newFriendScore(friend, friendPlayers[friend.ID], playerNameScores, onlySumTopTwoPlayerScores)
 	}
 	return friendScores
 }
