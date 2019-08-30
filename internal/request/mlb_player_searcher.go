@@ -25,8 +25,8 @@ type QueryResults struct {
 	PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
 }
 
-// PlayerBio contains the results of a player search for a single player
-type PlayerBio struct {
+// MlbPlayerBio contains the results of a player search for a single player
+type MlbPlayerBio struct {
 	Position     string      `json:"position"`
 	BirthCountry string      `json:"birth_country"`
 	BirthDate    string      `json:"birth_date"`
@@ -53,13 +53,13 @@ func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefi
 }
 
 func (psqr QueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
-	var playerBios []PlayerBio
+	var playerBios []MlbPlayerBio
 	var err error
 	switch psqr.TotalSize {
 	case "0":
 		break
 	case "1":
-		var playerBio PlayerBio
+		var playerBio MlbPlayerBio
 		err = json.Unmarshal(psqr.PlayerBios, &playerBio)
 		playerBios = append(playerBios, playerBio)
 	default:
@@ -83,32 +83,32 @@ func (psqr QueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearc
 	return playerSearchResults, nil
 }
 
-func (playerBio PlayerBio) matches(pt db.PlayerType) bool {
+func (mlbPlayerBio MlbPlayerBio) matches(pt db.PlayerType) bool {
 	switch pt {
 	case db.PlayerTypeHitter:
-		return playerBio.Position != "P"
+		return mlbPlayerBio.Position != "P"
 	case db.PlayerTypePitcher:
-		return playerBio.Position == "P"
+		return mlbPlayerBio.Position == "P"
 	default:
 		return false
 	}
 }
 
-func (playerBio PlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
+func (mlbPlayerBio MlbPlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
 	var psr PlayerSearchResult
 	birthDate := "?"
-	if len(playerBio.BirthDate) > 0 {
-		bdTime, err := time.Parse("2006-01-02T15:04:05", playerBio.BirthDate)
+	if len(mlbPlayerBio.BirthDate) > 0 {
+		bdTime, err := time.Parse("2006-01-02T15:04:05", mlbPlayerBio.BirthDate)
 		if err != nil {
-			return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", playerBio.BirthDate, err)
+			return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", mlbPlayerBio.BirthDate, err)
 		}
 		birthDate = bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
 	}
 
 	psr = PlayerSearchResult{
-		Name:     playerBio.PlayerName,
-		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", playerBio.TeamAbbrev, playerBio.Position, playerBio.BirthCountry, birthDate),
-		SourceID: playerBio.PlayerID,
+		Name:     mlbPlayerBio.PlayerName,
+		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", mlbPlayerBio.TeamAbbrev, mlbPlayerBio.Position, mlbPlayerBio.BirthCountry, birthDate),
+		SourceID: mlbPlayerBio.PlayerID,
 	}
 	return psr, nil
 }

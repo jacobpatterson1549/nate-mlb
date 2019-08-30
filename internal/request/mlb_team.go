@@ -9,8 +9,8 @@ import (
 // mlbTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces
 type mlbTeamRequestor struct{}
 
-// Teams is used to unmarshal a wins request for all teams
-type Teams struct {
+// MlbTeams is used to unmarshal a wins request for all teams
+type MlbTeams struct {
 	Records []struct {
 		TeamRecords []struct {
 			Team struct {
@@ -26,7 +26,7 @@ type Teams struct {
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
-	teams, err := r.requestTeams(fpi.Year)
+	teams, err := r.requestMlbTeams(fpi.Year)
 	if err != nil {
 		return scoreCategory, err
 	}
@@ -52,7 +52,7 @@ func (r mlbTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 	if err != nil {
 		return teamSearchResults, err
 	}
-	teams, err := r.requestTeams(activeYear)
+	teams, err := r.requestMlbTeams(activeYear)
 	if err != nil {
 		return teamSearchResults, err
 	}
@@ -73,9 +73,9 @@ func (r mlbTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 	return teamSearchResults, nil
 }
 
-func (r mlbTeamRequestor) requestTeams(year int) (Teams, error) {
-	var teams Teams // TODO: rename to MlbTeams, rename func
+func (r mlbTeamRequestor) requestMlbTeams(year int) (MlbTeams, error) {
+	var mlbTeams MlbTeams
 	url := strings.ReplaceAll(fmt.Sprintf("http://statsapi.mlb.com/api/v1/standings/regularSeason?leagueId=103,104&season=%d", year), ",", "%2C")
-	err := request.structPointerFromURL(url, &teams)
-	return teams, err
+	err := request.structPointerFromURL(url, &mlbTeams)
+	return mlbTeams, err
 }
