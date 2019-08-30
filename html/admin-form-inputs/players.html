@@ -13,7 +13,7 @@
         <label for="select-friend">Friend</label>
         <select id="select-friend" class="form-control" onchange="refreshVisiblePlayers()">
             {{range (index .Data 0).FriendScores -}}
-            <option value="{{.FriendID}}">{{.FriendName}}</option>
+            <option value="{{.ID}}">{{.Name}}</option>
             {{end -}}
         </select>
     </div>
@@ -155,7 +155,7 @@
     {{range $scoreCategory := .Data -}}
     {{range $friendScore := $scoreCategory.FriendScores -}}
     {{range $index, $playerScore := $friendScore.PlayerScores -}}
-    createPlayer({{$playerScore.ID}}, {{$playerScore.Name}}, {{$playerScore.SourceID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
+    createPlayer({{$playerScore.ID}}, {{$playerScore.Name}}, {{$playerScore.SourceID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.ID}});
     {{end -}}
     {{end -}}
     {{end -}}
