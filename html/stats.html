@@ -7,7 +7,7 @@
         <div class="col-sm m-2">
             <div class="card">
                 <div class="card-body">
-                    <h3 class="card-title text-success">{{.FriendName}}</h3>
+                    <h3 class="card-title text-success">{{.Name}}</h3>
                     <div class="card-text">
                         <table class="card-table table">
                             <thead class="d-none">
@@ -17,7 +17,7 @@
                             <tbody>
                                 {{range .PlayerScores -}}
                                 <tr>
-                                    <td>{{.PlayerName}}</td>
+                                    <td>{{.Name}}</td>
                                     <td>{{.Score}}</td>
                                 </tr>
                                 {{end -}}

@@ -155,7 +155,7 @@
     {{range $scoreCategory := .Data -}}
     {{range $friendScore := $scoreCategory.FriendScores -}}
     {{range $index, $playerScore := $friendScore.PlayerScores -}}
-    createPlayer({{$playerScore.ID}}, {{$playerScore.PlayerName}}, {{$playerScore.SourceID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
+    createPlayer({{$playerScore.ID}}, {{$playerScore.Name}}, {{$playerScore.SourceID}}, {{$index}}, {{$scoreCategory.PlayerType}}, {{$friendScore.FriendID}});
     {{end -}}
     {{end -}}
     {{end -}}

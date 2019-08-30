@@ -90,7 +90,7 @@
     }
 
     {{range $index, $friendScore := .Data -}}
-        createFriend({{$friendScore.FriendID}}, {{$friendScore.FriendName}}, {{$index}}, {{$friendScore.FriendName}});
+        createFriend({{$friendScore.ID}}, {{$friendScore.Name}}, {{$index}}, {{$friendScore.Name}});
     {{end -}}
 </script>
 {{end}}
