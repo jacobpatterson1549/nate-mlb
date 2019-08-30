@@ -2,7 +2,6 @@ package request
 
 import (
 	"fmt"
-	"log"
 	"nate-mlb/internal/db"
 	"strconv"
 	"strings"
@@ -148,14 +147,13 @@ func (r *nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sour
 		return
 	}
 	for sourceID := range sourceIDs {
+		var fullName string
 		if npd, ok := nflPlayerDetails[sourceID]; ok {
-			playerNames <- playerName{
-				sourceID: sourceID,
-				name:     npd.fullName(),
-			}
-		} else {
-			playerNames <- playerName{sourceID: sourceID}
-			log.Println("No player name found for nfl player", sourceID)
+			fullName = npd.fullName()
+		}
+		playerNames <- playerName{
+			sourceID: sourceID,
+			name:     fullName,
 		}
 	}
 }
@@ -166,21 +164,18 @@ func (r *nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sour
 		quit <- err
 		return
 	}
-	var stat int
 	for sourceID := range sourceIDs {
+		var stat int
 		if nflPlayerStat, ok := nflPlayerStats[sourceID]; ok {
 			stat, err = nflPlayerStat.Stat.stat(pt)
 			if err != nil {
 				quit <- err
 				return
 			}
-			playerStats <- playerStat{
-				sourceID: sourceID,
-				stat:     stat,
-			}
-		} else {
-			playerStats <- playerStat{sourceID: sourceID} // TODO: EWWW
-			log.Println("No player stat found for nfl player", sourceID)
+		}
+		playerStats <- playerStat{
+			sourceID: sourceID,
+			stat:     stat,
 		}
 	}
 }
