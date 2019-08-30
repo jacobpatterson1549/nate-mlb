@@ -57,14 +57,11 @@ type playerStat struct {
 	stat     int
 }
 
-type sourceID int
+type sourceID int // TODO: DELETEME (use db.SourceID)
 
-// NameScore is a base score structure: it has an id, name, score, and display order
-type NameScore struct { // TOOD: make package-private
-	ID           int
-	Name         string
-	Score        int
-	DisplayOrder int
+type nameScore struct {
+	name  string
+	score int
 }
 
 // FriendPlayerInfo is a helper pojo of information about what is in a ScoreCategory
@@ -87,7 +84,7 @@ func NewFriendPlayerInfo(friends []db.Friend, players []db.Player, playerTypes [
 	}
 }
 
-func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
+func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
 	return ScoreCategory{
 		Name:         playerType.Name(),
 		PlayerType:   playerType,
@@ -96,7 +93,7 @@ func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerName
 	}
 }
 
-func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
+func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
 	friendPlayers := make(map[int][]db.Player)
 	for _, player := range fpi.Players[playerType] {
 		friendPlayers[player.FriendID] = append(friendPlayers[player.FriendID], player)
@@ -108,7 +105,7 @@ func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameS
 	return friendScores
 }
 
-func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[int]NameScore, onlySumTopTwoPlayerScores bool) FriendScore {
+func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) FriendScore {
 	playerScores := newPlayerScores(players, playerNameScores)
 	return FriendScore{
 		ID:           friend.ID,
@@ -119,7 +116,7 @@ func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[
 	}
 }
 
-func newPlayerScores(players []db.Player, playerNameScores map[int]NameScore) []PlayerScore {
+func newPlayerScores(players []db.Player, playerNameScores map[int]nameScore) []PlayerScore {
 	playerScores := make([]PlayerScore, len(players))
 	for i, player := range players {
 		playerScores[i] = newPlayerScore(player, playerNameScores[player.ID])
@@ -127,11 +124,11 @@ func newPlayerScores(players []db.Player, playerNameScores map[int]NameScore) []
 	return playerScores
 }
 
-func newPlayerScore(player db.Player, playerNameScore NameScore) PlayerScore {
+func newPlayerScore(player db.Player, playerNameScore nameScore) PlayerScore {
 	return PlayerScore{
 		ID:           player.ID,
-		Name:         playerNameScore.Name,
-		Score:        playerNameScore.Score,
+		Name:         playerNameScore.name,
+		Score:        playerNameScore.score,
 		DisplayOrder: player.DisplayOrder,
 		SourceID:     player.SourceID,
 	}
@@ -153,8 +150,8 @@ func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) 
 	return friendScore
 }
 
-func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[int]NameScore, error) {
-	playerNameScores := make(map[int]NameScore, len(players))
+func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[int]nameScore, error) {
+	playerNameScores := make(map[int]nameScore, len(players))
 	for _, player := range players {
 		name, ok := names[player.SourceID]
 		if !ok {
@@ -164,11 +161,9 @@ func playerNameScores(players []db.Player, names map[db.SourceID]string, stats m
 		if !ok {
 			return playerNameScores, fmt.Errorf("No stat for player %d", player.ID)
 		}
-		playerNameScores[player.ID] = NameScore{
-			ID:           player.ID,
-			Name:         name,
-			Score:        stat,
-			DisplayOrder: player.DisplayOrder,
+		playerNameScores[player.ID] = nameScore{
+			name:  name,
+			score: stat,
 		}
 	}
 	return playerNameScores, nil
