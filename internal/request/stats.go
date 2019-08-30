@@ -160,11 +160,11 @@ func playerNameScores(players []db.Player, names map[db.SourceID]string, stats m
 	for _, player := range players {
 		name, ok := names[player.SourceID]
 		if !ok {
-			return playerNameScores, fmt.Errorf("No player name for player %d", player.ID)
+			return playerNameScores, fmt.Errorf("No name for player %d", player.ID)
 		}
 		stat, ok := stats[player.SourceID]
 		if !ok {
-			return playerNameScores, fmt.Errorf("No player stat for player %d", player.ID)
+			return playerNameScores, fmt.Errorf("No stat for player %d", player.ID)
 		}
 		playerNameScores[player.ID] = NameScore{
 			ID:           player.ID,

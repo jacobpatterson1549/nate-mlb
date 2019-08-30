@@ -48,12 +48,11 @@ type NflStat struct {
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	numPlayers := len(fpi.Players)
-	sourceIDs := make(map[db.SourceID]bool, numPlayers)
+	sourceIDs := make(map[db.SourceID]bool)
 	for _, player := range fpi.Players[pt] {
 		sourceIDs[player.SourceID] = true
 	}
-
+	numPlayers := len(sourceIDs)
 	playerNames := make(map[db.SourceID]string, numPlayers)
 	playerStats := make(map[db.SourceID]int, numPlayers)
 	playerNamesCh := make(chan playerName, numPlayers)
