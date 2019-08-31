@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"nate-mlb/internal/db"
 	"testing"
+	"time"
 )
 
 type unmarshalStructJSONTest struct {
@@ -18,7 +19,7 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(GithubRepoDeployment),
 		want: &GithubRepoDeployment{
 			Version: "f370c06649a740542504b7ecb18031908f394fe8",
-			Time:    "2019-08-29T17:29:35Z", // TODO: can this deserialize to time.RFC3339 ?
+			Time:    time.Date(2019, time.August, 29, 17, 29, 35, 0, time.UTC),
 		},
 	},
 	{

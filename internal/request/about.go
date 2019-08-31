@@ -7,8 +7,8 @@ import (
 
 // GithubRepoDeployment is used to unmarshal information about a github repository
 type GithubRepoDeployment struct {
-	Version string `json:"ref"`
-	Time    string `json:"updated_at"`
+	Version string    `json:"ref"`
+	Time    time.Time `json:"updated_at"`
 }
 
 // Deployment contains information about a deployment that is ready to be consumed
@@ -29,26 +29,20 @@ func PreviousDeployment() (Deployment, error) {
 	if err != nil {
 		return previousDeployment, err
 	}
-	err = previousDeployment.setFromGithubRepoDeployments(grd)
-	return previousDeployment, err
+	previousDeployment.setFromGithubRepoDeployments(grd)
+	return previousDeployment, nil
 }
 
-func (d *Deployment) setFromGithubRepoDeployments(grd []GithubRepoDeployment) error {
-	if len(grd) == 0 {
-		return nil
+func (d *Deployment) setFromGithubRepoDeployments(grd []GithubRepoDeployment) {
+	if len(grd) != 0 {
+		d.setFromGithubRepoDeployment(grd[0])
 	}
-	return d.setFromGithubRepoDeployment(grd[0])
 }
 
-func (d *Deployment) setFromGithubRepoDeployment(grd GithubRepoDeployment) error {
-	var err error
-	d.Time, err = time.Parse(time.RFC3339, grd.Time)
-	if err != nil {
-		return fmt.Errorf("problem parsing %v into date: %v", grd.Time, err)
-	}
+func (d *Deployment) setFromGithubRepoDeployment(grd GithubRepoDeployment) {
+	d.Time = grd.Time
 	d.Version = grd.Version
 	if len(d.Version) > 7 {
 		d.Version = d.Version[:7]
 	}
-	return nil
 }
