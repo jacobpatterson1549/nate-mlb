@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -44,17 +45,20 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	_, err := db.LoadSportTypes()
+	if err == nil {
+		err = handlePage(w, r)
+	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Printf("server error: %q", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 	}
-	if _, err := db.LoadSportTypes(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+}
+
+func handlePage(w http.ResponseWriter, r *http.Request) error {
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
 	st := db.SportTypeFromURL(firstPathSegment)
+	var err error
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)
@@ -71,14 +75,12 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handleAdminSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
-		err = handleHashPassword(w, r)
+		err = handleAdminPassword(w, r)
 	default:
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		err = errors.New(http.StatusText(http.StatusNotFound))
+		http.Error(w, err.Error(), http.StatusNotFound)
 	}
-	if err != nil {
-		log.Printf("server error: %q", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
-	}
+	return err
 }
 
 func getFirstPathSegment(urlPath string) string {
@@ -213,7 +215,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 
 func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) {
 	var message string
-	err := handleAdminRequest(st, r)
+	err := handleAdminPostRequest(st, r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		message = err.Error()
@@ -224,7 +226,7 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
-	playerSearchResults, err := handleAdminPlayerSearch(st, r)
+	playerSearchResults, err := handleAdminSearchRequest(st, r)
 	if err != nil {
 		return err
 	}
@@ -235,11 +237,22 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 	return nil
 }
 
-func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
-	hashedPassword, err := handleAdminHashPassword(r) // TODO: better names between server.go, admin.go
+func handleAdminPassword(w http.ResponseWriter, r *http.Request) error {
+	if err := parseAdminForm(w, r); err != nil {
+		return err
+	}
+	hashedPassword, err := handleAdminPasswordRequest(r) // TODO: better names between server.go, admin.go
 	if err != nil {
 		return err
 	}
 	_, err = w.Write([]byte(hashedPassword))
+	return err
+}
+
+func parseAdminForm(w http.ResponseWriter, r *http.Request) error {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	return err
 }

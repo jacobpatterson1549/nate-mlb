@@ -22,7 +22,7 @@ var (
 	}
 )
 
-func handleAdminRequest(st db.SportType, r *http.Request) error {
+func handleAdminPostRequest(st db.SportType, r *http.Request) error {
 	actionParam := r.FormValue("action")
 	if action, ok := adminActions[actionParam]; ok {
 		return action(st, r)
@@ -30,7 +30,7 @@ func handleAdminRequest(st db.SportType, r *http.Request) error {
 	return errors.New("invalid admin action")
 }
 
-func handleAdminPlayerSearch(st db.SportType, r *http.Request) ([]request.PlayerSearchResult, error) {
+func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.Form.Get("q")
 	if len(searchQuery) == 0 {
 		return nil, errors.New("missing search query param: q")
@@ -58,7 +58,7 @@ func handleAdminPlayerSearch(st db.SportType, r *http.Request) ([]request.Player
 	return searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
 }
 
-func handleAdminHashPassword(r *http.Request) (string, error) {
+func handleAdminPasswordRequest(r *http.Request) (string, error) {
 	password := r.Form.Get("v")
 	if len(password) == 0 {
 		return "", errors.New("missing query param: v")
