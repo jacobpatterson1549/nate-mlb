@@ -31,7 +31,7 @@ type ScoreCategory struct {
 
 // FriendScore contain the scores for a Friend for a PlayerType
 type FriendScore struct {
-	ID           int
+	ID           db.ID
 	Name         string
 	Score        int
 	DisplayOrder int
@@ -40,7 +40,7 @@ type FriendScore struct {
 
 // PlayerScore is the score for a particular Player
 type PlayerScore struct {
-	ID           int
+	ID           db.ID
 	Name         string
 	Score        int
 	DisplayOrder int
@@ -82,7 +82,7 @@ func NewFriendPlayerInfo(friends []db.Friend, players []db.Player, playerTypes [
 	}
 }
 
-func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
+func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[db.ID]nameScore, onlySumTopTwoPlayerScores bool) ScoreCategory {
 	return ScoreCategory{
 		Name:         playerType.Name(),
 		PlayerType:   playerType,
@@ -91,8 +91,8 @@ func newScoreCategory(fpi FriendPlayerInfo, playerType db.PlayerType, playerName
 	}
 }
 
-func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
-	friendPlayers := make(map[int][]db.Player)
+func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameScores map[db.ID]nameScore, onlySumTopTwoPlayerScores bool) []FriendScore {
+	friendPlayers := make(map[db.ID][]db.Player, len(fpi.Players[playerType]))
 	for _, player := range fpi.Players[playerType] {
 		friendPlayers[player.FriendID] = append(friendPlayers[player.FriendID], player)
 	}
@@ -103,7 +103,7 @@ func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameS
 	return friendScores
 }
 
-func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[int]nameScore, onlySumTopTwoPlayerScores bool) FriendScore {
+func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[db.ID]nameScore, onlySumTopTwoPlayerScores bool) FriendScore {
 	playerScores := newPlayerScores(players, playerNameScores)
 	return FriendScore{
 		ID:           friend.ID,
@@ -114,7 +114,7 @@ func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[
 	}
 }
 
-func newPlayerScores(players []db.Player, playerNameScores map[int]nameScore) []PlayerScore {
+func newPlayerScores(players []db.Player, playerNameScores map[db.ID]nameScore) []PlayerScore {
 	playerScores := make([]PlayerScore, len(players))
 	for i, player := range players {
 		playerScores[i] = newPlayerScore(player, playerNameScores[player.ID])
@@ -148,8 +148,8 @@ func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) 
 	return friendScore
 }
 
-func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[int]nameScore, error) {
-	playerNameScores := make(map[int]nameScore, len(players))
+func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[db.ID]nameScore, error) {
+	playerNameScores := make(map[db.ID]nameScore, len(players))
 	for _, player := range players {
 		name, ok := names[player.SourceID]
 		if !ok {

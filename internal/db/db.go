@@ -10,6 +10,9 @@ var (
 	db *sql.DB
 )
 
+// ID is used to identify an item in the database or a relation to another noun's id
+type ID int
+
 type query struct {
 	sql  string
 	args []interface{}

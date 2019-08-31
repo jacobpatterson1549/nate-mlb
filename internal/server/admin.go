@@ -187,7 +187,7 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	if err != nil {
 		return player, fmt.Errorf("problem converting player id '%v' to number: %v", id, err)
 	}
-	player.ID = IDI
+	player.ID = db.ID(IDI)
 
 	displayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {
@@ -214,7 +214,7 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	if err != nil {
 		return player, fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
 	}
-	player.FriendID = friendIDI
+	player.FriendID = db.ID(friendIDI)
 
 	return player, nil
 }
@@ -226,7 +226,7 @@ func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 	if err != nil {
 		return friend, fmt.Errorf("problem converting friend id '%v' to number: %v", id, err)
 	}
-	friend.ID = friendIDI
+	friend.ID = db.ID(friendIDI)
 
 	friendDisplayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {

@@ -6,11 +6,11 @@ import (
 
 // Player maps a player (of a a specific PlayerType) to a Friend.
 type Player struct {
-	ID           int
+	ID           ID
 	DisplayOrder int
 	PlayerType   PlayerType
 	SourceID     SourceID
-	FriendID     int
+	FriendID     ID
 }
 
 // SourceID is the id used to retrieve information about the player from external sources
@@ -51,7 +51,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	if err != nil {
 		return err
 	}
-	previousPlayers := make(map[int]Player)
+	previousPlayers := make(map[ID]Player)
 	for _, player := range players {
 		previousPlayers[player.ID] = player
 	}

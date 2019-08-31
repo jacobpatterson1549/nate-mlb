@@ -6,7 +6,7 @@ import (
 
 // Friend contains the name of the person in the pool.
 type Friend struct {
-	ID           int
+	ID           ID
 	DisplayOrder int
 	Name         string
 }
@@ -45,7 +45,7 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	if err != nil {
 		return err
 	}
-	previousFriends := make(map[int]Friend)
+	previousFriends := make(map[ID]Friend)
 	for _, friend := range friends {
 		previousFriends[friend.ID] = friend
 	}
