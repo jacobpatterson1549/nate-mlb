@@ -34,7 +34,6 @@ type NflPlayerStats struct {
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	// note that the map may be smaller than |players|, but this is an upper bound and likely close (some players may have the same source)
 	sourceIDs := make(map[db.SourceID]bool, len(fpi.Players[pt]))
 	for _, player := range fpi.Players[pt] {
 		sourceIDs[player.SourceID] = true

@@ -76,7 +76,7 @@ func SaveYears(st SportType, futureYears []Year) error {
 	if err != nil {
 		return err
 	}
-	previousYearsMap := make(map[int]bool)
+	previousYearsMap := make(map[int]bool, len(previousYears))
 	for _, year := range previousYears {
 		previousYearsMap[year.Value] = true
 	}

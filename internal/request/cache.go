@@ -17,7 +17,7 @@ func newCache(cacheSize int) cache {
 		panic(fmt.Sprintf("cache size must be positive - got %v", cacheSize))
 	}
 	return cache{
-		requestValues: make(map[string][]byte),
+		requestValues: make(map[string][]byte, cacheSize),
 		requestUrls:   make([]string, cacheSize),
 		index:         0,
 		mutex:         &sync.Mutex{},

@@ -43,16 +43,15 @@ type MlbStat struct {
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	sourceIDs := make(map[db.SourceID]bool)
+	sourceIDs := make(map[db.SourceID]bool, len(fpi.Players[pt]))
 	for _, player := range fpi.Players[pt] {
 		sourceIDs[player.SourceID] = true
 	}
-	numPlayers := len(sourceIDs)
 
-	playerNames := make(map[db.SourceID]string, numPlayers)
-	playerStats := make(map[db.SourceID]int, numPlayers)
-	playerNamesCh := make(chan playerName, numPlayers)
-	playerStatsCh := make(chan playerStat, numPlayers)
+	playerNames := make(map[db.SourceID]string, len(sourceIDs))
+	playerStats := make(map[db.SourceID]int, len(sourceIDs))
+	playerNamesCh := make(chan playerName, len(sourceIDs))
+	playerStatsCh := make(chan playerStat, len(sourceIDs))
 	quit := make(chan error)
 
 	var scoreCategory ScoreCategory
@@ -70,7 +69,7 @@ func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 				playerStats[playerStat.sourceID] = playerStat.stat
 			}
 			i++
-			if i == numPlayers*2 {
+			if i == len(sourceIDs)*2 {
 				break
 			}
 		}

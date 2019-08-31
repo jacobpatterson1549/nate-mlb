@@ -51,7 +51,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	if err != nil {
 		return err
 	}
-	previousPlayers := make(map[ID]Player)
+	previousPlayers := make(map[ID]Player, len(players))
 	for _, player := range players {
 		previousPlayers[player.ID] = player
 	}

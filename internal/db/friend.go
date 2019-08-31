@@ -45,7 +45,7 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	if err != nil {
 		return err
 	}
-	previousFriends := make(map[ID]Friend)
+	previousFriends := make(map[ID]Friend, len(friends))
 	for _, friend := range friends {
 		previousFriends[friend.ID] = friend
 	}
