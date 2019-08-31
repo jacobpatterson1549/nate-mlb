@@ -9,82 +9,60 @@ import (
 // nflPlayerRequestor implemnts the ScoreCategorizer and Searcher interfaces
 type nflPlayerRequestor struct{}
 
-// NflPlayerDetailList contains information about all the players for a particular year
-type NflPlayerDetailList struct {
-	Players []NflPlayerDetail `json:"players"`
+// NflPlayerList contains information about the stats for all players for a particular year
+type NflPlayerList struct {
+	Players []NflPlayer `json:"players"`
 }
 
-// NflPlayerDetail is information about a player for a year
-type NflPlayerDetail struct {
-	ID        db.SourceID `json:"id,string"`
-	FirstName string      `json:"firstName"`
-	LastName  string      `json:"lastName"`
-	Team      string      `json:"teamAbbr"`
-	Position  string      `json:"position"`
+// NflPlayer contains the Names Stats for a nfl player for a particular year
+type NflPlayer struct {
+	ID       db.SourceID    `json:"id,string"`
+	Name     string         `json:"name"`
+	Position string         `json:"position"`
+	Team     string         `json:"teamAbbr"`
+	Stat     NflPlayerStats `json:"stats"`
 }
 
-// NflPlayerStatList contains information about the stats for all players for a particular year
-type NflPlayerStatList struct {
-	Players []NflPlayerStat `json:"players"`
-}
-
-// NflPlayerStat contains the Stats for a nfl player for a particular year
-type NflPlayerStat struct {
-	ID db.SourceID `json:"id,string"`
-	// TODO: there is a 'name' field on the NflPlayerStat.
-	// - Use this, don't request nflplayer details, don't use goroutines
-	// , rename this to NflPlayerDetails
-	// , rename NflPlayerStatValues to NflPlayerStats
-	Stat NflPlayerStatValues `json:"stats"`
-}
-
-// NflPlayerStatValues contains the stats totals a NflPlayerStat has accumulated during a particular year
+// NflPlayerStats contains the stats totals a NflPlayerStat has accumulated during a particular year
 // The meaning of these stats can be found at
 // https://api.fantasy.nfl.com/v1/game/stats?format=json
-type NflPlayerStatValues struct {
-	PassingTD   int `json:"6,int"`
-	RushingTD   int `json:"15,int"`
-	ReceivingTD int `json:"22,int"`
+type NflPlayerStats struct {
+	PassingTD   int `json:"6,string"`
+	RushingTD   int `json:"15,string"`
+	ReceivingTD int `json:"22,string"`
 }
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	sourceIDs := make(map[db.SourceID]bool)
+	// note that the map may be smaller than |players|, but this is an upper bound and likely close (some players may have the same source)
+	sourceIDs := make(map[db.SourceID]bool, len(fpi.Players[pt]))
 	for _, player := range fpi.Players[pt] {
 		sourceIDs[player.SourceID] = true
 	}
-	numPlayers := len(sourceIDs)
-	playerNames := make(map[db.SourceID]string, numPlayers)
-	playerStats := make(map[db.SourceID]int, numPlayers)
-	playerNamesCh := make(chan playerName, numPlayers)
-	playerStatsCh := make(chan playerStat, numPlayers)
-	quit := make(chan error)
-
 	var scoreCategory ScoreCategory
-	if len(sourceIDs) > 0 {
-		go r.requestPlayerNames(pt, fpi.Year, sourceIDs, playerNamesCh, quit)
-		go r.requestPlayerStats(pt, fpi.Year, sourceIDs, playerStatsCh, quit)
-		i := 0
-		for {
-			select {
-			case err := <-quit:
-				return scoreCategory, err
-			case playerName := <-playerNamesCh:
-				playerNames[playerName.sourceID] = playerName.name
-			case playerStat := <-playerStatsCh:
-				playerStats[playerStat.sourceID] = playerStat.stat
-			}
-			i++
-			if i == numPlayers*2 {
-				break
-			}
-		}
-	}
-	mlbPlayerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
+	nflPlayerList, err := r.requestNflPlayerList(fpi.Year)
 	if err != nil {
 		return scoreCategory, err
 	}
-	return newScoreCategory(fpi, pt, mlbPlayerNameScores, true), nil
+
+	sourceIDNameScores := make(map[db.SourceID]nameScore, len(sourceIDs))
+	for _, nflPlayer := range nflPlayerList.Players {
+		if _, ok := sourceIDs[nflPlayer.ID]; ok {
+			score, err := nflPlayer.Stat.stat(pt)
+			if err != nil {
+				return scoreCategory, err
+			}
+			sourceIDNameScores[nflPlayer.ID] = nameScore{
+				name:  nflPlayer.Name,
+				score: score,
+			}
+		}
+	}
+	playerNameScores := make(map[int]nameScore, len(fpi.Players[pt]))
+	for _, player := range fpi.Players[pt] {
+		playerNameScores[player.ID] = sourceIDNameScores[player.SourceID]
+	}
+	return newScoreCategory(fpi, pt, playerNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -93,113 +71,45 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 	if err != nil {
 		return nil, err
 	}
-	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, activeYear)
+	nflPlayerList, err := r.requestNflPlayerList(activeYear)
 	if err != nil {
 		return nil, err
 	}
 
 	var nflPlayerSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
-	for sourceID, nflPlayerDetail := range nflPlayerDetails {
-		lowerTeamName := strings.ToLower(nflPlayerDetail.fullName())
+	for _, nflPlayer := range nflPlayerList.Players {
+		lowerTeamName := strings.ToLower(nflPlayer.Name)
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflPlayerSearchResults = append(nflPlayerSearchResults, PlayerSearchResult{
-				Name:     nflPlayerDetail.fullName(),
-				Details:  fmt.Sprintf("Team: %s, Position: %s", nflPlayerDetail.Team, nflPlayerDetail.Position),
-				SourceID: sourceID,
+				Name:     nflPlayer.Name,
+				Details:  fmt.Sprintf("Team: %s, Position: %s", nflPlayer.Team, nflPlayer.Position),
+				SourceID: nflPlayer.ID,
 			})
 		}
 	}
 	return nflPlayerSearchResults, nil
 }
 
-func (r nflPlayerRequestor) requestNflPlayerDetails(pt db.PlayerType, year int) (map[db.SourceID]NflPlayerDetail, error) {
-	var nflPlayerDetailList NflPlayerDetailList
-	maxCount := 10000
-	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/researchinfo?format=json&count=%d&season=%d", maxCount, year)
-	err := request.structPointerFromURL(url, &nflPlayerDetailList)
-	if err != nil {
-		return nil, err
-	}
-	nflPlayerDetails := make(map[db.SourceID]NflPlayerDetail)
-	for _, nflPlayerDetail := range nflPlayerDetailList.Players {
-		if nflPlayerDetail.matches(pt) {
-			nflPlayerDetails[nflPlayerDetail.ID] = nflPlayerDetail
-		}
-	}
-	return nflPlayerDetails, nil
-}
-
-func (r nflPlayerRequestor) requestNflPlayerStats(year int) (map[db.SourceID]NflPlayerStat, error) {
+func (r nflPlayerRequestor) requestNflPlayerList(year int) (*NflPlayerList, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
-	var nflPlayerStatList NflPlayerStatList
-	err := request.structPointerFromURL(url, &nflPlayerStatList)
-	if err != nil {
-		return nil, err
-	}
-	nflPlayerStats := make(map[db.SourceID]NflPlayerStat)
-	for _, nflPlayerStat := range nflPlayerStatList.Players {
-		nflPlayerStats[nflPlayerStat.ID] = nflPlayerStat
-	}
-	return nflPlayerStats, nil
+	nflPlayerList := new(NflPlayerList)
+	err := request.structPointerFromURL(url, &nflPlayerList)
+	return nflPlayerList, err
 }
 
-func (r nflPlayerRequestor) requestPlayerNames(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
-	nflPlayerDetails, err := r.requestNflPlayerDetails(pt, year)
-	if err != nil {
-		quit <- err
-		return
-	}
-	for sourceID := range sourceIDs {
-		var fullName string
-		if npd, ok := nflPlayerDetails[sourceID]; ok {
-			fullName = npd.fullName()
-		}
-		playerNames <- playerName{
-			sourceID: sourceID,
-			name:     fullName,
-		}
-	}
-}
-
-func (r nflPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
-	nflPlayerStats, err := r.requestNflPlayerStats(year)
-	if err != nil {
-		quit <- err
-		return
-	}
-	for sourceID := range sourceIDs {
-		var stat int
-		if nflPlayerStat, ok := nflPlayerStats[sourceID]; ok {
-			stat, err = nflPlayerStat.Stat.stat(pt)
-			if err != nil {
-				quit <- err
-				return
-			}
-		}
-		playerStats <- playerStat{
-			sourceID: sourceID,
-			stat:     stat,
-		}
-	}
-}
-
-func (nflPlayerDetail NflPlayerDetail) fullName() string {
-	return fmt.Sprintf("%s %s", nflPlayerDetail.FirstName, nflPlayerDetail.LastName)
-}
-
-func (nflPlayerDetail NflPlayerDetail) matches(pt db.PlayerType) bool {
-	switch pt {
-	case db.PlayerTypeNflQB:
-		return nflPlayerDetail.Position == "QB"
-	case db.PlayerTypeNflMisc:
-		return nflPlayerDetail.Position == "RB" || nflPlayerDetail.Position == "WR" || nflPlayerDetail.Position == "TE"
+func (nflPlayer NflPlayer) matches(pt db.PlayerType) bool {
+	switch nflPlayer.Position {
+	case "QB":
+		return pt == db.PlayerTypeNflQB
+	case "RB", "WR", "TE":
+		return pt == db.PlayerTypeNflMisc
 	default:
 		return false
 	}
 }
 
-func (nflPlayerStat NflPlayerStatValues) stat(pt db.PlayerType) (int, error) {
+func (nflPlayerStat NflPlayerStats) stat(pt db.PlayerType) (int, error) {
 	score := 0
 	if pt == db.PlayerTypeNflQB {
 		score += nflPlayerStat.PassingTD
