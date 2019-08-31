@@ -20,6 +20,36 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 			Time:    "2019-08-29T17:29:35Z", // TODO: can this deserialize to time.RFC3339 ?
 		},
 	},
+	{
+		interfaceJSON: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":43}}]}]}`,
+		got:           new(MlbPlayerStats),
+		want: &MlbPlayerStats{
+			Stats: []MlbPlayerStat{
+				MlbPlayerStat{
+					Group: MlbPlayerStatGroup{
+						DisplayName: "hitting",
+					},
+					Splits: []MlbPlayerStatSplit{
+						MlbPlayerStatSplit{
+							Stat: MlbStat{
+								HomeRuns: 43,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+	{
+		interfaceJSON: `{"people":[{"id":502110,"fullName":"J.D. Martinez"},{"id":429665,"fullName":"Edwin Encarnacion"}]}`,
+		got:           new(MlbPlayerNames),
+		want: &MlbPlayerNames{
+			People: []MlbPlayerName{
+				MlbPlayerName{ID: 502110, FullName: "J.D. Martinez"},
+				MlbPlayerName{ID: 429665, FullName: "Edwin Encarnacion"},
+			},
+		},
+	},
 }
 
 func TestUnmarshalStructJson(t *testing.T) {

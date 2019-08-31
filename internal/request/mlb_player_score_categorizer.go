@@ -14,25 +14,34 @@ type mlbPlayerRequestor struct {
 
 // MlbPlayerNames is used to unmarshal a request for player names
 type MlbPlayerNames struct {
-	People []struct {
-		ID       db.SourceID `json:"id"` // TODO: add serialization tests for ALL serializable types
-		FullName string      `json:"fullName"`
-	} `json:"people"`
+	People []MlbPlayerName `json:"people"`
+}
+
+// MlbPlayerName contains a player's source ID and full name
+type MlbPlayerName struct {
+	ID       db.SourceID `json:"id"`
+	FullName string      `json:"fullName"`
 }
 
 // MlbPlayerStats is used to unmarshal a player homeRuns/wins request
 type MlbPlayerStats struct {
-	MlbPlayerTypeStats []MlbPlayerTypeStat `json:"stats"`
+	Stats []MlbPlayerStat `json:"stats"`
 }
 
-// MlbPlayerTypeStat contains stats for a type of position for a player
-type MlbPlayerTypeStat struct {
-	Group struct {
-		DisplayName string `json:"displayName"`
-	} `json:"group"`
-	Splits []struct {
-		Stat MlbStat `json:"stat"`
-	} `json:"splits"`
+// MlbPlayerStat contains stats for a type of position for a player
+type MlbPlayerStat struct {
+	Group  MlbPlayerStatGroup   `json:"group"`
+	Splits []MlbPlayerStatSplit `json:"splits"`
+}
+
+// MlbPlayerStatGroup contains the type of stat a MlbPlayerStat is for
+type MlbPlayerStatGroup struct {
+	DisplayName string `json:"displayName"`
+}
+
+// MlbPlayerStatSplit contains stats for a single team or is a total of others
+type MlbPlayerStatSplit struct {
+	Stat MlbStat `json:"stat"`
 }
 
 // MlbStat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
@@ -163,7 +172,7 @@ func (mps MlbPlayerStats) getStat(playerType db.PlayerType) (int, error) {
 }
 
 func (mps MlbPlayerStats) lastStat(groupDisplayName string, stat func(MlbStat) int) int {
-	for _, playerTypeStat := range mps.MlbPlayerTypeStats {
+	for _, playerTypeStat := range mps.Stats {
 		if groupDisplayName == playerTypeStat.Group.DisplayName {
 			splits := playerTypeStat.Splits
 			if len(splits) > 0 {
