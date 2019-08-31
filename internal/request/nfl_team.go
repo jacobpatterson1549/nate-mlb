@@ -40,7 +40,7 @@ func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 			score: score,
 		}
 	}
-	playerNameScores := playerNameScores2(fpi.Players[pt], sourceIDNameScores)
+	playerNameScores := playerNameScoresFromSourceIDMap(fpi.Players[pt], sourceIDNameScores)
 	return newScoreCategory(fpi, pt, playerNameScores, false), nil
 }
 

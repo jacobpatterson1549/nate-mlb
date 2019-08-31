@@ -74,7 +74,7 @@ func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 			}
 		}
 	}
-	playerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
+	playerNameScores, err := playerNameScoresFromFieldMaps(fpi.Players[pt], playerNames, playerStats)
 	if err != nil {
 		return scoreCategory, err
 	}

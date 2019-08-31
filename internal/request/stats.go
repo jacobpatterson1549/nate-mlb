@@ -148,7 +148,7 @@ func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) 
 	return friendScore
 }
 
-func playerNameScores(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[db.ID]nameScore, error) {
+func playerNameScoresFromFieldMaps(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[db.ID]nameScore, error) {
 	playerNameScores := make(map[db.ID]nameScore, len(players))
 	for _, player := range players {
 		name, ok := names[player.SourceID]
@@ -167,7 +167,7 @@ func playerNameScores(players []db.Player, names map[db.SourceID]string, stats m
 	return playerNameScores, nil
 }
 
-func playerNameScores2(players []db.Player, sourceIDNameScores map[db.SourceID]nameScore) map[db.ID]nameScore { // TODO: better name for function
+func playerNameScoresFromSourceIDMap(players []db.Player, sourceIDNameScores map[db.SourceID]nameScore) map[db.ID]nameScore {
 	playerNameScores := make(map[db.ID]nameScore, len(players))
 	for _, player := range players {
 		playerNameScores[player.ID] = sourceIDNameScores[player.SourceID]
