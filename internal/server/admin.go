@@ -31,11 +31,11 @@ func handleAdminPostRequest(st db.SportType, r *http.Request) error {
 }
 
 func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.PlayerSearchResult, error) {
-	searchQuery := r.Form.Get("q")
+	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
 		return nil, errors.New("missing search query param: q")
 	}
-	playerTypeID := r.Form.Get("pt")
+	playerTypeID := r.FormValue("pt")
 	if len(playerTypeID) == 0 {
 		return nil, errors.New("missing player type query param: pt")
 	}
@@ -44,7 +44,7 @@ func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.Playe
 		return nil, fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
 	}
 	playerType := db.PlayerType(playerTypeIDI)
-	activePlayersOnly := r.Form.Get("apo")
+	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
 	_, err = db.LoadPlayerTypes(st)
@@ -59,7 +59,7 @@ func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.Playe
 }
 
 func handleAdminPasswordRequest(r *http.Request) (string, error) {
-	password := r.Form.Get("v")
+	password := r.FormValue("v")
 	if len(password) == 0 {
 		return "", errors.New("missing query param: v")
 	}
@@ -195,21 +195,21 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	}
 	player.DisplayOrder = displayOrderI
 
-	playerType := r.Form.Get(fmt.Sprintf("player-%s-player-type", id))
+	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id))
 	playerTypeI, err := strconv.Atoi(playerType)
 	if err != nil {
 		return player, fmt.Errorf("problem converting player type '%v' to number: %v", playerType, err)
 	}
 	player.PlayerType = db.PlayerType(playerTypeI)
 
-	sourceID := r.Form.Get(fmt.Sprintf("player-%s-source-id", id))
+	sourceID := r.FormValue(fmt.Sprintf("player-%s-source-id", id))
 	sourceIDI, err := strconv.Atoi(sourceID)
 	if err != nil {
 		return player, fmt.Errorf("problem converting player source id '%v' to number: %v", sourceID, err)
 	}
 	player.SourceID = db.SourceID(sourceIDI)
 
-	friendID := r.Form.Get(fmt.Sprintf("player-%s-friend-id", id))
+	friendID := r.FormValue(fmt.Sprintf("player-%s-friend-id", id))
 	friendIDI, err := strconv.Atoi(friendID)
 	if err != nil {
 		return player, fmt.Errorf("problem converting player friend id '%v' to number: %v", friendID, err)
@@ -234,7 +234,7 @@ func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 	}
 	friend.DisplayOrder = friendDisplayOrderI
 
-	friend.Name = r.Form.Get(fmt.Sprintf("friend-%s-name", id))
+	friend.Name = r.FormValue(fmt.Sprintf("friend-%s-name", id))
 
 	return friend, nil
 }
@@ -248,7 +248,7 @@ func getYear(r *http.Request, yearS string) (db.Year, error) {
 	}
 	year.Value = yearI
 
-	yearActive := r.Form.Get("year-active")
+	yearActive := r.FormValue("year-active")
 	year.Active = yearS == yearActive
 
 	return year, nil

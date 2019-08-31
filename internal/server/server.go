@@ -234,10 +234,6 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
-	err := parseAdminForm(w, r)
-	if err != nil {
-		return err
-	}
 	playerSearchResults, err := handleAdminSearchRequest(st, r)
 	if err != nil {
 		return err
@@ -250,22 +246,10 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 }
 
 func handleAdminPassword(w http.ResponseWriter, r *http.Request) error {
-	err := parseAdminForm(w, r)
-	if err != nil {
-		return err
-	}
 	hashedPassword, err := handleAdminPasswordRequest(r)
 	if err != nil {
 		return err
 	}
 	_, err = w.Write([]byte(hashedPassword))
-	return err
-}
-
-func parseAdminForm(w http.ResponseWriter, r *http.Request) error {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 	return err
 }
