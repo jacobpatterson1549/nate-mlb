@@ -11,19 +11,26 @@ type mlbTeamRequestor struct{}
 
 // MlbTeams is used to unmarshal a wins request for all teams
 type MlbTeams struct {
-	Records []struct {
-		TeamRecords []struct {
-			Team struct {
-				Name string      `json:"name"`
-				ID   db.SourceID `json:"id"`
-			} `json:"team"`
-			Wins   int `json:"wins"`
-			Losses int `json:"losses"`
-		} `json:"teamRecords"`
-	} `json:"records"`
+	Records []MlbTeamRecords `json:"records"`
 }
 
+// MlbTeamRecords contain the records for teams
+type MlbTeamRecords struct {
+	TeamRecords []MlbTeamRecord `json:"teamRecords"`
+}
 
+// MlbTeamRecord contain the records for teams in a division of a league of a sport
+type MlbTeamRecord struct {
+	Team   MlbTeamRecordName `json:"team"`
+	Wins   int               `json:"wins"`
+	Losses int               `json:"losses"`
+}
+
+// MlbTeamRecordName contains the name and id a MlbTeamRecord is for
+type MlbTeamRecordName struct {
+	Name string      `json:"name"`
+	ID   db.SourceID `json:"id"`
+}
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {

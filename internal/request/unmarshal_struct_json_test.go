@@ -61,6 +61,26 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 			},
 		},
 	},
+	{
+		interfaceJSON: `{"records":[{"teamRecords":[{"team":{"id":136,"name":"Seattle Mariners"},"wins":116,"losses":46}]}]}`,
+		got:           new(MlbTeams),
+		want: &MlbTeams{
+			Records: []MlbTeamRecords{
+				MlbTeamRecords{
+					TeamRecords: []MlbTeamRecord{
+						MlbTeamRecord{
+							Team: MlbTeamRecordName{
+								Name: "Seattle Mariners",
+								ID:   136,
+							},
+							Wins:   116,
+							Losses: 46,
+						},
+					},
+				},
+			},
+		},
+	},
 }
 
 func TestUnmarshalStructJson(t *testing.T) {
