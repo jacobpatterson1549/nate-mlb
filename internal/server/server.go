@@ -45,10 +45,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	_, err := db.LoadSportTypes()
-	if err == nil {
-		err = handlePage(w, r)
-	}
+	err := handlePage(w, r)
 	if err != nil {
 		log.Printf("server error: %q", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
@@ -56,9 +53,20 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePage(w http.ResponseWriter, r *http.Request) error {
+	_, err := db.LoadSportTypes()
+	if err != nil {
+		return err
+	}
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
 	st := db.SportTypeFromURL(firstPathSegment)
-	var err error
+	if st == 0 {
+		switch r.RequestURI {
+		case "/", "/about", "/admin/password":
+			break
+		default:
+			return fmt.Errorf("Unknown SportType: %v", firstPathSegment)
+		}
+	}
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)
