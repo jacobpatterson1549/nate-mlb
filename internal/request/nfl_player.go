@@ -20,7 +20,7 @@ type NflPlayer struct {
 	Name     string         `json:"name"`
 	Position string         `json:"position"`
 	Team     string         `json:"teamAbbr"`
-	Stat     NflPlayerStats `json:"stats"`
+	Stats    NflPlayerStats `json:"stats"`
 }
 
 // NflPlayerStats contains the stats totals a NflPlayerStat has accumulated during a particular year
@@ -47,7 +47,7 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	sourceIDNameScores := make(map[db.SourceID]nameScore, len(sourceIDs))
 	for _, nflPlayer := range nflPlayerList.Players {
 		if _, ok := sourceIDs[nflPlayer.ID]; ok {
-			score, err := nflPlayer.Stat.stat(pt)
+			score, err := nflPlayer.Stats.stat(pt)
 			if err != nil {
 				return scoreCategory, err
 			}

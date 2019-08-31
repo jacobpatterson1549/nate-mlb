@@ -81,6 +81,23 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 			},
 		},
 	},
+	{
+		interfaceJSON: `{"players":[{"id":"2532975","name":"Russell Wilson","position":"QB","teamAbbr":"SEA","stats":{"6":"35"}}]}`,
+		got:           new(NflPlayerList),
+		want: &NflPlayerList{
+			Players: []NflPlayer{
+				NflPlayer{
+					ID:       2532975,
+					Name:     "Russell Wilson",
+					Position: "QB",
+					Team:     "SEA",
+					Stats: NflPlayerStats{
+						PassingTD: 35,
+					},
+				},
+			},
+		},
+	},
 }
 
 func TestUnmarshalStructJson(t *testing.T) {
