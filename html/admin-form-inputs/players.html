@@ -24,7 +24,7 @@
             <input class="player-display-order" name="player-0-display-order" value="?" type="hidden">
             <input class="player-player-type" name="player-0-player-type" value="?" type="hidden">
             <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
-            <input class="source-id" value="0" type="hidden">
+            <input class="player-id" value="0" type="hidden">
             <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
             <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
@@ -91,7 +91,7 @@
                 }
             }
         }
-        createPlayer(maxID + 1, playerName, sourceID, maxDisplayOrder + 1, playerType, friendID);
+        return createPlayer(maxID + 1, playerName, sourceID, maxDisplayOrder + 1, playerType, friendID);
     }
 
     function createPlayer(id, playerName, sourceID, displayOrder, playerType, friendID) {

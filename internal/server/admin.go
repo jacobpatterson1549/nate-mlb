@@ -149,7 +149,7 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 
 	IDI, err := strconv.Atoi(id)
 	if err != nil {
-		return player, fmt.Errorf("problem converting %v to number: %v", id, err)
+		return player, fmt.Errorf("problem converting player id '%v' to number: %v", id, err)
 	}
 	player.ID = IDI
 
@@ -166,12 +166,12 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	}
 	player.PlayerType = db.PlayerType(playerTypeI)
 
-	playerID := r.Form.Get(fmt.Sprintf("player-%s-player-id", id))
-	playerIDI, err := strconv.Atoi(playerID)
+	sourceID := r.Form.Get(fmt.Sprintf("player-%s-source-id", id))
+	sourceIDI, err := strconv.Atoi(sourceID)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player id '%v' to number: %v", playerID, err)
+		return player, fmt.Errorf("problem converting player source id '%v' to number: %v", sourceID, err)
 	}
-	player.SourceID = db.SourceID(playerIDI)
+	player.SourceID = db.SourceID(sourceIDI)
 
 	friendID := r.Form.Get(fmt.Sprintf("player-%s-friend-id", id))
 	friendIDI, err := strconv.Atoi(friendID)
@@ -188,7 +188,7 @@ func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 
 	friendIDI, err := strconv.Atoi(id)
 	if err != nil {
-		return friend, fmt.Errorf("problem converting %v to number: %v", id, err)
+		return friend, fmt.Errorf("problem converting friend id '%v' to number: %v", id, err)
 	}
 	friend.ID = friendIDI
 
