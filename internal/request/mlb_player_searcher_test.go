@@ -71,13 +71,13 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 
 func TestGetPlayerSearchResults(t *testing.T) {
 	for i, test := range getPlayerSearchResultsTests {
-		var playerSearchQueryResult PlayerSearchQueryResult
-		err := json.Unmarshal([]byte(test.searchResultJSON), &playerSearchQueryResult)
+		var mlbPlayerSearchQueryResult MlbPlayerSearch
+		err := json.Unmarshal([]byte(test.searchResultJSON), &mlbPlayerSearchQueryResult)
 		if err != nil {
 			t.Errorf("Test %v: wanted %v, but got ERROR %v", i, test.want, err) // (all json should parse into minimum state)
 		}
 		var got []PlayerSearchResult
-		got, err = playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(test.playerType)
+		got, err = mlbPlayerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(test.playerType)
 		hadError := err != nil
 		if test.wantError != hadError {
 			t.Errorf("Test %v: wanted %v, but got ERROR %v", i, test.want, err)

@@ -12,15 +12,18 @@ import (
 // mlbPlayerSearcher implements the searcher interface
 type mlbPlayerSearcher struct{}
 
-// PlayerSearchQueryResult  is used to unmarshal a request for information about players by name
-type PlayerSearchQueryResult struct {
-	SearchPlayerAll struct {
-		QueryResults QueryResults `json:"queryResults"`
-	} `json:"search_player_all"`
+// MlbPlayerSearch is used to unmarshal a request for information about players by name
+type MlbPlayerSearch struct {
+	SearchPlayerAll MlbPlayerSearchAll `json:"search_player_all"`
 }
 
-// QueryResults  is used to unmarshal a request for information about players by name
-type QueryResults struct {
+// MlbPlayerSearchAll is part of a mlbPlayerSearch
+type MlbPlayerSearchAll struct {
+	QueryResults MlbPlayerSearchQueryResults `json:"queryResults"`
+}
+
+// MlbPlayerSearchQueryResults  is used to unmarshal a request for information about players by name
+type MlbPlayerSearchQueryResults struct {
 	TotalSize  string          `json:"totalSize"`
 	PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
 }
@@ -43,16 +46,16 @@ func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefi
 	}
 	playerNamePrefix = url.QueryEscape(playerNamePrefix)
 	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
-	var playerSearchQueryResult PlayerSearchQueryResult
-	err := request.structPointerFromURL(url, &playerSearchQueryResult)
+	var mlbPlayerSearchQueryResult MlbPlayerSearch
+	err := request.structPointerFromURL(url, &mlbPlayerSearchQueryResult)
 
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}
-	return playerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(pt)
+	return mlbPlayerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(pt)
 }
 
-func (psqr QueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
+func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
 	var playerBios []MlbPlayerBio
 	var err error
 	switch psqr.TotalSize {
