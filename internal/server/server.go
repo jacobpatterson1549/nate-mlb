@@ -60,7 +60,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
 	st := db.SportTypeFromURL(firstPathSegment)
 	if st == 0 {
-		switch r.RequestURI {
+		switch r.URL.Path {
 		case "/", "/about", "/admin/password":
 			break
 		default:
