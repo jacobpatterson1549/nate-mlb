@@ -250,7 +250,7 @@ func handleAdminPassword(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	hashedPassword, err := handleAdminPasswordRequest(r) // TODO: better names between server.go, admin.go
+	hashedPassword, err := handleAdminPasswordRequest(r)
 	if err != nil {
 		return err
 	}
