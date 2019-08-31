@@ -57,7 +57,7 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		want: &MlbPlayerSearch{
 			MlbPlayerSearchAll{
 				QueryResults: MlbPlayerSearchQueryResults{
-					TotalSize: 314, // TODO: make int
+					TotalSize: 314,
 				},
 			},
 		},
