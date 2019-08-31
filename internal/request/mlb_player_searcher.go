@@ -24,7 +24,7 @@ type MlbPlayerSearchAll struct {
 
 // MlbPlayerSearchQueryResults  is used to unmarshal a request for information about players by name
 type MlbPlayerSearchQueryResults struct {
-	TotalSize  string          `json:"totalSize"`
+	TotalSize  int             `json:"totalSize,string"`
 	PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
 }
 
@@ -59,9 +59,9 @@ func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType)
 	var playerBios []MlbPlayerBio
 	var err error
 	switch psqr.TotalSize {
-	case "0":
+	case 0:
 		break
-	case "1":
+	case 1:
 		var playerBio MlbPlayerBio
 		err = json.Unmarshal(psqr.PlayerBios, &playerBio)
 		playerBios = append(playerBios, playerBio)

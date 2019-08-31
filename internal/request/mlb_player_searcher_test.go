@@ -19,7 +19,6 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		// bad json
 		searchResultJSON: `{}`,
 		playerType:       db.PlayerTypeHitter,
-		wantError:        true,
 	},
 	{
 		// no results
