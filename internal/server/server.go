@@ -234,6 +234,10 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
+	err := parseAdminForm(w, r)
+	if err != nil {
+		return err
+	}
 	playerSearchResults, err := handleAdminSearchRequest(st, r)
 	if err != nil {
 		return err
