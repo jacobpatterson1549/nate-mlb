@@ -58,10 +58,7 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 			}
 		}
 	}
-	playerNameScores := make(map[db.ID]nameScore, len(fpi.Players[pt]))
-	for _, player := range fpi.Players[pt] {
-		playerNameScores[player.ID] = sourceIDNameScores[player.SourceID]
-	}
+	playerNameScores := playerNameScores2(fpi.Players[pt], sourceIDNameScores)
 	return newScoreCategory(fpi, pt, playerNameScores, false), nil
 }
 

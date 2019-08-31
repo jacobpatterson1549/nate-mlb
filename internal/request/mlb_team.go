@@ -30,19 +30,17 @@ func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Playe
 	if err != nil {
 		return scoreCategory, err
 	}
-	teamNames := make(map[db.SourceID]string)
-	teamStats := make(map[db.SourceID]int)
+	sourceIDNameScores := make(map[db.SourceID]nameScore)
 	for _, record := range teams.Records {
 		for _, teamRecord := range record.TeamRecords {
-			teamNames[teamRecord.Team.ID] = teamRecord.Team.Name
-			teamStats[teamRecord.Team.ID] = teamRecord.Wins
+			sourceIDNameScores[teamRecord.Team.ID] = nameScore{
+				name:  teamRecord.Team.Name,
+				score: teamRecord.Wins,
+			}
 		}
 	}
-	teamNameScores, err := playerNameScores(fpi.Players[pt], teamNames, teamStats)
-	if err != nil {
-		return scoreCategory, err
-	}
-	return newScoreCategory(fpi, pt, teamNameScores, false), nil
+	playerNameScores := playerNameScores2(fpi.Players[pt], sourceIDNameScores)
+	return newScoreCategory(fpi, pt, playerNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface

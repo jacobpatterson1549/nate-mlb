@@ -166,3 +166,11 @@ func playerNameScores(players []db.Player, names map[db.SourceID]string, stats m
 	}
 	return playerNameScores, nil
 }
+
+func playerNameScores2(players []db.Player, sourceIDNameScores map[db.SourceID]nameScore) map[db.ID]nameScore { // TODO: better name for function
+	playerNameScores := make(map[db.ID]nameScore, len(players))
+	for _, player := range players {
+		playerNameScores[player.ID] = sourceIDNameScores[player.SourceID]
+	}
+	return playerNameScores
+}

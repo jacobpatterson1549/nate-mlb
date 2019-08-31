@@ -75,11 +75,11 @@ func (r mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 			}
 		}
 	}
-	mlbPlayerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
+	playerNameScores, err := playerNameScores(fpi.Players[pt], playerNames, playerStats)
 	if err != nil {
 		return scoreCategory, err
 	}
-	return newScoreCategory(fpi, pt, mlbPlayerNameScores, true), nil
+	return newScoreCategory(fpi, pt, playerNameScores, true), nil
 }
 
 func (r mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
