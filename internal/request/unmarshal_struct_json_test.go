@@ -98,6 +98,19 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 			},
 		},
 	},
+	{
+		interfaceJSON: `{"nflTeams":{"20":{"nflTeamId":"20","fullName":"Minnesota Vikings","Record":"8-7-1"}}}`,
+		got:           new(NflTeamsSchedule),
+		want: &NflTeamsSchedule{
+			Teams: map[string]NflTeam{ // TODO: can the key be an int (ID)?
+				"20": NflTeam{
+					ID:     20,
+					Name:   "Minnesota Vikings",
+					Record: "8-7-1",
+				},
+			},
+		},
+	},
 }
 
 func TestUnmarshalStructJson(t *testing.T) {

@@ -10,8 +10,8 @@ import (
 // nflTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces
 type nflTeamRequestor struct{}
 
-// NflSchedule contains information about NFL teams for a specific year
-type NflSchedule struct {
+// NflTeamsSchedule contains information about NFL teams for a specific year
+type NflTeamsSchedule struct {
 	Teams map[string]NflTeam `json:"nflTeams"`
 }
 
@@ -72,7 +72,7 @@ func (r nflTeamRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix
 
 func (r nflTeamRequestor) requestNflTeams(year int) (map[db.SourceID]NflTeam, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v2/nfl/schedule?season=%d&appKey=test_key_1", year)
-	var nflSchedule NflSchedule
+	var nflSchedule NflTeamsSchedule
 	err := request.structPointerFromURL(url, &nflSchedule)
 	if err != nil {
 		return nil, err
