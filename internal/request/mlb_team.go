@@ -23,6 +23,8 @@ type MlbTeams struct {
 	} `json:"records"`
 }
 
+
+
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r mlbTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory

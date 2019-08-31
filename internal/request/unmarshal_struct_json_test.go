@@ -51,12 +51,12 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		},
 	},
 	{
-		interfaceJSON: `{"search_player_all":{"copyRight":"Copyright","queryResults":{"created":"2019-08-31T13:38:51","totalSize":"0"}}}`,
+		interfaceJSON: `{"search_player_all":{"queryResults":{"totalSize":"314"}}}`,
 		got:           new(MlbPlayerSearch),
 		want: &MlbPlayerSearch{
 			MlbPlayerSearchAll{
 				QueryResults: MlbPlayerSearchQueryResults{
-					TotalSize: "0", // TODO: make int
+					TotalSize: "314", // TODO: make int
 				},
 			},
 		},
