@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -237,11 +236,7 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 }
 
 func handleHashPassword(w http.ResponseWriter, r *http.Request) error {
-	password := r.Form.Get("v")
-	if len(password) == 0 {
-		return errors.New("missing query param: v")
-	}
-	hashedPassword, err := hashPassword(password)
+	hashedPassword, err := handleAdminHashPassword(r) // TODO: better names between server.go, admin.go
 	if err != nil {
 		return err
 	}
