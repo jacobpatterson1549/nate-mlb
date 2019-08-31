@@ -12,7 +12,7 @@ type nflTeamRequestor struct{}
 
 // NflTeamsSchedule contains information about NFL teams for a specific year
 type NflTeamsSchedule struct {
-	Teams map[string]NflTeam `json:"nflTeams"`
+	Teams map[db.SourceID]NflTeam `json:"nflTeams"`
 }
 
 // NflTeam contains information about an NFL team for a specifc year
