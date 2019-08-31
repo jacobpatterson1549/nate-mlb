@@ -10,7 +10,6 @@ import (
 	"nate-mlb/internal/db"
 	"nate-mlb/internal/request"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -71,7 +70,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	case r.Method == "POST" && r.URL.Path == "/"+firstPathSegment+"/admin":
 		handleAdminPost(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
-		err = handlePlayerSearch(st, w, r)
+		err = handleAdminSearch(st, w, r)
 	case r.Method == "GET" && r.URL.Path == "/admin/password":
 		err = handleHashPassword(w, r)
 	default:
@@ -225,32 +224,8 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 	w.Write([]byte(message))
 }
 
-func handlePlayerSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error { // TODO make getPlayerSearchResults in admin.go, do most of this there
-	searchQuery := r.Form.Get("q")
-	if len(searchQuery) == 0 {
-		return errors.New("missing search query param: q")
-	}
-	playerTypeID := r.Form.Get("pt")
-	if len(playerTypeID) == 0 {
-		return errors.New("missing player type query param: pt")
-	}
-	playerTypeIDI, err := strconv.Atoi(playerTypeID)
-	if err != nil {
-		return fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
-	}
-	playerType := db.PlayerType(playerTypeIDI)
-	activePlayersOnly := r.Form.Get("apo")
-	activePlayersOnlyB := activePlayersOnly == "on"
-
-	_, err = db.LoadPlayerTypes(st)
-	if err != nil {
-		return err
-	}
-	searcher, ok := request.Searchers[playerType]
-	if !ok {
-		return fmt.Errorf("problem finding searcher for playerType %v", playerType)
-	}
-	playerSearchResults, err := searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
+func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
+	playerSearchResults, err := handleAdminPlayerSearch(st, r)
 	if err != nil {
 		return err
 	}

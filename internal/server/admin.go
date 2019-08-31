@@ -30,6 +30,34 @@ func handleAdminRequest(st db.SportType, r *http.Request) error {
 	return errors.New("invalid admin action")
 }
 
+func handleAdminPlayerSearch(st db.SportType, r *http.Request) ([]request.PlayerSearchResult, error) {
+	searchQuery := r.Form.Get("q")
+	if len(searchQuery) == 0 {
+		return nil, errors.New("missing search query param: q")
+	}
+	playerTypeID := r.Form.Get("pt")
+	if len(playerTypeID) == 0 {
+		return nil, errors.New("missing player type query param: pt")
+	}
+	playerTypeIDI, err := strconv.Atoi(playerTypeID)
+	if err != nil {
+		return nil, fmt.Errorf("problem converting playerTypeID (%v) to number: %v", playerTypeID, err)
+	}
+	playerType := db.PlayerType(playerTypeIDI)
+	activePlayersOnly := r.Form.Get("apo")
+	activePlayersOnlyB := activePlayersOnly == "on"
+
+	_, err = db.LoadPlayerTypes(st)
+	if err != nil {
+		return nil, err
+	}
+	searcher, ok := request.Searchers[playerType]
+	if !ok {
+		return nil, fmt.Errorf("problem finding searcher for playerType %v", playerType)
+	}
+	return searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
+}
+
 func updatePlayers(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {
 		return err
