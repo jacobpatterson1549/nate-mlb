@@ -54,7 +54,7 @@
                     body: data,
                     credentials: 'include'
                 }).then(res => {
-                    if (res.status == 303) { // the only successful state is for the post to indicate that a GET should be made.
+                    if (res.status == 303) {
                         return Promise.resolve();
                     } else {
                         return res.text()
