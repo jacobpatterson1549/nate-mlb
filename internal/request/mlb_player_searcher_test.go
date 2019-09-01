@@ -55,6 +55,14 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		wantError:        true,
 	},
 	{
+		// no birth_date
+		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"P","birth_country":"USA","birth_date":"","team_abbrev":"CHC","name_display_first_last":"Abe Johnson","player_id":"116556"}}}}`,
+		playerType:       db.PlayerTypePitcher,
+		want: []PlayerSearchResult{
+			PlayerSearchResult{Name: "Abe Johnson", Details: "team:CHC, position:P, born:USA,?", SourceID: 116556},
+		},
+	},
+	{
 		// no results (wrong playerType)
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
 		playerType:       db.PlayerTypePitcher,
@@ -77,25 +85,26 @@ func TestGetPlayerSearchResults(t *testing.T) {
 		}
 		var got []PlayerSearchResult
 		got, err = mlbPlayerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(test.playerType)
-		hadError := err != nil
-		if test.wantError != hadError {
-			t.Errorf("Test %v: wanted %v, but got ERROR %v", i, test.want, err)
-		} else if !test.wantError {
-			if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
-				t.Errorf("Test %v: %v", i, err)
+		if test.wantError {
+			if err == nil {
+				t.Errorf("Test %v: wanted error", i)
 			}
+		} else if err != nil {
+			t.Errorf("Test %v: %v", i, err)
+		} else if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
+			t.Errorf("Test %v: %v", i, err)
 		}
 	}
 }
 
 func assertEqualPlayerSearchResults(want, got []PlayerSearchResult) error {
 	if len(got) != len(want) {
-		return fmt.Errorf("wanted %v, but got different length results %v", want, got)
+		return fmt.Errorf("wanted %v, but got %v (different length results)", want, got)
 	}
 	for j, w := range want {
 		g := got[j]
 		if w != g {
-			return fmt.Errorf("values at index %v different: wanted %v, but got %v", j, w, g)
+			return fmt.Errorf("values at index %v different:\nwanted %v\n   got %v", j, w, g)
 		}
 	}
 	return nil

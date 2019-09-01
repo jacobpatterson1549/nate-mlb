@@ -30,12 +30,18 @@ type MlbPlayerSearchQueryResults struct {
 
 // MlbPlayerBio contains the results of a player search for a single player
 type MlbPlayerBio struct {
-	Position     string      `json:"position"`
-	BirthCountry string      `json:"birth_country"`
-	BirthDate    string      `json:"birth_date"`
-	TeamAbbrev   string      `json:"team_abbrev"`
-	PlayerName   string      `json:"name_display_first_last"`
-	PlayerID     db.SourceID `json:"player_id,string"`
+	Position     string             `json:"position"`
+	BirthCountry string             `json:"birth_country"`
+	BirthDate    MlbPlayerBirthDate `json:"birth_date"`
+	TeamAbbrev   string             `json:"team_abbrev"`
+	PlayerName   string             `json:"name_display_first_last"`
+	PlayerID     db.SourceID        `json:"player_id,string"`
+}
+
+// MlbPlayerBirthDate contains information about a players birthdate including if it is missing
+type MlbPlayerBirthDate struct {
+	time    time.Time
+	missing bool
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -48,7 +54,6 @@ func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefi
 	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	var mlbPlayerSearchQueryResult MlbPlayerSearch
 	err := request.structPointerFromURL(url, &mlbPlayerSearchQueryResult)
-
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}
@@ -56,7 +61,7 @@ func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefi
 }
 
 func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
-	var playerBios []MlbPlayerBio
+	var mlbPlayerBios []MlbPlayerBio
 	var err error
 	switch psqr.TotalSize {
 	case 0:
@@ -64,23 +69,18 @@ func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType)
 	case 1:
 		var playerBio MlbPlayerBio
 		err = json.Unmarshal(psqr.PlayerBios, &playerBio)
-		playerBios = append(playerBios, playerBio)
+		mlbPlayerBios = append(mlbPlayerBios, playerBio)
 	default:
-		err = json.Unmarshal(psqr.PlayerBios, &playerBios)
+		err = json.Unmarshal(psqr.PlayerBios, &mlbPlayerBios)
 	}
 
 	var playerSearchResults []PlayerSearchResult
 	if err != nil {
 		return playerSearchResults, err
 	}
-	var playerSearchResult PlayerSearchResult
-	for _, pb := range playerBios {
-		if pb.matches(pt) {
-			playerSearchResult, err = pb.toPlayerSearchResult()
-			if err != nil {
-				return playerSearchResults, err
-			}
-			playerSearchResults = append(playerSearchResults, playerSearchResult)
+	for _, mlbPlayerBio := range mlbPlayerBios {
+		if mlbPlayerBio.matches(pt) {
+			playerSearchResults = append(playerSearchResults, mlbPlayerBio.toPlayerSearchResult())
 		}
 	}
 	return playerSearchResults, nil
@@ -97,21 +97,29 @@ func (mlbPlayerBio MlbPlayerBio) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (mlbPlayerBio MlbPlayerBio) toPlayerSearchResult() (PlayerSearchResult, error) {
-	var psr PlayerSearchResult
-	birthDate := "?"
-	if len(mlbPlayerBio.BirthDate) > 0 {
-		bdTime, err := time.Parse("2006-01-02T15:04:05", mlbPlayerBio.BirthDate)
-		if err != nil {
-			return psr, fmt.Errorf("problem formatting player birthdate (%v) to time: %v", mlbPlayerBio.BirthDate, err)
-		}
-		birthDate = bdTime.Format(time.RFC3339)[:10] // YYYY-MM-DD
-	}
-
-	psr = PlayerSearchResult{
+func (mlbPlayerBio MlbPlayerBio) toPlayerSearchResult() PlayerSearchResult {
+	return PlayerSearchResult{
 		Name:     mlbPlayerBio.PlayerName,
-		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", mlbPlayerBio.TeamAbbrev, mlbPlayerBio.Position, mlbPlayerBio.BirthCountry, birthDate),
+		Details:  fmt.Sprintf("team:%s, position:%s, born:%s,%s", mlbPlayerBio.TeamAbbrev, mlbPlayerBio.Position, mlbPlayerBio.BirthCountry, mlbPlayerBio.BirthDate),
 		SourceID: mlbPlayerBio.PlayerID,
 	}
-	return psr, nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.  The quoted string time time is expected to be empty (nil), or be in RFC 3339 format without a zone.
+func (mpbd *MlbPlayerBirthDate) UnmarshalJSON(data []byte) error {
+	if string(data) == `""` {
+		mpbd.missing = true
+		return nil
+	}
+	var err error
+	mpbd.time, err = time.Parse(`"2006-01-02T15:04:05"`, string(data))
+	return err
+}
+
+// String returns the calendar date (YYYY-MM-DD) of the MlbPlayerBirthDate
+func (mpbd MlbPlayerBirthDate) String() string {
+	if mpbd.missing {
+		return "?"
+	}
+	return mpbd.time.Format("2006-01-02")
 }
