@@ -10,3 +10,4 @@ __debug_bin
 
 # SonarQube static analysis
 .scannerwork
+.coverage.out # go test ./... -coverprofile=.coverage.out
