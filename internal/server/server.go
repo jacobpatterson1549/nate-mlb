@@ -222,15 +222,13 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 }
 
 func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) {
-	var message string
 	err := handleAdminPostRequest(st, r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		message = err.Error()
+		w.Write([]byte(err.Error()))
 	} else {
-		message = "Change made."
+		w.WriteHeader(http.StatusSeeOther)
 	}
-	w.Write([]byte(message))
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {

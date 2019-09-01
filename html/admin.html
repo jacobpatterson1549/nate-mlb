@@ -54,8 +54,8 @@
                     body: data,
                     credentials: 'include'
                 }).then(res => {
-                    if (res.status == 200) {
-                        return res.text()
+                    if (res.status == 303) { // the only successful state is for the post to indicate that a GET should be made.
+                        return Promise.resolve();
                     } else {
                         return res.text()
                             .then(message => {
@@ -63,23 +63,18 @@
                             });
                     }
                 })
-                .then(message => {
+                .then(() => {
                     if (window.PasswordCredential) {
                         var c = new PasswordCredential(e.target);
-                        return navigator.credentials.store(c)
-                            .then(() => {
-                                return Promise.resolve(message);
-                            });
+                        return navigator.credentials.store(c);
                     } else {
-                        return Promise.resolve(message);
+                        return Promise.resolve();
                     }
                 })
-                .then(message => {
-                    var queryParams = new URLSearchParams();
-                    queryParams.set("message", message)
-                    var search = "?" + queryParams.toString();
-                    window.location.search = search;
-                }).catch(message => {
+                .then(() => {
+                    location.reload();
+                })
+                .catch(message => {
                     var actionInfo = document.getElementById("{{.Action}}-info");
                     actionInfo.classList.add('bg-danger');
                     actionInfo.innerText = message;
