@@ -1,7 +1,3 @@
-# dependencies added by go mod
-go.mod
-go.sum
-
 # environment variables
 .env
 
