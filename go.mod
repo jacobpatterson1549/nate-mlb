@@ -1,3 +1,5 @@
+// +heroku goVersion go1.12
+
 module github.com/jacobpatterson1549/nate-mlb
 
 go 1.12
