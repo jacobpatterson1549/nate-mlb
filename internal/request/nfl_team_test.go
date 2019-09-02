@@ -33,6 +33,10 @@ var nflTeamWinsTests = []nflTeamWinsTest{
 		nflTeam:   NflTeam{Record: "-4-12-0"},
 		wantError: true,
 	},
+	{
+		nflTeam:   NflTeam{Record: "four and ten"},
+		wantError: true,
+	},
 }
 
 func TestNflTeamWins(t *testing.T) {
