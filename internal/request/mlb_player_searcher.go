@@ -87,13 +87,11 @@ func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType)
 }
 
 func (mlbPlayerBio MlbPlayerBio) matches(pt db.PlayerType) bool {
-	switch pt {
-	case db.PlayerTypeHitter:
-		return mlbPlayerBio.Position != "P"
-	case db.PlayerTypePitcher:
-		return mlbPlayerBio.Position == "P"
+	switch mlbPlayerBio.Position {
+	case "P":
+		return pt == db.PlayerTypePitcher
 	default:
-		return false
+		return pt == db.PlayerTypeHitter
 	}
 }
 
