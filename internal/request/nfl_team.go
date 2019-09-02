@@ -86,9 +86,6 @@ func (r nflTeamRequestor) requestNflTeams(year int) (map[db.SourceID]NflTeam, er
 
 func (nt NflTeam) wins() (int, error) {
 	recordParts := strings.Split(nt.Record, "-")
-	if len(recordParts) == 0 {
-		return -1, fmt.Errorf("Could not get Wins for %v", nt)
-	}
 	winsI, err := strconv.Atoi(recordParts[0])
 	if err != nil {
 		return -1, fmt.Errorf("Invalid Wins number for %v", nt)
