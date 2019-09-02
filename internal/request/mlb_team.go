@@ -2,8 +2,9 @@ package request
 
 import (
 	"fmt"
-	"nate-mlb/internal/db"
 	"strings"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 // mlbTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces

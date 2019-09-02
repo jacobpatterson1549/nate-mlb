@@ -3,8 +3,9 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"nate-mlb/internal/db"
 	"testing"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 type getPlayerSearchResultsTest struct {

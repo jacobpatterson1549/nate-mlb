@@ -2,8 +2,9 @@ package request
 
 import (
 	"fmt"
-	"nate-mlb/internal/db"
 	"sort"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 // ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them

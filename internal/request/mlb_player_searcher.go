@@ -3,10 +3,11 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"nate-mlb/internal/db"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 // mlbPlayerSearcher implements the searcher interface

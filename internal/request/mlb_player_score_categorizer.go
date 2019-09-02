@@ -2,9 +2,10 @@ package request
 
 import (
 	"fmt"
-	"nate-mlb/internal/db"
 	"strconv"
 	"strings"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 // mlbPlayerRequestor contains invormation about requests for hitter/pitcher names/stats

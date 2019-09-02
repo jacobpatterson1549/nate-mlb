@@ -3,10 +3,11 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"nate-mlb/internal/db"
-	"nate-mlb/internal/request"
 	"sort"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 )
 
 // EtlStats contains ScoreCategories that were stored at a specific time

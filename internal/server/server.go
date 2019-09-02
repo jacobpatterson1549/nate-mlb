@@ -7,11 +7,12 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"nate-mlb/internal/db"
-	"nate-mlb/internal/request"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 )
 
 // Run configures and starts the server

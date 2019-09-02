@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
-	"nate-mlb/internal/server"
 	"os"
 	"strconv"
 
+	"github.com/jacobpatterson1549/nate-mlb/internal/server"
 	_ "github.com/lib/pq"
 )
 

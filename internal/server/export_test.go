@@ -2,8 +2,9 @@ package server
 
 import (
 	"fmt"
-	"nate-mlb/internal/request"
 	"testing"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 )
 
 func TestCreateCsvRecords(t *testing.T) {

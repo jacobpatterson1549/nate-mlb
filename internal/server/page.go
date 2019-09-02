@@ -1,11 +1,12 @@
 package server
 
 import (
-	"nate-mlb/internal/db"
-	"nate-mlb/internal/request"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 )
 
 // Page is a page that gets rendered by the main template

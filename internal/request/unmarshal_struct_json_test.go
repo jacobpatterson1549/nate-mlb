@@ -2,9 +2,10 @@ package request
 
 import (
 	"encoding/json"
-	"nate-mlb/internal/db"
 	"testing"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
 type unmarshalStructJSONTest struct {

@@ -7,12 +7,12 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 
 
 # Dependencies
+* New dependencies are automatically added to [go.mod](go.mod) when the project is built.
 * [pq](https://github.com/lib/pq) (Postgresql Driver)
+* [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
 * [jQuery](https://github.com/jquery/jquery) (Javascript functions for Bootstrap modals)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
-* [bcrypt](https://github.com/golang/crypto) (password encryption)
-* [dep](https://github.com/golang/dep) (Go dependency management tool) Run `dep ensure` to update dependencies.
 
 
 # Installation
@@ -30,8 +30,6 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 * **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [init.sql](sql/init.sql).
 
 ### Compile and run server
-
-* **Dependencies** Run `dep ensure` do download all depencies.  This will create the `vendor/` directory.
 
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 

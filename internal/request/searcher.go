@@ -1,6 +1,6 @@
 package request
 
-import "nate-mlb/internal/db"
+import "github.com/jacobpatterson1549/nate-mlb/internal/db"
 
 // Searchers maps PlayerTypes to Searchers for them.
 var Searchers = map[db.PlayerType]searcher{

@@ -3,12 +3,12 @@ package server
 import (
 	"errors"
 	"fmt"
-	"nate-mlb/internal/db"
-	"nate-mlb/internal/request"
 	"net/http"
 	"regexp"
 	"strconv"
 
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 	"golang.org/x/crypto/bcrypt"
 )
 

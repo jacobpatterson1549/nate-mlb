@@ -4,9 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"nate-mlb/internal/db"
-	"nate-mlb/internal/request"
 	"strconv"
+
+	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/internal/request"
 )
 
 func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {

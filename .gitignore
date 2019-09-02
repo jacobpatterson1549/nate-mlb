@@ -1,5 +1,6 @@
-# dependencies added by dep
-vendor/
+# dependencies added by go mod
+go.mod
+go.sum
 
 # environment variables
 .env
