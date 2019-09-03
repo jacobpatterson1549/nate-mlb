@@ -6,9 +6,7 @@ import (
 	"time"
 )
 
-var (
-	db *sql.DB
-)
+var db *sql.DB
 
 // ID is used to identify an item in the database or a relation to another noun's id
 type ID int
@@ -32,7 +30,7 @@ func Init(driverName, dataSourceName string) error {
 	if err != nil {
 		return fmt.Errorf("problem opening database %v", err)
 	}
-	return nil
+	return setup()
 }
 
 // GetUtcTime retrieves the current UTC time
