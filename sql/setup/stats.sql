@@ -15,3 +15,12 @@ CREATE TABLE IF NOT EXISTS stats
 CREATE INDEX IF NOT EXISTS get_years_idx on stats (year);
 
 CREATE INDEX IF NOT EXISTS get_active_year_idx on stats (sport_type_id) WHERE active;
+
+-- an active year is required for all SportTypes
+INSERT INTO stats (sport_type_id, year, active)
+    SELECT sport_type_id, year, active FROM ( VALUES
+      (1, 2019, TRUE)
+    , (2, 2019, TRUE)
+    ) new_stats (sport_type_id, year, active)
+    WHERE NOT EXISTS (SELECT * FROM stats WHERE sport_type_id BETWEEN 1 AND 2)
+    ;
