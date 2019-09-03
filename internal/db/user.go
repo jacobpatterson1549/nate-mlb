@@ -2,26 +2,26 @@ package db
 
 import "fmt"
 
-// GetPassword gets the password for the specified user
-func GetPassword(username string) (string, error) {
-	var v string
+// GetUserPassword gets the password for the specified user
+func GetUserPassword(username string) (string, error) {
+	var password string
 	row := db.QueryRow(
 		`SELECT get_user_password($1)`,
 		username)
-	err := row.Scan(&v)
+	err := row.Scan(&password)
 	if err != nil {
-		return v, fmt.Errorf("problem getting password for user %v: %v", username, err)
+		return password, fmt.Errorf("problem getting password for user %v: %v", username, err)
 	}
-	return v, nil
+	return password, nil
 }
 
-// SavePassword gets the password for the specified user
-func SavePassword(username, password string) error {
+// SetUserPassword gets the password for the specified user
+func SetUserPassword(username, password string) error {
 	row := db.QueryRow(
 		`SELECT set_user_password($1, $2)`,
 		username,
 		password)
-		return expectRowFound(row)
+	return expectRowFound(row)
 }
 
 // AddUser creates a user with the specified username and password

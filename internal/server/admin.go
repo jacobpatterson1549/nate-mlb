@@ -135,13 +135,13 @@ func resetPassword(st db.SportType, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return db.SavePassword(username, hashedPassword)
+	return db.SetUserPassword(username, hashedPassword)
 }
 
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	hashedPassword, err := db.GetPassword(username)
+	hashedPassword, err := db.GetUserPassword(username)
 	if err != nil {
 		return err
 	}
