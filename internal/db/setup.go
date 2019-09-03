@@ -7,36 +7,49 @@ import (
 )
 
 func setup() error {
-	// to remove tables, indexes and data, run this line and not the setup files below
+	// to remove tables, indexes and data, run this line and not the code below
 	//db.Exec("DROP TABLE IF EXISTS users, sport_types, stats, friends, player_types, players")
 
-	// order of setup files matters - some tables reference others
+	var queries []string
+	// add setup queries first
+	// order of setup files matters - some queries reference others
 	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
+	for _, setupFileName := range setupFileNames {
+		b, err := ioutil.ReadFile(fmt.Sprintf("sql/setup/%s.sql", setupFileName))
+		if err != nil {
+			return err
+		}
+		setupQueries := strings.Split(string(b), ";")
+		queries = append(queries, setupQueries...)
+	}
+	// add the function queries
+	functionFileInfos, err := ioutil.ReadDir("sql/functions")
+	if err != nil {
+		return fmt.Errorf("problem reading functions directory: %v", err)
+	}
+	setupQueryCount := len(queries)
+	queries = queries[:setupQueryCount+len(functionFileInfos)]
+	for i, functionFileInfo := range functionFileInfos {
+		b, err := ioutil.ReadFile(fmt.Sprintf("sql/functions/%s", functionFileInfo.Name()))
+		if err != nil {
+			return err
+		}
+		queries[setupQueryCount+i] = string(b)
+	}
+	// run all the queries in a transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
-	rollbackTransaction := func(err error) error {
-		rollbackErr := tx.Rollback()
-		if rollbackErr != nil {
-			err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, rollbackErr)
-		}
-		return err
-	}
-	for _, setupFileName := range setupFileNames {
-		b, err := ioutil.ReadFile(fmt.Sprintf("sql/setup/%s.sql", setupFileName))
+	for _, query := range queries {
+		_, err := tx.Exec(query)
 		if err != nil {
-			return rollbackTransaction(err)
-		}
-		queries := strings.Split(string(b), ";")
-		for _, query := range queries {
-			_, err := tx.Exec(query)
-			if err != nil {
-				err = fmt.Errorf("problem executing %s setup file: %v", setupFileName, err)
-				return rollbackTransaction(err)
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, rollbackErr)
 			}
+			return err
 		}
 	}
-	// TODO: add stored functions
 	return tx.Commit()
 }
