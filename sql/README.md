@@ -8,7 +8,7 @@ To create and set up the database, run the Database Creation code after setting 
 * DATABASE_USERNAME: The username of the user not run all database operations as.  Eg: nate
 * DATABASE_PASSWORD: The password of the user.
 The DATABASE_URL environment variable will be `postgres://<DATABASE_USERNAME>:<DATABASE_PASSWORD>@<DATABASE_IP_ADDRESS>:<DATABASE_PORT>/<DATABASE_NAME>`.
-The following template can be used to create the database user.
+The following template can be used to create the database and user.
 ```
 sudo -u postgres psql
 CREATE DATABASE <DATABASE_NAME>;
