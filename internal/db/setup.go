@@ -27,14 +27,12 @@ func setup() error {
 	if err != nil {
 		return fmt.Errorf("problem reading functions directory: %v", err)
 	}
-	setupQueryCount := len(queries)
-	queries = queries[:setupQueryCount+len(functionFileInfos)]
-	for i, functionFileInfo := range functionFileInfos {
+	for _, functionFileInfo := range functionFileInfos {
 		b, err := ioutil.ReadFile(fmt.Sprintf("sql/functions/%s", functionFileInfo.Name()))
 		if err != nil {
 			return err
 		}
-		queries[setupQueryCount+i] = string(b)
+		queries = append(queries, string(b))
 	}
 	// run all the queries in a transaction
 	tx, err := db.Begin()
