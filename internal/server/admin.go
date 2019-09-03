@@ -23,6 +23,9 @@ var (
 )
 
 func handleAdminPostRequest(st db.SportType, r *http.Request) error {
+	if err := verifyUserPassword(r); err != nil {
+		return err
+	}
 	actionParam := r.FormValue("action")
 	if action, ok := adminActions[actionParam]; ok {
 		return action(st, r)
@@ -67,10 +70,6 @@ func handleAdminPasswordRequest(r *http.Request) (string, error) {
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
 	var players []db.Player
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
@@ -91,10 +90,6 @@ func updatePlayers(st db.SportType, r *http.Request) error {
 }
 
 func updateFriends(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
 	var friends []db.Friend
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
@@ -115,10 +110,6 @@ func updateFriends(st db.SportType, r *http.Request) error {
 }
 
 func updateYears(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
 	var years []db.Year
 	for _, y := range r.Form["year"] {
 		year, err := getYear(r, y)
@@ -133,19 +124,11 @@ func updateYears(st db.SportType, r *http.Request) error {
 }
 
 func clearCache(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
 	request.ClearCache()
 	return db.ClearStat(st)
 }
 
 func resetPassword(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
-		return err
-	}
-
 	username := r.FormValue("username")
 	newPassword := r.FormValue("newPassword")
 	hashedPassword, err := hashPassword(newPassword)
