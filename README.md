@@ -19,15 +19,15 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 
 ### Database
 
-* **Postgresql** See [Database Setup](sql/setup/setup.md) for instructions on creating the dabase.
+* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the dabase.
 
-* **Admin Password** See [Database Setup](sql/setup/setup.md) for how to set the admin password for the application.
+* **Admin Password** See [Database Setup](sql/README.md) for how to set the admin password for the application.
 
 ### Set environment variables
 
 * **PORT** The server expects the PORT environment variable to contain the port to run on (eg: 8000).
 
-* **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/setup/setup.md).
+* **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md).
 
 ### Compile and run server
 
