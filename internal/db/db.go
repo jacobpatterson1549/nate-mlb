@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -76,6 +77,18 @@ func expectSingleRowAffected(r sql.Result) error {
 	}
 	if rows != 1 {
 		return fmt.Errorf("expected to update 1 row, but updated %d", rows)
+	}
+	return nil
+}
+
+func expectRowFound(row *sql.Row) error {
+	var found bool
+	err := row.Scan(&found)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return errors.New("expected to update at least one row, but did not")
 	}
 	return nil
 }

@@ -17,12 +17,18 @@ func GetPassword(username string) (string, error) {
 
 // SavePassword gets the password for the specified user
 func SavePassword(username, password string) error {
-	result, err := db.Exec(
+	row := db.QueryRow(
 		`SELECT set_user_password($1, $2)`,
 		username,
 		password)
-	if err != nil {
-		return fmt.Errorf("problem updating password for user %v: %v", username, err)
-	}
-	return expectSingleRowAffected(result)
+		return expectRowFound(row)
+}
+
+// AddUser creates a user with the specified username and password
+func AddUser(username, password string) error {
+	row := db.QueryRow(
+		`SELECT add_user($1, $2)`,
+		username,
+		password)
+	return expectRowFound(row)
 }

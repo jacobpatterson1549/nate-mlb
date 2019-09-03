@@ -83,7 +83,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 		handleAdminPost(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handleAdminSearch(st, w, r)
-	case r.Method == "GET" && r.URL.Path == "/admin/password":
+	case r.Method == "POST" && r.URL.Path == "/admin/password":
 		err = handleAdminPassword(w, r)
 	default:
 		err = errors.New(http.StatusText(http.StatusNotFound))
@@ -245,10 +245,11 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 }
 
 func handleAdminPassword(w http.ResponseWriter, r *http.Request) error {
-	hashedPassword, err := handleAdminPasswordRequest(r)
+	err := handleAdminPasswordRequest(r)
 	if err != nil {
-		return err
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusCreated)
 	}
-	_, err = w.Write([]byte(hashedPassword))
 	return err
 }

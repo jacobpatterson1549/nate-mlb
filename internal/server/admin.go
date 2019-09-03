@@ -61,12 +61,12 @@ func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.Playe
 	return searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
 }
 
-func handleAdminPasswordRequest(r *http.Request) (string, error) {
-	password := r.FormValue("v")
+func handleAdminPasswordRequest(r *http.Request) error {
+	password := r.FormValue("password")
 	if len(password) == 0 {
-		return "", errors.New("missing query param: v")
+		return errors.New("missing form param: password")
 	}
-	return hashPassword(password)
+	return db.AddUser("admin", password)
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {
