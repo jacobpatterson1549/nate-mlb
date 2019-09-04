@@ -62,7 +62,11 @@ func handleAdminPasswordRequest(r *http.Request) error {
 	if len(password) == 0 {
 		return errors.New("missing form param: password")
 	}
-	return db.AddUser("admin", password)
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		return err
+	}
+	return db.AddUser("admin", hashedPassword)
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {
