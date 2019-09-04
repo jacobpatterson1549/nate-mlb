@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION get_years(sport_type_id INT) RETURNS SETOF years
+CREATE OR REPLACE FUNCTION get_years(sport_type_id INT, OUT year INT, OUT active BOOLEAN) RETURNS SETOF RECORD
 AS $$ BEGIN
 RETURN QUERY
-SELECT y.sport_type_id, y.year, y.active
-FROM years AS y
-WHERE y.sport_type_id = get_years.sport_type_id
-ORDER BY y.year ASC;
+SELECT s.year, COALESCE(s.active, FALSE)
+FROM stats AS s
+WHERE s.sport_type_id = get_years.sport_type_id
+ORDER BY s.year ASC;
 END $$
 LANGUAGE plpgsql;

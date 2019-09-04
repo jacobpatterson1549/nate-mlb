@@ -19,13 +19,14 @@ type Stat struct {
 func GetStat(st SportType) (Stat, error) {
 	var etlJSON sql.NullString
 	var stat Stat
-	sqlFunction := newReadSQLFunction("get_stat", []string{"sport_type_id", "year", "etl_timestamp", "etl_json"}, st)
+	sqlFunction := newReadSQLFunction("get_stat", []string{"year", "etl_timestamp", "etl_json"}, st)
 	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
-	err := row.Scan(&stat.SportType, &stat.Year, &stat.EtlTimestamp, &etlJSON)
+	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &etlJSON)
 	if err != nil {
 		return stat, fmt.Errorf("problem getting stats: %v", err)
 	}
 
+	stat.SportType = st
 	if etlJSON.Valid {
 		stat.EtlJSON = &etlJSON.String
 	}

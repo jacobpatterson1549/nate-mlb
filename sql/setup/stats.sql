@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS stats
     , FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE RESTRICT
     );
 
-CREATE INDEX IF NOT EXISTS get_active_year_idx on stats (sport_type_id) WHERE active;
+CREATE INDEX IF NOT EXISTS get_active_year_idx ON stats (sport_type_id) WHERE active;
+
+CREATE INDEX IF NOT EXISTS get_years_idx ON stats (sport_type_id, year);
 
 -- an active year is required for all SportTypes
 INSERT INTO stats (sport_type_id, year, active)
