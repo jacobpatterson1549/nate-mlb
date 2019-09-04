@@ -19,9 +19,9 @@
                         <input class="form-control mr-2" type="search" name="q" id="player-search" placeholder="Search">
                         <button class="btn btn-outline-success" type="submit" form="player-search-form">Search</button>
                     </div>
-                    <div class="form-check my-1">
+                    <div class="form-check my-1" id="apo-group">
                         <input class="form-check-input" type="checkbox" name="apo" id="active-players-only" checked>
-                        <label class="form-check-label" for="active-players-only">Active Players Only</label>
+                        <label class="form-check-label" for="active-players-only">Active Players</label>
                     </div>
                     <template id="player-search-results-template">
                         <fieldset id="player-search-results">
@@ -52,6 +52,17 @@
     </div>
 </div>
 <script>
+    function initPlayerSearch() {
+        var playerType = document.getElementById('select-player-type').value;
+        var isMlbPlayerType = playerType == 2 || playerType == 3;
+        var activePlayersOnlyGroup = document.getElementById("apo-group");
+        if (isMlbPlayerType) {
+            activePlayersOnlyGroup.classList.remove('d-none');
+        } else {
+            activePlayersOnlyGroup.classList.add('d-none');
+        }
+    }
+
     function addPlayerFromSearch() {
         var playerSearchResults = document.getElementById('player-search-results');
         playerSearchResults = playerSearchResults.getElementsByClassName('form-check');
