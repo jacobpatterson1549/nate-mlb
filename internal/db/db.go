@@ -47,11 +47,11 @@ func exececuteInTransaction(queries <-chan query, quit chan<- error) {
 	var result sql.Result
 	for query := range queries {
 		result, err = tx.Exec(query.sql, query.args...)
-		if err != nil {
-			break
+		if err == nil {
+			err = expectSingleRowAffected(result)
 		}
-		err = expectSingleRowAffected(result)
 		if err != nil {
+			err = fmt.Errorf("%s: %v", query.sql, err)
 			break
 		}
 	}

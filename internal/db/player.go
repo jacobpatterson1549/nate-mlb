@@ -68,19 +68,13 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	go exececuteInTransaction(queries, quit)
 	for deleteID := range previousPlayers {
 		queries <- newQuery(
-			`DELETE FROM players
-			WHERE id = $1`,
+			`SELECT del_player($1)`,
 			deleteID,
 		)
 	}
 	for _, insertPlayer := range insertPlayers {
 		queries <- newQuery(
-			`INSERT INTO players
-			(display_order, player_type_id, source_id, friend_id)
-			SELECT $1, $2, $3, $4
-			FROM stats
-			WHERE sport_type_id = $5
-			AND active`,
+			`SELECT add_player($1, $2, $3, $4, $5)`,
 			insertPlayer.DisplayOrder,
 			insertPlayer.PlayerType,
 			insertPlayer.SourceID,
@@ -90,9 +84,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	}
 	for _, updateplayer := range updatePlayers {
 		queries <- newQuery(
-			`UPDATE players
-			SET display_order = $1
-			WHERE id = $2`,
+			`SELECT set_player($1, $2)`,
 			updateplayer.DisplayOrder,
 			updateplayer.ID,
 		)

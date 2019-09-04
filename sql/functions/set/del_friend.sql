@@ -1,0 +1,7 @@
+CREATE OR REPLACE FUNCTION del_friend(id INT) RETURNS BOOLEAN
+AS $$ BEGIN
+DELETE FROM friends AS f
+WHERE f.id = del_friend.id;
+RETURN FOUND;
+END $$
+LANGUAGE plpgsql;

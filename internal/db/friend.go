@@ -63,20 +63,14 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	go exececuteInTransaction(queries, quit)
 	for deleteFriendID := range previousFriends {
 		queries <- newQuery(
-			`DELETE FROM friends
-			WHERE id = $1`,
+			`SELECT del_friend($1)`,
 			deleteFriendID,
 		)
 	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
 		queries <- newQuery(
-			`INSERT INTO friends
-			(display_order, name, sport_type_id, year)
-			SELECT $1, $2, $3, year
-			FROM stats
-			WHERE sport_type_id = $3
-			AND active`,
+			`SELECT add_friend($1, $2, $3)`,
 			insertFriend.DisplayOrder,
 			insertFriend.Name,
 			st,
@@ -84,10 +78,7 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	}
 	for _, updateFriend := range updateFriends {
 		queries <- newQuery(
-			`UPDATE friends
-			SET display_order = $1
-			, name = $2
-			WHERE id = $3`,
+			`SELECT set_friend($1, $2, $3)`,
 			updateFriend.DisplayOrder,
 			updateFriend.Name,
 			updateFriend.ID,
