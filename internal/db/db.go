@@ -13,16 +13,15 @@ var db *sql.DB
 // ID is used to identify an item in the database or a relation to another noun's id
 type ID int
 
-type sqlFunction struct {
+type readSQLFunction struct {
 	name string
+	cols []string
 	args []interface{}
 }
 
-func newSQLFunction(name string, args ...interface{}) sqlFunction {
-	return sqlFunction{
-		name: name,
-		args: args,
-	}
+type writeSQLFunction struct {
+	name string
+	args []interface{}
 }
 
 // Init initializes the pointer to the database
@@ -40,7 +39,7 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func exececuteInTransaction(queries <-chan sqlFunction, quit chan<- error) {
+func exececuteInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 	tx, err := db.Begin()
 	if err != nil {
 		err = fmt.Errorf("problem starting transaction to save: %v", err)
@@ -94,10 +93,33 @@ func expectRowFound(row *sql.Row) error {
 	return nil
 }
 
-func (sf sqlFunction) sql() string {
-	argIndexes := make([]string, len(sf.args))
+func newReadSQLFunction(name string, cols []string, args ...interface{}) readSQLFunction {
+	return readSQLFunction{
+		name: name,
+		cols: cols,
+		args: args,
+	}
+}
+
+func newWriteSQLFunction(name string, args ...interface{}) writeSQLFunction {
+	return writeSQLFunction{
+		name: name,
+		args: args,
+	}
+}
+
+func (f readSQLFunction) sql() string {
+	argIndexes := make([]string, len(f.args))
 	for i := range argIndexes {
 		argIndexes[i] = fmt.Sprintf("$%d", i+1)
 	}
-	return fmt.Sprintf("SELECT %s(%s)", sf.name, strings.Join(argIndexes, ", "))
+	return fmt.Sprintf("SELECT %s FROM %s(%s)", strings.Join(f.cols, ", "), f.name, strings.Join(argIndexes, ", "))
+}
+
+func (f writeSQLFunction) sql() string {
+	argIndexes := make([]string, len(f.args))
+	for i := range argIndexes {
+		argIndexes[i] = fmt.Sprintf("$%d", i+1)
+	}
+	return fmt.Sprintf("SELECT %s(%s)", f.name, strings.Join(argIndexes, ", "))
 }

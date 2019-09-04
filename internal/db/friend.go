@@ -13,7 +13,8 @@ type Friend struct {
 
 // GetFriends gets the friends for the active year
 func GetFriends(st SportType) ([]Friend, error) {
-	rows, err := db.Query("SELECT id, display_order, name FROM get_friends($1)", st)
+	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
+	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading friends: %v", err)
 	}
@@ -55,18 +56,18 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 		delete(previousFriends, friend.ID)
 	}
 
-	queries := make(chan sqlFunction, len(insertFriends)+len(updateFriends)+len(previousFriends))
+	queries := make(chan writeSQLFunction, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	for deleteFriendID := range previousFriends {
-		queries <- newSQLFunction("del_friend", deleteFriendID)
+		queries <- newWriteSQLFunction("del_friend", deleteFriendID)
 	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
-		queries <- newSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st)
+		queries <- newWriteSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st)
 	}
 	for _, updateFriend := range updateFriends {
-		queries <- newSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID)
+		queries <- newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID)
 	}
 	close(queries)
 	return <-quit

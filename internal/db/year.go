@@ -13,14 +13,14 @@ type Year struct {
 
 // GetYears gets the specified years
 func GetYears(st SportType) ([]Year, error) {
-	var years []Year
-
-	rows, err := db.Query("SELECT year, active FROM get_years($1)", st)
+	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
+	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return years, fmt.Errorf("problem reading years: %v", err)
+		return nil, fmt.Errorf("problem reading years: %v", err)
 	}
 	defer rows.Close()
 
+	var years []Year
 	activeYearFound := false
 	var active bool
 	i := 0
@@ -76,18 +76,18 @@ func SaveYears(st SportType, futureYears []Year) error {
 		return fmt.Errorf("active year not present in years: %v", futureYears)
 	}
 
-	queries := make(chan sqlFunction, len(insertYears)+len(previousYearsMap)+2)
+	queries := make(chan writeSQLFunction, len(insertYears)+len(previousYearsMap)+2)
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	// do this first to ensure one row is affected, in the case that the active row is deleted
-	queries <- newSQLFunction("clr_year_active", st)
+	queries <- newWriteSQLFunction("clr_year_active", st)
 	for deleteYear := range previousYearsMap {
-		queries <- newSQLFunction("del_year", st, deleteYear)
+		queries <- newWriteSQLFunction("del_year", st, deleteYear)
 	}
 	for _, insertYear := range insertYears {
-		queries <- newSQLFunction("add_year", st, insertYear)
+		queries <- newWriteSQLFunction("add_year", st, insertYear)
 	}
-	queries <- newSQLFunction("set_year_active", st, activeYear)
+	queries <- newWriteSQLFunction("set_year_active", st, activeYear)
 	close(queries)
 	return <-quit
 }

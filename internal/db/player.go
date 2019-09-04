@@ -18,7 +18,8 @@ type SourceID int
 
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
-	rows, err := db.Query("SELECT id, player_type_id, source_id, friend_id, display_order FROM get_players($1)", st)
+	sqlFunction := newReadSQLFunction("get_players", []string{"id", "player_type_id", "source_id", "friend_id", "display_order"}, st)
+	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading players: %v", err)
 	}
@@ -60,17 +61,17 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 		delete(previousPlayers, player.ID)
 	}
 
-	queries := make(chan sqlFunction, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
+	queries := make(chan writeSQLFunction, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	for deleteID := range previousPlayers {
-		queries <- newSQLFunction("del_player", deleteID)
+		queries <- newWriteSQLFunction("del_player", deleteID)
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries <- newSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st)
+		queries <- newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st)
 	}
 	for _, updateplayer := range updatePlayers {
-		queries <- newSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID)
+		queries <- newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID)
 	}
 	close(queries)
 	return <-quit

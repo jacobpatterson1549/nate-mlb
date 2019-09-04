@@ -19,7 +19,8 @@ type Stat struct {
 func GetStat(st SportType) (Stat, error) {
 	var etlJSON sql.NullString
 	var stat Stat
-	row := db.QueryRow("SELECT sport_type_id, year, etl_timestamp, etl_json FROM get_stat($1)", st)
+	sqlFunction := newReadSQLFunction("get_stat", []string{"sport_type_id", "year", "etl_timestamp", "etl_json"}, st)
+	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	err := row.Scan(&stat.SportType, &stat.Year, &stat.EtlTimestamp, &etlJSON)
 	if err != nil {
 		return stat, fmt.Errorf("problem getting stats: %v", err)
@@ -33,7 +34,7 @@ func GetStat(st SportType) (Stat, error) {
 
 // SetStat sets the etl timestamp and json for the year (which must be active)
 func SetStat(stat Stat) error {
-	sqlFunction := newSQLFunction("set_stat", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
+	sqlFunction := newWriteSQLFunction("set_stat", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
 	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
@@ -43,7 +44,7 @@ func SetStat(stat Stat) error {
 
 // ClearStat clears the stats for the active year
 func ClearStat(st SportType) error {
-	sqlFunction := newSQLFunction("clr_stat", st)
+	sqlFunction := newWriteSQLFunction("clr_stat", st)
 	_, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("problem clearing saved stats: %v", err)
