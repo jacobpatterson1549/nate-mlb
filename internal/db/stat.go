@@ -36,9 +36,8 @@ func GetStat(st SportType) (Stat, error) {
 
 // SetStat sets the etl timestamp and json for the year (which must be active)
 func SetStat(stat Stat) error {
-	result, err := db.Exec(
-		`SELECT set_stat($1, $2, $3, $4)`,
-		stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
+	sqlFunction := newSQLFunction("set_stat", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
+	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("problem saving stats current year: %v", err)
 	}
@@ -47,10 +46,8 @@ func SetStat(stat Stat) error {
 
 // ClearStat clears the stats for the active year
 func ClearStat(st SportType) error {
-	_, err := db.Exec(
-		`SELECT clr_stat($1)`,
-		st,
-	)
+	sqlFunction := newSQLFunction("clr_stat", st)
+	_, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("problem clearing saved stats: %v", err)
 	}

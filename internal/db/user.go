@@ -4,10 +4,9 @@ import "fmt"
 
 // GetUserPassword gets the password for the specified user
 func GetUserPassword(username string) (string, error) {
+	sqlFunction := newSQLFunction("get_user_password", username)
+	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	var password string
-	row := db.QueryRow(
-		`SELECT get_user_password($1)`,
-		username)
 	err := row.Scan(&password)
 	if err != nil {
 		return password, fmt.Errorf("problem getting password for user %v: %v", username, err)
@@ -17,18 +16,14 @@ func GetUserPassword(username string) (string, error) {
 
 // SetUserPassword gets the password for the specified user
 func SetUserPassword(username, password string) error {
-	row := db.QueryRow(
-		`SELECT set_user_password($1, $2)`,
-		username,
-		password)
+	sqlFunction := newSQLFunction("set_user_password", username, password)
+	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	return expectRowFound(row)
 }
 
 // AddUser creates a user with the specified username and password
 func AddUser(username, password string) error {
-	row := db.QueryRow(
-		`SELECT add_user($1, $2)`,
-		username,
-		password)
+	sqlFunction := newSQLFunction("add_user", username, password)
+	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	return expectRowFound(row)
 }
