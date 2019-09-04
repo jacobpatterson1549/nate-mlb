@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 )
@@ -17,10 +16,7 @@ func GetYears(st SportType) ([]Year, error) {
 	var years []Year
 
 	rows, err := db.Query(
-		`SELECT year, active
-		FROM stats
-		WHERE sport_type_id = $1
-		ORDER BY year ASC`,
+		`SELECT year, active FROM get_years($1)`,
 		st)
 	if err != nil {
 		return years, fmt.Errorf("problem reading years: %v", err)
@@ -28,7 +24,7 @@ func GetYears(st SportType) ([]Year, error) {
 	defer rows.Close()
 
 	activeYearFound := false
-	var active sql.NullBool
+	var active bool
 	i := 0
 	for rows.Next() {
 		years = append(years, Year{})
@@ -36,7 +32,7 @@ func GetYears(st SportType) ([]Year, error) {
 		if err != nil {
 			return years, fmt.Errorf("problem reading year: %v", err)
 		}
-		if active.Valid && active.Bool {
+		if active {
 			if activeYearFound {
 				return years, errors.New("multiple active years in db")
 			}

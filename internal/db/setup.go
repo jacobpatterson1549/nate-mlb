@@ -27,7 +27,7 @@ func setupTablesAndFunctions() error {
 	var queries []string
 	// add setup queries first
 	// order of setup files matters - some queries reference others
-	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
+	setupFileNames := []string{"users", "sport_types", "stats", "years", "friends", "player_types", "players"}
 	for _, setupFileName := range setupFileNames {
 		b, err := ioutil.ReadFile(fmt.Sprintf("sql/setup/%s.sql", setupFileName))
 		if err != nil {
