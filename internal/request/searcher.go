@@ -21,5 +21,5 @@ type PlayerSearchResult struct {
 
 // PlayerSearchResults requests PlayerSearchResults
 type searcher interface {
-	PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error)
+	PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error)
 }

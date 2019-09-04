@@ -12,25 +12,6 @@ type Year struct {
 	Active bool
 }
 
-// GetActiveYear gets the active year for stat retrieval
-func GetActiveYear(st SportType) (int, error) {
-	var activeYear int
-
-	row := db.QueryRow(
-		`SELECT year FROM stats
-		WHERE sport_type_id = $1
-		AND active`,
-		st)
-	err := row.Scan(&activeYear)
-	if err == sql.ErrNoRows {
-		return activeYear, errors.New("no active year")
-	}
-	if err != nil {
-		return activeYear, fmt.Errorf("problem getting active year: %v", err)
-	}
-	return activeYear, nil
-}
-
 // GetYears gets the specified years
 func GetYears(st SportType) ([]Year, error) {
 	var years []Year

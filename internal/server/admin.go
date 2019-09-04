@@ -33,7 +33,7 @@ func handleAdminPostRequest(st db.SportType, r *http.Request) error {
 	return errors.New("invalid admin action")
 }
 
-func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.PlayerSearchResult, error) {
+func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
 		return nil, errors.New("missing search query param: q")
@@ -54,7 +54,7 @@ func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.Playe
 	if !ok {
 		return nil, fmt.Errorf("problem finding searcher for playerType %v", playerType)
 	}
-	return searcher.PlayerSearchResults(playerType, searchQuery, activePlayersOnlyB)
+	return searcher.PlayerSearchResults(playerType, searchQuery, year, activePlayersOnlyB)
 }
 
 func handleAdminPasswordRequest(r *http.Request) error {

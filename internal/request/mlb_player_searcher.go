@@ -46,7 +46,7 @@ type MlbPlayerBirthDate struct {
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"

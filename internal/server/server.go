@@ -230,7 +230,11 @@ func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWr
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {
-	playerSearchResults, err := handleAdminSearchRequest(st, r)
+	es, err := getEtlStats(st)
+	if err != nil {
+		return err
+	}
+	playerSearchResults, err := handleAdminSearchRequest(st, es.year, r)
 	if err != nil {
 		return err
 	}
