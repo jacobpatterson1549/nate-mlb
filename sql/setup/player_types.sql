@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS player_types
     , FOREIGN KEY (sport_type_id) REFERENCES sport_types (id) ON DELETE CASCADE
     );
 
-CREATE INDEX IF NOT EXISTS get_player_types_idx ON player_types (sport_type_id);
+CREATE INDEX IF NOT EXISTS get_player_types_idx ON player_types (sport_type_id, id);
 
 INSERT INTO player_types (id, sport_type_id, name, description)
     SELECT id, sport_type_id, name, description FROM ( VALUES

@@ -72,10 +72,7 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 	if err != nil {
 		return nil, err
 	}
-	playerTypes, err := db.LoadPlayerTypes(st)
-	if err != nil {
-		return nil, err
-	}
+	playerTypes := db.GetPlayerTypes(st)
 	fpi := request.NewFriendPlayerInfo(friends, players, playerTypes, es.year)
 
 	numScoreCategories := len(playerTypes)

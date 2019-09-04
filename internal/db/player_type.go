@@ -16,11 +16,17 @@ const (
 )
 
 var (
+	playerTypes             = make(map[SportType][]PlayerType)
 	playerTypeSportTypes    = make(map[PlayerType]SportType)
 	playerTypeNames         = make(map[PlayerType]string)
 	playerTypeDescriptions  = make(map[PlayerType]string)
 	playerTypeDisplayOrders = make(map[PlayerType]int)
 )
+
+// GetPlayerTypes returns the PlayerTyeps for a given SportType
+func GetPlayerTypes(st SportType) []PlayerType {
+	return playerTypes[st]
+}
 
 // SportType gets the SportType for a PlayerType
 func (pt PlayerType) SportType() SportType {
@@ -43,20 +49,14 @@ func (pt PlayerType) DisplayOrder() int {
 }
 
 // LoadPlayerTypes loads the PlayerTypes from the database
-func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
-	rows, err := db.Query(
-		`SELECT id, sport_type_id, name, description
-		FROM player_types
-		WHERE sport_type_id = $1`,
-		st,
-	)
+func LoadPlayerTypes() error {
+	rows, err := db.Query(`SELECT id, sport_type_id, name, description FROM get_player_types()`)
 	if err != nil {
-		return nil, fmt.Errorf("problem reading playerTypes: %v", err)
+		return fmt.Errorf("problem reading playerTypes: %v", err)
 	}
 	defer rows.Close()
 
 	var (
-		playerTypes []PlayerType
 		playerType  PlayerType
 		sportType   SportType
 		name        string
@@ -66,26 +66,25 @@ func LoadPlayerTypes(st SportType) ([]PlayerType, error) {
 	for rows.Next() {
 		err = rows.Scan(&playerType, &sportType, &name, &description)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading player type: %v", err)
+			return fmt.Errorf("problem reading player type: %v", err)
 		}
 		switch playerType {
 		case PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
 			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflMisc:
+			playerTypes[sportType] = append(playerTypes[sportType], playerType)
 			playerTypeSportTypes[playerType] = sportType
 			playerTypeNames[playerType] = name
 			playerTypeDescriptions[playerType] = description
 			playerTypeDisplayOrders[playerType] = displayOrder
-			playerTypes = append(playerTypes, playerType)
 		default:
-			return nil, fmt.Errorf("Unknown PlayerType: id=%d", playerType)
+			return fmt.Errorf("Unknown PlayerType: id=%d", playerType)
 		}
 		displayOrder++
 	}
-	switch {
-	case st == SportTypeMlb && len(playerTypes) == 3,
-		st == SportTypeNfl && len(playerTypes) == 3:
-		return playerTypes, nil
-	default:
-		return nil, fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d", len(playerTypes))
+	if len(playerTypes) != 2 ||
+		len(playerTypes[SportTypeNfl]) != 3 ||
+		len(playerTypes[SportTypeMlb]) != 3 {
+		return fmt.Errorf("Did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(playerTypes))
 	}
+	return nil
 }

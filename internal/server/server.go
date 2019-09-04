@@ -54,10 +54,6 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePage(w http.ResponseWriter, r *http.Request) error {
-	_, err := db.LoadSportTypes()
-	if err != nil {
-		return err
-	}
 	firstPathSegment := getFirstPathSegment(r.URL.Path)
 	st := db.SportTypeFromURL(firstPathSegment)
 	if st == 0 {
@@ -68,6 +64,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 			return fmt.Errorf("Unknown SportType: %v", firstPathSegment)
 		}
 	}
+	var err error
 	switch {
 	case r.Method == "GET" && r.RequestURI == "/":
 		err = writeHomePage(w)

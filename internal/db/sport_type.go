@@ -12,10 +12,16 @@ const (
 )
 
 var (
+	sportTypes     = []SportType{}
 	sportTypeNames = make(map[SportType]string)
 	sportTypeUrls  = make(map[SportType]string)
 	urlSportTypes  = make(map[string]SportType)
 )
+
+// GetSportTypes gets the SportTypes
+func GetSportTypes() []SportType {
+	return sportTypes
+}
 
 // Name gets the name for a SportType
 func (st SportType) Name() string {
@@ -33,38 +39,38 @@ func SportTypeFromURL(url string) SportType {
 }
 
 // LoadSportTypes loads the SportTypes from the database
-func LoadSportTypes() ([]SportType, error) {
-	rows, err := db.Query(
-		`SELECT id, name, url
-		FROM sport_types
-		ORDER BY id ASC`,
-	)
+func LoadSportTypes() error {
+	rows, err := db.Query(`SELECT id, name, url FROM get_sport_types()`)
 	if err != nil {
-		return nil, fmt.Errorf("problem reading sportTypes: %v", err)
+		return fmt.Errorf("problem reading sportTypes: %v", err)
 	}
 	defer rows.Close()
 
 	var (
-		sportTypes []SportType
-		sportType  SportType
-		name       string
-		url        string
+		sportType SportType
+		name      string
+		url       string
 	)
 	for rows.Next() {
 		err = rows.Scan(&sportType, &name, &url)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading sport type: %v", err)
+			return fmt.Errorf("problem reading sport type: %v", err)
 		}
+		sportTypes = append(sportTypes, sportType)
 		sportTypeNames[sportType] = name
 		sportTypeUrls[sportType] = url
 		urlSportTypes[url] = sportType
-		sportTypes = append(sportTypes, sportType)
 	}
 
 	_, hasMlbSportType := sportTypeNames[SportTypeMlb]
 	_, hasNflSportType := sportTypeNames[SportTypeNfl]
-	if len(sportTypes) == 2 && len(sportTypes) == len(sportTypeNames) && len(sportTypeUrls) == len(urlSportTypes) && hasMlbSportType && hasNflSportType {
-		return sportTypes, nil
+	if len(sportTypes) != 2 ||
+		!hasMlbSportType ||
+		!hasNflSportType ||
+		len(sportTypes) != len(sportTypeNames) ||
+		len(sportTypes) != len(sportTypeUrls) ||
+		len(sportTypes) != len(urlSportTypes) {
+		return fmt.Errorf("Did not load expected SportTypes.  Loaded: %v", sportTypes)
 	}
-	return nil, fmt.Errorf("Did not load expected SportTypes.  Loaded: %v", sportTypes)
+	return nil
 }

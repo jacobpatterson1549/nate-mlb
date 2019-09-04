@@ -10,6 +10,20 @@ func setup() error {
 	// to remove tables, indexes and data, run this line and not the code below
 	//db.Exec("DROP TABLE IF EXISTS users, sport_types, stats, friends, player_types, players")
 
+	setupFuncs := []func() error{
+		setupTablesAndFunctions,
+		LoadSportTypes,
+		LoadPlayerTypes,
+	}
+	for _, setupFunc := range setupFuncs {
+		if err := setupFunc(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func setupTablesAndFunctions() error {
 	var queries []string
 	// add setup queries first
 	// order of setup files matters - some queries reference others

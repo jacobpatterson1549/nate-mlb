@@ -50,10 +50,6 @@ func handleAdminSearchRequest(st db.SportType, r *http.Request) ([]request.Playe
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
-	_, err = db.LoadPlayerTypes(st)
-	if err != nil {
-		return nil, err
-	}
 	searcher, ok := request.Searchers[playerType]
 	if !ok {
 		return nil, fmt.Errorf("problem finding searcher for playerType %v", playerType)
