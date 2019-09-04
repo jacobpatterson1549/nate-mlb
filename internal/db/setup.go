@@ -37,16 +37,20 @@ func setupTablesAndFunctions() error {
 		queries = append(queries, setupQueries...)
 	}
 	// add the function queries
-	functionFileInfos, err := ioutil.ReadDir("sql/functions")
-	if err != nil {
-		return fmt.Errorf("problem reading functions directory: %v", err)
-	}
-	for _, functionFileInfo := range functionFileInfos {
-		b, err := ioutil.ReadFile(fmt.Sprintf("sql/functions/%s", functionFileInfo.Name()))
+	functionDirTypes := []string{"get", "set"}
+	for _, functionDirType := range functionDirTypes {
+		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
+		functionFileInfos, err := ioutil.ReadDir(functionDir)
 		if err != nil {
-			return err
+			return fmt.Errorf("problem reading functions directory: %v", err)
 		}
-		queries = append(queries, string(b))
+		for _, functionFileInfo := range functionFileInfos {
+			b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
+			if err != nil {
+				return err
+			}
+			queries = append(queries, string(b))
+		}
 	}
 	// run all the queries in a transaction
 	tx, err := db.Begin()
