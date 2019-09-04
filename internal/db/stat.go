@@ -20,10 +20,7 @@ func GetStat(st SportType) (Stat, error) {
 	var etlJSON sql.NullString
 	var stat Stat
 	row := db.QueryRow(
-		`SELECT sport_type_id, year, etl_timestamp, etl_json
-		FROM stats
-		WHERE sport_type_id = $1
-		AND active`,
+		`SELECT sport_type_id, year, etl_timestamp, etl_json FROM get_stat($1)`,
 		st,
 	)
 	err := row.Scan(&stat.SportType, &stat.Year, &stat.EtlTimestamp, &etlJSON)
