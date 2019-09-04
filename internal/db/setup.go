@@ -37,7 +37,7 @@ func setupTablesAndFunctions() error {
 		queries = append(queries, setupQueries...)
 	}
 	// add the function queries
-	functionDirTypes := []string{"get", "set"}
+	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
 	for _, functionDirType := range functionDirTypes {
 		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
 		functionFileInfos, err := ioutil.ReadDir(functionDir)
