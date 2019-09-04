@@ -40,7 +40,7 @@ func SportTypeFromURL(url string) SportType {
 
 // LoadSportTypes loads the SportTypes from the database
 func LoadSportTypes() error {
-	rows, err := db.Query(`SELECT id, name, url FROM get_sport_types()`)
+	rows, err := db.Query("SELECT id, name, url FROM get_sport_types()")
 	if err != nil {
 		return fmt.Errorf("problem reading sportTypes: %v", err)
 	}

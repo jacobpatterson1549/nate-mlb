@@ -50,7 +50,7 @@ func (pt PlayerType) DisplayOrder() int {
 
 // LoadPlayerTypes loads the PlayerTypes from the database
 func LoadPlayerTypes() error {
-	rows, err := db.Query(`SELECT id, sport_type_id, name, description FROM get_player_types()`)
+	rows, err := db.Query("SELECT id, sport_type_id, name, description FROM get_player_types()")
 	if err != nil {
 		return fmt.Errorf("problem reading playerTypes: %v", err)
 	}

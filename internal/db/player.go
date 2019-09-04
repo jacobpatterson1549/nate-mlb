@@ -18,10 +18,7 @@ type SourceID int
 
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
-	rows, err := db.Query(
-		`SELECT id, player_type_id, source_id, friend_id, display_order FROM get_players($1)`,
-		st,
-	)
+	rows, err := db.Query("SELECT id, player_type_id, source_id, friend_id, display_order FROM get_players($1)", st)
 	if err != nil {
 		return nil, fmt.Errorf("problem reading players: %v", err)
 	}

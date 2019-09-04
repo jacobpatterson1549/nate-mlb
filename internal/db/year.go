@@ -15,9 +15,7 @@ type Year struct {
 func GetYears(st SportType) ([]Year, error) {
 	var years []Year
 
-	rows, err := db.Query(
-		`SELECT year, active FROM get_years($1)`,
-		st)
+	rows, err := db.Query("SELECT year, active FROM get_years($1)", st)
 	if err != nil {
 		return years, fmt.Errorf("problem reading years: %v", err)
 	}
