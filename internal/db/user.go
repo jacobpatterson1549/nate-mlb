@@ -4,7 +4,7 @@ import "fmt"
 
 // GetUserPassword gets the password for the specified user
 func GetUserPassword(username string) (string, error) {
-	sqlFunction := newReadSQLFunction("get_user_password", nil, username)
+	sqlFunction := newReadSQLFunction("get_user_password", []string{"password"}, username)
 	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	var password string
 	err := row.Scan(&password)
