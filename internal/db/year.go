@@ -78,33 +78,18 @@ func SaveYears(st SportType, futureYears []Year) error {
 		return fmt.Errorf("active year not present in years: %v", futureYears)
 	}
 
-	queries := make(chan query, len(insertYears)+len(previousYearsMap)+2)
+	queries := make(chan sqlFunction, len(insertYears)+len(previousYearsMap)+2)
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	// do this first to ensure one row is affected, in the case that the active row is deleted
-	queries <- newQuery(
-		`SELECT clr_year_active($1)`,
-		st,
-	)
+	queries <- newSQLFunction("clr_year_active", st)
 	for deleteYear := range previousYearsMap {
-		queries <- newQuery(
-			`SELECT del_year($1, $2)`,
-			st,
-			deleteYear,
-		)
+		queries <- newSQLFunction("del_year", st, deleteYear)
 	}
 	for _, insertYear := range insertYears {
-		queries <- newQuery(
-			`SELECT add_year($1, $2)`,
-			st,
-			insertYear,
-		)
+		queries <- newSQLFunction("add_year", st, insertYear)
 	}
-	queries <- newQuery(
-		`SELECT set_year_active($1, $2)`,
-		st,
-		activeYear,
-	)
+	queries <- newSQLFunction("set_year_active", st, activeYear)
 	close(queries)
 	return <-quit
 }

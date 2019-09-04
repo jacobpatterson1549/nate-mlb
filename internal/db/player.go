@@ -63,31 +63,17 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 		delete(previousPlayers, player.ID)
 	}
 
-	queries := make(chan query, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
+	queries := make(chan sqlFunction, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	quit := make(chan error)
 	go exececuteInTransaction(queries, quit)
 	for deleteID := range previousPlayers {
-		queries <- newQuery(
-			`SELECT del_player($1)`,
-			deleteID,
-		)
+		queries <- newSQLFunction("del_player", deleteID)
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries <- newQuery(
-			`SELECT add_player($1, $2, $3, $4, $5)`,
-			insertPlayer.DisplayOrder,
-			insertPlayer.PlayerType,
-			insertPlayer.SourceID,
-			insertPlayer.FriendID,
-			st,
-		)
+		queries <- newSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st)
 	}
 	for _, updateplayer := range updatePlayers {
-		queries <- newQuery(
-			`SELECT set_player($1, $2)`,
-			updateplayer.DisplayOrder,
-			updateplayer.ID,
-		)
+		queries <- newSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID)
 	}
 	close(queries)
 	return <-quit

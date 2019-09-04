@@ -57,8 +57,8 @@ func setupTablesAndFunctions() error {
 	if err != nil {
 		return err
 	}
-	for _, query := range queries {
-		_, err := tx.Exec(query)
+	for _, sqlFunction := range queries {
+		_, err := tx.Exec(sqlFunction)
 		if err != nil {
 			rollbackErr := tx.Rollback()
 			if rollbackErr != nil {

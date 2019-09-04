@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -12,14 +13,14 @@ var db *sql.DB
 // ID is used to identify an item in the database or a relation to another noun's id
 type ID int
 
-type query struct {
-	sql  string
+type sqlFunction struct {
+	name string
 	args []interface{}
 }
 
-func newQuery(sql string, args ...interface{}) query {
-	return query{
-		sql:  sql,
+func newSQLFunction(name string, args ...interface{}) sqlFunction {
+	return sqlFunction{
+		name: name,
 		args: args,
 	}
 }
@@ -39,19 +40,19 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func exececuteInTransaction(queries <-chan query, quit chan<- error) {
+func exececuteInTransaction(queries <-chan sqlFunction, quit chan<- error) {
 	tx, err := db.Begin()
 	if err != nil {
 		err = fmt.Errorf("problem starting transaction to save: %v", err)
 	}
 	var result sql.Result
-	for query := range queries {
-		result, err = tx.Exec(query.sql, query.args...)
+	for sqlFunction := range queries {
+		result, err = tx.Exec(sqlFunction.sql(), sqlFunction.args...)
 		if err == nil {
 			err = expectSingleRowAffected(result)
 		}
 		if err != nil {
-			err = fmt.Errorf("%s: %v", query.sql, err)
+			err = fmt.Errorf("%s: %v", sqlFunction.sql(), err)
 			break
 		}
 	}
@@ -91,4 +92,12 @@ func expectRowFound(row *sql.Row) error {
 		return errors.New("expected to update at least one row, but did not")
 	}
 	return nil
+}
+
+func (sf sqlFunction) sql() string {
+	argIndexes := make([]string, len(sf.args))
+	for i := range argIndexes {
+		argIndexes[i] = fmt.Sprintf("$%d", i+1)
+	}
+	return fmt.Sprintf("SELECT %s(%s)", sf.name, strings.Join(argIndexes, ", "))
 }
