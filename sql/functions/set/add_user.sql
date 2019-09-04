@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION add_user(username VARCHAR, password TEXT) RETURNS BOOL
+CREATE OR REPLACE FUNCTION add_user(username VARCHAR, password TEXT) RETURNS BOOLEAN
 AS $$ BEGIN
 INSERT INTO users (username, password)
 SELECT add_user.username, add_user.password
