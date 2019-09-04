@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS players
     );
 
 --TODO: Is get_players_idx used?
-CREATE INDEX IF NOT EXISTS get_players_idx ON players (friend_id, player_type_id, display_order);
+CREATE INDEX IF NOT EXISTS get_players_idx ON players (player_type_id, friend_id, display_order);

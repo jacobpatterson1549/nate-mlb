@@ -19,12 +19,7 @@ type SourceID int
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {
 	rows, err := db.Query(
-		`SELECT p.id, p.display_order, p.player_type_id, p.source_id, p.friend_id
-		FROM stats AS s
-		JOIN friends AS f ON s.year = f.year AND s.sport_type_id = f.sport_type_id
-		JOIN players AS p ON f.id = p.friend_id
-		WHERE s.sport_type_id = $1
-		AND s.active`,
+		`SELECT id, player_type_id, source_id, friend_id, display_order FROM get_players($1)`,
 		st,
 	)
 	if err != nil {
@@ -36,7 +31,7 @@ func GetPlayers(st SportType) ([]Player, error) {
 	i := 0
 	for rows.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].ID, &players[i].DisplayOrder, &players[i].PlayerType, &players[i].SourceID, &players[i].FriendID)
+		err = rows.Scan(&players[i].ID, &players[i].PlayerType, &players[i].SourceID, &players[i].FriendID, &players[i].DisplayOrder)
 		if err != nil {
 			return nil, fmt.Errorf("problem reading player: %v", err)
 		}

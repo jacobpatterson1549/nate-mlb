@@ -14,11 +14,7 @@ type Friend struct {
 // GetFriends gets the friends for the active year
 func GetFriends(st SportType) ([]Friend, error) {
 	rows, err := db.Query(
-		`SELECT f.id, f.display_order, f.name
-		FROM stats AS s
-		JOIN friends AS f ON s.year = f.year AND s.sport_type_id = f.sport_type_id
-		WHERE s.sport_type_id = $1
-		AND s.active`,
+		`SELECT id, name, year FROM get_friends($1)`,
 		st,
 	)
 	if err != nil {
