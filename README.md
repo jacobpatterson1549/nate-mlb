@@ -18,18 +18,19 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 # Installation
 
 ### Database
+The server expects to use Postgresql as the database, although iit should be easy to use r database by tweaking the `databaseDriverName` variable in [main.go](main.go).
 
 * **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the dabase.
 
-* **Admin Password** See [Database Setup](sql/README.md) for how to set the admin password for the application.
-
 ### Set environment variables
+The following environment variables must be set to run the server:
 
 * **PORT** The server expects the PORT environment variable to contain the port to run on (eg: 8000).
 
 * **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md).
 
 ### Compile and run server
+When the server is first run, a prompt appears for the `admin` user password.  The admin user password must be set to start the server.
 
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 
