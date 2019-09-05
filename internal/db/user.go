@@ -14,6 +14,18 @@ func GetUserPassword(username string) (string, error) {
 	return password, nil
 }
 
+// GetUserExists gets whether or not a user exists with the specified username
+func GetUserExists(username string) (bool, error) {
+	sqlFunction := newReadSQLFunction("get_user_exists", []string{"username_exists"}, username)
+	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
+	var exists bool
+	err := row.Scan(&exists)
+	if err != nil {
+		return exists, fmt.Errorf("problem determining if user %v exists: %v", username, err)
+	}
+	return exists, nil
+}
+
 // SetUserPassword gets the password for the specified user
 func SetUserPassword(username, password string) error {
 	sqlFunction := newWriteSQLFunction("set_user_password", username, password)

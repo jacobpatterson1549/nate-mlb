@@ -1,9 +1,11 @@
 package server
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 
@@ -57,11 +59,23 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	return searcher.PlayerSearchResults(playerType, searchQuery, year, activePlayersOnlyB)
 }
 
-func handleAdminPasswordRequest(r *http.Request) error {
-	password := r.FormValue("password")
-	if len(password) == 0 {
-		return errors.New("missing form param: password")
+func setupAdminPassword() error {
+	exists, err := db.GetUserExists("admin")
+	if exists || err != nil {
+		return err
 	}
+
+	var password string
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Print("INITAL SETUP: Enter new admin username: ")
+	for scanner.Scan() {
+		password = scanner.Text()
+		break
+	}
+	if len(password) == 0 {
+		return errors.New("promblem: password non-empty")
+	}
+
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		return err
