@@ -20,35 +20,51 @@ func setup() error {
 	return nil
 }
 
-func setupTablesAndFunctions() error {
+func getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
 	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
 	for _, setupFileName := range setupFileNames {
 		b, err := ioutil.ReadFile(fmt.Sprintf("sql/setup/%s.sql", setupFileName))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		setupQueries := strings.Split(string(b), ";")
 		queries = append(queries, setupQueries...)
 	}
-	// add the function queries
+	return queries, nil
+}
+
+func getSetupFunctionQueries() ([]string, error) {
+	var queries []string
 	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
 	for _, functionDirType := range functionDirTypes {
 		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
 		functionFileInfos, err := ioutil.ReadDir(functionDir)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		for _, functionFileInfo := range functionFileInfos {
 			b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			queries = append(queries, string(b))
 		}
 	}
-	// run all the queries in a transaction
+	return queries, nil
+}
+
+func setupTablesAndFunctions() error {
+	setupTableQueries, err := getSetupTableQueries()
+	if err != nil {
+		return err
+	}
+	setupFunctionQueries, err := getSetupFunctionQueries()
+	if err != nil {
+		return err
+	}
+	queries := append(setupTableQueries, setupFunctionQueries...)
 	tx, err := db.Begin()
 	if err != nil {
 		return err
