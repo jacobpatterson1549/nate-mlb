@@ -38,7 +38,7 @@ func SetStat(stat Stat) error {
 	sqlFunction := newWriteSQLFunction("set_stat", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
 	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return fmt.Errorf("problem saving stats current year: %v", err)
+		return fmt.Errorf("problem saving stats: %v", err)
 	}
 	return expectSingleRowAffected(result)
 }
