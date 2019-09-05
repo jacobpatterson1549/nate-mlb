@@ -36,6 +36,7 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 	http.HandleFunc("/", handleRoot)
 
 	addr := fmt.Sprintf(":%d", portNumber)
+	fmt.Printf("starting server - locally running at http://127.0.0.1%s", addr)
 	err = http.ListenAndServe(addr, nil)
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %v", err)
