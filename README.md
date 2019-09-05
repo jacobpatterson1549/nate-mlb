@@ -22,6 +22,8 @@ The server expects to use Postgresql as the database, although iit should be eas
 
 * **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the database.
 
+* **Admin Password** See [Database Setup](sql/README.md) for how to set the admin password for the application.
+
 ### Set environment variables
 The following environment variables must be set to run the server:
 
@@ -30,7 +32,6 @@ The following environment variables must be set to run the server:
 * **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md).
 
 ### Compile and run server
-When the server is first run, a prompt appears for the `admin` user password.  The admin user password must be set to start the server.
 
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 

@@ -21,10 +21,6 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = setupAdminPassword()
-	if err != nil {
-		log.Println(err)
-	}
 
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
@@ -85,6 +81,8 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 		handleAdminPost(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handleAdminSearch(st, w, r)
+	case r.Method == "POST" && r.URL.Path == "/admin/password":
+		err = handleAdminPassword(w, r)
 	default:
 		err = errors.New(http.StatusText(http.StatusNotFound))
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -246,4 +244,14 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %v", playerSearchResults, err)
 	}
 	return nil
+}
+
+func handleAdminPassword(w http.ResponseWriter, r *http.Request) error {
+	err := handleAdminPasswordRequest(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
+	return err
 }
