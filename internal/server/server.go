@@ -18,11 +18,12 @@ import (
 // Run configures and starts the server
 func Run(portNumber int, databaseDriverName string, dataSourceName string) error {
 	err := db.Init(databaseDriverName, dataSourceName)
-	if err == nil {
-		err = setupAdminPassword()
-	}
 	if err != nil {
 		log.Fatal(err)
+	}
+	err = setupAdminPassword()
+	if err != nil {
+		log.Println(err)
 	}
 
 	fileInfo, err := ioutil.ReadDir("static")
