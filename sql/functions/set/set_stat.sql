@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION set_stat(etl_timestamp TIMESTAMP, etl_json JSON, sport_type_id INT, year int) RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION set_stat(etl_timestamp TIMESTAMP, etl_json JSONB, sport_type_id INT, year int) RETURNS BOOLEAN
 AS $$ BEGIN
 UPDATE stats AS s
 SET etl_timestamp = set_stat.etl_timestamp, etl_json = set_stat.etl_json

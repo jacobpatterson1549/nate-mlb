@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS stats
     , year INT NOT NULL
     , active BOOLEAN
     , etl_timestamp TIMESTAMP
-    , etl_json JSON
+    , etl_json JSONB
     , CONSTRAINT sport_year_unique UNIQUE (sport_type_id, year)
     , CONSTRAINT active_true_or_null CHECK (active)
     , CONSTRAINT active_only_one UNIQUE (active, sport_type_id)
