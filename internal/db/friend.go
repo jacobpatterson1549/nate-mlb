@@ -58,7 +58,7 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 
 	queries := make(chan writeSQLFunction, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	quit := make(chan error)
-	go exececuteInTransaction(queries, quit)
+	go executeInTransaction(queries, quit)
 	for deleteFriendID := range previousFriends {
 		queries <- newWriteSQLFunction("del_friend", deleteFriendID)
 	}

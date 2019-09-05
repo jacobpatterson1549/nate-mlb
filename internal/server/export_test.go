@@ -14,7 +14,7 @@ func TestCreateCsvRecords(t *testing.T) {
 				Name: "teams",
 				FriendScores: []request.FriendScore{
 					{
-						Name: "Arnie",
+						Name: "Arnold",
 						PlayerScores: []request.PlayerScore{
 							{Name: "San Francisco 49ers", Score: 4},
 							{Name: "Arizona Cardinals", Score: 3},
@@ -54,7 +54,7 @@ func TestCreateCsvRecords(t *testing.T) {
 		nil,
 		{"type", "friend", "value", "player", "score"},
 		nil,
-		{"teams", "Arnie", "7", "San Francisco 49ers", "4"},
+		{"teams", "Arnold", "7", "San Francisco 49ers", "4"},
 		{"", "", "", "Arizona Cardinals", "3"},
 		nil,
 		{"", "Bert", "13", "Green Bay Packers", "6"},

@@ -63,7 +63,7 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 
 	queries := make(chan writeSQLFunction, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	quit := make(chan error)
-	go exececuteInTransaction(queries, quit)
+	go executeInTransaction(queries, quit)
 	for deleteID := range previousPlayers {
 		queries <- newWriteSQLFunction("del_player", deleteID)
 	}

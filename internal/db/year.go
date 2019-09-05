@@ -78,7 +78,7 @@ func SaveYears(st SportType, futureYears []Year) error {
 
 	queries := make(chan writeSQLFunction, len(insertYears)+len(previousYearsMap)+2)
 	quit := make(chan error)
-	go exececuteInTransaction(queries, quit)
+	go executeInTransaction(queries, quit)
 	// do this first to ensure one row is affected, in the case that the active row is deleted
 	queries <- newWriteSQLFunction("clr_year_active", st)
 	for deleteYear := range previousYearsMap {

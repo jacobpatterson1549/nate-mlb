@@ -63,7 +63,7 @@ type nameScore struct {
 	score int
 }
 
-// FriendPlayerInfo is a helper pojo of information about what is in a ScoreCategory
+// FriendPlayerInfo is a helper struct with information about what is in a ScoreCategory
 type FriendPlayerInfo struct {
 	Friends []db.Friend
 	Players map[db.PlayerType][]db.Player

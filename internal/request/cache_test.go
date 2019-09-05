@@ -15,7 +15,7 @@ func TestNewCacheTooSmall(t *testing.T) {
 	newCache(cacheSize)
 }
 
-func TestContainstNo(t *testing.T) {
+func TestContainsNo(t *testing.T) {
 	cache := newCache(5)
 	url := "url"
 	got := cache.contains(url)

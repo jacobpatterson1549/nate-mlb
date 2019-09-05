@@ -7,7 +7,7 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
-// nflPlayerRequestor implemnts the ScoreCategorizer and Searcher interfaces
+// nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces
 type nflPlayerRequestor struct{}
 
 // NflPlayerList contains information about the stats for all players for a particular year
