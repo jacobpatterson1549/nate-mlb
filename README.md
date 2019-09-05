@@ -19,7 +19,7 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 
 ### Database
 
-* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the dabase.
+* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the database.
 
 * **Admin Password** See [Database Setup](sql/README.md) for how to set the admin password for the application.
 

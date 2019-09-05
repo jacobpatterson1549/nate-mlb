@@ -19,12 +19,12 @@ GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
 
 
 ### Admin Password Initialization
-To set the admin password, make a post to the `/admin/password` endpoint with a `password` form parameter.  This should be done immediately after deplaying the server.  Note that the admin password does not have to be the database password, it should be different.
+To set the admin password, make a post to the `/admin/password` endpoint with a `password` form parameter.  This should be done immediately after deploying the server.  Note that the admin password does not have to be the database password, it should be different.
 ```curl -X POST -d 'password=<ADMIN_PASSWORD>' http://<SERVER_HOST:<SERVER_PORT>/admin/password
 ```
 
 ### Remove Database
-To remove all reminats of the database, run the code below.  This permanently deletes the database, which includes saved data, tables, indexes, functions, and user credentials.
+To remove all remnants of the database, run the code below.  This permanently deletes the database, which includes saved data, tables, indexes, functions, and user credentials.
 ```sudo -u postgres psql
 DROP DATABASE <DATABASE_NAME>;
 DROP USER <DATABASE_USERNAME>;
