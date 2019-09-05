@@ -38,7 +38,7 @@ func setupTablesAndFunctions() error {
 		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
 		functionFileInfos, err := ioutil.ReadDir(functionDir)
 		if err != nil {
-			return fmt.Errorf("problem reading functions directory: %v", err)
+			return err
 		}
 		for _, functionFileInfo := range functionFileInfos {
 			b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
