@@ -44,13 +44,11 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		fetchStats = stat.EtlTimestamp == nil || stat.EtlTimestamp.Before(es.etlRefreshTime)
 	}
 	if fetchStats {
-		scoreCategories, err := es.getScoreCategories(st)
+		es.ScoreCategories, err = es.getScoreCategories(st)
 		if err != nil {
 			return es, err
 		}
 		es.EtlTime = currentTime
-		es.ScoreCategories = scoreCategories
-		es.sportType = st
 		stat, err = es.toStat()
 		if err != nil {
 			return es, err
