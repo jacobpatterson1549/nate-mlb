@@ -67,13 +67,13 @@ func setupAdminPassword() error {
 
 	var password string
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("INITAL SETUP: Enter new admin username: ")
+	fmt.Print("INITIAL SETUP: Enter new admin username: ")
 	for scanner.Scan() {
 		password = scanner.Text()
 		break
 	}
 	if len(password) == 0 {
-		return errors.New("promblem: password non-empty")
+		return errors.New("problem: password non-empty")
 	}
 
 	hashedPassword, err := hashPassword(password)

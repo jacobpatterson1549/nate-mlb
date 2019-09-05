@@ -20,7 +20,7 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 ### Database
 The server expects to use Postgresql as the database, although iit should be easy to use r database by tweaking the `databaseDriverName` variable in [main.go](main.go).
 
-* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the dabase.
+* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the database.
 
 ### Set environment variables
 The following environment variables must be set to run the server:
