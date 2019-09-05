@@ -18,8 +18,8 @@ GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
 ```
 
 ### Admin Password Initialization	
-To set the admin password, make a post to the `/admin/password` endpoint with a `password` form parameter.  This should be done immediately after deploying the server.  Note that the admin password does not have to be the database password, it should be different.	
-```curl -X POST -d 'password=<ADMIN_PASSWORD>' http://<SERVER_HOST:<SERVER_PORT>/admin/password	
+To set the admin password, make a post to the `/admin/password` endpoint with a `password` form parameter.  See example below.  This should be done immediately after deploying the server.  Note that the admin password does not have to be the database password, it should be different.
+```curl -X POST -d 'password=<ADMIN_PASSWORD>' -i http://<SERVER_HOST:<SERVER_PORT>/admin/password
 ```
 
 ### Remove Database
