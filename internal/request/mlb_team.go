@@ -7,7 +7,7 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
-// mlbTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces
+// mlbTeamRequestor implements the ScoreCategorizer and Searcher interfaces
 type mlbTeamRequestor struct{}
 
 // MlbTeams is used to unmarshal a wins request for all teams

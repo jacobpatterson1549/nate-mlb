@@ -44,7 +44,7 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		},
 	},
 	{
-		// playerid bad
+		// first player_d is invalid
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"2","row":[{"position":"1B","birth_country":"USA","birth_date":"1994-12-07T00:00:00","team_abbrev":"NYM","name_display_first_last":"Pete Alonso","player_id":"INVALID"},{"position":"1B","birth_country":"Cuba","birth_date":"1987-04-08T00:00:00","team_abbrev":"COL","name_display_first_last":"Yonder Alonso","player_id":"475174"}]}}}`,
 		playerType:       db.PlayerTypeHitter,
 		wantError:        true,

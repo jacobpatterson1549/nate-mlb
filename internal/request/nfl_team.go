@@ -8,7 +8,7 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
-// nflTeamRequestor implemnts the ScoreCategorizer and Searcher interfaces
+// nflTeamRequestor implements the ScoreCategorizer and Searcher interfaces
 type nflTeamRequestor struct{}
 
 // NflTeamsSchedule contains information about NFL teams for a specific year

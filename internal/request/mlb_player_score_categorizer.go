@@ -8,7 +8,7 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/internal/db"
 )
 
-// mlbPlayerRequestor contains invormation about requests for hitter/pitcher names/stats
+// mlbPlayerRequestor contains information about requests for hitter/pitcher names/stats
 type mlbPlayerRequestor struct {
 	playerType db.PlayerType
 }
@@ -123,7 +123,7 @@ func (r mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, p
 	}
 	if i != len(sourceIDs) {
 		// this might not be read if names for the same sourceID occur multiple times and this request takes longer than the stat requests
-		quit <- fmt.Errorf("expected to recieve %d mlb player names, but only got %d", len(sourceIDs), i)
+		quit <- fmt.Errorf("expected to receive %d mlb player names, but only got %d", len(sourceIDs), i)
 	}
 }
 

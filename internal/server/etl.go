@@ -128,12 +128,12 @@ func (es EtlStats) toStat() (db.Stat, error) {
 	if err != nil {
 		return stat, fmt.Errorf("problem converting stats to json for sportType %v, year %v: %v", es.sportType, es.year, err)
 	}
-	etlJSONS := string(etlJSON)
+	etlJSONText := string(etlJSON)
 
 	stat.SportType = es.sportType
 	stat.Year = es.year
 	stat.EtlTimestamp = &es.EtlTime
-	stat.EtlJSON = &etlJSONS
+	stat.EtlJSON = &etlJSONText
 	return stat, nil
 }
 
@@ -144,7 +144,7 @@ func (es *EtlStats) setScoreCategories(stat db.Stat) error {
 	var scoreCategories []request.ScoreCategory
 	err := json.Unmarshal([]byte(*stat.EtlJSON), &scoreCategories)
 	if err != nil {
-		return fmt.Errorf("problem deserializing Stat etlJSON: %v", err)
+		return fmt.Errorf("problem getting ScoreCategories from Stat etlJSON: %v", err)
 	}
 	es.ScoreCategories = scoreCategories
 	return nil

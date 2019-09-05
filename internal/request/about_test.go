@@ -6,8 +6,8 @@ import (
 )
 
 type setDeplomentFromGithubRepoDeploymentsTest struct {
-	grd       []GithubRepoDeployment
-	want      Deployment
+	grd  []GithubRepoDeployment
+	want Deployment
 }
 
 var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDeploymentsTest{
@@ -30,7 +30,7 @@ var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDep
 		want: Deployment{Version: "v2", Time: time.Date(2019, time.August, 6, 14, 36, 9, 0, time.UTC)},
 	},
 	{
-		// long version should be trucnated like it is on github
+		// long version should be truncated like it is on github
 		grd: []GithubRepoDeployment{
 			GithubRepoDeployment{Version: "1234567890", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
 		},
