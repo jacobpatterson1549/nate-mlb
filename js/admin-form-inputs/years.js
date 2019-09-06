@@ -52,6 +52,7 @@ function initYears() {
         years[i].replaceWith(newYear);
     }
 }
+
 function initAddYearInput() {
     document.getElementById('add-year-input').value = new Date().getYear() + 1900;
 }
