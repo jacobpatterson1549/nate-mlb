@@ -56,7 +56,7 @@ function playerSearchSubmit(event) {
             return Promise.reject('No results');
         }
     }).catch(err => {
-        var resultsDiv = document.getElementById('results');
+        var resultsDiv = document.getElementById('player-search-results-output');
         resultsDiv.innerHTML = err;
     });
 }
@@ -83,7 +83,7 @@ function searchSuccess(playerSearchResults) {
         psr.querySelector('.psr-radio').checked = true;
         setNewPlayerSelected(true);
     }
-    var resultsDiv = document.getElementById('results');
+    var resultsDiv = document.getElementById('player-search-results-output');
     resultsDiv.innerHTML = '';
     resultsDiv.appendChild(playerSearchResultsFieldSet);
 }
