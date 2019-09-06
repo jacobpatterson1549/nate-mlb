@@ -30,6 +30,7 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 		path := "/" + file.Name()
 		http.HandleFunc(path, handleStatic)
 	}
+	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	http.HandleFunc("/", handleRoot)
 
 	addr := fmt.Sprintf(":%d", portNumber)

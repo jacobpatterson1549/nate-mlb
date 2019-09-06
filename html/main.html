@@ -10,6 +10,7 @@
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="/main.css" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script defer src="/js/main.js"></script>
 </head>
 
 <body class="m-3">
@@ -73,110 +74,21 @@
   {{end}}
   <div role="contentinfo">
     {{if .TimesMessage.Messages -}}
-    <p id="times-message"></p>
+    <div id="times-message">
+      <div class="messages">
+        {{range .TimesMessage.Messages -}}
+        <div>{{.}}</div>
+        {{end -}}
+      </div>
+      <div class="times">
+        {{range .TimesMessage.Times -}}
+        <div>{{.}}</div>
+        {{end -}}
+      </div>
+    </div>
     {{end -}}
-    <p id="page-load-message"></p>
+    <div id="page-load-message">{{.PageLoadTime}}</div>
   </div>
-  <script>
-    function twoDigits(num) {
-      return num < 10 ? "0" + num : num;
-    }
-
-    function formatDate(utcDate) {
-      var localDate = new Date(utcDate);
-      var year = localDate.getFullYear();
-      var month = localDate.getMonth() + 1;
-      var date = localDate.getDate();
-      var hours = localDate.getHours();
-      var minutes = localDate.getMinutes();
-      var seconds = localDate.getSeconds();
-      return twoDigits(year) + "/" +
-        twoDigits(month) + "/" +
-        twoDigits(date) + " " +
-        twoDigits(hours) + ":" +
-        twoDigits(minutes) + ":" +
-        twoDigits(seconds);
-    }
-
-    function initCurrentNavbarPage() {
-      var mainNavbarNav = document.getElementById('main-navbar-nav');
-      var currentNavAnchor = mainNavbarNav.querySelector('[href="' + window.location.pathname + '"]');
-      if (currentNavAnchor != null) {
-        currentNavAnchor.classList.add('active');
-      }
-    }
-
-    function toggleNavbar(event) {
-      var mainNavbarNav = document.getElementById('main-navbar-nav');
-      mainNavbarNav.classList.toggle('show');
-    }
-
-    function toggleAdminMenu(event) {
-      var adminDropdownMenu = document.getElementById('admin-dropdown-menu');
-      adminDropdownMenu.classList.toggle('show');
-    }
-
-    function initFirstTab() {
-      if (document.getElementById('main-tabs-tabs') == null) {
-        return;
-      }
-      var tabs = document.getElementById('main-tabs-tabs').querySelectorAll(".nav-link");
-      for (var i = 0; i < tabs.length; i++) {
-        if (tabs[i].hash === window.location.hash) {
-          activateTab(tabs[i]);
-          return;
-        }
-      }
-      if (tabs.length > 0) {
-        activateTab(tabs[0]);
-      }
-    }
-
-    function tabClick(e) {
-      e.preventDefault();
-      window.location.hash = e.srcElement.hash;
-      activateTab(e.srcElement);
-    }
-
-    function activateTab(clickedTab) {
-      if (clickedTab.classList.contains('active')) {
-        return;
-      }
-
-      var tabs = document.getElementById('main-tabs-tabs').querySelectorAll(".nav-link");
-      for (var i = 0; i < tabs.length; i++) {
-        var selectedTab = tabs[i].id === clickedTab.id;
-        tabs[i].classList.toggle('active', selectedTab);
-      }
-
-      var tabContents = document.getElementById('main-tabs-content').querySelectorAll('.tab-pane');
-      for (var i = 0; i < tabContents.length; i++) {
-        var selectedTabContent = "#" + tabContents[i].id === clickedTab.hash;
-        tabContents[i].classList.toggle('active', selectedTabContent);
-        tabContents[i].classList.toggle('show', selectedTabContent);
-      }
-    }
-
-    function initBottomMessages(timesMessage, pageLoadTime) {
-      if (document.getElementById('times-message') != null) {
-        var messages = timesMessage.Messages;
-        var times = timesMessage.Times;
-        var formattedTimesMessage = "";
-        for (var i = 0; i < messages.length; i++) {
-          formattedTimesMessage += messages[i];
-          if (times && i < times.length) {
-            formattedTimesMessage += formatDate(times[i]);
-          }
-        }
-        document.getElementById('times-message').innerText = formattedTimesMessage;
-      }
-      document.getElementById('page-load-message').innerText = 'Page loaded at ' + formatDate(pageLoadTime);
-    }
-
-    initCurrentNavbarPage();
-    initFirstTab();
-    initBottomMessages({{.TimesMessage}}, {{.PageLoadTime}});
-  </script>
 </body>
 
 </html>
