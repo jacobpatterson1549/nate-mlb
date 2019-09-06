@@ -70,19 +70,7 @@ function createPlayer(id, playerName, sourceID, displayOrder, playerType, friend
     player.querySelector('.player-id').value = id;
     var scoreCategories = document.getElementById("players");
     var scoreCategory = scoreCategories.querySelector('.player-type-' + playerType);
-    if (scoreCategory == null) { // TODO: is this needed anymore?
-        scoreCategory = document.createElement('div');
-        scoreCategory.classList.add('score-category');
-        scoreCategory.classList.add('player-type-' + playerType);
-        scoreCategories.appendChild(scoreCategory);
-    }
     var friendScore = scoreCategory.querySelector('.friend-id-' + friendID);
-    if (friendScore == null) { // TODO: is this needed anymore?
-        friendScore = document.createElement('div');
-        friendScore.classList.add('friend-score');
-        friendScore.classList.add('friend-id-' + friendID);
-        scoreCategory.appendChild(friendScore);
-    }
     friendScore.appendChild(clone);
     return player;
 }
