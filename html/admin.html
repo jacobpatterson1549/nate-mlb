@@ -1,9 +1,9 @@
 {{define "content"}}
+<script defer src="/js/admin.js"></script> <!-- TODO: only load this once, not for all admin tabs-->
 {{- if (eq .Action "players") -}}
 {{- template "player-search" . -}}
 {{end}}
-<form id="{{.Action}}-form">
-
+<form id="{{.Action}}-form" onsubmit="adminSubmit(event)" data-action="{{.Action}}">
     {{- if (eq .Action "players") -}}
     {{- template "players" . -}}
     {{- else if (eq .Action "friends") -}}
@@ -35,62 +35,12 @@
     {{end}}
     <div class="form-group">
         {{if .Data -}}
-        <p id="template-support-check-{{.Action}}" class="bg-danger"></p>
+        <p class="template-support-check bg-danger"></p>
         {{end -}}
-        <p id="{{.Action}}-info"></p>
+        <p id="{{.Action}}-info">Enter password before submitting.</p>
         <input name="action" type="hidden" value="{{.Action}}">
         <button class="btn btn-primary" form="{{.Action}}-form" id="{{.Action}}-form-submit-button"
             value="submit">Submit</button>
     </div>
 </form>
-<script>
-    document.getElementById("{{.Action}}-form")
-        .addEventListener('submit', e => {
-            e.preventDefault();
-            var pathname = window.location.pathname;
-            const data = new URLSearchParams(new FormData(e.target));
-            fetch(pathname, {
-                    method: 'POST',
-                    body: data,
-                    credentials: 'include'
-                }).then(res => {
-                    if (res.status == 303) {
-                        return Promise.resolve();
-                    } else {
-                        return res.text()
-                            .then(message => {
-                                return Promise.reject(message);
-                            });
-                    }
-                })
-                .then(() => {
-                    if (window.PasswordCredential) {
-                        var c = new PasswordCredential(e.target);
-                        return navigator.credentials.store(c);
-                    } else {
-                        return Promise.resolve();
-                    }
-                })
-                .then(() => {
-                    location.reload();
-                })
-                .catch(message => {
-                    var actionInfo = document.getElementById("{{.Action}}-info");
-                    actionInfo.classList.add('bg-danger');
-                    actionInfo.innerText = message;
-                });
-        });
-    var queryParams = new URLSearchParams(window.location.search);
-    var message = queryParams.get('message');
-    if (message === null) {
-        message = "Enter password before submitting.";
-    }
-    document.getElementById("{{.Action}}-info").innerText = message;
-
-    if (!('content' in document.createElement('template'))) {
-        var templateSupportCheckDiv = document.getElementById('template-support-check-{{.Action}}');
-        templateSupportCheckDiv.innerText =
-            'HTML <template> tag not supported in browser, so {{.Action}} editor cannot be shown.';
-    }
-</script>
 {{end}}
