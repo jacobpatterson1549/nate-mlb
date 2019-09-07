@@ -51,7 +51,7 @@ func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 			err = expectSingleRowAffected(result)
 		}
 		if err != nil {
-			err = fmt.Errorf("%s: %v", sqlFunction.sql(), err)
+			err = fmt.Errorf("%s: %v", sqlFunction.name, err)
 			break
 		}
 	}
