@@ -1,5 +1,5 @@
 {{define "content"}}
-<script defer src="/js/admin.js"></script> <!-- TODO: only load this once, not for all admin tabs-->
+<script defer src="/js/admin.js"></script>
 {{- if (eq .Action "players") -}}
 {{- template "player-search" . -}}
 {{end}}
