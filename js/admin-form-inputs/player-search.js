@@ -1,5 +1,23 @@
 var playerSearch = {
-    init: function () {
+    showModal: function (show) {
+        var addPlayerModal = document.getElementById('addPlayerModal');
+        addPlayerModal.classList.toggle('d-none', !show);
+        var openModalButton = document.getElementById('openPlayerSearchModal')
+        openModalButton.classList.toggle('d-none', show);
+        // addPlayerModal.style.toggle('display: block; padding-right: 15px;', show);
+        // addPlayerModal.setAttribute("aria-modal", show);
+        if (show) {
+            playerSearch.initActivePlayersCB();
+            // var modalBackdrop = document.createElement('div')
+            // modalBackdrop.classList.add('modal-backdrop');
+            // document.body.appendChild(modalBackdrop);
+        } else {
+            // var modalBackdrop = document.getElementById('modalBackdrop show');
+            // modalBackdrop.remove();
+        }
+    },
+
+    initActivePlayersCB: function() {
         var playerType = document.getElementById('select-player-type').value;
         var isMlbPlayerType = [2, 3].includes(parseInt(playerType)); // PlayerTypeHitter, PlayerTypePitcher
         var activePlayersOnlyGroup = document.getElementById("apo-group");
@@ -16,6 +34,7 @@ var playerSearch = {
                 var playerName = psr.querySelector('.psr-player-name').value;
                 var newPlayer = playersForm.add(playerName, sourceID);
                 newPlayer.focus();
+                playerSearch.showModal(false);
                 return;
             }
         }

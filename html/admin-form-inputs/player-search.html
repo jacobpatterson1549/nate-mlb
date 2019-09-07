@@ -1,17 +1,11 @@
 {{define "player-search"}}
 <script defer src="/js/admin-form-inputs/player-search.js"></script>
-<script defer src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
-</script>
-<script defer src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
-</script>
-<div class="modal fade" id="addPlayerModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-md modal-dialog-centered" role="document">
+<div class="d-none" id="addPlayerModal" role="dialog">
+    <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addPlayerModalTitle">Player Search</h5>
-                <button type="button" class="close" data-dismiss="modal">×</span>
+                <button type="button" class="close" onclick="playerSearch.showModal(false)">×</span>
                 </button>
             </div>
             <div class="modal-body">
@@ -44,9 +38,10 @@
                     <div id="player-search-results-output"></div>
                 </form>
                 <div class="modal-footer form-group">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="playerSearch.showModal(false)">Close</button>
                     <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
-                        data-dismiss="modal" onclick="playerSearch.add()" disabled>Add Player</button>
+                        onclick="playerSearch.add()" disabled>Add Player</button>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 {{define "players"}}
 <script defer src="/js/admin-form-inputs/players.js"></script>
+<script defer src="/js/admin-form-inputs/player-search.js"></script>
 <script defer src="/js/admin-form-inputs/admin-form-item.js"></script>
 <fieldset>
     <legend>Players</legend>
@@ -23,12 +24,14 @@
         <div class="form-group" id="player-0">
             <label class="player-name-label form-label">?</label>
             <input class="player-source-id" name="player-0-source-id" value="?" type="hidden" required>
-            <input class="player-display-order admin-form-item-display-order" name="player-0-display-order" value="?" type="hidden">
+            <input class="player-display-order admin-form-item-display-order" name="player-0-display-order" value="?"
+                type="hidden">
             <input class="player-player-type" name="player-0-player-type" value="?" type="hidden">
             <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
             <input class="player-id" value="0" type="hidden">
             <button class="btn btn-light" type="button" title="Move Up" onclick="adminFormItem.moveUp(event)">▲</button>
-            <button class="btn btn-light" type="button" title="Move Down" onclick="adminFormItem.moveDown(event)">▼</button>
+            <button class="btn btn-light" type="button" title="Move Down"
+                onclick="adminFormItem.moveDown(event)">▼</button>
             <button class="btn btn-danger" type="button" title="Remove" onclick="adminFormItem.remove(event)">×</button>
         </div>
     </template>
@@ -54,9 +57,7 @@
     </div>
 </fieldset>
 <div class="form-group">
-    <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal"
-        onclick="playerSearch.init()">
-        <span>Add Player...</span>
-    </button>
+    <button class="btn btn-secondary" type="button" id="openPlayerSearchModal"
+        onclick="playerSearch.showModal(true)">Add Player...</button>
 </div>
 {{end}}
