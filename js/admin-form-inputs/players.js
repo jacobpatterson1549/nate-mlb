@@ -1,35 +1,4 @@
 var playersForm = {
-    movePlayerUp: function () {
-        var player1 = event.target.parentNode;
-        var player2 = event.target.parentNode.previousElementSibling;
-        if (player2 != null) {
-            var players = player1.parentNode;
-            players.insertBefore(player1, player2);
-            playersForm.changePlayerDisplayOrder(player1.id, -1);
-            playersForm.changePlayerDisplayOrder(player2.id, +1);
-        }
-    },
-
-    movePlayerDown: function () {
-        var player1 = event.target.parentNode;
-        var player2 = event.target.parentNode.nextElementSibling;
-        if (player2 != null) {
-            var players = player1.parentNode;
-            players.insertBefore(player2, player1);
-            playersForm.changePlayerDisplayOrder(player2.id, -1);
-            playersForm.changePlayerDisplayOrder(player1.id, +1);
-        }
-    },
-
-    removePlayer: function () {
-        var removePlayer = event.target.parentNode;
-        for (var player = document.getElementById(removePlayer.id).nextElementSibling; player != null; player = document
-            .getElementById(player.id).nextElementSibling) {
-            playersForm.changePlayerDisplayOrder(player.id, -1);
-        }
-        removePlayer.remove();
-    },
-
     addPlayer: function (playerName, sourceID) {
         var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
@@ -74,13 +43,6 @@ var playersForm = {
         var friendScore = scoreCategory.querySelector('.friend-id-' + friendID);
         friendScore.appendChild(clone);
         return player;
-    },
-
-    changePlayerDisplayOrder: function (playerID, delta) {
-        var player = document.getElementById(playerID);
-        var playerDisplayOrderElement = player.querySelector('.player-display-order');
-        var playerDisplayOrder = playerDisplayOrderElement.value;
-        playerDisplayOrderElement.value = parseInt(playerDisplayOrder) + delta;
     },
 
     refreshVisiblePlayers: function () {

@@ -1,35 +1,4 @@
 var friendsForm = {
-    moveFriendUp: function () {
-        var friend1 = event.target.parentNode;
-        var friend2 = event.target.parentNode.previousElementSibling;
-        if (friend2 != null) {
-            var friends = friend1.parentNode;
-            friends.insertBefore(friend1, friend2);
-            friendsForm.changeFriendDisplayOrder(friend1.id, -1);
-            friendsForm.changeFriendDisplayOrder(friend2.id, +1);
-        }
-    },
-
-    moveFriendDown: function () {
-        var friend1 = event.target.parentNode;
-        var friend2 = event.target.parentNode.nextElementSibling;
-        if (friend2 != null) {
-            var friends = friend1.parentNode;
-            friends.insertBefore(friend2, friend1);
-            friendsForm.changeFriendDisplayOrder(friend2.id, -1);
-            friendsForm.changeFriendDisplayOrder(friend1.id, +1);
-        }
-    },
-
-    removeFriend: function () {
-        var removeFriend = event.target.parentNode;
-        for (var friend = document.getElementById(removeFriend.id).nextElementSibling; friend != null; friend = document
-            .getElementById(friend.id).nextElementSibling) {
-            changeFriendDisplayOrder(friend.id, -1);
-        }
-        removeFriend.remove();
-    },
-
     addFriend: function () {
         var maxFriendId = 0;
         var friendsParent = document.getElementById('friends');
@@ -60,13 +29,6 @@ var friendsForm = {
         var friends = document.getElementById("friends");
         friends.appendChild(clone);
         return friend;
-    },
-
-    changeFriendDisplayOrder: function (friendID, delta) {
-        var friend = document.getElementById(friendID);
-        var friendDisplayOrderElement = friend.querySelector('.friend-display-order');
-        var friendDisplayOrder = friendDisplayOrderElement.value;
-        friendDisplayOrderElement.value = parseInt(friendDisplayOrder) + delta;
     },
 
     initFriends: function () {
