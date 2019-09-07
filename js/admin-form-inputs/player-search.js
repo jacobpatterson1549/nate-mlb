@@ -3,11 +3,7 @@ var playerSearch = {
         var playerType = document.getElementById('select-player-type').value;
         var isMlbPlayerType = playerType == 2 || playerType == 3; // PlayerTypeHitter, PlayerTypePitcher
         var activePlayersOnlyGroup = document.getElementById("apo-group");
-        if (isMlbPlayerType) { // TODO: use toggle
-            activePlayersOnlyGroup.classList.remove('d-none');
-        } else {
-            activePlayersOnlyGroup.classList.add('d-none');
-        }
+        activePlayersOnlyGroup.classList.toggle('d-none', !isMlbPlayerType);
     },
 
     add: function () {
