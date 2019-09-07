@@ -123,7 +123,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
-	statsPage := newPage(title, tabs, true, timesMessage, "html/stats.html")
+	statsPage := newPage(title, tabs, true, timesMessage, "html/statsTab.html")
 	return renderTemplate(w, statsPage)
 }
 
@@ -162,7 +162,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	}
 	tabs := make([]Tab, len(adminTabs))
 	templateNames := make([]string, len(adminTabs)+2)
-	templateNames[0] = "html/admin.html"
+	templateNames[0] = "html/adminTab.html"
 	templateNames[1] = fmt.Sprintf("html/admin-form-inputs/player-search.html")
 	for i, adminTab := range adminTabs {
 		tabs[i] = adminTab
