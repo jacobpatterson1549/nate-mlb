@@ -1,7 +1,7 @@
 var playerSearch = {
     init: function () {
         var playerType = document.getElementById('select-player-type').value;
-        var isMlbPlayerType = playerType == 2 || playerType == 3; // PlayerTypeHitter, PlayerTypePitcher
+        var isMlbPlayerType = [2, 3].includes(parseInt(playerType)); // PlayerTypeHitter, PlayerTypePitcher
         var activePlayersOnlyGroup = document.getElementById("apo-group");
         activePlayersOnlyGroup.classList.toggle('d-none', !isMlbPlayerType);
     },
