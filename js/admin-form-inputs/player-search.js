@@ -79,7 +79,6 @@ var playerSearch = {
             playerSearchResultsFieldSet.appendChild(psr);
         }
         if (playerSearchResults.length == 1) {
-            var psr = playerSearchResultsFieldSet.querySelector('.form-check');
             psr.querySelector('.psr-radio').checked = true;
         }
         var resultsDiv = document.getElementById('player-search-results-output');
