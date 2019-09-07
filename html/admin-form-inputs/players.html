@@ -12,7 +12,7 @@
     </div>
     <div class="form-group">
         <label for="select-friend">Friend</label>
-        <select id="select-friend" class="form-control" onchange="refreshVisiblePlayers()">
+        <select id="select-friend" class="form-control" onchange="playersForm.refreshVisiblePlayers()">
             {{range (index .Data 0).FriendScores -}}
             <option value="{{.ID}}">{{.Name}}</option>
             {{end -}}
@@ -26,9 +26,9 @@
             <input class="player-player-type" name="player-0-player-type" value="?" type="hidden">
             <input class="player-friend-id" name="player-0-friend-id" value="?" type="hidden">
             <input class="player-id" value="0" type="hidden">
-            <button class="btn btn-light" type="button" title="Move Up" onclick="movePlayerUp()">▲</button>
-            <button class="btn btn-light" type="button" title="Move Down" onclick="movePlayerDown()">▼</button>
-            <button class="btn btn-danger" type="button" title="Remove" onclick="removePlayer()">×</button>
+            <button class="btn btn-light" type="button" title="Move Up" onclick="playersForm.movePlayerUp()">▲</button>
+            <button class="btn btn-light" type="button" title="Move Down" onclick="playersForm.movePlayerDown()">▼</button>
+            <button class="btn btn-danger" type="button" title="Remove" onclick="playersForm.removePlayer()">×</button>
         </div>
     </template>
     <div id="players">
@@ -54,7 +54,7 @@
 </fieldset>
 <div class="form-group">
     <button class="btn btn-secondary" type="button" data-toggle="modal" data-target="#addPlayerModal"
-        onclick="initPlayerSearch()">
+        onclick="playerSearch.initPlayerSearch()">
         <span>Add Player...</span>
     </button>
 </div>

@@ -7,7 +7,7 @@
             <input class="year-radio form-check-input" type="radio" name="year-active" id="year-0-active">
             <label class="year-label form-check-label" for="year-0-active">?</label>
             <input class="year-input" type="hidden" name="year" value="?">
-            <button class="btn btn-danger" type="button" title="Remove" onclick="removeYear()">×</button>
+            <button class="btn btn-danger" type="button" title="Remove" onclick="yearsForm.removeYear()">×</button>
         </div>
     </template>
     <div id="years">
@@ -21,6 +21,6 @@
 </fieldset>
 <div class="form-inline my-3">
     <input class="form-control mr-2" id="add-year-input" type="number" min="2000" max="3000" , step="1">
-    <button class="btn btn-secondary" type="button" title="Add Year" onclick="addYear()">Add Year</button>
+    <button class="btn btn-secondary" type="button" title="Add Year" onclick="yearsForm.addYear()">Add Year</button>
 </div>
 {{end}}

@@ -15,7 +15,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="player-search-form" onsubmit="playerSearchSubmit(event)">
+                <form id="player-search-form" onsubmit="playerSearch.playerSearchSubmit(event)">
                     <div class="form-inline">
                         <input class="form-control mr-2" type="search" name="q" id="player-search" placeholder="Search">
                         <button class="btn btn-outline-success" type="submit" form="player-search-form">Search</button>
@@ -32,7 +32,7 @@
                     <template id="player-search-result-template">
                         <div class="form-check my-1">
                             <input class="psr-radio form-check-input" type="radio" name="psr-selected" id="psr-0"
-                                onchange="setNewPlayerSelected(true)">
+                                onchange="playerSearch.setNewPlayerSelected(true)">
                             <label class="psr-label form-check-label" for="psr-0">
                                 <strong class="psr-label-name">?</strong>
                                 <span class="psr-label-details">?</span>
@@ -46,7 +46,7 @@
                 <div class="modal-footer form-group">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button id="modal-add-player-button" type="button" class="btn btn-outline-primary"
-                        data-dismiss="modal" onclick="addPlayerFromSearch()" disabled>Add Player</button>
+                        data-dismiss="modal" onclick="playerSearch.addPlayerFromSearch()" disabled>Add Player</button>
                 </div>
             </div>
         </div>

@@ -19,7 +19,7 @@
       <img src="/favicon.ico" alt="hat">
       <span>nate-stats</span>
     </a>
-    <button class="navbar-toggler" id="navbar-toggler" type="button" onclick="toggleNavbar(event)"
+    <button class="navbar-toggler" id="navbar-toggler" type="button" onclick="mainPage.toggleNavbar(event)"
       aria-label="Toggle Navbar">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -35,7 +35,7 @@
         {{ end -}}
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="admin-dropdown-toggler"
-            onclick="toggleAdminMenu(event)">Admin</a>
+            onclick="mainPage.toggleAdminMenu(event)">Admin</a>
           <div class="dropdown-menu" id="admin-dropdown-menu">
             {{ range .Sports -}}
             <a class="dropdown-item" href="/{{.URL}}/admin">{{.Name}} Admin</a>
@@ -56,7 +56,7 @@
         {{range .Tabs -}}
         <li class="nav-item">
           <a id="{{.GetID .GetName}}-tab" class="nav-link" href="#{{.GetID .GetName}}" role="tab"
-            onclick="tabClick(event)">{{.GetName}}</a>
+            onclick="mainPage.tabClick(event)">{{.GetName}}</a>
         </li>
         {{end -}}
       </ul>

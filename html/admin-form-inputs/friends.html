@@ -8,9 +8,9 @@
             <input class="friend-name-input form-control" id="friend-0-name" name="friend-0-name" required>
             <input class="friend-display-order" name="friend-0-display-order" value="?" type="hidden">
             <input class="friend-id" value="0" type="hidden">
-            <button class="btn btn-light" type="button" title="Move Up" onclick="moveFriendUp()">▲</button>
-            <button class="btn btn-light" type="button" title="Move Down" onclick="moveFriendDown()">▼</button>
-            <button class="btn btn-danger" type="button" title="Remove" onclick="removeFriend()">×</button>
+            <button class="btn btn-light" type="button" title="Move Up" onclick="friendsForm.moveFriendUp()">▲</button>
+            <button class="btn btn-light" type="button" title="Move Down" onclick="friendsForm.moveFriendDown()">▼</button>
+            <button class="btn btn-danger" type="button" title="Remove" onclick="friendsForm.removeFriend()">×</button>
         </div>
     </template>
     <div id="friends">
@@ -24,6 +24,6 @@
     </div>
 </fieldset>
 <div class="form-group">
-    <button class="btn btn-secondary" type="button" title="Add Friend" onclick="addFriend()">Add Friend</button>
+    <button class="btn btn-secondary" type="button" title="Add Friend" onclick="friendsForm.addFriend()">Add Friend</button>
 </div>
 {{end}}
