@@ -2,10 +2,9 @@ CREATE TABLE IF NOT EXISTS friends
     ( id SERIAL PRIMARY KEY
     , name VARCHAR(20) NOT NULL
     , display_order INT DEFAULT 0 NOT NULL
-    , sport_type_id INT NOT NULL
-    , year INT NOT NULL
-    , CONSTRAINT name_sport_type_id_year_unique UNIQUE (name, sport_type_id, year)
-    , FOREIGN KEY (sport_type_id, year) REFERENCES stats (sport_type_id, year) ON DELETE CASCADE
+    , stat_id INT NOT NULL
+    , CONSTRAINT name_stat_id UNIQUE (name, stat_id)
+    , FOREIGN KEY (stat_id) REFERENCES stats (id) ON DELETE CASCADE
     );
 
-CREATE INDEX IF NOT EXISTS get_friends_idx ON friends (sport_type_id, year, display_order);
+CREATE INDEX IF NOT EXISTS get_friends_idx ON friends (stat_id, display_order);
