@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-100">
 
 <head>
   <meta charset="utf-8">
@@ -12,11 +12,21 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 
-<body class="m-3">
-  {{- template "nav" . -}}
-  <h1 class="text-primary">{{.Title}}</h1>
-  {{- template "tabs" . -}}
-  {{- template "footer" . -}}
+<body class="d-flex flex-column h-100">
+  <header>
+    {{- template "nav" . -}}
+  </header>
+  <main role="main">
+    <div class="container">
+      <h1 class="text-primary">{{.Title}}</h1>
+      {{- template "tabs" . -}}
+    </div>
+  </main>
+  <footer class="mt-auto py-3">
+    <div class="container">
+      {{- template "footer" . -}}
+    </div>
+  </footer>
 </body>
 
 </html>
