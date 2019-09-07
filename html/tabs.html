@@ -1,0 +1,26 @@
+{{define "tabs"}}
+<script defer src="/js/tabs.js"></script>
+{{- if .ShowTabs}}
+<div id="main-tabs">
+    <div class="mb-3" id="main-tabs-tabs" role="tablist">
+        <ul class="nav nav-tabs">
+            {{range .Tabs -}}
+            <li class="nav-item">
+                <a id="{{.GetID .GetName}}-tab" class="nav-link" href="#{{.GetID .GetName}}" role="tab"
+                    onclick="tabsTemplate.tabClick(event)">{{.GetName}}</a>
+            </li>
+            {{end -}}
+        </ul>
+    </div>
+    <div id="main-tabs-content" class="tab-content" role="main">
+        {{range .Tabs -}}
+        <div id="{{.GetID .GetName}}" class="tab-pane" role="tabpanel">
+            {{- template "content" . -}}
+        </div>
+        {{end -}}
+    </div>
+</div>
+{{- else -}}
+{{- template "content" . -}}
+{{end}}
+{{end}}

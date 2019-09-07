@@ -204,12 +204,7 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
-	templateNames := make([]string, len(p.templateNames)+1)
-	templateNames[0] = "html/main.html"
-	for i, templateName := range p.templateNames {
-		templateNames[i+1] = templateName
-	}
-
+	templateNames := append([]string{"html/main.html", "html/nav.html", "html/tabs.html", "html/footer.html"}, p.templateNames...)
 	t, err := template.ParseFiles(templateNames...)
 	if err != nil {
 		return err
