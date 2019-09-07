@@ -86,7 +86,7 @@ var mainPage = {
       for (var i = 0; i < messages.length; i++) {
         formattedTimesMessage += messages[i].innerText;
         if (times && i < times.length) {
-          formattedTimesMessage += formatDate(times[i].innerText);
+          formattedTimesMessage += mainPage.formatDate(times[i].innerText);
         }
       }
       document.getElementById('times-message').innerText = formattedTimesMessage;
