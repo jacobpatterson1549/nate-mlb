@@ -25,23 +25,18 @@ type EtlStats struct {
 func getEtlStats(st db.SportType) (EtlStats, error) {
 	var es EtlStats
 
-	var year int
 	stat, err := db.GetStat(st)
 	if err != nil {
 		return es, err
 	}
-	fetchStats := true
 	currentTime := db.GetUtcTime()
 	es.etlRefreshTime = previousMidnight(currentTime)
 	es.sportTypeName = st.Name()
 	es.sportType = st
 	es.year = stat.Year
-	if stat.EtlJSON != nil {
-		err = json.Unmarshal([]byte(*stat.EtlJSON), &es.ScoreCategories)
-		if err != nil {
-			return es, fmt.Errorf("problem converting stats from json for year %v: %v", year, err)
-		}
-		fetchStats = stat.EtlTimestamp == nil || stat.EtlTimestamp.Before(es.etlRefreshTime)
+	fetchStats := true
+	if stat.EtlTimestamp != nil && stat.EtlJSON != nil {
+		fetchStats = stat.EtlTimestamp.Before(es.etlRefreshTime)
 	}
 	if fetchStats {
 		es.ScoreCategories, err = es.getScoreCategories(st)
