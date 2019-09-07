@@ -2,19 +2,17 @@ var adminTab = {
     submit: function (event) {
         event.preventDefault();
         var pathname = window.location.pathname;
-        const data = new URLSearchParams(new FormData(event.target));
+        var data = new URLSearchParams(new FormData(event.target));
         fetch(pathname, {
             method: 'POST',
             body: data,
             credentials: 'include'
-        }).then(res => {
+        }).then(async res => {
             if (res.status == 303) {
                 return Promise.resolve();
             } else {
-                return res.text()
-                    .then(message => {
-                        return Promise.reject(message);
-                    });
+                var message = await res.text();
+                return Promise.reject(message);
             }
         }).then(() => {
             if (window.PasswordCredential) {

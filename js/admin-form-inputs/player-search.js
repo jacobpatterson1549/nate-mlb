@@ -39,14 +39,12 @@ var playerSearch = {
         var url = window.location.pathname + "/search?" + new URLSearchParams(formData);
         fetch(url, {
             method: 'GET',
-        }).then(res => {
+        }).then(async res => {
             if (res.status == 200) {
                 return res.json();
             } else {
-                return res.text()
-                    .then(message => {
-                        return Promise.reject(message);
-                    });
+                var message = await res.text();
+                return Promise.reject(message);
             }
         }).then(playerSearchResults => {
             if (playerSearchResults != null && playerSearchResults.length > 0) {
