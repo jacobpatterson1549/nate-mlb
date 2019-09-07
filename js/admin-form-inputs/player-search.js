@@ -4,16 +4,8 @@ var playerSearch = {
         addPlayerModal.classList.toggle('d-none', !show);
         var openModalButton = document.getElementById('openPlayerSearchModal')
         openModalButton.classList.toggle('d-none', show);
-        // addPlayerModal.style.toggle('display: block; padding-right: 15px;', show);
-        // addPlayerModal.setAttribute("aria-modal", show);
         if (show) {
             playerSearch.initActivePlayersCB();
-            // var modalBackdrop = document.createElement('div')
-            // modalBackdrop.classList.add('modal-backdrop');
-            // document.body.appendChild(modalBackdrop);
-        } else {
-            // var modalBackdrop = document.getElementById('modalBackdrop show');
-            // modalBackdrop.remove();
         }
     },
 
