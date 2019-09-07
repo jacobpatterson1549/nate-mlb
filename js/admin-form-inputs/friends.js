@@ -1,5 +1,5 @@
 var friendsForm = {
-    addFriend: function () {
+    add: function () {
         var maxFriendId = 0;
         var friendsParent = document.getElementById('friends');
         var friendIdInputs = friendsParent.querySelectorAll('.friend-id');
@@ -9,11 +9,11 @@ var friendsForm = {
                 maxFriendId = friendId;
             }
         }
-        var newFriend = friendsForm.createFriend(maxFriendId + 1, '', friendIdInputs.length, '[NEW]');
+        var newFriend = friendsForm.create(maxFriendId + 1, '', friendIdInputs.length, '[NEW]');
         newFriend.querySelector('.friend-name-input').focus();
     },
 
-    createFriend: function (id, name, displayOrder, nameLabel) {
+    create: function (id, name, displayOrder, nameLabel) {
         var template = document.getElementById("friend-template");
         var clone = document.importNode(template.content, true);
         var friend = clone.querySelector('.form-group');
@@ -31,16 +31,16 @@ var friendsForm = {
         return friend;
     },
 
-    initFriends: function () {
+    init: function () {
         var friends = document.getElementById("friends").children;
         for (var i = 0; i < friends.length; i++) {
             var id = friends[i].querySelector(".id").innerText;
             var name = friends[i].querySelector(".name").innerText;
             var displayOrder = friends[i].querySelector(".displayOrder").innerText;
-            var newFriend = friendsForm.createFriend(id, name, displayOrder, name);
+            var newFriend = friendsForm.create(id, name, displayOrder, name);
             friends[i].replaceWith(newFriend);
         }
     },
 };
 
-friendsForm.initFriends();
+friendsForm.init();

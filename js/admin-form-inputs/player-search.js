@@ -1,16 +1,16 @@
 var playerSearch = {
-    initPlayerSearch: function () {
+    init: function () {
         var playerType = document.getElementById('select-player-type').value;
-        var isMlbPlayerType = playerType == 2 || playerType == 3;
+        var isMlbPlayerType = playerType == 2 || playerType == 3; // PlayerTypeHitter, PlayerTypePitcher
         var activePlayersOnlyGroup = document.getElementById("apo-group");
-        if (isMlbPlayerType) {
+        if (isMlbPlayerType) { // TODO: use toggle
             activePlayersOnlyGroup.classList.remove('d-none');
         } else {
             activePlayersOnlyGroup.classList.add('d-none');
         }
     },
 
-    addPlayerFromSearch: function () {
+    add: function () {
         var playerSearchResults = document.getElementById('player-search-results');
         playerSearchResults = playerSearchResults.getElementsByClassName('form-check');
         for (var i = 0; i < playerSearchResults.length; i++) {
@@ -18,21 +18,21 @@ var playerSearch = {
             if (psr.querySelector('.psr-radio').checked) {
                 var sourceID = psr.querySelector('.psr-source-id').value;
                 var playerName = psr.querySelector('.psr-player-name').value;
-                var newPlayer = addPlayer(playerName, sourceID);
+                var newPlayer = playersForm.add(playerName, sourceID);
                 newPlayer.focus();
                 return;
             }
         }
     },
 
-    clearPlayerSearch: function () {
+    clear: function () {
         var resultsDiv = document.getElementById('player-search-results-output');
         resultsDiv.innerHTML = '';
     },
 
-    playerSearchSubmit: function (event) {
+    submit: function (event) {
         event.preventDefault();
-        setNewPlayerSelected(false);
+        playerSearch.setNewPlayerSelected(false);
         var playerType = document.getElementById('select-player-type').value;
         var formData = new FormData(event.target);
         formData.append('pt', playerType);
@@ -50,7 +50,7 @@ var playerSearch = {
             }
         }).then(playerSearchResults => {
             if (playerSearchResults != null && playerSearchResults.length > 0) {
-                searchSuccess(playerSearchResults);
+                playerSearch.success(playerSearchResults);
                 return Promise.resolve();
             } else {
                 return Promise.reject('No results');
@@ -61,7 +61,7 @@ var playerSearch = {
         });
     },
 
-    searchSuccess: function (playerSearchResults) {
+    success: function (playerSearchResults) {
         var template = document.getElementById("player-search-results-template");
         var playerSearchResultsDiv = document.importNode(template.content, true);
         var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
@@ -81,11 +81,11 @@ var playerSearch = {
         if (playerSearchResults.length == 1) {
             var psr = playerSearchResultsFieldSet.querySelector('.form-check');
             psr.querySelector('.psr-radio').checked = true;
-            setNewPlayerSelected(true);
         }
         var resultsDiv = document.getElementById('player-search-results-output');
         resultsDiv.innerHTML = '';
         resultsDiv.appendChild(playerSearchResultsFieldSet);
+        playerSearch.setNewPlayerSelected(playerSearchResults.length == 1);
     },
 
     setNewPlayerSelected: function (isSelected) {

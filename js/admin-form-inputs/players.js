@@ -1,5 +1,5 @@
 var playersForm = {
-    addPlayer: function (playerName, sourceID) {
+    add: function (playerName, sourceID) {
         var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var maxID = 0;
@@ -20,10 +20,10 @@ var playersForm = {
                 }
             }
         }
-        return playersForm.createPlayer(maxID + 1, playerName, sourceID, maxDisplayOrder + 1, playerType, friendID);
+        return playersForm.create(maxID + 1, playerName, sourceID, maxDisplayOrder + 1, playerType, friendID);
     },
 
-    createPlayer: function (id, playerName, sourceID, displayOrder, playerType, friendID) {
+    create: function (id, playerName, sourceID, displayOrder, playerType, friendID) {
         var template = document.getElementById("player-template");
         var clone = document.importNode(template.content, true);
         var player = clone.querySelector('.form-group');
@@ -45,7 +45,7 @@ var playersForm = {
         return player;
     },
 
-    refreshVisiblePlayers: function () {
+    refresh: function () {
         var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
         var players = document.getElementById('players');
@@ -60,10 +60,10 @@ var playersForm = {
                 player.classList.add('d-none');
             }
         }
-        playerSearch.clearPlayerSearch();
+        playerSearch.clear();
     },
 
-    initPlayers: function () {
+    init: function () {
         var playerTypes = document.getElementById("players").children;
         for (var i = 0; i < playerTypes.length; i++) {
             var friendScores = playerTypes[i].children;
@@ -76,7 +76,7 @@ var playersForm = {
                     var displayOrder = playerScores[k].querySelector(".displayOrder").innerText;
                     var playerType = playerScores[k].querySelector(".playerType").innerText;
                     var friendID = playerScores[k].querySelector(".friendID").innerText;
-                    var newPlayer = playersForm.createPlayer(id, playerName, sourceID, displayOrder, playerType, friendID);
+                    var newPlayer = playersForm.create(id, playerName, sourceID, displayOrder, playerType, friendID);
                     playerScores[k].replaceWith(newPlayer);
                 }
             }
@@ -84,5 +84,5 @@ var playersForm = {
     },
 }
 
-playersForm.initPlayers();
-playersForm.refreshVisiblePlayers(); // initialize visible player scores to first friendScore.
+playersForm.init();
+playersForm.refresh(); // initialize visible player scores to first friendScore.
