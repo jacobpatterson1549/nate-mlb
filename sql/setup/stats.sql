@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS stats
     ( id SERIAL PRIMARY KEY
-    , sport_type_id INT
+    , sport_type_id INT NOT NULL
     , year INT NOT NULL
     , active BOOLEAN
     , etl_timestamp TIMESTAMP

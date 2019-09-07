@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS players
     ( id SERIAL PRIMARY KEY
-    , player_type_id INT
+    , player_type_id INT NOT NULL
     , source_id INT NOT NULL
     , friend_id INT NOT NULL
     , display_order INT DEFAULT 0 NOT NULL
