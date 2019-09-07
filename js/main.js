@@ -70,7 +70,7 @@ var mainPage = {
       tabs[i].classList.toggle('active', selectedTab);
     }
     var tabContents = document.getElementById('main-tabs-content').querySelectorAll('.tab-pane');
-    for (var i = 0; i < tabContents.length; i++) {
+    for (i = 0; i < tabContents.length; i++) {
       var selectedTabContent = "#" + tabContents[i].id === clickedTab.hash;
       tabContents[i].classList.toggle('active', selectedTabContent);
       tabContents[i].classList.toggle('show', selectedTabContent);
