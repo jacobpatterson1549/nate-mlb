@@ -1,5 +1,5 @@
 var adminTab = {
-    adminSubmit: function (event, action) {
+    adminSubmit: function (event) {
         event.preventDefault();
         var pathname = window.location.pathname;
         const data = new URLSearchParams(new FormData(event.target));
