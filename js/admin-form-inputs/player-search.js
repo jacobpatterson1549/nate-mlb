@@ -6,6 +6,10 @@ var playerSearch = {
         openModalButton.classList.toggle('d-none', show);
         if (show) {
             playerSearch.initActivePlayersCB();
+            var searchInput = document.getElementById('player-search');
+            searchInput.focus();
+        } else {
+            addPlayerModal.focus();
         }
     },
 
