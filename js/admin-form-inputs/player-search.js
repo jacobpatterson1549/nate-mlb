@@ -77,9 +77,9 @@ var playerSearch = {
             psr.querySelector('.psr-source-id').value = playerSearchResult.SourceID;
             psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
             playerSearchResultsFieldSet.appendChild(psr);
-        }
-        if (playerSearchResults.length == 1) {
-            psr.querySelector('.psr-radio').checked = true;
+            if (i == 0 && playerSearchResults.length == 1) {
+                psr.querySelector('.psr-radio').checked = true;
+            }
         }
         var resultsDiv = document.getElementById('player-search-results-output');
         resultsDiv.innerHTML = '';
