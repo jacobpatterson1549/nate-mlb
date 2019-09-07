@@ -1,7 +1,6 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
 )
@@ -17,18 +16,12 @@ type Stat struct {
 
 // GetStat gets the Stat for the active year
 func GetStat(st SportType) (Stat, error) {
-	var etlJSON sql.NullString
-	var stat Stat
+	stat := Stat{SportType: st}
 	sqlFunction := newReadSQLFunction("get_stat", []string{"year", "etl_timestamp", "etl_json"}, st)
 	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
-	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &etlJSON)
+	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &stat.EtlJSON)
 	if err != nil {
 		return stat, fmt.Errorf("problem getting stats: %v", err)
-	}
-
-	stat.SportType = st
-	if etlJSON.Valid {
-		stat.EtlJSON = &etlJSON.String
 	}
 	return stat, nil
 }
