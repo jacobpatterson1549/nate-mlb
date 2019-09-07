@@ -11,7 +11,6 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 * [pq](https://github.com/lib/pq) (Postgresql Driver)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
-* [jQuery](https://github.com/jquery/jquery) (Javascript functions for Bootstrap modals)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
 
 
