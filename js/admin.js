@@ -1,5 +1,5 @@
 var adminTab = {
-    adminSubmit: function (event) {
+    submit: function (event) {
         event.preventDefault();
         var pathname = window.location.pathname;
         const data = new URLSearchParams(new FormData(event.target));
@@ -33,7 +33,7 @@ var adminTab = {
         });
     },
 
-    initTemplateSupportCheck: function () {
+    init: function () {
         if (!('content' in document.createElement('template'))) {
             var templateSupportCheckElements = document.querySelectorAll('.template-support-check');
             for (i = 0; i < templateSupportCheckElements.length; i++) {
@@ -44,4 +44,4 @@ var adminTab = {
     },
 };
 
-adminTab.initTemplateSupportCheck();
+adminTab.init();

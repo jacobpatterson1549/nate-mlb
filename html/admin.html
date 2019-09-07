@@ -3,7 +3,7 @@
 {{- if (eq .Action "players") -}}
 {{- template "player-search" . -}}
 {{end}}
-<form id="{{.Action}}-form" onsubmit="adminTab.adminSubmit(event)" data-action="{{.Action}}">
+<form id="{{.Action}}-form" onsubmit="adminTab.submit(event)" data-action="{{.Action}}">
     {{- if (eq .Action "players") -}}
     {{- template "players" . -}}
     {{- else if (eq .Action "friends") -}}
