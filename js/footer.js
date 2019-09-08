@@ -28,9 +28,12 @@ var footerTemplate = {
         var times = timesMessageElement.querySelector(".times").children;
         var formattedTimesMessage = "";
         for (var i = 0; i < messages.length; i++) {
+            if (i > 0) {
+                formattedTimesMessage += " ";
+            }
             formattedTimesMessage += messages[i].innerText;
             if (times && i < times.length) {
-                formattedTimesMessage += footerTemplate.formatDate(times[i].innerText);
+                formattedTimesMessage += " " + footerTemplate.formatDate(times[i].innerText);
             }
         }
         timesMessageElement.innerText = formattedTimesMessage;

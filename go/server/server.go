@@ -119,7 +119,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		}
 	}
 	timesMessage := TimesMessage{
-		Messages: []string{"Stats reset daily after first page load is loaded after ", ".  Last reset at ", "."},
+		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
@@ -181,7 +181,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 	}
 
 	timesMessage := TimesMessage{
-		Messages: []string{"Server last deployed on ", fmt.Sprintf(" (version %s).", lastDeploy.Version)},
+		Messages: []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
