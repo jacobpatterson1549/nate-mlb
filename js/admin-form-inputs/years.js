@@ -29,7 +29,7 @@ var yearsForm = {
     createYear: function (yearNum, active) {
         var template = document.getElementById("year-template");
         var clone = document.importNode(template.content, true);
-        var newYear = clone.querySelector('.form-check');
+        var newYear = clone.querySelector('.form-group');
         newYear.id = 'year-' + yearNum;
         newYear.querySelector('.year-radio').id = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-radio').value = yearNum;

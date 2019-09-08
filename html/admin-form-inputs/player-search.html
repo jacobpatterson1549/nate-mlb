@@ -9,25 +9,25 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="player-search-form" onsubmit="playerSearch.submit(event)">
-                    <div class="form-inline">
-                        <input class="form-control mr-2" type="search" name="q" id="player-search" placeholder="Search">
-                        <button class="btn btn-outline-success" type="submit" form="player-search-form">Search</button>
+                <form id="player-search-form" class="container" onsubmit="playerSearch.submit(event)">
+                    <div class="form-group row">
+                        <input class="form-control mr-3 col" type="search" name="q" id="player-search" placeholder="Search">
+                        <button class="btn btn-outline-success align-items-center" type="submit" form="player-search-form">Search</button>
                     </div>
-                    <div class="form-check my-1" id="apo-group">
-                        <input class="form-check-input" type="checkbox" name="apo" id="active-players-only" checked>
-                        <label class="form-check-label" for="active-players-only">Active Players</label>
+                    <div class="form-check row" id="apo-group">
+                        <input class="form-check-input align-items-center" type="checkbox" name="apo" id="active-players-only" checked>
+                        <label class="form-check-label col" for="active-players-only">Active Players</label>
                     </div>
                     <template id="player-search-results-template">
-                        <fieldset id="player-search-results">
+                        <fieldset id="player-search-results" class="container ml-3">
                             <legend>PlayerSearchResults</legend>
                         </fieldset>
                     </template>
                     <template id="player-search-result-template">
-                        <div class="form-check my-1">
-                            <input class="psr-radio form-check-input" type="radio" name="psr-selected" id="psr-0"
+                        <div class="form-group row">
+                            <input class="psr-radio form-check-input align-items-center" type="radio" name="psr-selected" id="psr-0"
                                 onchange="playerSearch.setNewPlayerSelected(true)">
-                            <label class="psr-label form-check-label" for="psr-0">
+                            <label class="psr-label form-check-label col" for="psr-0">
                                 <strong class="psr-label-name">?</strong>
                                 <span class="psr-label-details">?</span>
                             </label>
@@ -35,7 +35,7 @@
                             <input class="psr-player-name" value="?" type="hidden">
                         </div>
                     </template>
-                    <div id="player-search-results-output"></div>
+                    <div id="player-search-results-output" class="row"></div>
                 </form>
                 <div class="modal-footer form-group">
                     <button type="button" class="btn btn-secondary"
