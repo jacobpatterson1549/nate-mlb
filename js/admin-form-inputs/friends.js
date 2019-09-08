@@ -32,7 +32,7 @@ var friendsForm = {
     },
 
     init: function () {
-        var friends = document.getElementById("friends").children;
+        var friends = document.getElementById("friend-form-items").children;
         for (var i = 0; i < friends.length; i++) {
             var id = friends[i].querySelector(".id").innerText;
             var name = friends[i].querySelector(".name").innerText;

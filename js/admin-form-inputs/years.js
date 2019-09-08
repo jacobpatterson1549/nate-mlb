@@ -45,7 +45,7 @@ var yearsForm = {
     },
 
     initYears: function () {
-        var years = document.getElementById("years").children;
+        var years = document.getElementById("year-form-items").children;
         for (var i = 0; i < years.length; i++) {
             var value = years[i].querySelector(".value").innerText;
             var active = years[i].querySelector(".active").innerText;

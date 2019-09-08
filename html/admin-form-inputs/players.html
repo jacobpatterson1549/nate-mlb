@@ -37,7 +37,7 @@
                 onclick="adminFormItem.remove(event)">×</button>
         </div>
     </template>
-    <div id="players">
+    <div id="player-form-items">
         {{range $scoreCategory := .Data -}}
         <div class="score-category player-type-{{.PlayerType}}">
             {{range $friendScore := $scoreCategory.FriendScores -}}
