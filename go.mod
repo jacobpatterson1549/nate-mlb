@@ -1,8 +1,8 @@
-// +heroku goVersion go1.12
+// +heroku goVersion go1.13
 
 module github.com/jacobpatterson1549/nate-mlb
 
-go 1.12
+go 1.13
 
 require (
 	github.com/lib/pq v1.2.0
