@@ -64,7 +64,7 @@ var playersForm = {
     },
 
     init: function () {
-        var playerTypes = document.getElementById("players").children;
+        var playerTypes = document.getElementById("player-form-items").children;
         for (var i = 0; i < playerTypes.length; i++) {
             var friendScores = playerTypes[i].children;
             for (var j = 0; j < friendScores.length; j++) {
