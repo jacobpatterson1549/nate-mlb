@@ -6,7 +6,7 @@
     <legend>Players</legend>
     <div class="form-group">
         <label for="select-player-type">Player Type</label>
-        <select id="select-player-type" class="form-control" onchange="refreshVisiblePlayers()">
+        <select id="select-player-type" class="form-control" onchange="playersForm.refresh()()">
             {{range .Data -}}
             <option value="{{.PlayerType}}">{{.Name}}</option>
             {{end -}}
@@ -14,7 +14,7 @@
     </div>
     <div class="form-group">
         <label for="select-friend">Friend</label>
-        <select id="select-friend" class="form-control" onchange="playersForm.refreshVisiblePlayers()">
+        <select id="select-friend" class="form-control" onchange="playersForm.refresh()">
             {{range (index .Data 0).FriendScores -}}
             <option value="{{.ID}}">{{.Name}}</option>
             {{end -}}
