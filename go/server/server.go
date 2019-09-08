@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
-	"github.com/jacobpatterson1549/nate-mlb/internal/request"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 // Run configures and starts the server

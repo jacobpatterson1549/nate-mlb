@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
 // nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces

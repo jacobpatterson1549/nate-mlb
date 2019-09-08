@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
-	"github.com/jacobpatterson1549/nate-mlb/internal/request"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 	"golang.org/x/crypto/bcrypt"
 )
 

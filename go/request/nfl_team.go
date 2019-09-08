@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
 // nflTeamRequestor implements the ScoreCategorizer and Searcher interfaces

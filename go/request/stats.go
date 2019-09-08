@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
 // ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them

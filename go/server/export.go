@@ -6,8 +6,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
-	"github.com/jacobpatterson1549/nate-mlb/internal/request"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
 // mlbPlayerSearcher implements the searcher interface

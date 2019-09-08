@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/server"
+	"github.com/jacobpatterson1549/nate-mlb/go/server"
 	_ "github.com/lib/pq"
 )
 

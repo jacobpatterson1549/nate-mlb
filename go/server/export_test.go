@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jacobpatterson1549/nate-mlb/internal/request"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 func TestCreateCsvRecords(t *testing.T) {
