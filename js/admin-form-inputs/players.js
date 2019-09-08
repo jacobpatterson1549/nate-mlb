@@ -48,7 +48,7 @@ var playersForm = {
     refresh: function () {
         var playerType = document.getElementById('select-player-type').value;
         var friendID = document.getElementById('select-friend').value;
-        var players = document.getElementById('players');
+        var players = document.getElementById('player-form-items');
         var playerElements = players.getElementsByClassName('form-group');
         for (var i = 0; i < playerElements.length; i++) {
             var player = playerElements[i];
