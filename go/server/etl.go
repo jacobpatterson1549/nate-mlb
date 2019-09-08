@@ -34,11 +34,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	es.sportTypeName = st.Name()
 	es.sportType = st
 	es.year = stat.Year
-	fetchStats := true
-	if stat.EtlTimestamp != nil && stat.EtlJSON != nil {
-		fetchStats = stat.EtlTimestamp.Before(es.etlRefreshTime)
-	}
-	if fetchStats {
+	if stat.EtlTimestamp == nil || stat.EtlJSON == nil || stat.EtlTimestamp.Before(es.etlRefreshTime) {
 		es.ScoreCategories, err = es.getScoreCategories(st)
 		if err != nil {
 			return es, err
