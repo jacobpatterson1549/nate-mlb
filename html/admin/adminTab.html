@@ -1,17 +1,17 @@
-{{define "content"}}
+{{define "tab"}}
 <script defer src="/js/admin/adminTab.js"></script>
 {{- if (eq .Action "players") -}}
-{{- template "player-search" . -}}
+{{- template "player-search.html" . -}}
 {{end}}
 <form id="{{.Action}}-form" onsubmit="adminTab.submit(event)" data-action="{{.Action}}">
     {{- if (eq .Action "players") -}}
-    {{- template "players" . -}}
+    {{- template "players.html" . -}}
     {{- else if (eq .Action "friends") -}}
-    {{- template "friends" . -}}
+    {{- template "friends.html" . -}}
     {{- else if (eq .Action "years") -}}
-    {{- template "years" . -}}
+    {{- template "years.html" . -}}
     {{- else if (eq .Action "cache") -}}
-    {{- template "cache" . -}}
+    {{- template "cache.html" . -}}
     {{- else if (ne .Action "password") -}}
     <p class="bg-danger d-inline">Unknown Action: {{.Action}}</p>
     {{- end -}}
@@ -31,7 +31,7 @@
             autocomplete="current-password" required>
     </div>
     {{- if (eq .Action "password") -}}
-    {{- template "password" . -}}
+    {{- template "password.html" . -}}
     {{end}}
     <div class="form-group">
         {{if .Data -}}

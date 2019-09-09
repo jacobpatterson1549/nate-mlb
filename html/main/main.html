@@ -14,17 +14,17 @@
 
 <body class="d-flex flex-column h-100">
   <header>
-    {{- template "nav" . -}}
+    {{- template "nav.html" . -}}
   </header>
   <main>
     <div class="container">
       <h1 class="text-primary">{{.Title}}</h1>
-      {{- template "tabs" . -}}
+      {{- template "tabs.html" . -}}
     </div>
   </main>
   <footer class="mt-auto py-3">
     <div class="container">
-      {{- template "footer" . -}}
+      {{- template "footer.html" . -}}
     </div>
   </footer>
 </body>

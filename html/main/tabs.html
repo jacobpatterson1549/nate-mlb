@@ -1,4 +1,3 @@
-{{define "tabs"}}
 <script defer src="/js/main/tabs.js"></script>
 {{- if .ShowTabs}}
 <div id="main-tabs">
@@ -15,12 +14,11 @@
     <div id="main-tabs-content" class="tab-content" role="main">
         {{range .Tabs -}}
         <div id="{{.GetID .GetName}}" class="tab-pane" role="tabpanel">
-            {{- template "content" . -}}
+            {{- template "tab" . -}}
         </div>
         {{end -}}
     </div>
 </div>
 {{- else -}}
-{{- template "content" . -}}
-{{end}}
+{{- template "tab" . -}}
 {{end}}
