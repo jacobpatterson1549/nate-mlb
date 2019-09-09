@@ -16,7 +16,7 @@ func GetFriends(st SportType) ([]Friend, error) {
 	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return nil, fmt.Errorf("problem reading friends: %v", err)
+		return nil, fmt.Errorf("problem reading friends: %w", err)
 	}
 	defer rows.Close()
 
@@ -26,7 +26,7 @@ func GetFriends(st SportType) ([]Friend, error) {
 		friends = append(friends, Friend{})
 		err = rows.Scan(&friends[i].ID, &friends[i].DisplayOrder, &friends[i].Name)
 		if err != nil {
-			return nil, fmt.Errorf("problem reading friend: %v", err)
+			return nil, fmt.Errorf("problem reading friend: %w", err)
 		}
 		i++
 	}

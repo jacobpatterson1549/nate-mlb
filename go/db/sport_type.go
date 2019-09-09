@@ -42,7 +42,7 @@ func SportTypeFromURL(url string) SportType {
 func LoadSportTypes() error {
 	rows, err := db.Query("SELECT id, name, url FROM get_sport_types()")
 	if err != nil {
-		return fmt.Errorf("problem reading sportTypes: %v", err)
+		return fmt.Errorf("problem reading sportTypes: %w", err)
 	}
 	defer rows.Close()
 
@@ -54,7 +54,7 @@ func LoadSportTypes() error {
 	for rows.Next() {
 		err = rows.Scan(&sportType, &name, &url)
 		if err != nil {
-			return fmt.Errorf("problem reading sport type: %v", err)
+			return fmt.Errorf("problem reading sport type: %w", err)
 		}
 		sportTypes = append(sportTypes, sportType)
 		sportTypeNames[sportType] = name
@@ -70,7 +70,7 @@ func LoadSportTypes() error {
 		len(sportTypes) != len(sportTypeNames) ||
 		len(sportTypes) != len(sportTypeUrls) ||
 		len(sportTypes) != len(urlSportTypes) {
-		return fmt.Errorf("Did not load expected SportTypes.  Loaded: %v", sportTypes)
+		return fmt.Errorf("problem: did not load expected SportTypes.  Loaded: %v", sportTypes)
 	}
 	return nil
 }

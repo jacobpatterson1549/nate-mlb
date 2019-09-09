@@ -24,7 +24,7 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
-		return fmt.Errorf("problem reading static dir: %v", err)
+		return fmt.Errorf("problem reading static dir: %w", err)
 	}
 	for _, file := range fileInfo {
 		path := "/" + file.Name()
@@ -37,7 +37,7 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 	fmt.Printf("starting server - locally running at http://127.0.0.1%s\n", addr)
 	err = http.ListenAndServe(addr, nil)
 	if err != http.ErrServerClosed {
-		return fmt.Errorf("server stopped unexpectedly: %v", err)
+		return fmt.Errorf("problem: server stopped unexpectedly: %w", err)
 	}
 	return nil
 }
@@ -218,7 +218,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	}
 	err = t.Execute(w, p)
 	if err != nil {
-		return fmt.Errorf("problem rendering templates (%v): %v", templateNames, err)
+		return fmt.Errorf("problem rendering templates (%v): %w", templateNames, err)
 	}
 	return nil
 }
@@ -244,7 +244,7 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 	}
 	err = json.NewEncoder(w).Encode(playerSearchResults)
 	if err != nil {
-		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %v", playerSearchResults, err)
+		return fmt.Errorf("problem converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
 	}
 	return nil
 }

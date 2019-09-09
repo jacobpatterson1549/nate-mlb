@@ -9,7 +9,7 @@ func GetUserPassword(username string) (string, error) {
 	var password string
 	err := row.Scan(&password)
 	if err != nil {
-		return password, fmt.Errorf("problem getting password for user %v: %v", username, err)
+		return password, fmt.Errorf("problem getting password for user %v: %w", username, err)
 	}
 	return password, nil
 }

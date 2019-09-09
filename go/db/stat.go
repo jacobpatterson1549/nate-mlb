@@ -25,7 +25,7 @@ func GetStat(st SportType) (*Stat, error) {
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("problem getting stats: %v", err)
+		return nil, fmt.Errorf("problem getting stats: %w", err)
 	}
 	return &stat, nil
 }
@@ -35,7 +35,7 @@ func SetStat(stat Stat) error {
 	sqlFunction := newWriteSQLFunction("set_stat", stat.EtlTimestamp, stat.EtlJSON, stat.SportType, stat.Year)
 	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return fmt.Errorf("problem saving stats: %v", err)
+		return fmt.Errorf("problem saving stats: %w", err)
 	}
 	return expectSingleRowAffected(result)
 }
@@ -45,7 +45,7 @@ func ClearStat(st SportType) error {
 	sqlFunction := newWriteSQLFunction("clr_stat", st)
 	_, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return fmt.Errorf("problem clearing saved stats: %v", err)
+		return fmt.Errorf("problem clearing saved stats: %w", err)
 	}
 	return nil
 }

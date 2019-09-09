@@ -15,7 +15,7 @@ func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
 	csvWriter := csv.NewWriter(w)
 	err := csvWriter.WriteAll(records)
 	if err != nil {
-		return fmt.Errorf("problem writing to csv: %v", err)
+		return fmt.Errorf("problem writing to csv: %w", err)
 	}
 	return nil
 }

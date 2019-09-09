@@ -42,7 +42,7 @@ func (r *requestor) structPointerFromURL(url string, v interface{}) error {
 	}
 	json.Unmarshal(b, v)
 	if err != nil {
-		return fmt.Errorf("problem reading json when requesting %v: %v", url, err)
+		return fmt.Errorf("problem reading json when requesting %v: %w", url, err)
 	}
 	return nil
 }
@@ -53,12 +53,12 @@ func (r *requestor) bytes(url string) ([]byte, error) {
 	}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("problem initializing request to %v: %v", url, err)
+		return nil, fmt.Errorf("problem initializing request to %v: %w", url, err)
 	}
 	request.Header.Add("Accept", "application/json")
 	response, err := r.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("problem requesting %v: %v", url, err)
+		return nil, fmt.Errorf("problem requesting %v: %w", url, err)
 	}
 	defer response.Body.Close()
 

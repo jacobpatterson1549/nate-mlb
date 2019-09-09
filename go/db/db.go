@@ -42,7 +42,7 @@ func GetUtcTime() time.Time {
 func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 	tx, err := db.Begin()
 	if err != nil {
-		err = fmt.Errorf("problem starting transaction to save: %v", err)
+		err = fmt.Errorf("problem starting transaction to save: %w", err)
 	}
 	var result sql.Result
 	for sqlFunction := range queries {
@@ -56,15 +56,15 @@ func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 		}
 	}
 	if err != nil {
-		err = fmt.Errorf("problem saving: %v", err)
+		err = fmt.Errorf("problem saving: %w", err)
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
-			err = fmt.Errorf("%v, ROLLBACK ERROR: %v", err, rollbackErr)
+			err = fmt.Errorf("%w, ROLLBACK ERROR: %w", err, rollbackErr)
 		}
 	} else {
 		err = tx.Commit()
 		if err != nil {
-			err = fmt.Errorf("problem committing transaction to save: %v", err)
+			err = fmt.Errorf("problem committing transaction to save: %w", err)
 		}
 	}
 	quit <- err
