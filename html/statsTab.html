@@ -9,9 +9,10 @@
                 <h3 class="card-title text-success">{{.Name}}</h3>
                 <div class="card-text">
                     <table class="card-table table">
+                        <caption class="d-none">Player scores for {{.Name}}</caption>
                         <thead class="d-none">
-                            <th>Player Name</th>
-                            <th>Score</th>
+                            <th scope="col">Player Name</th>
+                            <th scope="col">Score</th>
                         </thead>
                         <tbody>
                             {{range .PlayerScores -}}
