@@ -54,7 +54,7 @@ func LoadSportTypes() error {
 	for rows.Next() {
 		err = rows.Scan(&sportType, &name, &url)
 		if err != nil {
-			return fmt.Errorf("reading SporType: %w", err)
+			return fmt.Errorf("reading SportType: %w", err)
 		}
 		sportTypes = append(sportTypes, sportType)
 		sportTypeNames[sportType] = name
