@@ -1,4 +1,5 @@
 {{define "content"}}
+{{- if .ScoreCategory.FriendScores }}
 {{- with $sc := .ScoreCategory}}
 <h2 class="text-primary">{{$sc.Description}}</h2>
 <div class="row">
@@ -38,4 +39,8 @@
 </div>
 {{- end}}
 <a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
+{{else}}
+<script defer src="/js/statsTab.js"></script>
+<p>Configure on the <a href="admin" class="stats-admin-link">Admin</a> page.</p>
+{{end}}
 {{end}}

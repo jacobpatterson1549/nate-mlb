@@ -23,14 +23,17 @@ type EtlStats struct {
 
 // getEtlStats retrieves, calculates, and caches the player stats
 func getEtlStats(st db.SportType) (EtlStats, error) {
-	var es EtlStats
-
+	currentTime := db.GetUtcTime()
+	es := EtlStats{
+		etlRefreshTime: previousMidnight(currentTime),
+	}
 	stat, err := db.GetStat(st)
 	if err != nil {
 		return es, err
 	}
-	currentTime := db.GetUtcTime()
-	es.etlRefreshTime = previousMidnight(currentTime)
+	if stat == nil {
+		return es, nil
+	}
 	es.sportTypeName = st.Name()
 	es.sportType = st
 	es.year = stat.Year
@@ -44,14 +47,14 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 			return es, err
 		}
 		es.EtlTime = currentTime
-		stat, err = es.toStat()
+		*stat, err = es.toStat()
 		if err != nil {
 			return es, err
 		}
-		err = db.SetStat(stat)
+		err = db.SetStat(*stat)
 	} else {
 		es.EtlTime = *stat.EtlTimestamp
-		err = es.setScoreCategories(stat)
+		err = es.setScoreCategories(*stat)
 	}
 	return es, err
 }

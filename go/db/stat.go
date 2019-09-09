@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -14,16 +15,19 @@ type Stat struct {
 	EtlJSON      *string
 }
 
-// GetStat gets the Stat for the active year
-func GetStat(st SportType) (Stat, error) {
+// GetStat gets the Stat for the active year, nil if there is not active stat
+func GetStat(st SportType) (*Stat, error) {
 	stat := Stat{SportType: st}
 	sqlFunction := newReadSQLFunction("get_stat", []string{"year", "etl_timestamp", "etl_json"}, st)
 	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &stat.EtlJSON)
-	if err != nil {
-		return stat, fmt.Errorf("problem getting stats: %v", err)
+	if err == sql.ErrNoRows {
+		return nil, nil
 	}
-	return stat, nil
+	if err != nil {
+		return nil, fmt.Errorf("problem getting stats: %v", err)
+	}
+	return &stat, nil
 }
 
 // SetStat sets the etl timestamp and json for the year (which must be active)

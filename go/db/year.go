@@ -39,9 +39,6 @@ func GetYears(st SportType) ([]Year, error) {
 		}
 		i++
 	}
-	if !activeYearFound && len(years) > 0 {
-		return years, errors.New("no active year when retrieving year list")
-	}
 	return years, nil
 }
 
