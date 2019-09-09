@@ -26,12 +26,16 @@ var friendsForm = {
         friend.querySelector('.friend-display-order').name = 'friend-' + id + '-display-order';
         friend.querySelector('.friend-display-order').value = displayOrder;
         friend.querySelector('.friend-id').value = id;
-        var friends = document.getElementById("friends");
+        var friends = document.getElementById("friend-form-items");
         friends.appendChild(clone);
         return friend;
     },
 
     init: function () {
+        if (document.getElementById('friend-template') == null) {
+            adminFormItem.disableButtons(['add-friend-button', 'friends-form-submit-button'], 'Requires Year');
+            return;
+        }
         var friends = document.getElementById("friend-form-items").children;
         for (var i = 0; i < friends.length; i++) {
             var id = friends[i].querySelector(".id").innerText;

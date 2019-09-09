@@ -162,7 +162,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 
 	adminTabs := []AdminTab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
-		AdminTab{Name: "Friends", Action: "friends", Data: friendsData},
+		AdminTab{Name: "Friends", Action: "friends", Data: scoreCategoriesData},
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
 		AdminTab{Name: "Clear Cache", Action: "cache"},
 		AdminTab{Name: "Reset Password", Action: "password"},

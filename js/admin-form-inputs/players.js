@@ -64,6 +64,13 @@ var playersForm = {
     },
 
     init: function () {
+        if (document.getElementById('select-friend') == null) {
+            var message = document.getElementById('player-template') == null
+                ? "Requires Year"
+                : "Requires Friend";
+            adminFormItem.disableButtons(['openPlayerSearchModal', 'players-form-submit-button'], message)
+            return;
+        }
         var playerTypes = document.getElementById("player-form-items").children;
         for (var i = 0; i < playerTypes.length; i++) {
             var friendScores = playerTypes[i].children;
@@ -81,8 +88,8 @@ var playersForm = {
                 }
             }
         }
+        playersForm.refresh();
     },
 }
 
 playersForm.init();
-playersForm.refresh(); // initialize visible player scores to first friendScore.

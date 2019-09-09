@@ -39,7 +39,7 @@ var yearsForm = {
         newYear.querySelector('.year-label').htmlFor = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-label').innerText = yearNum;
         newYear.querySelector('.year-input').value = yearNum;
-        var years = document.getElementById("years");
+        var years = document.getElementById("year-form-items");
         years.appendChild(clone);
         return newYear;
     },
