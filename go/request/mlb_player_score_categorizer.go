@@ -123,7 +123,7 @@ func (r mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, p
 	}
 	if i != len(sourceIDs) {
 		// this might not be read if names for the same sourceID occur multiple times and this request takes longer than the stat requests
-		quit <- fmt.Errorf("problem: expected to receive %d mlb player names, but only got %d", len(sourceIDs), i)
+		quit <- fmt.Errorf("expected to receive %d mlb player names, but only got %d", len(sourceIDs), i)
 	}
 }
 
@@ -168,7 +168,7 @@ func (mps MlbPlayerStats) getStat(playerType db.PlayerType) (int, error) {
 	case db.PlayerTypePitcher:
 		return mps.lastStat("pitching", MlbStat.getWins), nil
 	default:
-		return -1, fmt.Errorf("Cannot get stat of playerType %v for player", playerType)
+		return -1, fmt.Errorf("cannot get stat of playerType %v for player", playerType)
 	}
 }
 

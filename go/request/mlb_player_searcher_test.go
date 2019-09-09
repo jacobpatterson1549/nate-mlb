@@ -100,12 +100,12 @@ func TestGetPlayerSearchResults(t *testing.T) {
 
 func assertEqualPlayerSearchResults(want, got []PlayerSearchResult) error {
 	if len(got) != len(want) {
-		return fmt.Errorf("problem: wanted %v, but got %v (different length results)", want, got)
+		return fmt.Errorf("wanted %v, but got %v (different length results)", want, got)
 	}
 	for j, w := range want {
 		g := got[j]
 		if w != g {
-			return fmt.Errorf("problem: values at index %v different:\nwanted %v\n   got %v", j, w, g)
+			return fmt.Errorf("values at index %v different:\nwanted %v\n   got %v", j, w, g)
 		}
 	}
 	return nil

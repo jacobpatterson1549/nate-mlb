@@ -85,7 +85,7 @@ func (nflTeam NflTeam) wins() (int, error) {
 	recordParts := strings.Split(nflTeam.Record, "-")
 	winsI, err := strconv.Atoi(recordParts[0])
 	if err != nil {
-		return -1, fmt.Errorf("Invalid Wins number for %v", nflTeam)
+		return -1, fmt.Errorf("invalid Wins number for %v", nflTeam)
 	}
 	return winsI, nil
 }

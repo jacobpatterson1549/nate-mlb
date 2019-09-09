@@ -101,7 +101,7 @@ func (es EtlStats) getScoreCategory(playerType db.PlayerType, fpi request.Friend
 		}
 		scoreCategories <- scoreCategory
 	} else {
-		quit <- fmt.Errorf("problem: no scoreCategorizer for player type %v", playerType)
+		quit <- fmt.Errorf("no scoreCategorizer for player type %v", playerType)
 	}
 }
 
@@ -118,7 +118,7 @@ func (es EtlStats) toStat() (db.Stat, error) {
 	var stat db.Stat
 	etlJSON, err := json.Marshal(es.ScoreCategories)
 	if err != nil {
-		return stat, fmt.Errorf("problem converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
+		return stat, fmt.Errorf("converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
 	}
 	etlJSONText := string(etlJSON)
 
@@ -131,12 +131,12 @@ func (es EtlStats) toStat() (db.Stat, error) {
 
 func (es *EtlStats) setScoreCategories(stat db.Stat) error {
 	if stat.EtlJSON == nil {
-		return fmt.Errorf("Stat has no etlJSON: %v", stat)
+		return fmt.Errorf("stat has no etlJSON: %v", stat)
 	}
 	var scoreCategories []request.ScoreCategory
 	err := json.Unmarshal([]byte(*stat.EtlJSON), &scoreCategories)
 	if err != nil {
-		return fmt.Errorf("problem unmarshalling ScoreCategories from Stat etlJSON: %w", err)
+		return fmt.Errorf("unmarshalling ScoreCategories from Stat etlJSON: %w", err)
 	}
 	es.ScoreCategories = scoreCategories
 	return nil

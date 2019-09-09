@@ -72,7 +72,7 @@ func setupTablesAndFunctions() error {
 	for _, sql := range queries {
 		_, err := tx.Exec(sql)
 		if err != nil {
-			err = fmt.Errorf("problem: %w\nquery: %v", err, strings.TrimSpace(sql))
+			err = fmt.Errorf("setting: %w\nquery: %v", err, strings.TrimSpace(sql))
 			rollbackErr := tx.Rollback()
 			if rollbackErr != nil {
 				err = fmt.Errorf("%w, ROLLBACK ERROR: %w", err, rollbackErr)

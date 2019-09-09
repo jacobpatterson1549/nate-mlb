@@ -16,7 +16,7 @@ func GetYears(st SportType) ([]Year, error) {
 	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return nil, fmt.Errorf("problem reading years: %w", err)
+		return nil, fmt.Errorf("reading years: %w", err)
 	}
 	defer rows.Close()
 
@@ -28,7 +28,7 @@ func GetYears(st SportType) ([]Year, error) {
 		years = append(years, Year{})
 		err = rows.Scan(&years[i].Value, &active)
 		if err != nil {
-			return years, fmt.Errorf("problem reading year: %w", err)
+			return years, fmt.Errorf("reading year: %w", err)
 		}
 		if active {
 			if activeYearFound {
@@ -59,7 +59,7 @@ func SaveYears(st SportType, futureYears []Year) error {
 	for _, year := range futureYears {
 		if year.Active {
 			if activeYearPresent {
-				return fmt.Errorf("problem: multiple active years present in %w", err)
+				return fmt.Errorf("multiple active years present in %w", err)
 			}
 			activeYear = year.Value
 			activeYearPresent = true

@@ -52,7 +52,7 @@ func (pt PlayerType) DisplayOrder() int {
 func LoadPlayerTypes() error {
 	rows, err := db.Query("SELECT id, sport_type_id, name, description FROM get_player_types()")
 	if err != nil {
-		return fmt.Errorf("problem reading playerTypes: %w", err)
+		return fmt.Errorf("reading playerTypes: %w", err)
 	}
 	defer rows.Close()
 
@@ -66,7 +66,7 @@ func LoadPlayerTypes() error {
 	for rows.Next() {
 		err = rows.Scan(&playerType, &sportType, &name, &description)
 		if err != nil {
-			return fmt.Errorf("problem reading player type: %w", err)
+			return fmt.Errorf("reading player type: %w", err)
 		}
 		switch playerType {
 		case PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
@@ -77,14 +77,14 @@ func LoadPlayerTypes() error {
 			playerTypeDescriptions[playerType] = description
 			playerTypeDisplayOrders[playerType] = displayOrder
 		default:
-			return fmt.Errorf("problem: unknown PlayerType: id=%d", playerType)
+			return fmt.Errorf("unknown PlayerType: id=%d", playerType)
 		}
 		displayOrder++
 	}
 	if len(playerTypes) != 2 ||
 		len(playerTypes[SportTypeNfl]) != 3 ||
 		len(playerTypes[SportTypeMlb]) != 3 {
-		return fmt.Errorf("problem: did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(playerTypes))
+		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(playerTypes))
 	}
 	return nil
 }

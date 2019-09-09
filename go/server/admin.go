@@ -44,7 +44,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	}
 	playerTypeIDI, err := strconv.Atoi(playerTypeID)
 	if err != nil {
-		return nil, fmt.Errorf("problem converting playerTypeID (%v) to number: %w", playerTypeID, err)
+		return nil, fmt.Errorf("converting playerTypeID (%v) to number: %w", playerTypeID, err)
 	}
 	playerType := db.PlayerType(playerTypeIDI)
 	activePlayersOnly := r.FormValue("apo")
@@ -52,7 +52,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 
 	searcher, ok := request.Searchers[playerType]
 	if !ok {
-		return nil, fmt.Errorf("problem finding searcher for playerType %v", playerType)
+		return nil, fmt.Errorf("finding searcher for playerType %v", playerType)
 	}
 	return searcher.PlayerSearchResults(playerType, searchQuery, year, activePlayersOnlyB)
 }
@@ -60,7 +60,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 func handleAdminPasswordRequest(r *http.Request) error {
 	password := r.FormValue("password")
 	if len(password) == 0 {
-		return errors.New("problem: missing form password form param")
+		return errors.New("missing form password form param")
 	}
 
 	hashedPassword, err := hashPassword(password)
@@ -151,7 +151,7 @@ func verifyUserPassword(r *http.Request) error {
 		return errors.New("Incorrect Password")
 	}
 	if err != nil {
-		return fmt.Errorf("problem verifying password: %w", err)
+		return fmt.Errorf("verifying password: %w", err)
 	}
 	return nil
 }
@@ -159,7 +159,7 @@ func verifyUserPassword(r *http.Request) error {
 func hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", fmt.Errorf("problem hashing password: %w", err)
+		return "", fmt.Errorf("hashing password: %w", err)
 	}
 	return string(hashedPassword), nil
 }
@@ -169,34 +169,34 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 
 	IDI, err := strconv.Atoi(id)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player id '%v' to number: %w", id, err)
+		return player, fmt.Errorf("converting player id '%v' to number: %w", id, err)
 	}
 	player.ID = db.ID(IDI)
 
 	displayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player display order '%v' to number: %w", displayOrder, err)
+		return player, fmt.Errorf("converting player display order '%v' to number: %w", displayOrder, err)
 	}
 	player.DisplayOrder = displayOrderI
 
 	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id))
 	playerTypeI, err := strconv.Atoi(playerType)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player type '%v' to number: %w", playerType, err)
+		return player, fmt.Errorf("converting player type '%v' to number: %w", playerType, err)
 	}
 	player.PlayerType = db.PlayerType(playerTypeI)
 
 	sourceID := r.FormValue(fmt.Sprintf("player-%s-source-id", id))
 	sourceIDI, err := strconv.Atoi(sourceID)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player source id '%v' to number: %w", sourceID, err)
+		return player, fmt.Errorf("converting player source id '%v' to number: %w", sourceID, err)
 	}
 	player.SourceID = db.SourceID(sourceIDI)
 
 	friendID := r.FormValue(fmt.Sprintf("player-%s-friend-id", id))
 	friendIDI, err := strconv.Atoi(friendID)
 	if err != nil {
-		return player, fmt.Errorf("problem converting player friend id '%v' to number: %w", friendID, err)
+		return player, fmt.Errorf("converting player friend id '%v' to number: %w", friendID, err)
 	}
 	player.FriendID = db.ID(friendIDI)
 
@@ -208,13 +208,13 @@ func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 
 	friendIDI, err := strconv.Atoi(id)
 	if err != nil {
-		return friend, fmt.Errorf("problem converting friend id '%v' to number: %w", id, err)
+		return friend, fmt.Errorf("converting friend id '%v' to number: %w", id, err)
 	}
 	friend.ID = db.ID(friendIDI)
 
 	friendDisplayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {
-		return friend, fmt.Errorf("problem converting friend display order '%v' to number: %w", displayOrder, err)
+		return friend, fmt.Errorf("converting friend display order '%v' to number: %w", displayOrder, err)
 	}
 	friend.DisplayOrder = friendDisplayOrderI
 
@@ -228,7 +228,7 @@ func getYear(r *http.Request, yearS string) (db.Year, error) {
 
 	yearI, err := strconv.Atoi(yearS)
 	if err != nil {
-		return year, fmt.Errorf("problem converting year (%v) to number: %w", year, err)
+		return year, fmt.Errorf("converting year (%v) to number: %w", year, err)
 	}
 	year.Value = yearI
 
