@@ -16,7 +16,7 @@ var playerSearch = {
     initActivePlayersCB: function() {
         var playerType = document.getElementById('select-player-type').value;
         var isMlbPlayerType = [2, 3].includes(parseInt(playerType)); // PlayerTypeHitter, PlayerTypePitcher
-        var activePlayersOnlyGroup = document.getElementById("apo-group");
+        var activePlayersOnlyGroup = document.getElementById('apo-group');
         activePlayersOnlyGroup.classList.toggle('d-none', !isMlbPlayerType);
     },
 
@@ -47,7 +47,7 @@ var playerSearch = {
         var playerType = document.getElementById('select-player-type').value;
         var formData = new FormData(event.target);
         formData.append('pt', playerType);
-        var url = window.location.pathname + "/search?" + new URLSearchParams(formData);
+        var url = window.location.pathname + '/search?' + new URLSearchParams(formData);
         fetch(url, {
             method: 'GET',
         }).then(async res => {
@@ -71,12 +71,12 @@ var playerSearch = {
     },
 
     success: function (playerSearchResults) {
-        var template = document.getElementById("player-search-results-template");
+        var template = document.getElementById('player-search-results-template');
         var playerSearchResultsDiv = document.importNode(template.content, true);
         var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
         for (var i = 0; i < playerSearchResults.length; i++) {
             var playerSearchResult = playerSearchResults[i];
-            var template2 = document.getElementById("player-search-result-template");
+            var template2 = document.getElementById('player-search-result-template');
             var playerSearchResultDiv = document.importNode(template2.content, true);
             var psr = playerSearchResultDiv.querySelector('.form-group');
             psr.querySelector('.psr-radio').id = 'psr-' + playerSearchResult.SourceID;

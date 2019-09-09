@@ -24,7 +24,7 @@ var playersForm = {
     },
 
     create: function (id, playerName, sourceID, displayOrder, playerType, friendID) {
-        var template = document.getElementById("player-template");
+        var template = document.getElementById('player-template');
         var clone = document.importNode(template.content, true);
         var player = clone.querySelector('.form-group');
         player.id = 'player-' + id;
@@ -38,7 +38,7 @@ var playersForm = {
         player.querySelector('.player-friend-id').name = 'player-' + id + '-friend-id';
         player.querySelector('.player-friend-id').value = friendID;
         player.querySelector('.player-id').value = id;
-        var scoreCategories = document.getElementById("players");
+        var scoreCategories = document.getElementById('players');
         var scoreCategory = scoreCategories.querySelector('.player-type-' + playerType);
         var friendScore = scoreCategory.querySelector('.friend-id-' + friendID);
         friendScore.appendChild(clone);
@@ -66,23 +66,23 @@ var playersForm = {
     init: function () {
         if (document.getElementById('select-friend') == null) {
             var message = document.getElementById('player-template') == null
-                ? "Requires Year"
-                : "Requires Friend";
+                ? 'Requires Year'
+                : 'Requires Friend';
             adminFormItem.disableButtons(['openPlayerSearchModal', 'players-form-submit-button'], message)
             return;
         }
-        var playerTypes = document.getElementById("player-form-items").children;
+        var playerTypes = document.getElementById('player-form-items').children;
         for (var i = 0; i < playerTypes.length; i++) {
             var friendScores = playerTypes[i].children;
             for (var j = 0; j < friendScores.length; j++) {
                 var playerScores = friendScores[j].children;
                 for (var k = 0; k < playerScores.length; k++) {
-                    var id = playerScores[k].querySelector(".id").innerText;
-                    var playerName = playerScores[k].querySelector(".playerName").innerText;
-                    var sourceID = playerScores[k].querySelector(".sourceID").innerText;
-                    var displayOrder = playerScores[k].querySelector(".displayOrder").innerText;
-                    var playerType = playerScores[k].querySelector(".playerType").innerText;
-                    var friendID = playerScores[k].querySelector(".friendID").innerText;
+                    var id = playerScores[k].querySelector('.id').innerText;
+                    var playerName = playerScores[k].querySelector('.playerName').innerText;
+                    var sourceID = playerScores[k].querySelector('.sourceID').innerText;
+                    var displayOrder = playerScores[k].querySelector('.displayOrder').innerText;
+                    var playerType = playerScores[k].querySelector('.playerType').innerText;
+                    var friendID = playerScores[k].querySelector('.friendID').innerText;
                     var newPlayer = playersForm.create(id, playerName, sourceID, displayOrder, playerType, friendID);
                     playerScores[k].replaceWith(newPlayer);
                 }

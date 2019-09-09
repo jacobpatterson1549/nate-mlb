@@ -1,6 +1,6 @@
 var footerTemplate = {
     twoDigits: function (num) {
-        return num < 10 ? "0" + num : num;
+        return num < 10 ? '0' + num : num;
     },
 
     formatDate: function (utcDate) {
@@ -11,11 +11,11 @@ var footerTemplate = {
         var hours = localDate.getHours();
         var minutes = localDate.getMinutes();
         var seconds = localDate.getSeconds();
-        return footerTemplate.twoDigits(year) + "/" +
-            footerTemplate.twoDigits(month) + "/" +
-            footerTemplate.twoDigits(date) + " " +
-            footerTemplate.twoDigits(hours) + ":" +
-            footerTemplate.twoDigits(minutes) + ":" +
+        return footerTemplate.twoDigits(year) + '/' +
+            footerTemplate.twoDigits(month) + '/' +
+            footerTemplate.twoDigits(date) + ' ' +
+            footerTemplate.twoDigits(hours) + ':' +
+            footerTemplate.twoDigits(minutes) + ':' +
             footerTemplate.twoDigits(seconds);
     },
 
@@ -24,16 +24,16 @@ var footerTemplate = {
         if (timesMessageElement == null) {
             return;
         }
-        var messages = timesMessageElement.querySelector(".messages").children;
-        var times = timesMessageElement.querySelector(".times").children;
-        var formattedTimesMessage = "";
+        var messages = timesMessageElement.querySelector('.messages').children;
+        var times = timesMessageElement.querySelector('.times').children;
+        var formattedTimesMessage = '';
         for (var i = 0; i < messages.length; i++) {
             if (i > 0) {
-                formattedTimesMessage += " ";
+                formattedTimesMessage += ' ';
             }
             formattedTimesMessage += messages[i].innerText;
             if (times && i < times.length) {
-                formattedTimesMessage += " " + footerTemplate.formatDate(times[i].innerText);
+                formattedTimesMessage += ' ' + footerTemplate.formatDate(times[i].innerText);
             }
         }
         timesMessageElement.innerText = formattedTimesMessage;
