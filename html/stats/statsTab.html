@@ -1,46 +1,52 @@
 {{define "tab"}}
 {{- if .ScoreCategory.FriendScores }}
-{{- with $sc := .ScoreCategory}}
-<h2 class="text-primary">{{$sc.Description}}</h2>
+{{- template "scoreCategory" .ScoreCategory -}}
+<a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
+{{- else -}}
+<script defer src="/js/stats/statsTab.js"></script>
+<p>Configure on the <a data-relative-path="/admin" class="stats-admin-link">Admin</a> page.</p>
+{{end}}
+{{end}}
+
+{{define "scoreCategory" -}}
+<h2 class="text-primary">{{.Description}}</h2>
 <div class="row">
-    {{range $sc.FriendScores -}}
+    {{range .FriendScores -}}
     <div class="col m-2">
         <div class="card stat-card">
             <div class="card-body">
                 <h3 class="card-title text-success">{{.Name}}</h3>
                 <div class="card-text">
-                    <table class="card-table table">
-                        <caption class="d-none">Player scores for {{.Name}}</caption>
-                        <thead class="d-none">
-                            <th scope="col">Player Name</th>
-                            <th scope="col">Score</th>
-                        </thead>
-                        <tbody>
-                            {{range .PlayerScores -}}
-                            <tr>
-                                <td>{{.Name}}</td>
-                                <td>{{.Score}}</td>
-                            </tr>
-                            {{end -}}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td>
-                                    <h4 class="text-danger">Value: {{.Score}}</h4>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    {{- template "friendScore" . -}}
                 </div>
             </div>
         </div>
     </div>
     {{end -}}
 </div>
-{{- end}}
-<a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
-{{else}}
-<script defer src="/js/stats/statsTab.js"></script>
-<p>Configure on the <a data-relative-path="/admin" class="stats-admin-link">Admin</a> page.</p>
-{{end}}
-{{end}}
+{{end -}}
+
+{{- define "friendScore"}}
+<table class="card-table table">
+    <caption class="d-none">Player scores for {{.Name}}</caption>
+    <thead class="d-none">
+        <th scope="col">Player Name</th>
+        <th scope="col">Score</th>
+    </thead>
+    <tbody>
+        {{range .PlayerScores -}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Score}}</td>
+        </tr>
+        {{end -}}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>
+                <h4 class="text-danger">Value: {{.Score}}</h4>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+{{end -}}
