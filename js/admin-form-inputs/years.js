@@ -1,15 +1,7 @@
 var yearsForm = {
     removeYear: function () {
         var year = event.target.parentNode;
-        var removedYearChecked = year.querySelector('.year-radio').checked;
         year.remove();
-        if (removedYearChecked) {
-            var yearsParent = document.getElementById('years');
-            var yearRadios = yearsParent.querySelectorAll('.year-radio');
-            if (yearRadios.length > 0) {
-                yearRadios[yearRadios.length - 1].checked = true;
-            }
-        }
     },
 
     addYear: function () {
