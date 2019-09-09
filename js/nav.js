@@ -1,7 +1,7 @@
 var navTemplate = {
     init: function () {
         var mainNavbarNav = document.getElementById('main-navbar-nav');
-        var currentNavAnchor = mainNavbarNav.querySelector('[href=' + window.location.pathname + ']');
+        var currentNavAnchor = mainNavbarNav.querySelector('[href="' + window.location.pathname + '"]');
         if (currentNavAnchor != null) {
             currentNavAnchor.classList.add('active');
         }
