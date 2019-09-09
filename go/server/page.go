@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -11,13 +12,13 @@ import (
 
 // Page is a page that gets rendered by the main template
 type Page struct {
-	Title               string
-	Tabs                []Tab
-	ShowTabs            bool
-	Sports              []SportEntry
-	TimesMessage        TimesMessage
-	templateFilePattern string
-	PageLoadTime        time.Time
+	Title        string
+	Tabs         []Tab
+	tabName      string
+	ShowTabs     bool
+	Sports       []SportEntry
+	TimesMessage TimesMessage
+	PageLoadTime time.Time
 }
 
 // Tab is a tab which gets rendered by the main template
@@ -55,7 +56,7 @@ type TimesMessage struct {
 	Times    []time.Time
 }
 
-func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, templateFilePattern string) Page {
+func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
 	getSportEntry := func(st db.SportType) SportEntry {
 		return SportEntry{
 			URL:  strings.ToLower(st.Name()),
@@ -67,14 +68,18 @@ func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage,
 		getSportEntry(db.SportTypeNfl),
 	}
 	return Page{
-		Title:               title,
-		Tabs:                tabs,
-		Sports:              sports,
-		ShowTabs:            showTabs,
-		TimesMessage:        timesMessage,
-		templateFilePattern: templateFilePattern,
-		PageLoadTime:        db.GetUtcTime(),
+		Title:        title,
+		Tabs:         tabs,
+		tabName:      tabName,
+		Sports:       sports,
+		ShowTabs:     showTabs,
+		TimesMessage: timesMessage,
+		PageLoadTime: db.GetUtcTime(),
 	}
+}
+
+func (p Page) tabFilePatternGlob() string {
+	return fmt.Sprintf("html/%s/*.html", p.tabName)
 }
 
 // GetID returns the js-safe id for the specified name

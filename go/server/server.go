@@ -101,7 +101,7 @@ func getFirstPathSegment(urlPath string) string {
 
 func writeHomePage(w http.ResponseWriter) error {
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/home/home.html")
+	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "home")
 	return renderTemplate(w, homePage)
 }
 
@@ -130,7 +130,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
-	statsPage := newPage(title, tabs, true, timesMessage, "html/stats/statsTab.html")
+	statsPage := newPage(title, tabs, true, timesMessage, "stats")
 	return renderTemplate(w, statsPage)
 }
 
@@ -169,7 +169,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	}
 	timesMessage := TimesMessage{}
 	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
-	adminPage := newPage(title, tabs, true, timesMessage, "html/admin/*.html")
+	adminPage := newPage(title, tabs, true, timesMessage, "admin")
 	return renderTemplate(w, adminPage)
 }
 
@@ -184,7 +184,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/about/about.html")
+	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "about")
 	return renderTemplate(w, aboutPage)
 }
 
@@ -207,7 +207,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	if err != nil {
 		return fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseGlob(p.templateFilePattern)
+	_, err = t.ParseGlob(p.tabFilePatternGlob())
 	if err != nil {
 		return fmt.Errorf("loading template page files: %w", err)
 	}
