@@ -101,7 +101,7 @@ func getFirstPathSegment(urlPath string) string {
 
 func writeHomePage(w http.ResponseWriter) error {
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/home.html")
+	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "html/home/home.html")
 	return renderTemplate(w, homePage)
 }
 
@@ -130,7 +130,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
-	statsPage := newPage(title, tabs, true, timesMessage, "html/statsTab.html")
+	statsPage := newPage(title, tabs, true, timesMessage, "html/stats/statsTab.html")
 	return renderTemplate(w, statsPage)
 }
 
@@ -160,24 +160,16 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 		yearsData[i] = year
 	}
 
-	adminTabs := []AdminTab{
+	tabs := []Tab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
 		AdminTab{Name: "Friends", Action: "friends", Data: scoreCategoriesData},
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
 		AdminTab{Name: "Clear Cache", Action: "cache"},
 		AdminTab{Name: "Reset Password", Action: "password"},
 	}
-	tabs := make([]Tab, len(adminTabs))
-	templateNames := make([]string, len(adminTabs)+2)
-	templateNames[0] = "html/adminTab.html"
-	templateNames[1] = fmt.Sprintf("html/admin-form-inputs/player-search.html")
-	for i, adminTab := range adminTabs {
-		tabs[i] = adminTab
-		templateNames[i+2] = fmt.Sprintf("html/admin-form-inputs/%s.html", adminTab.Action)
-	}
 	timesMessage := TimesMessage{}
 	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
-	adminPage := newPage(title, tabs, true, timesMessage, templateNames...)
+	adminPage := newPage(title, tabs, true, timesMessage, "html/admin/*.html")
 	return renderTemplate(w, adminPage)
 }
 
@@ -192,7 +184,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 		Times:    []time.Time{lastDeploy.Time},
 	}
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/about.html")
+	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "html/about/about.html")
 	return renderTemplate(w, aboutPage)
 }
 
@@ -206,19 +198,22 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 	fileName := fmt.Sprintf("nate-mlb_%s-%d_%s.csv", es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-
 	return exportToCsv(st, es, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {
-	templateNames := append([]string{"html/main.html", "html/nav.html", "html/tabs.html", "html/footer.html"}, p.templateNames...)
-	t, err := template.ParseFiles(templateNames...)
+	t := template.New("main.html")
+	_, err := t.ParseGlob("html/main/*.html")
 	if err != nil {
-		return err
+		return fmt.Errorf("loading template main files: %w", err)
+	}
+	_, err = t.ParseGlob(p.templateFilePattern)
+	if err != nil {
+		return fmt.Errorf("loading template page files: %w", err)
 	}
 	err = t.Execute(w, p)
 	if err != nil {
-		return fmt.Errorf("rendering templates (%v): %w", templateNames, err)
+		return fmt.Errorf("rendering template: %w", err)
 	}
 	return nil
 }
