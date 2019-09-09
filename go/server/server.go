@@ -118,6 +118,13 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 			ExportURL:     fmt.Sprintf("/%s/export", es.sportType.URL()),
 		}
 	}
+	if len(tabs) == 0 {
+		tabs = []Tab{
+			StatsTab{
+				ScoreCategory: request.ScoreCategory{Name: "No Stats"},
+			},
+		}
+	}
 	timesMessage := TimesMessage{
 		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
 		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
@@ -155,7 +162,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 
 	adminTabs := []AdminTab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
-		AdminTab{Name: "Friends", Action: "friends", Data: friendsData},
+		AdminTab{Name: "Friends", Action: "friends", Data: scoreCategoriesData},
 		AdminTab{Name: "Years", Action: "years", Data: yearsData},
 		AdminTab{Name: "Clear Cache", Action: "cache"},
 		AdminTab{Name: "Reset Password", Action: "password"},

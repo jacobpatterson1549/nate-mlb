@@ -24,8 +24,8 @@ var adminTab = {
         }).then(() => {
             location.reload();
         }).catch(message => {
-            var action = event.target.getAttribute("data-action");
-            var actionInfo = document.getElementById(action + "-info");
+            var action = event.target.getAttribute('data-action');
+            var actionInfo = document.getElementById(action + '-info');
             actionInfo.classList.add('bg-danger');
             actionInfo.innerText = message;
         });

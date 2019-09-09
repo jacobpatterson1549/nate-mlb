@@ -37,4 +37,11 @@ var adminFormItem = {
         item.remove();
         return item;
     },
+
+    disableButtons: function (buttonIds, message) {
+        for (var i = 0; i < buttonIds.length; i++) {
+            document.getElementById(buttonIds[i]).disabled = true;
+            document.getElementById(buttonIds[i]).title = message;
+        }
+    },
 };

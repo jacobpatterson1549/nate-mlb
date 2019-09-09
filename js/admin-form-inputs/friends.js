@@ -14,7 +14,7 @@ var friendsForm = {
     },
 
     create: function (id, name, displayOrder, nameLabel) {
-        var template = document.getElementById("friend-template");
+        var template = document.getElementById('friend-template');
         var clone = document.importNode(template.content, true);
         var friend = clone.querySelector('.form-group');
         friend.id = 'friend-' + id;
@@ -26,17 +26,21 @@ var friendsForm = {
         friend.querySelector('.friend-display-order').name = 'friend-' + id + '-display-order';
         friend.querySelector('.friend-display-order').value = displayOrder;
         friend.querySelector('.friend-id').value = id;
-        var friends = document.getElementById("friends");
+        var friends = document.getElementById('friend-form-items');
         friends.appendChild(clone);
         return friend;
     },
 
     init: function () {
-        var friends = document.getElementById("friend-form-items").children;
+        if (document.getElementById('friend-template') == null) {
+            adminFormItem.disableButtons(['add-friend-button', 'friends-form-submit-button'], 'Requires Year');
+            return;
+        }
+        var friends = document.getElementById('friend-form-items').children;
         for (var i = 0; i < friends.length; i++) {
-            var id = friends[i].querySelector(".id").innerText;
-            var name = friends[i].querySelector(".name").innerText;
-            var displayOrder = friends[i].querySelector(".displayOrder").innerText;
+            var id = friends[i].querySelector('.id').innerText;
+            var name = friends[i].querySelector('.name').innerText;
+            var displayOrder = friends[i].querySelector('.displayOrder').innerText;
             var newFriend = friendsForm.create(id, name, displayOrder, name);
             friends[i].replaceWith(newFriend);
         }

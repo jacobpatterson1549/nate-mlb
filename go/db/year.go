@@ -39,9 +39,6 @@ func GetYears(st SportType) ([]Year, error) {
 		}
 		i++
 	}
-	if !activeYearFound && len(years) > 0 {
-		return years, errors.New("no active year when retrieving year list")
-	}
 	return years, nil
 }
 
@@ -71,9 +68,6 @@ func SaveYears(st SportType, futureYears []Year) error {
 			insertYears = append(insertYears, year.Value)
 		}
 		delete(previousYearsMap, year.Value)
-	}
-	if !activeYearPresent {
-		return fmt.Errorf("problem: must have active year: %v", futureYears)
 	}
 
 	queries := make(chan writeSQLFunction, len(insertYears)+len(previousYearsMap)+2)

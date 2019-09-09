@@ -1,15 +1,7 @@
 var yearsForm = {
     removeYear: function () {
         var year = event.target.parentNode;
-        var removedYearChecked = year.querySelector('.year-radio').checked;
         year.remove();
-        if (removedYearChecked) {
-            var yearsParent = document.getElementById('years');
-            var yearRadios = yearsParent.querySelectorAll('.year-radio');
-            if (yearRadios.length > 0) {
-                yearRadios[yearRadios.length - 1].checked = true;
-            }
-        }
     },
 
     addYear: function () {
@@ -22,33 +14,33 @@ var yearsForm = {
                 return;
             }
         }
-        var newYear = yearsForm.createYear(year, "true");
+        var newYear = yearsForm.createYear(year, 'true');
         newYear.querySelector('.year-radio').focus();
     },
 
     createYear: function (yearNum, active) {
-        var template = document.getElementById("year-template");
+        var template = document.getElementById('year-template');
         var clone = document.importNode(template.content, true);
         var newYear = clone.querySelector('.form-group');
         newYear.id = 'year-' + yearNum;
         newYear.querySelector('.year-radio').id = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-radio').value = yearNum;
-        if (active == "true") {
+        if (active == 'true') {
             newYear.querySelector('.year-radio').checked = true;
         }
         newYear.querySelector('.year-label').htmlFor = 'year-' + yearNum + '-active';
         newYear.querySelector('.year-label').innerText = yearNum;
         newYear.querySelector('.year-input').value = yearNum;
-        var years = document.getElementById("years");
+        var years = document.getElementById('year-form-items');
         years.appendChild(clone);
         return newYear;
     },
 
     initYears: function () {
-        var years = document.getElementById("year-form-items").children;
+        var years = document.getElementById('year-form-items').children;
         for (var i = 0; i < years.length; i++) {
-            var value = years[i].querySelector(".value").innerText;
-            var active = years[i].querySelector(".active").innerText;
+            var value = years[i].querySelector('.value').innerText;
+            var active = years[i].querySelector('.active').innerText;
             var newYear = yearsForm.createYear(value, active);
             years[i].replaceWith(newYear);
         }
