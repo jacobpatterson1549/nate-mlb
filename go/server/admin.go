@@ -44,7 +44,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	}
 	playerTypeIDI, err := strconv.Atoi(playerTypeID)
 	if err != nil {
-		return nil, fmt.Errorf("converting playerTypeID (%v) to number: %w", playerTypeID, err)
+		return nil, fmt.Errorf("converting playerTypeID %v' to number: %w", playerTypeID, err)
 	}
 	playerType := db.PlayerType(playerTypeIDI)
 	activePlayersOnly := r.FormValue("apo")
@@ -228,7 +228,7 @@ func getYear(r *http.Request, yearS string) (db.Year, error) {
 
 	yearI, err := strconv.Atoi(yearS)
 	if err != nil {
-		return year, fmt.Errorf("converting year (%v) to number: %w", year, err)
+		return year, fmt.Errorf("converting year '%v to number: %w", year, err)
 	}
 	year.Value = yearI
 
