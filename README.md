@@ -35,12 +35,12 @@ The following environment variables must be set to run the server:
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 
 * **1-Command** To set environment variables, compile, and run the server with one command, run the command below and open a browser to http://<SERVER_HOST>:<SERVER_PORT> (eg: http://localhost:8000)
-```
+```bash
 PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> go run main.go
 ```
 
 * **Heroku** To run locally with the [Heroku CLI](https://github.com/heroku/cli), create an `.env` file in the project root.  It should contain the environment variables on separate lines.  Run with `heroku local`.  Example .env file: 
-```
+```bash
 PORT=<SERVER_PORT>
 DATABASE_URL=<DATA_SOURCE_NAME>
 ```

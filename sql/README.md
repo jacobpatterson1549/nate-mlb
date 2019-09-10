@@ -7,10 +7,16 @@ To create and set up the database, run the Database Creation code after setting 
 * DATABASE_PORT : The port used to connect to the database.  Eg: 5432
 * DATABASE_USERNAME: The username of the user not run all database operations as.  Eg: nate
 * DATABASE_PASSWORD: The password of the user.
-The DATABASE_URL environment variable will be `postgres://<DATABASE_USERNAME>:<DATABASE_PASSWORD>@<DATABASE_IP_ADDRESS>:<DATABASE_PORT>/<DATABASE_NAME>`.
+
+The DATABASE_URL environment variable will be: `postgres://<DATABASE_USERNAME>:<DATABASE_PASSWORD>@<DATABASE_IP_ADDRESS>:<DATABASE_PORT>/<DATABASE_NAME>`
+
 The following template can be used to create the database and user.
-```
+```bash
+# start psql:
 sudo -u postgres psql
+```
+```sql
+-- in psql console:
 CREATE DATABASE <DATABASE_NAME>;
 CREATE USER <DATABASE_USERNAME> WITH ENCRYPTED PASSWORD '<DATABASE_PASSWORD>';
 GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
@@ -19,13 +25,13 @@ GRANT ALL PRIVILEGES ON DATABASE <DATABASE_NAME> TO <DATABASE_USERNAME>;
 
 ### Admin Password Initialization	
 To set the admin password, make a post to the `/admin/password` endpoint with a `password` form parameter.  See example below.  This should be done immediately after deploying the server.  Note that the admin password does not have to be the database password, it should be different.
-```curl -X POST -d 'password=<ADMIN_PASSWORD>' -i http://<SERVER_HOST:<SERVER_PORT>/admin/password
+```bash
+curl -X POST -d 'password=<ADMIN_PASSWORD>' -i http://<SERVER_HOST:<SERVER_PORT>/admin/password
 ```
 
 ### Remove Database
 To remove all remnants of the database, run the code below.  This permanently deletes the database, which includes saved data, tables, indexes, functions, and user credentials.
-```sudo -u postgres psql
+```sql
 DROP DATABASE <DATABASE_NAME>;
 DROP USER <DATABASE_USERNAME>;
-\quit
 ```
