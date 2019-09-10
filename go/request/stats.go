@@ -34,6 +34,7 @@ type ScoreCategory struct {
 type FriendScore struct {
 	ID           db.ID
 	Name         string
+	ScoreType    string
 	Score        int
 	DisplayOrder int
 	PlayerScores []PlayerScore
@@ -99,16 +100,17 @@ func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameS
 	}
 	friendScores := make([]FriendScore, len(fpi.Friends))
 	for i, friend := range fpi.Friends {
-		friendScores[i] = newFriendScore(friend, friendPlayers[friend.ID], playerNameScores, onlySumTopTwoPlayerScores)
+		friendScores[i] = newFriendScore(friend, playerType, friendPlayers[friend.ID], playerNameScores, onlySumTopTwoPlayerScores)
 	}
 	return friendScores
 }
 
-func newFriendScore(friend db.Friend, players []db.Player, playerNameScores map[db.ID]nameScore, onlySumTopTwoPlayerScores bool) FriendScore {
+func newFriendScore(friend db.Friend, playerType db.PlayerType, players []db.Player, playerNameScores map[db.ID]nameScore, onlySumTopTwoPlayerScores bool) FriendScore {
 	playerScores := newPlayerScores(players, playerNameScores)
 	return FriendScore{
 		ID:           friend.ID,
 		Name:         friend.Name,
+		ScoreType:    playerType.ScoreType(),
 		Score:        getFriendScore(playerScores, onlySumTopTwoPlayerScores),
 		DisplayOrder: friend.DisplayOrder,
 		PlayerScores: playerScores,
