@@ -1,4 +1,4 @@
-# Database Setup
+## Database Setup
 
 ### Create database
 To create and set up the database, run the Database Creation code after setting the following fields
