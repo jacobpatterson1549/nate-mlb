@@ -25,7 +25,7 @@ func init() {
 
 	databaseDriverName = "postgres"
 
-	dataSourceName, ok = os.LookupEnv("DATABASE_URL")
+	dataSourceName, ok = os.LookupEnv(environmentVariableDatabaseURL)
 	if !ok {
 		log.Fatal(environmentVariableDatabaseURL, " environment variable not set")
 	}
