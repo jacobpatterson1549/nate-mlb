@@ -38,7 +38,7 @@ func (pt PlayerType) Name() string {
 	return playerTypeNames[pt]
 }
 
-// Description gets the name for a PlayerType
+// Description gets the description for a PlayerType
 func (pt PlayerType) Description() string {
 	return playerTypeDescriptions[pt]
 }
