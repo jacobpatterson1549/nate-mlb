@@ -59,7 +59,7 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 		}
 	}
 	playerNameScores := playerNameScoresFromSourceIDMap(fpi.Players[pt], sourceIDNameScores)
-	return newScoreCategory(fpi, pt, playerNameScores, false), nil
+	return newScoreCategory(fpi, pt, playerNameScores, true), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
