@@ -31,6 +31,7 @@ type NflPlayerStats struct {
 	PassingTD   int `json:"6,string"`
 	RushingTD   int `json:"15,string"`
 	ReceivingTD int `json:"22,string"`
+	ReturnTD    int `json:"28,string"`
 }
 
 // RequestScoreCategory implements the ScoreCategorizer interface
@@ -48,13 +49,9 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 	sourceIDNameScores := make(map[db.SourceID]nameScore, len(sourceIDs))
 	for _, nflPlayer := range nflPlayerList.Players {
 		if _, ok := sourceIDs[nflPlayer.ID]; ok {
-			score, err := nflPlayer.Stats.stat(pt)
-			if err != nil {
-				return scoreCategory, err
-			}
 			sourceIDNameScores[nflPlayer.ID] = nameScore{
 				name:  nflPlayer.Name,
-				score: score,
+				score: nflPlayer.Stats.stat(pt),
 			}
 		}
 	}
@@ -102,7 +99,7 @@ func (nflPlayer NflPlayer) matches(pt db.PlayerType) bool {
 	}
 }
 
-func (nflPlayerStat NflPlayerStats) stat(pt db.PlayerType) (int, error) {
+func (nflPlayerStat NflPlayerStats) stat(pt db.PlayerType) int {
 	score := 0
 	if pt == db.PlayerTypeNflQB {
 		score += nflPlayerStat.PassingTD
@@ -112,6 +109,7 @@ func (nflPlayerStat NflPlayerStats) stat(pt db.PlayerType) (int, error) {
 	}
 	if pt == db.PlayerTypeNflMisc {
 		score += nflPlayerStat.ReceivingTD
+		score += nflPlayerStat.ReturnTD
 	}
-	return score, nil
+	return score
 }
