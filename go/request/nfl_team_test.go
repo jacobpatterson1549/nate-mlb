@@ -42,13 +42,14 @@ var nflTeamWinsTests = []nflTeamWinsTest{
 func TestNflTeamWins(t *testing.T) {
 	for i, test := range nflTeamWinsTests {
 		got, err := test.nflTeam.wins()
-		if test.wantError {
+		switch {
+		case test.wantError:
 			if err == nil {
 				t.Errorf("Test %v: wanted error", i)
 			}
-		} else if err != nil {
+		case err != nil:
 			t.Errorf("Test %v: %v", i, err)
-		} else if test.want != got {
+		case test.want != got:
 			t.Errorf("Test %v: wanted %v, got %v", i, test.want, got)
 		}
 	}

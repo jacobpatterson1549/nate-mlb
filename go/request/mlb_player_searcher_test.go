@@ -86,14 +86,17 @@ func TestGetPlayerSearchResults(t *testing.T) {
 		}
 		var got []PlayerSearchResult
 		got, err = mlbPlayerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(test.playerType)
-		if test.wantError {
+		switch {
+		case test.wantError:
 			if err == nil {
 				t.Errorf("Test %v: wanted error", i)
 			}
-		} else if err != nil {
+		case err != nil:
 			t.Errorf("Test %v: %v", i, err)
-		} else if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
-			t.Errorf("Test %v: %v", i, err)
+		default:
+			if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
+				t.Errorf("Test %v: %v", i, err)
+			}
 		}
 	}
 }
