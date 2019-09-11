@@ -122,7 +122,8 @@ func TestUnmarshalStructJson(t *testing.T) {
 		gotJSON, err2 := json.Marshal(test.got)
 		wantJSON, err3 := json.Marshal(test.want)
 		switch {
-		case err1 != nil && err2 != nil || err3 != nil:
+		case err1 != nil && err2 != nil,
+			err3 != nil:
 			t.Errorf("Test %v:\n%v/%v/%v", i, err1, err2, err3)
 		case string(wantJSON) != string(gotJSON):
 			t.Errorf("Test %v:\nwanted   %+v\nbut got  %+v\nfor json %v", i, test.want, test.got, test.interfaceJSON)
