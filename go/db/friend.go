@@ -48,9 +48,10 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	var updateFriends []Friend
 	for _, friend := range futureFriends {
 		previousFriend, ok := previousFriends[friend.ID]
-		if !ok {
+		switch {
+		case !ok:
 			insertFriends = append(insertFriends, friend)
-		} else if friend.DisplayOrder != previousFriend.DisplayOrder || friend.Name != previousFriend.Name {
+		case friend.DisplayOrder != previousFriend.DisplayOrder || friend.Name != previousFriend.Name:
 			updateFriends = append(updateFriends, friend)
 		}
 		delete(previousFriends, friend.ID)

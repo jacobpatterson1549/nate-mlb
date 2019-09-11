@@ -53,9 +53,10 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	var updatePlayers []Player
 	for _, player := range futurePlayers {
 		previousPlayer, ok := previousPlayers[player.ID]
-		if !ok {
+		switch {
+		case !ok:
 			insertPlayers = append(insertPlayers, player)
-		} else if player.DisplayOrder != previousPlayer.DisplayOrder { // can only update display order
+		case player.DisplayOrder != previousPlayer.DisplayOrder: // can only update display order
 			updatePlayers = append(updatePlayers, player)
 		}
 		delete(previousPlayers, player.ID)
