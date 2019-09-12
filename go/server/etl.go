@@ -28,11 +28,8 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 		etlRefreshTime: previousMidnight(currentTime),
 	}
 	stat, err := db.GetStat(st)
-	if err != nil {
+	if err != nil || stat == nil {
 		return es, err
-	}
-	if stat == nil {
-		return es, nil
 	}
 	es.sportTypeName = st.Name()
 	es.sportType = st
