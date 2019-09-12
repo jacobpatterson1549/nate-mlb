@@ -61,11 +61,12 @@ func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 		if rollbackErr != nil {
 			err = fmt.Errorf("%w, ROLLBACK ERROR: %w", err, rollbackErr)
 		}
-	} else {
-		err = tx.Commit()
-		if err != nil {
-			err = fmt.Errorf("committing transaction to save: %w", err)
-		}
+		quit <- err
+		return
+	}
+	err = tx.Commit()
+	if err != nil {
+		err = fmt.Errorf("committing transaction to save: %w", err)
 	}
 	quit <- err
 }
