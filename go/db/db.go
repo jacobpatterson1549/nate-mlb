@@ -42,7 +42,8 @@ func GetUtcTime() time.Time {
 func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
 	tx, err := db.Begin()
 	if err != nil {
-		err = fmt.Errorf("starting transaction to save: %w", err)
+		quit <- fmt.Errorf("starting transaction to save: %w", err)
+		return
 	}
 	var result sql.Result
 	for sqlFunction := range queries {
