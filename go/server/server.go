@@ -106,8 +106,8 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-	tabs := make([]Tab, len(es.ScoreCategories))
-	for i, sc := range es.ScoreCategories {
+	tabs := make([]Tab, len(es.scoreCategories))
+	for i, sc := range es.scoreCategories {
 		tabs[i] = StatsTab{
 			ScoreCategory: sc,
 			ExportURL:     fmt.Sprintf("/%s/export", es.sportType.URL()),
@@ -122,7 +122,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	}
 	timesMessage := TimesMessage{
 		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
-		Times:    []time.Time{es.etlRefreshTime, es.EtlTime},
+		Times:    []time.Time{es.etlRefreshTime, es.etlTime},
 	}
 	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
 	statsPage := newPage(title, tabs, true, timesMessage, "stats")
@@ -138,14 +138,14 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-	scoreCategoriesData := make([]interface{}, len(es.ScoreCategories))
-	for i, sc := range es.ScoreCategories {
+	scoreCategoriesData := make([]interface{}, len(es.scoreCategories))
+	for i, sc := range es.scoreCategories {
 		scoreCategoriesData[i] = sc
 	}
 	var friendsData []interface{}
-	if len(es.ScoreCategories) > 0 {
-		friendsData = make([]interface{}, len(es.ScoreCategories[0].FriendScores))
-		for i, fs := range es.ScoreCategories[0].FriendScores {
+	if len(es.scoreCategories) > 0 {
+		friendsData = make([]interface{}, len(es.scoreCategories[0].FriendScores))
+		for i, fs := range es.scoreCategories[0].FriendScores {
 			friendsData[i] = fs
 		}
 	}
@@ -185,7 +185,7 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-	asOfDate := es.EtlTime.Format("2006-01-02")
+	asOfDate := es.etlTime.Format("2006-01-02")
 	fileName := fmt.Sprintf("nate-mlb_%s-%d_%s.csv", es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)

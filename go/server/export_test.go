@@ -9,7 +9,7 @@ import (
 
 func TestCreateCsvRecords(t *testing.T) {
 	es := EtlStats{
-		ScoreCategories: []request.ScoreCategory{
+		scoreCategories: []request.ScoreCategory{
 			{
 				Name: "teams",
 				FriendScores: []request.FriendScore{

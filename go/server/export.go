@@ -25,7 +25,7 @@ func createCsvRecords(es EtlStats) [][]string {
 	title := fmt.Sprintf("%d %s scores", es.year, es.sportTypeName)
 	records[0] = []string{"nate-mlb", title}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
-	for i, sc := range es.ScoreCategories {
+	for i, sc := range es.scoreCategories {
 		if i != 0 {
 			records = append(records, nil)
 		}

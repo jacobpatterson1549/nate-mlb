@@ -12,13 +12,12 @@ import (
 
 // EtlStats contains ScoreCategories that were stored at a specific time
 type EtlStats struct {
-	EtlTime         time.Time
-	ScoreCategories []request.ScoreCategory
-	// do not serialize these fields:
-	etlRefreshTime time.Time
-	sportTypeName  string
-	sportType      db.SportType
-	year           int
+	etlTime         time.Time
+	scoreCategories []request.ScoreCategory
+	etlRefreshTime  time.Time
+	sportTypeName   string
+	sportType       db.SportType
+	year            int
 }
 
 // getEtlStats retrieves, calculates, and caches the player stats
@@ -122,7 +121,7 @@ func (es *EtlStats) setStat(stat db.Stat) error {
 	if err != nil {
 		return fmt.Errorf("unmarshalling ScoreCategories from Stat etlJSON: %w", err)
 	}
-	es.EtlTime = *stat.EtlTimestamp
-	es.ScoreCategories = scoreCategories
+	es.etlTime = *stat.EtlTimestamp
+	es.scoreCategories = scoreCategories
 	return nil
 }
