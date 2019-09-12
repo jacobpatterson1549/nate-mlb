@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -85,8 +84,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 	case r.Method == "POST" && r.URL.Path == "/admin/password":
 		handleAdminPassword(w, r)
 	default:
-		err = errors.New(http.StatusText(http.StatusNotFound))
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 	return err
 }
