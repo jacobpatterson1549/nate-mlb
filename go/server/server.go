@@ -75,7 +75,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 		err = writeStatsPage(st, w)
 	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/export":
 		err = exportStats(st, w)
-	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin":
+	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/admin":
 		err = writeAdminPage(st, w)
 	case r.Method == "POST" && r.URL.Path == "/"+firstPathSegment+"/admin":
 		handleAdminPost(st, firstPathSegment, w, r)
