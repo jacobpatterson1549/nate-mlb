@@ -38,24 +38,26 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	es.sportType = st
 	es.year = stat.Year
 	if stat.EtlTimestamp == nil || stat.EtlJSON == nil || stat.EtlTimestamp.Before(es.etlRefreshTime) {
-		es.ScoreCategories, err = es.getScoreCategories(st)
+		scoreCategories, err := getScoreCategories(st, es.year)
 		if err != nil {
 			return es, err
 		}
-		es.EtlTime = currentTime
-		*stat, err = es.toStat()
+		etlJSON, err := json.Marshal(scoreCategories)
 		if err != nil {
-			return es, err
+			return es, fmt.Errorf("converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
 		}
+		stat.EtlJSON = &etlJSON
+		stat.EtlTimestamp = &currentTime
 		err = db.SetStat(*stat)
-	} else {
-		es.EtlTime = *stat.EtlTimestamp
-		err = es.setScoreCategories(*stat)
+		if err != nil {
+			return es, err
+		}
 	}
+	err = es.setStat(*stat)
 	return es, err
 }
 
-func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory, error) {
+func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, error) {
 	friends, err := db.GetFriends(st)
 	if err != nil {
 		return nil, err
@@ -65,13 +67,11 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 		return nil, err
 	}
 	playerTypes := db.GetPlayerTypes(st)
-	fpi := request.NewFriendPlayerInfo(friends, players, playerTypes, es.year)
-
-	numScoreCategories := len(playerTypes)
+	fpi := request.NewFriendPlayerInfo(friends, players, playerTypes, year)
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(playerTypes))
 	quit := make(chan error)
 	for _, playerType := range playerTypes {
-		go es.getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
+		go getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
 	}
 	scoreCategories := []request.ScoreCategory{}
 	finishedScoreCategories := 0
@@ -83,7 +83,7 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 			scoreCategories = append(scoreCategories, scoreCategory)
 			finishedScoreCategories++
 		}
-		if finishedScoreCategories == numScoreCategories {
+		if finishedScoreCategories == len(playerTypes) {
 			sort.Slice(scoreCategories, func(i, j int) bool {
 				return scoreCategories[i].PlayerType.DisplayOrder() < scoreCategories[j].PlayerType.DisplayOrder()
 			})
@@ -92,17 +92,18 @@ func (es EtlStats) getScoreCategories(st db.SportType) ([]request.ScoreCategory,
 	}
 }
 
-func (es EtlStats) getScoreCategory(playerType db.PlayerType, fpi request.FriendPlayerInfo, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
-	if scoreCategorizer, ok := request.ScoreCategorizers[playerType]; ok {
-		scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
-		if err != nil {
-			quit <- err
-			return
-		}
-		scoreCategories <- scoreCategory
-	} else {
+func getScoreCategory(playerType db.PlayerType, fpi request.FriendPlayerInfo, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+	scoreCategorizer, ok := request.ScoreCategorizers[playerType]
+	if !ok {
 		quit <- fmt.Errorf("no scoreCategorizer for player type %v", playerType)
+		return
 	}
+	scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
+	if err != nil {
+		quit <- err
+		return
+	}
+	scoreCategories <- scoreCategory
 }
 
 // previousMidnight returns the previous midnight relative to Honolulu time (UTC-10)
@@ -114,22 +115,8 @@ func previousMidnight(t time.Time) time.Time {
 	return midnight.In(t.Location())
 }
 
-func (es EtlStats) toStat() (db.Stat, error) {
-	var stat db.Stat
-	etlJSON, err := json.Marshal(es.ScoreCategories)
-	if err != nil {
-		return stat, fmt.Errorf("converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
-	}
-	etlJSONText := string(etlJSON)
-
-	stat.SportType = es.sportType
-	stat.Year = es.year
-	stat.EtlTimestamp = &es.EtlTime
-	stat.EtlJSON = &etlJSONText
-	return stat, nil
-}
-
-func (es *EtlStats) setScoreCategories(stat db.Stat) error {
+// setStat sets the etlTime and scoreCategories (etlJson) from the Stat
+func (es *EtlStats) setStat(stat db.Stat) error {
 	if stat.EtlJSON == nil {
 		return fmt.Errorf("stat has no etlJSON: %v", stat)
 	}
@@ -138,6 +125,7 @@ func (es *EtlStats) setScoreCategories(stat db.Stat) error {
 	if err != nil {
 		return fmt.Errorf("unmarshalling ScoreCategories from Stat etlJSON: %w", err)
 	}
+	es.EtlTime = *stat.EtlTimestamp
 	es.ScoreCategories = scoreCategories
 	return nil
 }

@@ -12,7 +12,7 @@ type Stat struct {
 	SportType    SportType
 	Year         int
 	EtlTimestamp *time.Time
-	EtlJSON      *string
+	EtlJSON      *[]byte
 }
 
 // GetStat gets the Stat for the active year, nil if there is not active stat
