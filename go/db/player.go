@@ -7,10 +7,10 @@ import (
 // Player maps a player (of a a specific PlayerType) to a Friend.
 type Player struct {
 	ID           ID
-	DisplayOrder int
 	PlayerType   PlayerType
 	SourceID     SourceID
 	FriendID     ID
+	DisplayOrder int
 }
 
 // SourceID is the id used to retrieve information about the player from external sources
