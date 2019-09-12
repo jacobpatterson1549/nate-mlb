@@ -49,8 +49,8 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 		previousPlayers[player.ID] = player
 	}
 
-	var insertPlayers []Player
-	var updatePlayers []Player
+	insertPlayers := make([]Player, 0, len(futurePlayers))
+	updatePlayers := make([]Player, 0, len(futurePlayers))
 	for _, player := range futurePlayers {
 		previousPlayer, ok := previousPlayers[player.ID]
 		switch {

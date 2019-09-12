@@ -44,8 +44,8 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 		previousFriends[friend.ID] = friend
 	}
 
-	var insertFriends []Friend
-	var updateFriends []Friend
+	insertFriends := make([]Friend, 0, len(futureFriends))
+	updateFriends := make([]Friend, 0, len(futureFriends))
 	for _, friend := range futureFriends {
 		previousFriend, ok := previousFriends[friend.ID]
 		switch {

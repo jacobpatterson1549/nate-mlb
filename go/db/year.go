@@ -53,7 +53,7 @@ func SaveYears(st SportType, futureYears []Year) error {
 		previousYearsMap[year.Value] = true
 	}
 
-	var insertYears []int
+	insertYears := make([]int, 0, len(futureYears))
 	var activeYear int
 	activeYearPresent := false
 	for _, year := range futureYears {
