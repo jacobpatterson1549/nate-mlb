@@ -20,7 +20,6 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
 		return fmt.Errorf("reading static dir: %w", err)
@@ -31,7 +30,6 @@ func Run(portNumber int, databaseDriverName string, dataSourceName string) error
 	}
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	http.HandleFunc("/", handleRoot)
-
 	addr := fmt.Sprintf(":%d", portNumber)
 	fmt.Printf("starting server - locally running at http://127.0.0.1%s\n", addr)
 	err = http.ListenAndServe(addr, nil)
@@ -108,7 +106,6 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-
 	tabs := make([]Tab, len(es.ScoreCategories))
 	for i, sc := range es.ScoreCategories {
 		tabs[i] = StatsTab{
@@ -141,7 +138,6 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-
 	scoreCategoriesData := make([]interface{}, len(es.ScoreCategories))
 	for i, sc := range es.ScoreCategories {
 		scoreCategoriesData[i] = sc
@@ -157,7 +153,6 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	for i, year := range years {
 		yearsData[i] = year
 	}
-
 	tabs := []Tab{
 		AdminTab{Name: "Players", Action: "players", Data: scoreCategoriesData},
 		AdminTab{Name: "Friends", Action: "friends", Data: scoreCategoriesData},
@@ -176,7 +171,6 @@ func writeAboutPage(w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-
 	timesMessage := TimesMessage{
 		Messages: []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
@@ -191,7 +185,6 @@ func exportStats(st db.SportType, w http.ResponseWriter) error {
 	if err != nil {
 		return err
 	}
-
 	asOfDate := es.EtlTime.Format("2006-01-02")
 	fileName := fmt.Sprintf("nate-mlb_%s-%d_%s.csv", es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
