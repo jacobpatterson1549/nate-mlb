@@ -70,14 +70,14 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 	for _, playerType := range playerTypes {
 		go getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
 	}
-	scoreCategories := []request.ScoreCategory{}
+	scoreCategories := make([]request.ScoreCategory, len(playerTypes))
 	finishedScoreCategories := 0
 	for {
 		select {
 		case err = <-quit:
 			return nil, err
 		case scoreCategory := <-scoreCategoriesCh:
-			scoreCategories = append(scoreCategories, scoreCategory)
+			scoreCategories[finishedScoreCategories] = scoreCategory
 			finishedScoreCategories++
 		}
 		if finishedScoreCategories == len(playerTypes) {
