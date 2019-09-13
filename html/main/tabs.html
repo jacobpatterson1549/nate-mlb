@@ -14,11 +14,11 @@
     <div id="main-tabs-content" class="tab-content" role="main">
         {{range .Tabs -}}
         <div id="{{.GetID .GetName}}" class="tab-pane" role="tabpanel">
-            {{template "tab" .}}
+            {{template "tab.html" .}}
         </div>
         {{end -}}
     </div>
 </div>
 {{- else -}}
-{{- template "tab" . -}}
+{{- template "tab.html" . -}}
 {{end}}
