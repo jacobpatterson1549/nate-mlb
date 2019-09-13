@@ -5,12 +5,12 @@
         <th scope="col">Score</th>
     </thead>
     <tbody>
-        {{range .PlayerScores -}}
+        {{ range .PlayerScores -}}
         <tr>
             <td>{{.Name}}</td>
             <td>{{.Score}}</td>
         </tr>
-        {{end -}}
+        {{ end -}}
     </tbody>
     <tfoot>
         <tr>

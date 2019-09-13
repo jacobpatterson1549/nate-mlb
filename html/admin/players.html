@@ -3,25 +3,25 @@
 <script defer src="/js/admin/players.js"></script>
 <fieldset>
     <legend>Players</legend>
-    {{- if .Data }}
+    {{ if .Data -}}
     <div class="form-group">
         <label for="select-player-type">Player Type</label>
         <select id="select-player-type" class="form-control" onchange="playersForm.refresh()()">
-            {{range .Data -}}
+            {{ range .Data -}}
             <option value="{{.PlayerType}}">{{.Name}}</option>
-            {{end -}}
+            {{ end -}}
         </select>
     </div>
-    {{- if (index .Data 0).FriendScores }}
+    {{ if (index .Data 0).FriendScores -}}
     <div class="form-group">
         <label for="select-friend">Friend</label>
         <select id="select-friend" class="form-control" onchange="playersForm.refresh()">
-            {{range (index .Data 0).FriendScores -}}
+            {{ range (index .Data 0).FriendScores -}}
             <option value="{{.ID}}">{{.Name}}</option>
-            {{end -}}
+            {{ end -}}
         </select>
     </div>
-    {{end -}}
+    {{ end -}}
     <template id="player-template">
         <div class="form-group row" id="player-0">
             <label class="player-name-label form-label col">?</label>
@@ -40,11 +40,11 @@
         </div>
     </template>
     <div id="player-form-items">
-        {{range $scoreCategory := .Data -}}
+        {{ range $scoreCategory := .Data -}}
         <div class="score-category player-type-{{.PlayerType}}">
-            {{range $friendScore := $scoreCategory.FriendScores -}}
+            {{ range $friendScore := $scoreCategory.FriendScores -}}
             <div class="friend-score friend-id-{{.ID}} container">
-                {{range $index, $playerScore := $friendScore.PlayerScores -}}
+                {{ range $index, $playerScore := $friendScore.PlayerScores -}}
                 <div>
                     <div class="id">{{$playerScore.ID}}</div>
                     <div class="playerName">{{$playerScore.Name}}</div>
@@ -53,13 +53,13 @@
                     <div class="playerType">{{$scoreCategory.PlayerType}}</div>
                     <div class="friendID">{{$friendScore.ID}}</div>
                 </div>
-                {{end -}}
+                {{ end -}}
             </div>
-            {{end -}}
+            {{ end -}}
         </div>
-        {{end -}}
+        {{ end -}}
     </div>
-    {{end -}}
+    {{ end -}}
 </fieldset>
 <div class="form-group">
     <button class="btn btn-secondary" type="button" id="openPlayerSearchModal"

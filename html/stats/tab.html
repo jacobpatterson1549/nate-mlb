@@ -1,7 +1,7 @@
-{{- if .ScoreCategory.FriendScores }}
-{{template "scoreCategory.html" .ScoreCategory}}
+{{ if .ScoreCategory.FriendScores -}}
+{{ template "scoreCategory.html" .ScoreCategory }}
 <a href="{{.ExportURL}}" download>CSV Spreadsheet Export</a>
 {{- else -}}
 <script defer src="/js/stats/tab.js"></script>
 <p>Configure on the <a data-relative-path="/admin" class="stats-admin-link">Admin</a> page.</p>
-{{end}}
+{{ end -}}

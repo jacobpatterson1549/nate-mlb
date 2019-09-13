@@ -2,7 +2,7 @@
 <script defer src="/js/admin/friends.js"></script>
 <fieldset>
     <legend>Friends</legend>
-    {{ if .Data }}
+    {{ if .Data -}}
     <template id="friend-template">
         <div class="form-group row" id="friend-0">
             <label class="friend-name-label form-label col" for="friend-0-name">?</label>
@@ -19,15 +19,15 @@
         </div>
     </template>
     <div id="friend-form-items" class="container">
-        {{range $index, $friendScore := (index .Data 0).FriendScores -}}
+        {{ range $index, $friendScore := (index .Data 0).FriendScores -}}
         <div>
             <div class="id">{{$friendScore.ID}}</div>
             <div class="name">{{$friendScore.Name}}</div>
             <div class="displayOrder">{{$index}}</div>
         </div>
-        {{end -}}
+        {{ end -}}
     </div>
-    {{end -}}
+    {{ end -}}
 </fieldset>
 <div class="form-group">
     <button class="btn btn-secondary" type="button" id="add-friend-button" onclick="friendsForm.add()">Add Friend</button>

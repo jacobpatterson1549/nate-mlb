@@ -1,18 +1,18 @@
 <script defer src="/js/main/footer.js"></script>
 <div role="contentinfo">
-    {{if .TimesMessage.Messages -}}
+    {{ if .TimesMessage.Messages -}}
     <div id="times-message">
         <div class="messages">
-            {{range .TimesMessage.Messages -}}
+            {{ range .TimesMessage.Messages -}}
             <div>{{.}}</div>
-            {{end -}}
+            {{ end -}}
         </div>
         <div class="times">
-            {{range .TimesMessage.Times -}}
+            {{ range .TimesMessage.Times -}}
             <div>{{.}}</div>
-            {{end -}}
+            {{ end -}}
         </div>
     </div>
-    {{end -}}
+    {{ end -}}
     <div id="page-load-message">{{.PageLoadTime}}</div>
 </div>
