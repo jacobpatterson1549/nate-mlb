@@ -3,12 +3,12 @@ A web server which compares MLB baseball scores and NFL football scores.
 
 Built with the [Go](https://github.com/golang/go) programming language.
 
-Runs on a [Postgresql](https://github.com/postgres/postgres) database.
+Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 
 
 ## Dependencies
 * New dependencies are automatically added to [go.mod](go.mod) when the project is built.
-* [pq](https://github.com/lib/pq) (Postgresql Driver)
+* [pq](https://github.com/lib/pq) (PostgreSQL Driver)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
@@ -17,9 +17,7 @@ Runs on a [Postgresql](https://github.com/postgres/postgres) database.
 ## Installation
 
 ### Database
-The server expects to use Postgresql as the database, although iit should be easy to use r database by tweaking the `databaseDriverName` variable in [main.go](main.go).
-* **Postgresql** See [Database Setup](sql/README.md) for instructions on creating the database.
-* **Admin Password** See [Database Setup](sql/README.md) for how to set the admin password for the application.
+The server expects to use PostgreSQL database.  See [Database Setup](sql/README.md) for instructions on creating the database and admin password initialization steps.
 
 ### Set environment variables
 The following environment variables must be set to run the server:
