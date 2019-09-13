@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION add_user(username VARCHAR, password TEXT) RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION add_user(username VARCHAR, password VARCHAR) RETURNS BOOLEAN
 AS $$
 WITH inserted AS (
 INSERT INTO users (username, password)

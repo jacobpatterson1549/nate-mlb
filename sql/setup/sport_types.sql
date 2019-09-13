@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS sport_types
     ( id INT PRIMARY KEY
-    , name TEXT UNIQUE NOT NULL
-    , url TEXT UNIQUE NOT NULL
+    , name VARCHAR(255) UNIQUE NOT NULL
+    , url VARCHAR(255) UNIQUE NOT NULL
     );
 
 INSERT INTO sport_types (id, name, url)

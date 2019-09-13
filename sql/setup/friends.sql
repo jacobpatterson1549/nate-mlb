@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS friends
     ( id SERIAL PRIMARY KEY
-    , name VARCHAR(20) NOT NULL
+    , name VARCHAR(255) NOT NULL
     , display_order INT DEFAULT 0 NOT NULL
     , stat_id INT NOT NULL
     , CONSTRAINT name_stat_id UNIQUE (name, stat_id)

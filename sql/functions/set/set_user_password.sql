@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION set_user_password(username VARCHAR, password TEXT) RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION set_user_password(username VARCHAR, password CHAR) RETURNS BOOLEAN
 AS $$
 WITH updated AS (
 UPDATE users AS u
