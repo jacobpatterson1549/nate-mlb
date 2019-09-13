@@ -1,8 +1,11 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"strings"
 )
 
@@ -17,7 +20,7 @@ func setup() error {
 			return err
 		}
 	}
-	return nil
+	return setAdminPassword()
 }
 
 func getSetupTableQueries() ([]string, error) {
@@ -81,4 +84,33 @@ func setupTablesAndFunctions() error {
 		}
 	}
 	return tx.Commit()
+}
+
+func setAdminPassword() error {
+	username := "admin"
+	_, err := GetUserPassword(username)
+	switch {
+	case err == nil:
+		return nil
+	case !errors.As(err, &sql.ErrNoRows):
+		return err
+	}
+	fmt.Printf("INITIAL SETUP: Enter password for '%s' user: ", username)
+	var password password
+	for {
+		_, err := fmt.Scanln(&password)
+		if err != nil {
+			fmt.Printf("\ninvalid password: %v.  Enter again: ", err)
+			continue
+		}
+		break
+	}
+	return AddUser(username, string(password))
+}
+
+type password string
+
+func (p password) isValid() bool {
+	whitespaceRE := regexp.MustCompile("\\s")
+	return !whitespaceRE.MatchString(string(p)) && len(p) != 0
 }

@@ -57,19 +57,6 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	return searcher.PlayerSearchResults(playerType, searchQuery, year, activePlayersOnlyB)
 }
 
-func handleAdminPasswordRequest(r *http.Request) error {
-	password := r.FormValue("password")
-	if len(password) == 0 {
-		return errors.New("missing form password form param")
-	}
-
-	hashedPassword, err := hashPassword(password)
-	if err != nil {
-		return err
-	}
-	return db.AddUser("admin", hashedPassword)
-}
-
 func updatePlayers(st db.SportType, r *http.Request) error {
 	var players []db.Player
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")

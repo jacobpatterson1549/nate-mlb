@@ -57,7 +57,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 	st := db.SportTypeFromURL(firstPathSegment)
 	if st == 0 {
 		switch r.URL.Path {
-		case "/", "/about", "/admin/password":
+		case "/", "/about":
 			break
 		default:
 			return fmt.Errorf("unknown SportType: %v", firstPathSegment)
@@ -79,8 +79,6 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 		handleAdminPost(st, firstPathSegment, w, r)
 	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
 		err = handleAdminSearch(st, w, r)
-	case r.Method == "POST" && r.URL.Path == "/admin/password":
-		handleAdminPassword(w, r)
 	default:
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
@@ -233,13 +231,4 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 		return fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
 	}
 	return nil
-}
-
-func handleAdminPassword(w http.ResponseWriter, r *http.Request) {
-	err := handleAdminPasswordRequest(r)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
 }

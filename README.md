@@ -17,7 +17,7 @@ Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 ## Installation
 
 ### Database
-The server expects to use PostgreSQL database.  See [Database Setup](sql/README.md) for instructions on creating the database and admin password initialization steps.
+The server expects to use PostgreSQL database.  See [Database Setup](sql/README.md) for instructions on creating the database.
 
 ### Set environment variables
 The following environment variables must be set to run the server:
@@ -25,6 +25,8 @@ The following environment variables must be set to run the server:
 * **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md).
 
 ### Compile and run server
+Two ways to compile and run the server are listed below.  When the server is first run, it will initialize the database and also prompt for the `admin` password.  The admin user is needed to edit the players, friends, and years of scores on the site.
+
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 * **1-Command** To set environment variables, compile, and run the server with one command, run the command below and open a browser to http://<SERVER_HOST>:<SERVER_PORT> (eg: http://localhost:8000)
 ```bash
