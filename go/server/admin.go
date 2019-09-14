@@ -9,7 +9,6 @@ import (
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -119,36 +118,20 @@ func clearCache(st db.SportType, r *http.Request) error {
 func resetPassword(st db.SportType, r *http.Request) error {
 	username := r.FormValue("username")
 	newPassword := r.FormValue("newPassword")
-	hashedPassword, err := hashPassword(newPassword)
-	if err != nil {
-		return err
-	}
-	return db.SetUserPassword(username, hashedPassword)
+	return db.SetUserPassword(username, newPassword)
 }
 
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	hashedPassword, err := db.GetUserPassword(username)
-	if err != nil {
-		return err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return errors.New("Incorrect Password")
-	}
+	correctPassword, err := db.IsCorrectUserPassword(username, password)
 	if err != nil {
 		return fmt.Errorf("verifying password: %w", err)
 	}
-	return nil
-}
-
-func hashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("hashing password: %w", err)
+	if !correctPassword {
+		return errors.New("Incorrect Password")
 	}
-	return string(hashedPassword), nil
+	return nil
 }
 
 func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {

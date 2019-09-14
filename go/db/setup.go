@@ -88,7 +88,7 @@ func setupTablesAndFunctions() error {
 
 func setAdminPassword() error {
 	username := "admin"
-	_, err := GetUserPassword(username)
+	_, err := getUserPassword(username)
 	switch {
 	case err == nil:
 		return nil
@@ -101,11 +101,11 @@ func setAdminPassword() error {
 		_, err := fmt.Scanln(&password)
 		if err != nil {
 			fmt.Printf("\ninvalid password: %v.  Enter again: ", err)
-			continue
+			continue // TODO: debug this (continue does not seem to work)
 		}
 		break
 	}
-	return AddUser(username, string(password))
+	return AddUser(username, string(password)) // TODO: password must first be hashed.
 }
 
 type password string
