@@ -25,8 +25,8 @@ var (
 )
 
 func usage() {
-	fmt.Println("Starts the server unless the -ap option is specified")
-	fmt.Println("Usage of", os.Args[0], ":")
+	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server unless the -ap option is specified")
+	fmt.Fprintln(flag.CommandLine.Output(), "Usage of", os.Args[0], ":")
 	flag.PrintDefaults()
 }
 
