@@ -91,13 +91,15 @@ func setupTablesAndFunctions() error {
 }
 
 // SetAdminPassword sets the admin password
+// If the admin user does not exist, it is created.
 func SetAdminPassword(p string) error {
 	username := "admin"
 	password := password(p)
+	if !password.isValid() {
+		return errors.New("password cannot contain spaces")
+	}
 	_, err := getUserPassword(username)
 	switch {
-	case !password.isValid():
-		return errors.New("password cannot contain spaces")
 	case err == nil:
 		return SetUserPassword(username, string(password))
 	case !errors.As(err, &sql.ErrNoRows):
