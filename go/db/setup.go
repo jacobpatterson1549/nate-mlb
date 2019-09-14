@@ -20,7 +20,7 @@ func setup() error {
 			return err
 		}
 	}
-	return setAdminPassword()
+	return nil
 }
 
 func getSetupTableQueries() ([]string, error) {
@@ -86,31 +86,26 @@ func setupTablesAndFunctions() error {
 	return tx.Commit()
 }
 
-func setAdminPassword() error {
+// SetAdminPassword sets the admin password
+func SetAdminPassword(p string) error {
 	username := "admin"
+	password := password(p)
 	_, err := getUserPassword(username)
 	switch {
+	case !password.isValid():
+		return errors.New("password cannot contain spaces")
 	case err == nil:
-		return nil
+		return SetUserPassword(username, string(password))
 	case !errors.As(err, &sql.ErrNoRows):
 		return err
+	default:
+		return AddUser(username, string(password))
 	}
-	fmt.Printf("INITIAL SETUP: Enter password for '%s' user: ", username)
-	var password password
-	for {
-		_, err := fmt.Scanln(&password)
-		if err != nil {
-			fmt.Printf("\ninvalid password: %v.  Enter again: ", err)
-			continue // TODO: debug this (continue does not seem to work)
-		}
-		break
-	}
-	return AddUser(username, string(password))
 }
 
 type password string
 
 func (p password) isValid() bool {
 	whitespaceRE := regexp.MustCompile("\\s")
-	return !whitespaceRE.MatchString(string(p)) && len(p) != 0
+	return len(p) > 0 && !whitespaceRE.MatchString(string(p))
 }
