@@ -24,7 +24,13 @@ var (
 	adminPassword      string
 )
 
+func usage() {
+	fmt.Printf("Usage of %s:\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
 func init() {
+	flag.Usage = usage
 	databaseDriverName = "postgres"
 	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to "+environmentVariableDatabaseURL)
 	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to "+environmentVariablePort)
