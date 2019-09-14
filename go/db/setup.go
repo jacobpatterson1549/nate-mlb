@@ -105,7 +105,7 @@ func setAdminPassword() error {
 		}
 		break
 	}
-	return AddUser(username, string(password)) // TODO: password must first be hashed.
+	return AddUser(username, string(password))
 }
 
 type password string
