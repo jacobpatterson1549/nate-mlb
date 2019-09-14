@@ -84,7 +84,7 @@ func setupTablesAndFunctions() error {
 		}
 	}
 	err = tx.Commit()
-	if err == nil {
+	if err != nil {
 		return fmt.Errorf("committing database setup: %w", err)
 	}
 	return nil
