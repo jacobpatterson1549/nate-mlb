@@ -70,7 +70,7 @@ func setupTablesAndFunctions() error {
 	queries := append(setupTableQueries, setupFunctionQueries...)
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("starting database setup: %w", err)
 	}
 	for _, sql := range queries {
 		_, err := tx.Exec(sql)
@@ -83,7 +83,11 @@ func setupTablesAndFunctions() error {
 			return err
 		}
 	}
-	return tx.Commit()
+	err = tx.Commit()
+	if err == nil {
+		return fmt.Errorf("committing database setup: %w", err)
+	}
+	return nil
 }
 
 // SetAdminPassword sets the admin password
