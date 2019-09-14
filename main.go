@@ -25,15 +25,16 @@ var (
 )
 
 func usage() {
-	fmt.Printf("Usage of %s:\n", os.Args[0])
+	fmt.Println("Starts the server unless the -ap option is specified")
+	fmt.Println("Usage of", os.Args[0], ":")
 	flag.PrintDefaults()
 }
 
 func init() {
 	flag.Usage = usage
 	databaseDriverName = "postgres"
-	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to "+environmentVariableDatabaseURL)
-	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to "+environmentVariablePort)
+	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to environment variable "+environmentVariableDatabaseURL)
+	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to environment variable "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
 	flag.Parse()
 	var ok bool
