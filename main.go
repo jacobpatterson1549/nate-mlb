@@ -36,7 +36,6 @@ func init() {
 	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
 
-	fmt.Println(databaseDriverName, dataSourceName, portNumber, adminPassword)
 	var ok bool
 	if len(dataSourceName) == 0 {
 		dataSourceName, ok = os.LookupEnv(environmentVariableDatabaseURL)
