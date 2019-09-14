@@ -35,7 +35,7 @@ func init() {
 	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to "+environmentVariableDatabaseURL)
 	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
-
+	flag.Parse()
 	var ok bool
 	if len(dataSourceName) == 0 {
 		dataSourceName, ok = os.LookupEnv(environmentVariableDatabaseURL)
