@@ -55,6 +55,10 @@ func init() {
 			log.Fatal(environmentVariablePort, " environment variable is invalid: ", port)
 		}
 	}
+	err := db.Init(databaseDriverName, dataSourceName)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -63,7 +67,7 @@ func main() {
 	case len(adminPassword) != 0:
 		err = db.SetAdminPassword(adminPassword)
 	default:
-		err = server.Run(portNumber, databaseDriverName, dataSourceName)
+		err = server.Run(portNumber)
 	}
 	if err != nil {
 		log.Fatal(err)
