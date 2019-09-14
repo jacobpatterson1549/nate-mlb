@@ -36,7 +36,7 @@ PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> go run main.go
 ```
 
 ### Set `admin` password
-Once the database is created and configured, the admin password must be initialized.  This can be done by passing the `-ap` flag to the nate-mlb binary with a password to set or reset for the `admin` account.
+Once the database is created and configured, the admin password must be initialized to configure the players, friends, and years on the site.  This can be done by passing the `-ap` flag to the nate-mlb binary with a password to set or reset for the `admin` account.
 ```bash
 nate-mlb -ap <ADMIN PASSWORD>
 ```
@@ -47,7 +47,6 @@ To run locally with the [Heroku CLI](https://github.com/heroku/cli), create an `
 PORT=<SERVER_PORT>
 DATABASE_URL=<DATA_SOURCE_NAME>
 ```
-
 #### Admin password
 ```bash
 heroku run bin/nate-mlb -ap <ADMIN_PASSWORD>
