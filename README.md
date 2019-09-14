@@ -49,5 +49,8 @@ DATABASE_URL=<DATA_SOURCE_NAME>
 ```
 #### Admin password
 ```bash
-heroku run bin/nate-mlb -ap <ADMIN_PASSWORD>
+# Connect to the heroku app.  Add `-app <HEROKU_APPNAME>` if needed.
+heroku run bash
+# Set admin password
+bin/nate-mlb -ap <ADMIN_PASSWORD>
 ```
