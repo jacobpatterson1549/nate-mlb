@@ -17,22 +17,22 @@ var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDep
 	{
 		// one deployment
 		grd: []GithubRepoDeployment{
-			GithubRepoDeployment{Version: "xyz", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
+			{Version: "xyz", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
 		},
 		want: Deployment{Version: "xyz", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
 	},
 	{
 		// two deployments
 		grd: []GithubRepoDeployment{
-			GithubRepoDeployment{Version: "v2", Time: time.Date(2019, time.August, 6, 14, 36, 9, 0, time.UTC)},
-			GithubRepoDeployment{Version: "v1", Time: time.Date(2019, time.July, 31, 16, 00, 45, 0, time.UTC)},
+			{Version: "v2", Time: time.Date(2019, time.August, 6, 14, 36, 9, 0, time.UTC)},
+			{Version: "v1", Time: time.Date(2019, time.July, 31, 16, 00, 45, 0, time.UTC)},
 		},
 		want: Deployment{Version: "v2", Time: time.Date(2019, time.August, 6, 14, 36, 9, 0, time.UTC)},
 	},
 	{
 		// long version should be truncated like it is on github
 		grd: []GithubRepoDeployment{
-			GithubRepoDeployment{Version: "1234567890", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
+			{Version: "1234567890", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
 		},
 		want: Deployment{Version: "1234567", Time: time.Date(2019, time.August, 13, 2, 47, 32, 0, time.UTC)},
 	},

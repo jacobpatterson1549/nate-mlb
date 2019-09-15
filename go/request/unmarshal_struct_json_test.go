@@ -28,12 +28,12 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(MlbPlayerStats),
 		want: &MlbPlayerStats{
 			Stats: []MlbPlayerStat{
-				MlbPlayerStat{
+				{
 					Group: MlbPlayerStatGroup{
 						DisplayName: "hitting",
 					},
 					Splits: []MlbPlayerStatSplit{
-						MlbPlayerStatSplit{
+						{
 							Stat: MlbStat{
 								HomeRuns: 43,
 							},
@@ -48,8 +48,8 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(MlbPlayerNames),
 		want: &MlbPlayerNames{
 			People: []MlbPlayerName{
-				MlbPlayerName{ID: 502110, FullName: "J.D. Martinez"},
-				MlbPlayerName{ID: 429665, FullName: "Edwin Encarnacion"},
+				{ID: 502110, FullName: "J.D. Martinez"},
+				{ID: 429665, FullName: "Edwin Encarnacion"},
 			},
 		},
 	},
@@ -69,9 +69,9 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(MlbTeams),
 		want: &MlbTeams{
 			Records: []MlbTeamRecords{
-				MlbTeamRecords{
+				{
 					TeamRecords: []MlbTeamRecord{
-						MlbTeamRecord{
+						{
 							Team: MlbTeamRecordName{
 								Name: "Seattle Mariners",
 								ID:   136,
@@ -89,7 +89,7 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(NflPlayerList),
 		want: &NflPlayerList{
 			Players: []NflPlayer{
-				NflPlayer{
+				{
 					ID:       2532975,
 					Name:     "Russell Wilson",
 					Position: "QB",
@@ -106,7 +106,7 @@ var unmarshalStructJSONTests = []unmarshalStructJSONTest{
 		got:           new(NflTeamsSchedule),
 		want: &NflTeamsSchedule{
 			Teams: map[db.SourceID]NflTeam{
-				20: NflTeam{
+				20: {
 					ID:     20,
 					Name:   "Minnesota Vikings",
 					Record: "8-7-1",
