@@ -77,7 +77,7 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 		}
 	case "POST":
 		if r.URL.Path == "/"+firstPathSegment+"/admin" {
-			handleAdminPost(st, firstPathSegment, w, r)
+			handleAdminPost(st, w, r)
 			return nil
 		}
 	}
@@ -207,7 +207,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	return nil
 }
 
-func handleAdminPost(st db.SportType, firstPathSegment string, w http.ResponseWriter, r *http.Request) {
+func handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	err := handleAdminPostRequest(st, r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
