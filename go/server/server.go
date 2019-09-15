@@ -14,6 +14,24 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
+type httpMethod string
+
+type sportTypeHandler func(st db.SportType, w http.ResponseWriter, r *http.Request) error
+
+var sportTypeHandlers = map[httpMethod]map[string]sportTypeHandler{
+	"GET": {
+		"/":                       handleHomePage,
+		"/about":                  handleAboutPage,
+		"/SportType":              handleStatsPage,
+		"/SportType/export":       handleExport,
+		"/SportType/admin":        handleAdminPage,
+		"/SportType/admin/search": handleAdminSearch,
+	},
+	"POST": {
+		"/SportType/admin": handleAdminPost,
+	},
+}
+
 // Run configures and starts the server
 func Run(portNumber int) error {
 	fileInfo, err := ioutil.ReadDir("static")
@@ -49,40 +67,18 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePage(w http.ResponseWriter, r *http.Request) error {
-	firstPathSegment := getFirstPathSegment(r.URL.Path)
+	url := r.URL.Path
+	firstPathSegment := getFirstPathSegment(url)
 	st := db.SportTypeFromURL(firstPathSegment)
-	if st == 0 {
-		switch r.URL.Path {
-		case "/", "/about":
-			break
-		default:
-			return fmt.Errorf("unknown SportType: %v", firstPathSegment)
-		}
+	if st != db.SportTypeUnknown {
+		url = strings.Replace(url, firstPathSegment, "SportType", 1)
 	}
-	switch r.Method {
-	case "GET":
-		switch r.URL.Path {
-		case "/":
-			return writeHomePage(w)
-		case "/about":
-			return writeAboutPage(w)
-		case "/" + firstPathSegment:
-			return writeStatsPage(st, w)
-		case "/" + firstPathSegment + "/export":
-			return exportStats(st, w)
-		case "/" + firstPathSegment + "/admin":
-			return writeAdminPage(st, w)
-		case "/" + firstPathSegment + "/admin/search":
-			return handleAdminSearch(st, w, r)
-		}
-	case "POST":
-		if r.URL.Path == "/"+firstPathSegment+"/admin" {
-			handleAdminPost(st, w, r)
-			return nil
-		}
+	sportTypeHandler, ok := sportTypeHandlers[httpMethod(r.Method)][url]
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return nil
 	}
-	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	return nil
+	return sportTypeHandler(st, w, r)
 }
 
 func getFirstPathSegment(urlPath string) string {
@@ -93,13 +89,13 @@ func getFirstPathSegment(urlPath string) string {
 	return parts[1]
 }
 
-func writeHomePage(w http.ResponseWriter) error {
+func handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	homeTab := AdminTab{Name: "Home"}
 	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "home")
 	return renderTemplate(w, homePage)
 }
 
-func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
+func handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	es, err := getEtlStats(st)
 	if err != nil {
 		return err
@@ -127,7 +123,7 @@ func writeStatsPage(st db.SportType, w http.ResponseWriter) error {
 	return renderTemplate(w, statsPage)
 }
 
-func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
+func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	es, err := getEtlStats(st)
 	if err != nil {
 		return err
@@ -164,7 +160,7 @@ func writeAdminPage(st db.SportType, w http.ResponseWriter) error {
 	return renderTemplate(w, adminPage)
 }
 
-func writeAboutPage(w http.ResponseWriter) error {
+func handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	lastDeploy, err := request.PreviousDeployment()
 	if err != nil {
 		return err
@@ -178,7 +174,7 @@ func writeAboutPage(w http.ResponseWriter) error {
 	return renderTemplate(w, aboutPage)
 }
 
-func exportStats(st db.SportType, w http.ResponseWriter) error {
+func handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	es, err := getEtlStats(st)
 	if err != nil {
 		return err
@@ -207,14 +203,15 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	return nil
 }
 
-func handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) {
+func handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) error {
 	err := handleAdminPostRequest(st, r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
-		return
+		return nil
 	}
 	w.WriteHeader(http.StatusSeeOther)
+	return nil
 }
 
 func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) error {

@@ -7,8 +7,9 @@ type SportType int
 
 // The expected SportTypes
 const (
-	SportTypeMlb SportType = 1
-	SportTypeNfl SportType = 2
+	SportTypeUnknown SportType = 0 // not in database
+	SportTypeMlb     SportType = 1
+	SportTypeNfl     SportType = 2
 )
 
 var (
