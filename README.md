@@ -5,7 +5,7 @@ Built with the [Go](https://github.com/golang/go) programming language.
 
 Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 
-[![Build Status](https://travis-ci.org/jacobpatterson1549/nate-mlb.svg?branch=master)](https://travis-ci.org/jacobpatterson1549/nate-mlb)
+[![Build Status](https://travis-ci.org/jacobpatterson1549/nate-mlb.svg?branch=travis-ci)](https://travis-ci.org/jacobpatterson1549/nate-mlb)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jacobpatterson1549/nate-mlb)](https://goreportcard.com/report/github.com/jacobpatterson1549/nate-mlb)
 
 
