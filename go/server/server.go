@@ -59,26 +59,30 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 			return fmt.Errorf("unknown SportType: %v", firstPathSegment)
 		}
 	}
-	var err error
-	switch {
-	case r.Method == "GET" && r.RequestURI == "/":
-		err = writeHomePage(w)
-	case r.Method == "GET" && r.RequestURI == "/about":
-		err = writeAboutPage(w)
-	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment:
-		err = writeStatsPage(st, w)
-	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/export":
-		err = exportStats(st, w)
-	case r.Method == "GET" && r.RequestURI == "/"+firstPathSegment+"/admin":
-		err = writeAdminPage(st, w)
-	case r.Method == "POST" && r.URL.Path == "/"+firstPathSegment+"/admin":
-		handleAdminPost(st, firstPathSegment, w, r)
-	case r.Method == "GET" && r.URL.Path == "/"+firstPathSegment+"/admin/search":
-		err = handleAdminSearch(st, w, r)
-	default:
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	switch r.Method {
+	case "GET":
+		switch r.URL.Path {
+		case "/":
+			return writeHomePage(w)
+		case "/about":
+			return writeAboutPage(w)
+		case "/" + firstPathSegment:
+			return writeStatsPage(st, w)
+		case "/" + firstPathSegment + "/export":
+			return exportStats(st, w)
+		case "/" + firstPathSegment + "/admin":
+			return writeAdminPage(st, w)
+		case "/" + firstPathSegment + "/admin/search":
+			return handleAdminSearch(st, w, r)
+		}
+	case "POST":
+		if r.URL.Path == "/"+firstPathSegment+"/admin" {
+			handleAdminPost(st, firstPathSegment, w, r)
+			return nil
+		}
 	}
-	return err
+	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	return nil
 }
 
 func getFirstPathSegment(urlPath string) string {
