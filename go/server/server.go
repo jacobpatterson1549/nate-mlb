@@ -14,11 +14,17 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
+type sportTypeURLResolver func(string) db.SportType
+
+type urlPathTransformer func(string, sportTypeURLResolver) (db.SportType, string)
+
 type httpMethod string
 
 type sportTypeHandler func(st db.SportType, w http.ResponseWriter, r *http.Request) error
 
-var sportTypeHandlers = map[httpMethod]map[string]sportTypeHandler{
+type sportTypeHandlers map[httpMethod]map[string]sportTypeHandler
+
+var serverSportTypeHandlers = sportTypeHandlers{
 	"GET": {
 		"/":                       handleHomePage,
 		"/about":                  handleAboutPage,
@@ -59,21 +65,16 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	err := handlePage(w, r)
+	err := handlePage(w, r, db.SportTypeFromURL, transformURLPath, serverSportTypeHandlers)
 	if err != nil {
 		log.Printf("server error: %q", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 	}
 }
 
-func handlePage(w http.ResponseWriter, r *http.Request) error {
-	url := r.URL.Path
-	firstPathSegment := getFirstPathSegment(url)
-	st := db.SportTypeFromURL(firstPathSegment)
-	if st != db.SportTypeUnknown {
-		url = strings.Replace(url, firstPathSegment, "SportType", 1)
-	}
-	sportTypeHandler, ok := sportTypeHandlers[httpMethod(r.Method)][url]
+func handlePage(w http.ResponseWriter, r *http.Request, stur sportTypeURLResolver, upt urlPathTransformer, sth sportTypeHandlers) error {
+	st, url := upt(r.URL.Path, stur)
+	sportTypeHandler, ok := sth[httpMethod(r.Method)][url]
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return nil
@@ -81,12 +82,17 @@ func handlePage(w http.ResponseWriter, r *http.Request) error {
 	return sportTypeHandler(st, w, r)
 }
 
-func getFirstPathSegment(urlPath string) string {
+func transformURLPath(urlPath string, stur sportTypeURLResolver) (db.SportType, string) {
 	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
-		return ""
+		return db.SportTypeUnknown, urlPath
 	}
-	return parts[1]
+	firstPathSegment := parts[1]
+	st := stur(firstPathSegment)
+	if st != db.SportTypeUnknown {
+		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
+	}
+	return st, urlPath
 }
 
 func handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
