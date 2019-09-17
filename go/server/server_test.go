@@ -12,56 +12,38 @@ type transformURLPathTest struct {
 	wantURLPath   string
 }
 
-type mockSportType struct {
-	id int
-}
-
-func (mst mockSportType) ID() int {
-	return mst.id
-}
-
-func (mst mockSportType) Name() string {
-	return ""
-}
-
-func (mst mockSportType) URL() string {
-	return ""
-}
-
-var mockMlbSportType = mockSportType{id: 1}
-var mockNflSportType = mockSportType{id: 2}
 var transformURLPathTests = []transformURLPathTest{
 	{
 		urlPath:       "",
-		wantSportType: nil,
+		wantSportType: 0,
 		wantURLPath:   "",
 	},
 	{
 		urlPath:       "/",
-		wantSportType: nil,
+		wantSportType: 0,
 		wantURLPath:   "",
 	},
 	{
 		urlPath:       "/mlb",
-		wantSportType: mockMlbSportType,
+		wantSportType: db.SportTypeMlb,
 		wantURLPath:   "/SportType",
 	},
 	{
 		urlPath:       "/nfl/admin",
-		wantSportType: mockNflSportType,
+		wantSportType: db.SportTypeNfl,
 		wantURLPath:   "/SportType/nfl/admin",
 	},
 	{
 		urlPath:       "/admin",
-		wantSportType: nil,
+		wantSportType: 0,
 		wantURLPath:   "admin",
 	},
 }
 
 func TestTransformURLPath(t *testing.T) {
 	mockSportTypes := map[string]db.SportType{
-		"mlb": mockMlbSportType,
-		"nfl": mockNflSportType,
+		"mlb": db.SportTypeMlb,
+		"nfl": db.SportTypeNfl,
 	}
 	var mockSTUR sportTypeURLResolver = func(urlPath string) db.SportType {
 		return mockSportTypes[urlPath]

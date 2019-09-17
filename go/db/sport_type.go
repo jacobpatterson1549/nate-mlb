@@ -1,71 +1,60 @@
 package db
 
 import (
-	"database/sql/driver"
 	"fmt"
 )
 
 // SportType is an enumeration of types of sports
-type SportType interface {
-	ID() int
-	Name() string
-	URL() string
-}
+type SportType int
 
 type sportType struct {
-	id   int
 	name string
 	url  string
 }
 
 // The expected SportTypes
-var (
-	SportTypeMlb  SportType
-	SportTypeNfl  SportType
-	idSportTypes  = make(map[int]sportType)
-	urlSportTypes = make(map[string]sportType)
+const (
+	SportTypeMlb SportType = 1
+	SportTypeNfl SportType = 2
 )
 
-// ID gets the id for a SportType
-func (st sportType) ID() int {
-	return st.id
-}
+var (
+	sportTypes    = make(map[SportType]sportType)
+	urlSportTypes = make(map[string]SportType)
+)
 
 // Name gets the name for a SportType
-func (st sportType) Name() string {
-	return st.name
+func (st SportType) Name() string {
+	return sportTypes[st].name
 }
 
 // URL retrieves the url for the SportType
-func (st sportType) URL() string {
-	return st.url
+func (st SportType) URL() string {
+	return sportTypes[st].url
 }
 
-// Scan implements the sql.Scanner interface
-func (st *sportType) Scan(src interface{}) error {
-	id, ok := src.(int)
-	if !ok {
-		return fmt.Errorf("could not scan SportType from %v (type %T) - it is not an int", src, src)
-	}
-	*st, ok = idSportTypes[id]
-	if !ok {
-		return fmt.Errorf("no sport type with id = %v", id)
-	}
-	return nil
-}
+// TODO: DELETEME
+// // Scan implements the sql.Scanner interface
+// func (st *sportType) Scan(src interface{}) error {
+// 	id, ok := src.(int)
+// 	if !ok {
+// 		return fmt.Errorf("could not scan SportType from %v (type %T) - it is not an int", src, src)
+// 	}
+// 	*st, ok = idSportTypes[id]
+// 	if !ok {
+// 		return fmt.Errorf("no sport type with id = %v", id)
+// 	}
+// 	return nil
+// }
 
-// Value implements the driver.Valuer interface
-func (st sportType) Value() (driver.Value, error) {
-	return int64(st.id), nil
-}
+// // Value implements the driver.Valuer interface
+// func (st sportType) Value() (driver.Value, error) {
+// 	return int64(st.id), nil
+// }
 
 // SportTypeFromURL retrieves the SportType for a url
 func SportTypeFromURL(url string) SportType {
-	st, ok := urlSportTypes[url]
-	if !ok {
-		return nil
-	}
-	return st
+	return urlSportTypes[url]
 }
 
 // LoadSportTypes loads the SportTypes from the database
@@ -77,7 +66,7 @@ func LoadSportTypes() error {
 	defer rows.Close()
 
 	var (
-		id   int
+		id   SportType
 		name string
 		url  string
 	)
@@ -86,28 +75,26 @@ func LoadSportTypes() error {
 		if err != nil {
 			return fmt.Errorf("reading SportType: %w", err)
 		}
-		st := sportType{
-			id:   id,
+		sportType := sportType{
 			name: name,
 			url:  url,
 		}
-		urlSportTypes[url] = st
-		idSportTypes[id] = st
 		switch id {
-		case 1:
-			SportTypeMlb = st
-		case 2:
-			SportTypeNfl = st
+		case SportTypeMlb, SportTypeNfl:
+			sportTypes[id] = sportType
+			urlSportTypes[url] = id
 		default:
 			return fmt.Errorf("unknown SportType id: %v", id)
 		}
 	}
 
-	if len(idSportTypes) != 2 ||
-		SportTypeNfl == nil ||
-		SportTypeMlb == nil ||
-		len(idSportTypes) != len(urlSportTypes) {
-		return fmt.Errorf("did not load expected SportTypes.  Loaded: %v", idSportTypes)
+	_, hasMlbSportType := sportTypes[SportTypeMlb]
+	_, hasNflSportType := sportTypes[SportTypeNfl]
+	if len(sportTypes) != 2 ||
+		!hasMlbSportType ||
+		!hasNflSportType ||
+		len(sportTypes) != len(urlSportTypes) {
+		return fmt.Errorf("did not load expected SportTypes.  Loaded: %v", sportTypes)
 	}
 	return nil
 }
