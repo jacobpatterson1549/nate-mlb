@@ -3,16 +3,9 @@ package db
 import "fmt"
 
 // PlayerType is an enumeration of types of players
-type PlayerType interface {
-	ID() int
-	Name() string
-	Description() string
-	ScoreType() string
-	DisplayOrder() int
-}
+type PlayerType int
 
 type playerType struct {
-	id           int
 	sportType    SportType
 	name         string
 	description  string
@@ -21,13 +14,17 @@ type playerType struct {
 }
 
 // The expected PlayerTypes
+const (
+	PlayerTypeMlbTeam PlayerType = 1
+	PlayerTypeHitter  PlayerType = 2
+	PlayerTypePitcher PlayerType = 3
+	PlayerTypeNflTeam PlayerType = 4
+	PlayerTypeNflQB   PlayerType = 5
+	PlayerTypeNflMisc PlayerType = 6
+)
+
 var (
-	PlayerTypeMlbTeam    PlayerType
-	PlayerTypeHitter     PlayerType
-	PlayerTypePitcher    PlayerType
-	PlayerTypeNflTeam    PlayerType
-	PlayerTypeNflQB      PlayerType
-	PlayerTypeNflMisc    PlayerType
+	playerTypes          = make(map[PlayerType]playerType)
 	sportTypePlayerTypes = make(map[SportType][]PlayerType)
 )
 
@@ -36,44 +33,29 @@ func GetPlayerTypes(st SportType) []PlayerType {
 	return sportTypePlayerTypes[st]
 }
 
-// GetPlayerType returns the PlayerType with the specified id for a given SportType
-func GetPlayerType(st SportType, id int) PlayerType {
-	for _, pt := range sportTypePlayerTypes[st] {
-		if pt.ID() == id {
-			return pt
-		}
-	}
-	return nil
-}
-
-// ID gets the id for a PlayerType
-func (pt playerType) ID() int {
-	return pt.id
-}
-
 // SportType gets the SportType for a PlayerType
-func (pt playerType) SportType() SportType {
-	return pt.sportType
+func (pt PlayerType) SportType() SportType {
+	return playerTypes[pt].sportType
 }
 
 // Name gets the name for a PlayerType
-func (pt playerType) Name() string {
-	return pt.name
+func (pt PlayerType) Name() string {
+	return playerTypes[pt].name
 }
 
 // Description gets the description for a PlayerType
-func (pt playerType) Description() string {
-	return pt.description
+func (pt PlayerType) Description() string {
+	return playerTypes[pt].description
 }
 
 // ScoreType gets the score type for a PlayerType
-func (pt playerType) ScoreType() string {
-	return pt.scoreType
+func (pt PlayerType) ScoreType() string {
+	return playerTypes[pt].scoreType
 }
 
 // DisplayOrder gets the display order for a PlayerType
-func (pt playerType) DisplayOrder() int {
-	return pt.displayOrder
+func (pt PlayerType) DisplayOrder() int {
+	return playerTypes[pt].displayOrder
 }
 
 // LoadPlayerTypes loads the PlayerTypes from the database
@@ -85,7 +67,7 @@ func LoadPlayerTypes() error {
 	defer rows.Close()
 
 	var (
-		id          int
+		id          PlayerType
 		sportType   SportType
 		name        string
 		description string
@@ -97,8 +79,7 @@ func LoadPlayerTypes() error {
 		if err != nil {
 			return fmt.Errorf("reading player type: %w", err)
 		}
-		pt := playerType{
-			id:           id,
+		playerType := playerType{
 			sportType:    sportType,
 			name:         name,
 			description:  description,
@@ -106,22 +87,14 @@ func LoadPlayerTypes() error {
 			// TODO: investigate if SportType should have displayOrder.  Also, should this be determined by the row order in the database?
 		}
 		switch id {
-		case 1:
-			PlayerTypeMlbTeam = pt
-		case 2:
-			PlayerTypeHitter = pt
-		case 3:
-			PlayerTypePitcher = pt
-		case 4:
-			PlayerTypeNflTeam = pt
-		case 5:
-			PlayerTypeNflQB = pt
-		case 6:
-			PlayerTypeNflMisc = pt
+		case
+			PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
+			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflMisc:
+			playerTypes[id] = playerType
+			sportTypePlayerTypes[sportType] = append(sportTypePlayerTypes[sportType], id)
 		default:
 			return fmt.Errorf("unknown PlayerType id: %v", id)
 		}
-		sportTypePlayerTypes[sportType] = append(sportTypePlayerTypes[sportType], pt)
 		displayOrder++
 	}
 	if len(sportTypePlayerTypes) != 2 ||

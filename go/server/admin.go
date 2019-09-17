@@ -45,7 +45,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	if err != nil {
 		return nil, fmt.Errorf("converting playerTypeID %v' to number: %w", playerTypeID, err)
 	}
-	playerType := db.GetPlayerType(st, playerTypeIDI)
+	playerType := db.PlayerType(playerTypeIDI)
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
@@ -149,12 +149,15 @@ func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Pl
 	}
 	player.DisplayOrder = displayOrderI
 
-	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id)) // TODO: rename to player-?-player-type-id
+	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id))
 	playerTypeI, err := strconv.Atoi(playerType)
 	if err != nil {
 		return player, fmt.Errorf("converting player type '%v' to number: %w", playerType, err)
 	}
-	player.PlayerType = db.GetPlayerType(st, playerTypeI)
+	player.PlayerType = db.PlayerType(playerTypeI)
+	if st != player.PlayerType.SportType() {
+		return player, fmt.Errorf("invalid playerType: %v", player.PlayerType)
+	}
 
 	sourceID := r.FormValue(fmt.Sprintf("player-%s-source-id", id))
 	sourceIDI, err := strconv.Atoi(sourceID)
