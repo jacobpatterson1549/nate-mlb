@@ -11,7 +11,9 @@ import (
 )
 
 // mlbPlayerSearcher implements the searcher interface
-type mlbPlayerSearcher struct{}
+type mlbPlayerSearcher struct {
+	requestor requestor
+}
 
 // MlbPlayerSearch is used to unmarshal a request for information about players by name
 type MlbPlayerSearch struct {
@@ -46,7 +48,7 @@ type MlbPlayerBirthDate struct {
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (s *mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"
@@ -54,14 +56,14 @@ func (s mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefi
 	playerNamePrefix = url.QueryEscape(playerNamePrefix)
 	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	var mlbPlayerSearchQueryResult MlbPlayerSearch
-	err := request.structPointerFromURL(url, &mlbPlayerSearchQueryResult)
+	err := s.requestor.structPointerFromURL(url, &mlbPlayerSearchQueryResult)
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}
 	return mlbPlayerSearchQueryResult.SearchPlayerAll.QueryResults.getPlayerSearchResults(pt)
 }
 
-func (psqr MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
+func (psqr *MlbPlayerSearchQueryResults) getPlayerSearchResults(pt db.PlayerType) ([]PlayerSearchResult, error) {
 	var mlbPlayerBios []MlbPlayerBio
 	var err error
 	switch psqr.TotalSize {

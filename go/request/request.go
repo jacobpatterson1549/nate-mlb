@@ -7,38 +7,74 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-type requestor struct {
+type requestor interface {
+	structPointerFromURL(url string, v interface{}) error
+}
+
+type httpRequestor struct {
 	cache          cache
 	httpClient     *http.Client
 	logRequestUrls bool
 }
 
-var request requestor
+// ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
+var ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)
+
+// Searchers maps PlayerTypes to Searchers for them.
+var Searchers = make(map[db.PlayerType]searcher)
+
+// About provides details about the deployment of the application
+var About aboutRequestor
+
+var httpCache cache
 
 func init() {
-	request = requestor{
-		cache: newCache(100),
+	c := newCache(100)
+	r := httpRequestor{
+		cache: c,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
 		logRequestUrls: false,
 	}
+
+	mlbTeamRequestor := mlbTeamRequestor{requestor: &r}
+	mlbPlayerScoreCategorizer := mlbPlayerRequestor{requestor: &r}
+	mlbPlayerSearcher := mlbPlayerSearcher{requestor: &r}
+	nflTeamRequestor := nflTeamRequestor{requestor: &r}
+	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
+
+	ScoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	ScoreCategorizers[db.PlayerTypeHitter] = &mlbPlayerScoreCategorizer
+	ScoreCategorizers[db.PlayerTypePitcher] = &mlbPlayerScoreCategorizer
+	ScoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
+	ScoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
+	ScoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+
+	Searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	Searchers[db.PlayerTypeHitter] = &mlbPlayerSearcher
+	Searchers[db.PlayerTypePitcher] = &mlbPlayerSearcher
+	Searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
+	Searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
+	Searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 }
 
-func (r *requestor) structPointerFromURL(url string, v interface{}) error {
+func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
 	var (
 		b   []byte
 		err error
 		ok  bool
 	)
-	if b, ok = request.cache.get(url); !ok {
-		b, err = request.bytes(url)
+	if b, ok = r.cache.get(url); !ok {
+		b, err = r.bytes(url)
 		if err != nil {
 			return err
 		}
-		request.cache.add(url, b)
+		r.cache.add(url, b)
 	}
 	json.Unmarshal(b, v)
 	if err != nil {
@@ -47,7 +83,7 @@ func (r *requestor) structPointerFromURL(url string, v interface{}) error {
 	return nil
 }
 
-func (r *requestor) bytes(url string) ([]byte, error) {
+func (r *httpRequestor) bytes(url string) ([]byte, error) {
 	if r.logRequestUrls {
 		log.Println("Requesting", url)
 	}
@@ -71,5 +107,5 @@ func (r *requestor) bytes(url string) ([]byte, error) {
 
 // ClearCache clears the request cache
 func ClearCache() {
-	request.cache.clear()
+	httpCache.clear()
 }

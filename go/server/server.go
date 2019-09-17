@@ -167,7 +167,7 @@ func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 }
 
 func handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
-	lastDeploy, err := request.PreviousDeployment()
+	lastDeploy, err := request.About.PreviousDeployment()
 	if err != nil {
 		return err
 	}

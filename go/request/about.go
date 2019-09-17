@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+type aboutRequestor struct {
+	requestor requestor
+}
+
 // GithubRepoDeployment is used to unmarshal information about a github repository
 type GithubRepoDeployment struct {
 	Version string    `json:"ref"`
@@ -18,12 +22,12 @@ type Deployment struct {
 }
 
 // PreviousDeployment returns some information about the most recent deployment
-func PreviousDeployment() (Deployment, error) {
+func (r *aboutRequestor) PreviousDeployment() (Deployment, error) {
 	owner := "jacobpatterson1549"
 	repo := "nate-mlb"
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
 	var grd []GithubRepoDeployment
-	err := request.structPointerFromURL(url, &grd)
+	err := r.requestor.structPointerFromURL(url, &grd)
 
 	var previousDeployment Deployment
 	if err != nil {

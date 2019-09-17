@@ -94,6 +94,7 @@ func getScoreCategory(playerType db.PlayerType, fpi request.FriendPlayerInfo, sc
 		quit <- fmt.Errorf("no scoreCategorizer for player type %v", playerType)
 		return
 	}
+	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
 	scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
 	if err != nil {
 		quit <- err

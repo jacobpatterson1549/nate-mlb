@@ -8,7 +8,9 @@ import (
 )
 
 // nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces
-type nflPlayerRequestor struct{}
+type nflPlayerRequestor struct {
+	requestor requestor
+}
 
 // NflPlayerList contains information about the stats for all players for a particular year
 type NflPlayerList struct {
@@ -35,7 +37,7 @@ type NflPlayerStats struct {
 }
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
+func (r *nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
 	sourceIDs := make(map[db.SourceID]bool, len(fpi.Players[pt]))
 	for _, player := range fpi.Players[pt] {
 		sourceIDs[player.SourceID] = true
@@ -60,7 +62,7 @@ func (r nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pla
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (r *nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	nflPlayerList, err := r.requestNflPlayerList(year)
 	if err != nil {
 		return nil, err
@@ -81,10 +83,10 @@ func (r nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, playerNamePref
 	return nflPlayerSearchResults, nil
 }
 
-func (r nflPlayerRequestor) requestNflPlayerList(year int) (*NflPlayerList, error) {
+func (r *nflPlayerRequestor) requestNflPlayerList(year int) (*NflPlayerList, error) {
 	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	nflPlayerList := new(NflPlayerList)
-	err := request.structPointerFromURL(url, &nflPlayerList)
+	err := r.requestor.structPointerFromURL(url, &nflPlayerList)
 	return nflPlayerList, err
 }
 

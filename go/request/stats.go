@@ -7,16 +7,6 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
-var ScoreCategorizers = map[db.PlayerType]ScoreCategorizer{
-	db.PlayerTypeMlbTeam: mlbTeamRequestor{},
-	db.PlayerTypeHitter:  mlbPlayerRequestor{playerType: db.PlayerTypeHitter},
-	db.PlayerTypePitcher: mlbPlayerRequestor{playerType: db.PlayerTypePitcher},
-	db.PlayerTypeNflTeam: nflTeamRequestor{},
-	db.PlayerTypeNflQB:   nflPlayerRequestor{},
-	db.PlayerTypeNflMisc: nflPlayerRequestor{},
-}
-
 // ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
 type ScoreCategorizer interface {
 	RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error)
