@@ -85,7 +85,6 @@ func LoadPlayerTypes() error {
 			description:  description,
 			scoreType:    scoreType,
 			displayOrder: displayOrder,
-			// TODO: investigate if SportType should have displayOrder.  Also, should this be determined by the row order in the database?
 		}
 		switch id {
 		case
