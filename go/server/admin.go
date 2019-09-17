@@ -45,7 +45,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	if err != nil {
 		return nil, fmt.Errorf("converting playerTypeID %v' to number: %w", playerTypeID, err)
 	}
-	playerType := db.PlayerType(playerTypeIDI)
+	playerType := db.GetPlayerType(st, playerTypeIDI)
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
@@ -61,7 +61,7 @@ func updatePlayers(st db.SportType, r *http.Request) error {
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
 		if matches := re.FindStringSubmatch(k); len(matches) > 1 {
-			player, err := getPlayer(r, matches[1], v[0])
+			player, err := getPlayer(st, r, matches[1], v[0])
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func verifyUserPassword(r *http.Request) error {
 	return nil
 }
 
-func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
+func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Player, error) {
 	var player db.Player
 
 	IDI, err := strconv.Atoi(id)
@@ -149,12 +149,12 @@ func getPlayer(r *http.Request, id, displayOrder string) (db.Player, error) {
 	}
 	player.DisplayOrder = displayOrderI
 
-	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id))
+	playerType := r.FormValue(fmt.Sprintf("player-%s-player-type", id)) // TODO: rename to player-?-player-type-id
 	playerTypeI, err := strconv.Atoi(playerType)
 	if err != nil {
 		return player, fmt.Errorf("converting player type '%v' to number: %w", playerType, err)
 	}
-	player.PlayerType = db.PlayerType(playerTypeI)
+	player.PlayerType = db.GetPlayerType(st, playerTypeI)
 
 	sourceID := r.FormValue(fmt.Sprintf("player-%s-source-id", id))
 	sourceIDI, err := strconv.Atoi(sourceID)
