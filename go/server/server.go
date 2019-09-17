@@ -85,11 +85,11 @@ func handlePage(w http.ResponseWriter, r *http.Request, stur sportTypeURLResolve
 func transformURLPath(urlPath string, stur sportTypeURLResolver) (db.SportType, string) {
 	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
-		return db.SportTypeUnknown, urlPath
+		return nil, urlPath
 	}
 	firstPathSegment := parts[1]
 	st := stur(firstPathSegment)
-	if st != db.SportTypeUnknown {
+	if st != nil {
 		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
 	}
 	return st, urlPath
