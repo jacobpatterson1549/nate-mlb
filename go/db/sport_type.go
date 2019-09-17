@@ -33,25 +33,6 @@ func (st SportType) URL() string {
 	return sportTypes[st].url
 }
 
-// TODO: DELETEME
-// // Scan implements the sql.Scanner interface
-// func (st *sportType) Scan(src interface{}) error {
-// 	id, ok := src.(int)
-// 	if !ok {
-// 		return fmt.Errorf("could not scan SportType from %v (type %T) - it is not an int", src, src)
-// 	}
-// 	*st, ok = idSportTypes[id]
-// 	if !ok {
-// 		return fmt.Errorf("no sport type with id = %v", id)
-// 	}
-// 	return nil
-// }
-
-// // Value implements the driver.Valuer interface
-// func (st sportType) Value() (driver.Value, error) {
-// 	return int64(st.id), nil
-// }
-
 // SportTypeFromURL retrieves the SportType for a url
 func SportTypeFromURL(url string) SportType {
 	return urlSportTypes[url]
