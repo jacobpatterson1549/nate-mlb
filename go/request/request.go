@@ -27,16 +27,18 @@ type (
 	}
 )
 
-// ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
-var ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)
+var (
+	// ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
+	ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)
 
-// Searchers maps PlayerTypes to Searchers for them.
-var Searchers = make(map[db.PlayerType]searcher)
+	// Searchers maps PlayerTypes to Searchers for them.
+	Searchers = make(map[db.PlayerType]searcher)
 
-// About provides details about the deployment of the application
-var About aboutRequestor
+	// About provides details about the deployment of the application
+	About aboutRequestor
 
-var httpCache cache = newCache(100)
+	httpCache cache = newCache(100)
+)
 
 func init() {
 	r := httpRequestor{
