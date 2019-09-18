@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewCacheTooSmall(t *testing.T) {
-	cacheSize := 0
+	cacheSize := -1
 	defer func() {
 		if r := recover(); r == nil {
 			t.Errorf("wanted panic when trying to create cache with size=%d, but did not get one", cacheSize)
@@ -18,6 +18,17 @@ func TestNewCacheTooSmall(t *testing.T) {
 func TestContainsNo(t *testing.T) {
 	cache := newCache(5)
 	url := "url"
+	got := cache.contains(url)
+	want := false
+	if want != got {
+		t.Errorf("wanted %v to not be in the cache, but it was", url)
+	}
+}
+
+func TestContainsZero(t *testing.T) {
+	cache := newCache(0)
+	url := "url"
+	cache.add(url, nil)
 	got := cache.contains(url)
 	want := false
 	if want != got {

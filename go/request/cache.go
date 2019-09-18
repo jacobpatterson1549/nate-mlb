@@ -13,7 +13,7 @@ type cache struct {
 }
 
 func newCache(cacheSize int) cache {
-	if cacheSize <= 0 {
+	if cacheSize < 0 {
 		panic(fmt.Sprintf("cache size must be positive - got %v", cacheSize))
 	}
 	return cache{
@@ -30,6 +30,9 @@ func (c *cache) contains(url string) bool {
 }
 
 func (c *cache) add(url string, value []byte) {
+	if c.index >= len(c.requestUrls) {
+		return
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	delete(c.requestValues, c.requestUrls[c.index])
