@@ -32,7 +32,7 @@ var (
 	ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)
 
 	// Searchers maps PlayerTypes to Searchers for them.
-	Searchers = make(map[db.PlayerType]searcher)
+	Searchers = make(map[db.PlayerType]Searcher)
 
 	// About provides details about the deployment of the application
 	About aboutRequestor

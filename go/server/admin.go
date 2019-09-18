@@ -51,7 +51,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	if !ok {
 		return nil, fmt.Errorf("finding searcher for playerType %v", playerType)
 	}
-	return searcher.PlayerSearchResults(playerType, searchQuery, year, activePlayersOnlyB)
+	return searcher.PlayerSearchResults(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {
