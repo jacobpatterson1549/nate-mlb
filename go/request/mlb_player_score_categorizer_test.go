@@ -2,8 +2,8 @@ package request
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
@@ -46,9 +46,12 @@ type mockHTTPClient struct {
 }
 
 func (m mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
-	return &http.Response{
-		Body: ioutil.NopCloser(strings.NewReader(m.JSONFunc(r.URL.Path))),
-	}, nil
+	w := httptest.NewRecorder()
+	_, err := w.WriteString(m.JSONFunc(r.URL.Path))
+	if err != nil {
+		return nil, err
+	}
+	return w.Result(), nil
 }
 
 func TestRequestScoreCategoryHitters(t *testing.T) {
