@@ -2,16 +2,18 @@ package db
 
 import "fmt"
 
-// PlayerType is an enumeration of types of players
-type PlayerType int
+type (
+	// PlayerType is an enumeration of types of players
+	PlayerType int
 
-type playerType struct {
-	sportType    SportType
-	name         string
-	description  string
-	scoreType    string
-	displayOrder int
-}
+	playerType struct {
+		sportType    SportType
+		name         string
+		description  string
+		scoreType    string
+		displayOrder int
+	}
+)
 
 // The expected PlayerTypes
 const (

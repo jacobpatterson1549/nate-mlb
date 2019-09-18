@@ -5,21 +5,23 @@ import (
 	"time"
 )
 
-type aboutRequestor struct {
-	requestor requestor
-}
+type (
+	aboutRequestor struct {
+		requestor requestor
+	}
 
-// GithubRepoDeployment is used to unmarshal information about a github repository
-type GithubRepoDeployment struct {
-	Version string    `json:"ref"`
-	Time    time.Time `json:"updated_at"`
-}
+	// GithubRepoDeployment is used to unmarshal information about a github repository
+	GithubRepoDeployment struct {
+		Version string    `json:"ref"`
+		Time    time.Time `json:"updated_at"`
+	}
 
-// Deployment contains information about a deployment that is ready to be consumed
-type Deployment struct {
-	Version string
-	Time    time.Time
-}
+	// Deployment contains information about a deployment that is ready to be consumed
+	Deployment struct {
+		Version string
+		Time    time.Time
+	}
+)
 
 // PreviousDeployment returns some information about the most recent deployment
 func (r *aboutRequestor) PreviousDeployment() (Deployment, error) {

@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+type password string
+
 func setup() error {
 	setupFuncs := []func() error{
 		setupTablesAndFunctions,
@@ -108,8 +110,6 @@ func SetAdminPassword(p string) error {
 		return AddUser(username, string(password))
 	}
 }
-
-type password string
 
 func (p password) isValid() bool {
 	whitespaceRE := regexp.MustCompile("\\s")

@@ -4,13 +4,15 @@ import (
 	"fmt"
 )
 
-// SportType is an enumeration of types of sports
-type SportType int
+type (
+	// SportType is an enumeration of types of sports
+	SportType int
 
-type sportType struct {
-	name string
-	url  string
-}
+	sportType struct {
+		name string
+		url  string
+	}
+)
 
 // The expected SportTypes
 const (

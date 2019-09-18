@@ -10,51 +10,53 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-// Page is a page that gets rendered by the main template
-type Page struct {
-	Title        string
-	Tabs         []Tab
-	tabName      string
-	ShowTabs     bool
-	Sports       []SportEntry
-	TimesMessage TimesMessage
-	PageLoadTime time.Time
-}
+type (
+	// Page is a page that gets rendered by the main template
+	Page struct {
+		Title        string
+		Tabs         []Tab
+		tabName      string
+		ShowTabs     bool
+		Sports       []SportEntry
+		TimesMessage TimesMessage
+		PageLoadTime time.Time
+	}
 
-// Tab is a tab which gets rendered by the main template
-type Tab interface {
-	GetName() string
-	GetID(string) string
-}
+	// Tab is a tab which gets rendered by the main template
+	Tab interface {
+		GetName() string
+		GetID(string) string
+	}
 
-type jsTab struct{}
+	jsTab struct{}
 
-// StatsTab provides stats information
-type StatsTab struct {
-	jsTab
-	ScoreCategory request.ScoreCategory
-	ExportURL     string
-}
+	// StatsTab provides stats information
+	StatsTab struct {
+		jsTab
+		ScoreCategory request.ScoreCategory
+		ExportURL     string
+	}
 
-// AdminTab provides tabs with admin tasks.
-type AdminTab struct {
-	jsTab
-	Name   string
-	Action string
-	Data   []interface{} // each template knows what data to expect
-}
+	// AdminTab provides tabs with admin tasks.
+	AdminTab struct {
+		jsTab
+		Name   string
+		Action string
+		Data   []interface{} // each template knows what data to expect
+	}
 
-// SportEntry contains the url and name of a SportType
-type SportEntry struct {
-	URL  string
-	Name string
-}
+	// SportEntry contains the url and name of a SportType
+	SportEntry struct {
+		URL  string
+		Name string
+	}
 
-// TimesMessage contains times to insert between messages
-type TimesMessage struct {
-	Messages []string
-	Times    []time.Time
-}
+	// TimesMessage contains times to insert between messages
+	TimesMessage struct {
+		Messages []string
+		Times    []time.Time
+	}
+)
 
 func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
 	getSportEntry := func(st db.SportType) SportEntry {

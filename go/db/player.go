@@ -4,17 +4,19 @@ import (
 	"fmt"
 )
 
-// Player maps a player (of a a specific PlayerType) to a Friend.
-type Player struct {
-	ID           ID
-	PlayerType   PlayerType
-	SourceID     SourceID
-	FriendID     ID
-	DisplayOrder int
-}
+type (
+	// Player maps a player (of a a specific PlayerType) to a Friend.
+	Player struct {
+		ID           ID
+		PlayerType   PlayerType
+		SourceID     SourceID
+		FriendID     ID
+		DisplayOrder int
+	}
 
-// SourceID is the id used to retrieve information about the player from external sources
-type SourceID int
+	// SourceID is the id used to retrieve information about the player from external sources
+	SourceID int
+)
 
 // GetPlayers gets the players for the active year
 func GetPlayers(st SportType) ([]Player, error) {

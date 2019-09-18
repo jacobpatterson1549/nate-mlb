@@ -11,15 +11,13 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-var (
-	adminActions = map[string](func(db.SportType, *http.Request) error){
-		"friends":  updateFriends,
-		"players":  updatePlayers,
-		"years":    updateYears,
-		"cache":    clearCache,
-		"password": resetPassword,
-	}
-)
+var adminActions = map[string](func(db.SportType, *http.Request) error){
+	"friends":  updateFriends,
+	"players":  updatePlayers,
+	"years":    updateYears,
+	"cache":    clearCache,
+	"password": resetPassword,
+}
 
 func handleAdminPostRequest(st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(r); err != nil {

@@ -7,59 +7,61 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
-type ScoreCategorizer interface {
-	RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error)
-}
+type (
+	// ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
+	ScoreCategorizer interface {
+		RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error)
+	}
 
-// ScoreCategory contain the FriendScores for each PlayerType
-type ScoreCategory struct {
-	Name         string
-	Description  string
-	PlayerType   db.PlayerType // Used as an int on the website
-	FriendScores []FriendScore
-}
+	// ScoreCategory contain the FriendScores for each PlayerType
+	ScoreCategory struct {
+		Name         string
+		Description  string
+		PlayerType   db.PlayerType // Used as an int on the website
+		FriendScores []FriendScore
+	}
 
-// FriendScore contain the scores for a Friend for a PlayerType
-type FriendScore struct {
-	ID           db.ID
-	Name         string
-	ScoreType    string
-	Score        int
-	DisplayOrder int
-	PlayerScores []PlayerScore
-}
+	// FriendScore contain the scores for a Friend for a PlayerType
+	FriendScore struct {
+		ID           db.ID
+		Name         string
+		ScoreType    string
+		Score        int
+		DisplayOrder int
+		PlayerScores []PlayerScore
+	}
 
-// PlayerScore is the score for a particular Player
-type PlayerScore struct {
-	ID           db.ID
-	Name         string
-	Score        int
-	DisplayOrder int
-	SourceID     db.SourceID
-}
+	// PlayerScore is the score for a particular Player
+	PlayerScore struct {
+		ID           db.ID
+		Name         string
+		Score        int
+		DisplayOrder int
+		SourceID     db.SourceID
+	}
 
-type playerName struct {
-	sourceID db.SourceID
-	name     string
-}
+	playerName struct {
+		sourceID db.SourceID
+		name     string
+	}
 
-type playerStat struct {
-	sourceID db.SourceID
-	stat     int
-}
+	playerStat struct {
+		sourceID db.SourceID
+		stat     int
+	}
 
-type nameScore struct {
-	name  string
-	score int
-}
+	nameScore struct {
+		name  string
+		score int
+	}
 
-// FriendPlayerInfo is a helper struct with information about what is in a ScoreCategory
-type FriendPlayerInfo struct {
-	Friends []db.Friend
-	Players map[db.PlayerType][]db.Player
-	Year    int
-}
+	// FriendPlayerInfo is a helper struct with information about what is in a ScoreCategory
+	FriendPlayerInfo struct {
+		Friends []db.Friend
+		Players map[db.PlayerType][]db.Player
+		Year    int
+	}
+)
 
 // NewFriendPlayerInfo creates a FriendPlayerInfo from Friends, Players, PlayerTypes, and a year
 func NewFriendPlayerInfo(friends []db.Friend, players []db.Player, playerTypes []db.PlayerType, year int) FriendPlayerInfo {

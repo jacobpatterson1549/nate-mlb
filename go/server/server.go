@@ -14,15 +14,17 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-type sportTypeURLResolver func(string) db.SportType
+type (
+	sportTypeURLResolver func(string) db.SportType
 
-type urlPathTransformer func(string, sportTypeURLResolver) (db.SportType, string)
+	urlPathTransformer func(string, sportTypeURLResolver) (db.SportType, string)
 
-type httpMethod string
+	httpMethod string
 
-type sportTypeHandler func(st db.SportType, w http.ResponseWriter, r *http.Request) error
+	sportTypeHandler func(st db.SportType, w http.ResponseWriter, r *http.Request) error
 
-type sportTypeHandlers map[httpMethod]map[string]sportTypeHandler
+	sportTypeHandlers map[httpMethod]map[string]sportTypeHandler
+)
 
 var serverSportTypeHandlers = sportTypeHandlers{
 	"GET": {

@@ -11,19 +11,21 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-type requestor interface {
-	structPointerFromURL(url string, v interface{}) error
-}
+type (
+	requestor interface {
+		structPointerFromURL(url string, v interface{}) error
+	}
 
-type httpClient interface {
-	Do(r *http.Request) (*http.Response, error)
-}
+	httpClient interface {
+		Do(r *http.Request) (*http.Response, error)
+	}
 
-type httpRequestor struct {
-	cache          cache
-	httpClient     httpClient
-	logRequestUrls bool
-}
+	httpRequestor struct {
+		cache          cache
+		httpClient     httpClient
+		logRequestUrls bool
+	}
+)
 
 // ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
 var ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)

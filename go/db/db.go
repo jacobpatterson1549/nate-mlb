@@ -10,19 +10,21 @@ import (
 
 var db *sql.DB
 
-// ID is used to identify an item in the database or a relation to another noun's id
-type ID int
+type (
+	// ID is used to identify an item in the database or a relation to another noun's id
+	ID int
 
-type readSQLFunction struct {
-	name string
-	cols []string
-	args []interface{}
-}
+	readSQLFunction struct {
+		name string
+		cols []string
+		args []interface{}
+	}
 
-type writeSQLFunction struct {
-	name string
-	args []interface{}
-}
+	writeSQLFunction struct {
+		name string
+		args []interface{}
+	}
+)
 
 // Init initializes the pointer to the database
 func Init(driverName, dataSourceName string) error {
