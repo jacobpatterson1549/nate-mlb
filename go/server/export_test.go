@@ -1,7 +1,7 @@
 package server
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
@@ -64,26 +64,7 @@ func TestCreateCsvRecords(t *testing.T) {
 		{"qb", "Charlie", "29", "Tom Brady", "29"},
 	}
 
-	if err := equal2DArrays(want, got); err != nil {
-		t.Errorf("different CSV: %v", err)
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("different CSV:\nwanted: %v\ngot:    %v", want, got)
 	}
-}
-
-func equal2DArrays(want, got [][]string) error {
-	if len(want) != len(got) {
-		return fmt.Errorf("row counts: wanted %d, got %d", len(want), len(got))
-	}
-	for i := range want {
-		wantRow, gotRow := want[i], got[i]
-		if len(wantRow) != len(gotRow) {
-			return fmt.Errorf("column counts at row %d: wanted %d, got %d", i, len(wantRow), len(gotRow))
-		}
-		for j := range wantRow {
-			wantValue, gotValue := wantRow[j], gotRow[j]
-			if wantValue != gotValue {
-				return fmt.Errorf("values at row %d, column %d: %s, %s", i, j, wantValue, gotValue)
-			}
-		}
-	}
-	return nil
 }

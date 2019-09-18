@@ -181,7 +181,7 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 	switch {
 	case err != nil:
 		t.Error(err)
-	case !reflect.DeepEqual(want, got): // TODO: use reflect.DeepEqual in export_test, cache_test, mlb_player_searcher_test
+	case !reflect.DeepEqual(want, got):
 		t.Errorf("Not equal:\nWanted: %v\nGot:    %v", want, got)
 	}
 }

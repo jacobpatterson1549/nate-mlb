@@ -1,6 +1,7 @@
 package request
 
 import (
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -70,8 +71,11 @@ func TestGet(t *testing.T) {
 	cache.add(url, value)
 	got, ok := cache.get(url)
 	want := value
-	if ok && !equalBytes(want, got) {
-		t.Errorf("wanted %v to be in the cache for %v, but %v was present instead", string(want), url, string(got))
+	switch {
+	case !ok:
+		t.Error("wanted value to be present, but it was not")
+	case !reflect.DeepEqual(want, got):
+		t.Errorf("wanted\n%v to be in the cache for %v, but\n%v was present instead", string(want), url, string(got))
 	}
 }
 
@@ -85,16 +89,4 @@ func TestClear(t *testing.T) {
 	if want != got {
 		t.Errorf("wanted cache to not contain url %v after clearing, but it was present", url)
 	}
-}
-
-func equalBytes(a, b []byte) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

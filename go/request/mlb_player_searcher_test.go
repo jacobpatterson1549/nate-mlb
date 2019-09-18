@@ -2,7 +2,7 @@ package request
 
 import (
 	"encoding/json"
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -67,13 +67,11 @@ var getPlayerSearchResultsTests = []getPlayerSearchResultsTest{
 		// no results (wrong playerType)
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
 		playerType:       db.PlayerTypePitcher,
-		want:             []PlayerSearchResult{}, // (default)
 	},
 	{
 		// no results (wrong playerType)
 		searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
 		playerType:       db.PlayerTypeMlbTeam,
-		want:             []PlayerSearchResult{}, // (default)
 	},
 }
 
@@ -94,22 +92,9 @@ func TestGetPlayerSearchResults(t *testing.T) {
 		case err != nil:
 			t.Errorf("Test %v: %v", i, err)
 		default:
-			if err = assertEqualPlayerSearchResults(test.want, got); err != nil {
-				t.Errorf("Test %v: %v", i, err)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("Test %v:\nwanted: %v\ngot:    %v", i, test.want, got)
 			}
 		}
 	}
-}
-
-func assertEqualPlayerSearchResults(want, got []PlayerSearchResult) error {
-	if len(got) != len(want) {
-		return fmt.Errorf("wanted %v, but got %v (different length results)", want, got)
-	}
-	for j, w := range want {
-		g := got[j]
-		if w != g {
-			return fmt.Errorf("values at index %v different:\nwanted %v\n   got %v", j, w, g)
-		}
-	}
-	return nil
 }
