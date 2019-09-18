@@ -63,11 +63,14 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 		return nil, err
 	}
 	playerTypes := db.GetPlayerTypes(st)
-	fpi := request.NewFriendPlayerInfo(friends, players, playerTypes, year)
+	playersByType := make(map[db.PlayerType][]db.Player)
+	for _, player := range players {
+		playersByType[player.PlayerType] = append(playersByType[player.PlayerType], player)
+	}
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(playerTypes))
 	quit := make(chan error)
 	for _, playerType := range playerTypes {
-		go getScoreCategory(playerType, fpi, scoreCategoriesCh, quit)
+		go getScoreCategory(playerType, year, friends, playersByType[playerType], scoreCategoriesCh, quit)
 	}
 	scoreCategories := make([]request.ScoreCategory, len(playerTypes))
 	finishedScoreCategories := 0
@@ -88,14 +91,14 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 	}
 }
 
-func getScoreCategory(playerType db.PlayerType, fpi request.FriendPlayerInfo, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
-	scoreCategorizer, ok := request.ScoreCategorizers[playerType]
+func getScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+	scoreCategorizer, ok := request.ScoreCategorizers[pt]
 	if !ok {
-		quit <- fmt.Errorf("no scoreCategorizer for player type %v", playerType)
+		quit <- fmt.Errorf("no scoreCategorizer for player type %v", pt)
 		return
 	}
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
-	scoreCategory, err := scoreCategorizer.RequestScoreCategory(fpi, playerType)
+	scoreCategory, err := scoreCategorizer.RequestScoreCategory(pt, year, friends, players)
 	if err != nil {
 		quit <- err
 		return

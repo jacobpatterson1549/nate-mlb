@@ -67,40 +67,33 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 			Name:         "Charles",
 		},
 	}
-	players := map[db.PlayerType][]db.Player{
-		db.PlayerTypeHitter: {
-			{
-				ID:           1,
-				SourceID:     547180, // Bryce Harper 31
-				FriendID:     1,
-				DisplayOrder: 1,
-			},
-			{
-				ID:           2,
-				SourceID:     545361, // Mike Trout 45
-				FriendID:     1,
-				DisplayOrder: 3,
-			},
-			{
-				ID:           3,
-				SourceID:     547180, // Bryce Harper 31
-				FriendID:     2,
-				DisplayOrder: 1,
-			},
-			{
-				ID:           4,
-				SourceID:     429665, // Edwin Encarnacion 34
-				FriendID:     1,
-				DisplayOrder: 2,
-			},
+	players := []db.Player{
+		{
+			ID:           1,
+			SourceID:     547180, // Bryce Harper 31
+			FriendID:     1,
+			DisplayOrder: 1,
+		},
+		{
+			ID:           2,
+			SourceID:     545361, // Mike Trout 45
+			FriendID:     1,
+			DisplayOrder: 3,
+		},
+		{
+			ID:           3,
+			SourceID:     547180, // Bryce Harper 31
+			FriendID:     2,
+			DisplayOrder: 1,
+		},
+		{
+			ID:           4,
+			SourceID:     429665, // Edwin Encarnacion 34
+			FriendID:     1,
+			DisplayOrder: 2,
 		},
 	}
 	year := 2019
-	fpi := FriendPlayerInfo{
-		Friends: friends,
-		Players: players,
-		Year:    year,
-	}
 	jsonFunc := func(urlPath string) string {
 		switch {
 		case strings.HasSuffix(urlPath, "/people"):
@@ -176,7 +169,7 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 			},
 		},
 	}
-	got, err := mlbPlayerRequestor.RequestScoreCategory(fpi, db.PlayerTypeHitter)
+	got, err := mlbPlayerRequestor.RequestScoreCategory(db.PlayerTypeHitter, year, friends, players)
 
 	switch {
 	case err != nil:

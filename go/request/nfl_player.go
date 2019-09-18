@@ -39,13 +39,13 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r *nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {
-	sourceIDs := make(map[db.SourceID]bool, len(fpi.Players[pt]))
-	for _, player := range fpi.Players[pt] {
+func (r *nflPlayerRequestor) RequestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+	sourceIDs := make(map[db.SourceID]bool, len(players))
+	for _, player := range players {
 		sourceIDs[player.SourceID] = true
 	}
 	var scoreCategory ScoreCategory
-	nflPlayerList, err := r.requestNflPlayerList(fpi.Year)
+	nflPlayerList, err := r.requestNflPlayerList(year)
 	if err != nil {
 		return scoreCategory, err
 	}
@@ -59,8 +59,8 @@ func (r *nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.Pl
 			}
 		}
 	}
-	playerNameScores := playerNameScoresFromSourceIDMap(fpi.Players[pt], sourceIDNameScores)
-	return newScoreCategory(fpi, pt, playerNameScores, true), nil
+	playerNameScores := playerNameScoresFromSourceIDMap(players, sourceIDNameScores)
+	return newScoreCategory(pt, friends, players, playerNameScores, true), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
