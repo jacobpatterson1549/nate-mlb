@@ -9,7 +9,6 @@ import (
 
 type (
 	// ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
-	// TODO: replace fpi with []friends, []players, year
 	ScoreCategorizer interface {
 		RequestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error)
 	}
