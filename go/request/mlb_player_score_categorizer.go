@@ -8,48 +8,50 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// mlbPlayerRequestor contains information about requests for hitter/pitcher names/stats
-type mlbPlayerRequestor struct {
-	requestor requestor
-}
+type (
+	// mlbPlayerRequestor contains information about requests for hitter/pitcher names/stats
+	mlbPlayerRequestor struct {
+		requestor requestor
+	}
 
-// MlbPlayerNames is used to unmarshal a request for player names
-type MlbPlayerNames struct {
-	People []MlbPlayerName `json:"people"`
-}
+	// MlbPlayerNames is used to unmarshal a request for player names
+	MlbPlayerNames struct {
+		People []MlbPlayerName `json:"people"`
+	}
 
-// MlbPlayerName contains a player's source ID and full name
-type MlbPlayerName struct {
-	ID       db.SourceID `json:"id"`
-	FullName string      `json:"fullName"`
-}
+	// MlbPlayerName contains a player's source ID and full name
+	MlbPlayerName struct {
+		ID       db.SourceID `json:"id"`
+		FullName string      `json:"fullName"`
+	}
 
-// MlbPlayerStats is used to unmarshal a player homeRuns/wins request
-type MlbPlayerStats struct {
-	Stats []MlbPlayerStat `json:"stats"`
-}
+	// MlbPlayerStats is used to unmarshal a player homeRuns/wins request
+	MlbPlayerStats struct {
+		Stats []MlbPlayerStat `json:"stats"`
+	}
 
-// MlbPlayerStat contains stats for a type of position for a player
-type MlbPlayerStat struct {
-	Group  MlbPlayerStatGroup   `json:"group"`
-	Splits []MlbPlayerStatSplit `json:"splits"`
-}
+	// MlbPlayerStat contains stats for a type of position for a player
+	MlbPlayerStat struct {
+		Group  MlbPlayerStatGroup   `json:"group"`
+		Splits []MlbPlayerStatSplit `json:"splits"`
+	}
 
-// MlbPlayerStatGroup contains the type of stat a MlbPlayerStat is for
-type MlbPlayerStatGroup struct {
-	DisplayName string `json:"displayName"`
-}
+	// MlbPlayerStatGroup contains the type of stat a MlbPlayerStat is for
+	MlbPlayerStatGroup struct {
+		DisplayName string `json:"displayName"`
+	}
 
-// MlbPlayerStatSplit contains stats for a single team or is a total of others
-type MlbPlayerStatSplit struct {
-	Stat MlbStat `json:"stat"`
-}
+	// MlbPlayerStatSplit contains stats for a single team or is a total of others
+	MlbPlayerStatSplit struct {
+		Stat MlbStat `json:"stat"`
+	}
 
-// MlbStat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
-type MlbStat struct {
-	HomeRuns int `json:"homeRuns"`
-	Wins     int `json:"wins"`
-}
+	// MlbStat contains a stat for a particular team the player has been on, or is the sum of stats if it is the last one
+	MlbStat struct {
+		HomeRuns int `json:"homeRuns"`
+		Wins     int `json:"wins"`
+	}
+)
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r *mlbPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {

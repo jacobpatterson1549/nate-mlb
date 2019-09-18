@@ -8,22 +8,24 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// nflTeamRequestor implements the ScoreCategorizer and Searcher interfaces
-type nflTeamRequestor struct {
-	requestor requestor
-}
+type (
+	// nflTeamRequestor implements the ScoreCategorizer and Searcher interfaces
+	nflTeamRequestor struct {
+		requestor requestor
+	}
 
-// NflTeamsSchedule contains information about NFL teams for a specific year
-type NflTeamsSchedule struct {
-	Teams map[db.SourceID]NflTeam `json:"nflTeams"`
-}
+	// NflTeamsSchedule contains information about NFL teams for a specific year
+	NflTeamsSchedule struct {
+		Teams map[db.SourceID]NflTeam `json:"nflTeams"`
+	}
 
-// NflTeam contains information about an NFL team for a specifc year
-type NflTeam struct {
-	ID     db.SourceID `json:"nflTeamId,string"`
-	Name   string      `json:"fullName"`
-	Record string      `json:"record"`
-}
+	// NflTeam contains information about an NFL team for a specifc year
+	NflTeam struct {
+		ID     db.SourceID `json:"nflTeamId,string"`
+		Name   string      `json:"fullName"`
+		Record string      `json:"record"`
+	}
+)
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r nflTeamRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {

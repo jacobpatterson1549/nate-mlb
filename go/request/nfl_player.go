@@ -7,34 +7,36 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces
-type nflPlayerRequestor struct {
-	requestor requestor
-}
+type (
+	// nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces
+	nflPlayerRequestor struct {
+		requestor requestor
+	}
 
-// NflPlayerList contains information about the stats for all players for a particular year
-type NflPlayerList struct {
-	Players []NflPlayer `json:"players"`
-}
+	// NflPlayerList contains information about the stats for all players for a particular year
+	NflPlayerList struct {
+		Players []NflPlayer `json:"players"`
+	}
 
-// NflPlayer contains the Names Stats for a nfl player for a particular year
-type NflPlayer struct {
-	ID       db.SourceID    `json:"id,string"`
-	Name     string         `json:"name"`
-	Position string         `json:"position"`
-	Team     string         `json:"teamAbbr"`
-	Stats    NflPlayerStats `json:"stats"`
-}
+	// NflPlayer contains the Names Stats for a nfl player for a particular year
+	NflPlayer struct {
+		ID       db.SourceID    `json:"id,string"`
+		Name     string         `json:"name"`
+		Position string         `json:"position"`
+		Team     string         `json:"teamAbbr"`
+		Stats    NflPlayerStats `json:"stats"`
+	}
 
-// NflPlayerStats contains the stats totals a NflPlayerStat has accumulated during a particular year
-// The meaning of these stats can be found at
-// https://api.fantasy.nfl.com/v1/game/stats?format=json
-type NflPlayerStats struct {
-	PassingTD   int `json:"6,string"`
-	RushingTD   int `json:"15,string"`
-	ReceivingTD int `json:"22,string"`
-	ReturnTD    int `json:"28,string"`
-}
+	// NflPlayerStats contains the stats totals a NflPlayerStat has accumulated during a particular year
+	// The meaning of these stats can be found at
+	// https://api.fantasy.nfl.com/v1/game/stats?format=json
+	NflPlayerStats struct {
+		PassingTD   int `json:"6,string"`
+		RushingTD   int `json:"15,string"`
+		ReceivingTD int `json:"22,string"`
+		ReturnTD    int `json:"28,string"`
+	}
+)
 
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r *nflPlayerRequestor) RequestScoreCategory(fpi FriendPlayerInfo, pt db.PlayerType) (ScoreCategory, error) {

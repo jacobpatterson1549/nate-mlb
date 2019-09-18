@@ -10,42 +10,44 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-// mlbPlayerSearcher implements the searcher interface
-type mlbPlayerSearcher struct {
-	requestor requestor
-}
+type (
+	// mlbPlayerSearcher implements the searcher interface
+	mlbPlayerSearcher struct {
+		requestor requestor
+	}
 
-// MlbPlayerSearch is used to unmarshal a request for information about players by name
-type MlbPlayerSearch struct {
-	SearchPlayerAll MlbPlayerSearchAll `json:"search_player_all"`
-}
+	// MlbPlayerSearch is used to unmarshal a request for information about players by name
+	MlbPlayerSearch struct {
+		SearchPlayerAll MlbPlayerSearchAll `json:"search_player_all"`
+	}
 
-// MlbPlayerSearchAll is part of a mlbPlayerSearch
-type MlbPlayerSearchAll struct {
-	QueryResults MlbPlayerSearchQueryResults `json:"queryResults"`
-}
+	// MlbPlayerSearchAll is part of a mlbPlayerSearch
+	MlbPlayerSearchAll struct {
+		QueryResults MlbPlayerSearchQueryResults `json:"queryResults"`
+	}
 
-// MlbPlayerSearchQueryResults  is used to unmarshal a request for information about players by name
-type MlbPlayerSearchQueryResults struct {
-	TotalSize  int             `json:"totalSize,string"`
-	PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
-}
+	// MlbPlayerSearchQueryResults  is used to unmarshal a request for information about players by name
+	MlbPlayerSearchQueryResults struct {
+		TotalSize  int             `json:"totalSize,string"`
+		PlayerBios json.RawMessage `json:"row"` // will be []PlayerBio, PlayerBio, or absent
+	}
 
-// MlbPlayerBio contains the results of a player search for a single player
-type MlbPlayerBio struct {
-	Position     string             `json:"position"`
-	BirthCountry string             `json:"birth_country"`
-	BirthDate    MlbPlayerBirthDate `json:"birth_date"`
-	TeamAbbrev   string             `json:"team_abbrev"`
-	PlayerName   string             `json:"name_display_first_last"`
-	PlayerID     db.SourceID        `json:"player_id,string"`
-}
+	// MlbPlayerBio contains the results of a player search for a single player
+	MlbPlayerBio struct {
+		Position     string             `json:"position"`
+		BirthCountry string             `json:"birth_country"`
+		BirthDate    MlbPlayerBirthDate `json:"birth_date"`
+		TeamAbbrev   string             `json:"team_abbrev"`
+		PlayerName   string             `json:"name_display_first_last"`
+		PlayerID     db.SourceID        `json:"player_id,string"`
+	}
 
-// MlbPlayerBirthDate contains information about a players birthdate including if it is missing
-type MlbPlayerBirthDate struct {
-	time    time.Time
-	missing bool
-}
+	// MlbPlayerBirthDate contains information about a players birthdate including if it is missing
+	MlbPlayerBirthDate struct {
+		time    time.Time
+		missing bool
+	}
+)
 
 // PlayerSearchResults implements the Searcher interface
 func (s *mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, playerNamePrefix string, year int, activePlayersOnly bool) ([]PlayerSearchResult, error) {
