@@ -92,6 +92,9 @@ func newFriendScores(fpi FriendPlayerInfo, playerType db.PlayerType, playerNameS
 	for i, friend := range fpi.Friends {
 		friendScores[i] = newFriendScore(friend, playerType, friendPlayers[friend.ID], playerNameScores, onlySumTopTwoPlayerScores)
 	}
+	sort.Slice(friendScores, func(i, j int) bool {
+		return friendScores[i].DisplayOrder < friendScores[j].DisplayOrder
+	})
 	return friendScores
 }
 
@@ -112,6 +115,9 @@ func newPlayerScores(players []db.Player, playerNameScores map[db.ID]nameScore) 
 	for i, player := range players {
 		playerScores[i] = newPlayerScore(player, playerNameScores[player.ID])
 	}
+	sort.Slice(playerScores, func(i, j int) bool {
+		return playerScores[i].DisplayOrder < playerScores[j].DisplayOrder
+	})
 	return playerScores
 }
 

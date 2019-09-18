@@ -15,9 +15,13 @@ type requestor interface {
 	structPointerFromURL(url string, v interface{}) error
 }
 
+type httpClient interface {
+	Do(r *http.Request) (*http.Response, error)
+}
+
 type httpRequestor struct {
 	cache          cache
-	httpClient     *http.Client
+	httpClient     httpClient
 	logRequestUrls bool
 }
 
@@ -85,7 +89,7 @@ func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
 
 func (r *httpRequestor) bytes(url string) ([]byte, error) {
 	if r.logRequestUrls {
-		log.Println("Requesting", url)
+		log.Printf("%T : requesting %v", r.httpClient, url)
 	}
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
