@@ -68,7 +68,7 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 		},
 	}
 	players := map[db.PlayerType][]db.Player{
-		db.PlayerTypeHitter: []db.Player{
+		db.PlayerTypeHitter: {
 			{
 				ID:           1,
 				SourceID:     547180, // Bryce Harper 31
