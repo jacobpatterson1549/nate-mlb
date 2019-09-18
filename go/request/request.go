@@ -36,12 +36,11 @@ var Searchers = make(map[db.PlayerType]searcher)
 // About provides details about the deployment of the application
 var About aboutRequestor
 
-var httpCache cache
+var httpCache cache = newCache(100)
 
 func init() {
-	c := newCache(100)
 	r := httpRequestor{
-		cache: c,
+		cache: httpCache,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
