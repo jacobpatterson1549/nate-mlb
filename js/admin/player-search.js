@@ -1,15 +1,15 @@
 var playerSearch = {
     showModal: function (show) {
-        var addPlayerModal = document.getElementById('addPlayerModal');
-        addPlayerModal.classList.toggle('d-none', !show);
-        var openModalButton = document.getElementById('openPlayerSearchModal')
-        openModalButton.classList.toggle('d-none', show);
+        var playerSearchModal = document.getElementById('player-search-modal');
+        playerSearchModal.classList.toggle('d-none', !show);
+        var playerSearchModalOpenButton = document.getElementById('player-search-modal-open')
+        playerSearchModalOpenButton.classList.toggle('d-none', show);
         if (show) {
             playerSearch.initActivePlayersCB();
             var searchInput = document.getElementById('player-search');
             searchInput.focus();
         } else {
-            addPlayerModal.focus();
+            playerSearchModal.focus();
         }
     },
 

@@ -39,7 +39,7 @@
                 onclick="adminFormItem.remove(event)">×</button>
         </div>
     </template>
-    <div id="player-form-items">
+    <div id="player-form-items" class="container">
         {{ range $scoreCategory := .Data -}}
         <div class="score-category player-type-{{.PlayerType}}">
             {{ range $friendScore := $scoreCategory.FriendScores -}}
@@ -47,11 +47,11 @@
                 {{ range $index, $playerScore := $friendScore.PlayerScores -}}
                 <div>
                     <div class="id">{{$playerScore.ID}}</div>
-                    <div class="playerName">{{$playerScore.Name}}</div>
-                    <div class="sourceID">{{$playerScore.SourceID}}</div>
-                    <div class="displayOrder">{{$index}}</div>
-                    <div class="playerType">{{$scoreCategory.PlayerType}}</div>
-                    <div class="friendID">{{$friendScore.ID}}</div>
+                    <div class="player-name">{{$playerScore.Name}}</div>
+                    <div class="source-id">{{$playerScore.SourceID}}</div>
+                    <div class="display-order">{{$index}}</div>
+                    <div class="player-type">{{$scoreCategory.PlayerType}}</div>
+                    <div class="friend-id">{{$friendScore.ID}}</div>
                 </div>
                 {{ end -}}
             </div>
@@ -62,6 +62,6 @@
     {{ end -}}
 </fieldset>
 <div class="form-group">
-    <button class="btn btn-secondary" type="button" id="openPlayerSearchModal"
+    <button class="btn btn-secondary" type="button" id="player-search-modal-open"
         onclick="playerSearch.showModal(true)">Add Player...</button>
 </div>

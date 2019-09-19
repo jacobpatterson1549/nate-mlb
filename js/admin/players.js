@@ -64,11 +64,13 @@ var playersForm = {
     },
 
     init: function () {
-        if (document.getElementById('select-friend') == null) {
-            var message = document.getElementById('player-template') == null
+        var friendSelect = document.getElementById('select-friend');
+        var playerTypeSelect = document.getElementById('player-template');
+        if (friendSelect == null) {
+            var message = playerTypeSelect == null
                 ? 'Requires Year'
                 : 'Requires Friend';
-            adminFormItem.disableButtons(['openPlayerSearchModal', 'players-form-submit-button'], message)
+            adminFormItem.disableButtons(['player-search-modal-open', 'players-form-submit-button'], message)
             return;
         }
         var playerTypes = document.getElementById('player-form-items').children;
@@ -78,11 +80,11 @@ var playersForm = {
                 var playerScores = friendScores[j].children;
                 for (var k = 0; k < playerScores.length; k++) {
                     var id = playerScores[k].querySelector('.id').innerText;
-                    var playerName = playerScores[k].querySelector('.playerName').innerText;
-                    var sourceID = playerScores[k].querySelector('.sourceID').innerText;
-                    var displayOrder = playerScores[k].querySelector('.displayOrder').innerText;
-                    var playerType = playerScores[k].querySelector('.playerType').innerText;
-                    var friendID = playerScores[k].querySelector('.friendID').innerText;
+                    var playerName = playerScores[k].querySelector('.player-name').innerText;
+                    var sourceID = playerScores[k].querySelector('.source-id').innerText;
+                    var displayOrder = playerScores[k].querySelector('.display-order').innerText;
+                    var playerType = playerScores[k].querySelector('.player-type').innerText;
+                    var friendID = playerScores[k].querySelector('.friend-id').innerText;
                     var newPlayer = playersForm.create(id, playerName, sourceID, displayOrder, playerType, friendID);
                     playerScores[k].replaceWith(newPlayer);
                 }
