@@ -134,3 +134,16 @@ func TestStructPointerFromUrl_readBytesError(t *testing.T) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
 	}
 }
+
+func TestClearCache(t *testing.T) {
+	httpCache = newCache(1)
+	url := "url"
+	httpCache.add(url, []byte("bytes"))
+	if !httpCache.contains(url) {
+		t.Error("wanted cache to contain url did not")
+	}
+	ClearCache()
+	if httpCache.contains(url) {
+		t.Error("wanted cache to not contain url did")
+	}
+}
