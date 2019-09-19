@@ -71,12 +71,8 @@ func TestPreviousDeployment_ok(t *testing.T) {
 		Version: "1234567",
 		Time:    time.Date(2019, time.September, 19, 17, 45, 8, 0, time.UTC),
 	}
-	r := httpRequestor{
-		cache:          newCache(0),
-		httpClient:     mockHTTPClient{JSONFunc: jsonFunc},
-		logRequestUrls: true,
-	}
-	about := aboutRequestor{requestor: &r}
+	r := newMockHTTPRequestor(jsonFunc)
+	about := aboutRequestor{requestor: r}
 	got, err := about.PreviousDeployment()
 	switch {
 	case err != nil:

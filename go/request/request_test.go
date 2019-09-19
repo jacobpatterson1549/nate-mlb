@@ -2,6 +2,7 @@ package request
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,29 +14,33 @@ type (
 	}
 
 	mockHTTPClient struct {
-		JSONFunc func(urlPath string) string
+		DoFunc func(r *http.Request) (*http.Response, error)
 	}
 )
 
-func (m *mockRequestor) structPointerFromURL(url string, v interface{}) error {
-	return m.structPointerFromURLFunc(url, v)
+func (r *mockRequestor) structPointerFromURL(url string, v interface{}) error {
+	return r.structPointerFromURLFunc(url, v)
 }
 
-func newMockRequestor(jsonFunc func(urlPath string) string) requestor {
+func newMockHTTPRequestor(jsonFunc func(urlPath string) string) requestor {
 	return &httpRequestor{
-		cache:          newCache(0), // (do not cache)
-		httpClient:     mockHTTPClient{JSONFunc: jsonFunc},
+		cache: newCache(0), // (do not cache)
+		httpClient: mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				w := httptest.NewRecorder()
+				_, err := w.WriteString(jsonFunc(r.URL.Path))
+				if err != nil {
+					return nil, err
+				}
+				return w.Result(), nil
+			},
+		},
 		logRequestUrls: true,
 	}
 }
 
-func (m mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
-	w := httptest.NewRecorder()
-	_, err := w.WriteString(m.JSONFunc(r.URL.Path))
-	if err != nil {
-		return nil, err
-	}
-	return w.Result(), nil
+func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
+	return c.DoFunc(r)
 }
 
 type structPointerFromURLTest struct {
@@ -65,7 +70,7 @@ func TestStructPointerFromUrl(t *testing.T) {
 		jsonFunc := func(urlPath string) string {
 			return test.returnJSON
 		}
-		r := newMockRequestor(jsonFunc)
+		r := newMockHTTPRequestor(jsonFunc)
 		var got interface{}
 		err := r.structPointerFromURL(test.url, &got)
 		switch {
@@ -79,24 +84,53 @@ func TestStructPointerFromUrl(t *testing.T) {
 	}
 }
 
-type httpClientDoError struct {
-	doErr error
-}
-
-func (c httpClientDoError) Do(r *http.Request) (*http.Response, error) {
-	return nil, c.doErr
-}
-
 func TestStructPointerFromUrl_requestorError(t *testing.T) {
 	doErr := errors.New("Do error")
 	r := httpRequestor{
-		cache:          newCache(0), // (do not cache)
-		httpClient:     httpClientDoError{doErr: doErr},
+		cache: newCache(0), // (do not cache)
+		httpClient: mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				return nil, doErr
+			},
+		},
 		logRequestUrls: true,
 	}
 	var got interface{}
 	err := r.structPointerFromURL("url", &got)
 	if err == nil || !errors.Is(err, doErr) {
+		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
+	}
+}
+
+type mockReadCloser struct {
+	io.ReadCloser
+	readErr  error
+	closeErr error
+}
+
+func (m mockReadCloser) Read(b []byte) (n int, err error) {
+	return len(b), m.readErr
+}
+func (m mockReadCloser) Close() error {
+	return m.closeErr
+}
+func TestStructPointerFromUrl_readBytesError(t *testing.T) {
+	readErr := errors.New("read error")
+	r := httpRequestor{
+		cache: newCache(0), // (do not cache)
+		httpClient: mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				response := http.Response{
+					Body: mockReadCloser{readErr: readErr},
+				}
+				return &response, nil
+			},
+		},
+		logRequestUrls: true,
+	}
+	var got interface{}
+	err := r.structPointerFromURL("url", &got)
+	if err == nil || !errors.Is(err, readErr) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
 	}
 }

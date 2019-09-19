@@ -98,7 +98,7 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 		}
 		return "null"
 	}
-	r := newMockRequestor(jsonFunc)
+	r := newMockHTTPRequestor(jsonFunc)
 	mlbPlayerRequestor := mlbPlayerRequestor{requestor: r}
 
 	want := ScoreCategory{

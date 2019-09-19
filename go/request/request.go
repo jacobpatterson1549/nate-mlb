@@ -106,7 +106,7 @@ func (r *httpRequestor) bytes(url string) ([]byte, error) {
 
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading body of %v", url)
+		return nil, fmt.Errorf("reading body of %v: %w", url, err)
 	}
 	return b, nil
 }
