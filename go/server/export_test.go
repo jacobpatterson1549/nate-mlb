@@ -1,11 +1,51 @@
 package server
 
 import (
+	"bytes"
+	"errors"
 	"reflect"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
+
+func TestExportToCsv(t *testing.T) {
+	es := EtlStats{
+		sportTypeName: "rugby",
+		year:          2008,
+	}
+	var w bytes.Buffer
+	err := exportToCsv(es, &w)
+	want := `nate-mlb,2008 rugby scores
+
+type,friend,value,player,score
+`
+	got := w.String()
+	switch {
+	case err != nil:
+		t.Errorf("did not expect error: %v", err)
+	case want != got:
+		t.Errorf("different csv:\nwanted: %v\ngot:    %v", want, got)
+	}
+}
+
+type errWriter struct {
+	err error
+}
+
+func (w errWriter) Write(p []byte) (n int, err error) {
+	return 0, w.err
+}
+
+func TestExportToCsv_writeError(t *testing.T) {
+	err := errors.New("write failed")
+	var es EtlStats
+	w := errWriter{err: err}
+	got := exportToCsv(es, w)
+	if !errors.Is(got, err) {
+		t.Errorf("did not get expected export error: wanted: %v, got: %v", err, got)
+	}
+}
 
 func TestCreateCsvRecords(t *testing.T) {
 	es := EtlStats{

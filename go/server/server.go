@@ -187,7 +187,7 @@ func handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) error
 	fileName := fmt.Sprintf("nate-mlb_%s-%d_%s.csv", es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	return exportToCsv(st, es, w)
+	return exportToCsv(es, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {

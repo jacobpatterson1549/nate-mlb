@@ -6,11 +6,10 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-func exportToCsv(st db.SportType, es EtlStats, w io.Writer) error {
+func exportToCsv(es EtlStats, w io.Writer) error {
 	records := createCsvRecords(es)
 	csvWriter := csv.NewWriter(w)
 	err := csvWriter.WriteAll(records)
