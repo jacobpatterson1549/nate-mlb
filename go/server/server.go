@@ -16,14 +16,10 @@ import (
 
 type (
 	sportTypeURLResolver func(string) db.SportType
-
-	urlPathTransformer func(string, sportTypeURLResolver) (db.SportType, string)
-
-	httpMethod string
-
-	sportTypeHandler func(st db.SportType, w http.ResponseWriter, r *http.Request) error
-
-	sportTypeHandlers map[httpMethod]map[string]sportTypeHandler
+	urlPathTransformer   func(string, sportTypeURLResolver) (db.SportType, string)
+	httpMethod           string
+	sportTypeHandler     func(st db.SportType, w http.ResponseWriter, r *http.Request) error
+	sportTypeHandlers    map[httpMethod]map[string]sportTypeHandler
 )
 
 var serverSportTypeHandlers = sportTypeHandlers{
