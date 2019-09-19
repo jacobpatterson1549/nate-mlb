@@ -49,13 +49,6 @@ func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
 	}
 }
 
-type mockRequestor struct {
-	structPointerFromURLFunc func(url string, v interface{}) error
-}
-
-func (m *mockRequestor) structPointerFromURL(url string, v interface{}) error {
-	return m.structPointerFromURLFunc(url, v)
-}
 func TestPreviousDeployment_RequestorError(t *testing.T) {
 	m := mockRequestor{
 		structPointerFromURLFunc: func(url string, v interface{}) error {

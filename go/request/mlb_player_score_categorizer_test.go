@@ -2,8 +2,6 @@ package request
 
 import (
 	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"reflect"
 	"strings"
 	"testing"
@@ -39,19 +37,6 @@ func TestLastStatScore(t *testing.T) {
 			t.Errorf("Test %v: wanted %v, but got ERROR: %v", i, test.want, err)
 		}
 	}
-}
-
-type mockHTTPClient struct {
-	JSONFunc func(urlPath string) string
-}
-
-func (m mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
-	w := httptest.NewRecorder()
-	_, err := w.WriteString(m.JSONFunc(r.URL.Path))
-	if err != nil {
-		return nil, err
-	}
-	return w.Result(), nil
 }
 
 func TestRequestScoreCategoryHitters(t *testing.T) {
@@ -113,12 +98,8 @@ func TestRequestScoreCategoryHitters(t *testing.T) {
 		}
 		return "null"
 	}
-	r := httpRequestor{
-		cache:          newCache(0),
-		httpClient:     mockHTTPClient{JSONFunc: jsonFunc},
-		logRequestUrls: true,
-	}
-	mlbPlayerRequestor := mlbPlayerRequestor{requestor: &r}
+	r := newMockRequestor(jsonFunc)
+	mlbPlayerRequestor := mlbPlayerRequestor{requestor: r}
 
 	want := ScoreCategory{
 		PlayerType: db.PlayerTypeHitter,

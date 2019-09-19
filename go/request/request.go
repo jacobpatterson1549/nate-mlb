@@ -73,19 +73,16 @@ func init() {
 }
 
 func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
-	var (
-		b   []byte
-		err error
-		ok  bool
-	)
-	if b, ok = r.cache.get(url); !ok {
+	b, ok := r.cache.get(url)
+	if !ok {
+		var err error
 		b, err = r.bytes(url)
 		if err != nil {
 			return err
 		}
 		r.cache.add(url, b)
 	}
-	json.Unmarshal(b, v)
+	err := json.Unmarshal(b, v)
 	if err != nil {
 		return fmt.Errorf("reading json when requesting %v: %w", url, err)
 	}
