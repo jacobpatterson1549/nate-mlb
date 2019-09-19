@@ -68,6 +68,8 @@ func init() {
 	Searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
 	Searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	Searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+
+	About = aboutRequestor{requestor: &r}
 }
 
 func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
