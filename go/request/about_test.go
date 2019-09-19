@@ -1,6 +1,7 @@
 package request
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -45,5 +46,49 @@ func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
 		if got != test.want {
 			t.Errorf("Test %v:\nwanted  %v,\nbut got %v", i, test.want, got)
 		}
+	}
+}
+
+type mockRequestor struct {
+	structPointerFromURLFunc func(url string, v interface{}) error
+}
+
+func (m *mockRequestor) structPointerFromURL(url string, v interface{}) error {
+	return m.structPointerFromURLFunc(url, v)
+}
+func TestPreviousDeployment_RequestorError(t *testing.T) {
+	m := mockRequestor{
+		structPointerFromURLFunc: func(url string, v interface{}) error {
+			return errors.New("requestorError")
+		},
+	}
+	about := aboutRequestor{requestor: &m}
+
+	_, err := about.PreviousDeployment()
+	if err == nil {
+		t.Error("expected request to fail, but did not")
+	}
+}
+
+func TestPreviousDeployment_ok(t *testing.T) {
+	jsonFunc := func(urlPath string) string {
+		return `[{"ref":"1234567890","updated_at":"2019-09-19T17:45:08Z"}]`
+	}
+	want := Deployment{
+		Version: "1234567",
+		Time:    time.Date(2019, time.September, 19, 17, 45, 8, 0, time.UTC),
+	}
+	r := httpRequestor{
+		cache:          newCache(0),
+		httpClient:     mockHTTPClient{JSONFunc: jsonFunc},
+		logRequestUrls: true,
+	}
+	about := aboutRequestor{requestor: &r}
+	got, err := about.PreviousDeployment()
+	switch {
+	case err != nil:
+		t.Errorf("request failed: %v", err)
+	case want != got:
+		t.Errorf("non-equal Deployments:\nwanted: %v\ngot:    %v", want, got)
 	}
 }
