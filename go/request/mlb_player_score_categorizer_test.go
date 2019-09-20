@@ -40,7 +40,6 @@ func TestLastStatScore(t *testing.T) {
 func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 	requestScoreCategoryTests := []struct {
 		pt               db.PlayerType
-		year             int
 		friends          []db.Friend
 		players          []db.Player
 		playerNamesJSON  string
@@ -49,8 +48,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		want             ScoreCategory
 	}{
 		{
-			pt:   db.PlayerTypeHitter,
-			year: 2019,
+			pt: db.PlayerTypeHitter,
 			friends: []db.Friend{
 				{ID: 1, DisplayOrder: 2, Name: "Bobby"},
 				{ID: 2, DisplayOrder: 1, Name: "Charles"},
@@ -91,7 +89,6 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:               db.PlayerTypePitcher,
-			year:             2019,
 			friends:          []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
 			players:          []db.Player{{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}}, // Blake Snell 6
 			playerNamesJSON:  `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
@@ -109,7 +106,6 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:               db.PlayerTypeHitter,
-			year:             2019,
 			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON:  `{"People":[]}`,
 			playerStatsJSONs: map[db.ID]string{592450: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
@@ -117,7 +113,6 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:               db.PlayerTypeNflQB,
-			year:             2019,
 			players:          []db.Player{{ID: 9, SourceID: 2532975, FriendID: 6, DisplayOrder: 1}}, // Russell Wilson 0
 			playerNamesJSON:  `{"People":[{"id":2532975,"fullName":"Russell Wilson"}]}`,
 			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":0}}]}]}`},
@@ -125,7 +120,6 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:              db.PlayerTypePitcher,
-			year:            2019,
 			friends:         []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
 			players:         []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
 			playerNamesJSON: `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
@@ -156,7 +150,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		mlbPlayerRequestor := mlbPlayerRequestor{requestor: r}
-		got, err := mlbPlayerRequestor.RequestScoreCategory(test.pt, test.year, test.friends, test.players)
+		got, err := mlbPlayerRequestor.RequestScoreCategory(test.pt, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {
