@@ -22,6 +22,10 @@ func (r *mockRequestor) structPointerFromURL(url string, v interface{}) error {
 	return r.structPointerFromURLFunc(url, v)
 }
 
+func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
+	return c.DoFunc(r)
+}
+
 func newMockHTTPRequestor(jsonFunc func(urlPath string) string) requestor {
 	return &httpRequestor{
 		cache: newCache(0), // (do not cache)
@@ -39,33 +43,26 @@ func newMockHTTPRequestor(jsonFunc func(urlPath string) string) requestor {
 	}
 }
 
-func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
-	return c.DoFunc(r)
-}
-
-type structPointerFromURLTest struct {
-	url        string
-	returnJSON string
-	wantError  bool
-	want       interface{}
-}
-
-var structPointerFromURLTests = []structPointerFromURLTest{
-	{
-		returnJSON: `"valid json string"`,
-		want:       "valid json string",
-	},
-	{
-		returnJSON: `bad json`,
-		wantError:  true,
-	},
-	{
-		url:       "\x00 (bad url character)",
-		wantError: true,
-	},
-}
-
 func TestStructPointerFromUrl(t *testing.T) {
+	structPointerFromURLTests := []struct {
+		url        string
+		returnJSON string
+		wantError  bool
+		want       interface{}
+	}{
+		{
+			returnJSON: `"valid json string"`,
+			want:       "valid json string",
+		},
+		{
+			returnJSON: `bad json`,
+			wantError:  true,
+		},
+		{
+			url:       "\x00 (bad url character)",
+			wantError: true,
+		},
+	}
 	for i, test := range structPointerFromURLTests {
 		jsonFunc := func(urlPath string) string {
 			return test.returnJSON
