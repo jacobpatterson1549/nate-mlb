@@ -7,7 +7,7 @@ import (
 )
 
 func TestTransformURLPath(t *testing.T) {
-	var transformURLPathTests = []struct {
+	transformURLPathTests := []struct {
 		urlPath       string
 		wantSportType db.SportType
 		wantURLPath   string
