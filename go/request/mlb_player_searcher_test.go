@@ -8,7 +8,88 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-func TestGetPlayerSearchResults(t *testing.T) {
+func TestMlbPlayerSearchResults(t *testing.T) {
+	playerSearchResultsTests := []struct {
+		pt                db.PlayerType
+		playerNamePrefix  string
+		activePlayersOnly bool
+		playersJSON       string
+		wantErr           bool
+		want              []PlayerSearchResult
+	}{
+		{
+			pt:                db.PlayerTypePitcher,
+			playerNamePrefix:  "Hader",
+			activePlayersOnly: true,
+			playersJSON: `{"search_player_all":{"queryResults":{
+				"totalSize":"1",
+				"row":{
+					"position": "P",
+					"birth_country": "USA",
+					"birth_date": "1994-04-07T00:00:00",
+					"team_abbrev": "MIL",
+					"name_display_first_last": "Josh Hader",
+					"player_id": "623352"}}}}`,
+			want: []PlayerSearchResult{{Name: "Josh Hader", Details: "team:MIL, position:P, born:USA,1994-04-07", SourceID: 623352}},
+		},
+		{
+			pt:                db.PlayerTypeHitter,
+			playerNamePrefix:  "jose mart",
+			activePlayersOnly: false,
+			playersJSON: `{"search_player_all":{"queryResults":{
+				"totalSize":"2",
+				"row":[{
+					"position": "P",
+					"birth_country": "Dominican Republic",
+					"birth_date": "1971-01-04T00:00:00",
+					"team_abbrev": "SD",
+					"name_display_first_last": "Jose Martinez",
+					"player_id": "118372"
+					},
+					{
+					"position": "2B",
+					"birth_country": "Cuba",
+					"birth_date": "1942-07-26T00:00:00",
+					"team_abbrev": "PIT",
+					"name_display_first_last": "Jose Martinez",
+					"player_id": "118370"
+					}]}}}`, // do not include player 500874 - he is inactive in 2019
+			want: []PlayerSearchResult{{Name: "Jose Martinez", Details: "team:PIT, position:2B, born:Cuba,1942-07-26", SourceID: 118370}},
+		},
+		{
+			pt:               db.PlayerTypeHitter,
+			playerNamePrefix: "felix",
+			wantErr:          true, // no json
+		},
+		{
+			pt:                db.PlayerTypePitcher,
+			playerNamePrefix:  "bartholomew", // no results
+			activePlayersOnly: true,
+			playersJSON:       `{"search_player_all":{"queryResults":{"totalSize":"0"}}}`,
+		},
+	}
+	for i, test := range playerSearchResultsTests {
+		jsonFunc := func(urlPath string) string {
+			// TODO: switch for Y/N
+			return test.playersJSON
+		}
+		r := newMockHTTPRequestor(jsonFunc)
+		mlbPlayerSearcher := mlbPlayerSearcher{requestor: r}
+		got, err := mlbPlayerSearcher.PlayerSearchResults(test.pt, 2019, test.playerNamePrefix, test.activePlayersOnly)
+		switch {
+		case test.wantErr:
+			if err == nil {
+				t.Errorf("Test %v: wanted error but did not get one", i)
+			}
+		case err != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, err)
+		case !reflect.DeepEqual(test.want, got):
+			t.Errorf("Test %v: Not equal:\nWanted: %v\nGot:    %v", i, test.want, got)
+		}
+	}
+}
+
+func TestGetMlbPlayerSearchResults(t *testing.T) {
 	getPlayerSearchResultsTests := []struct {
 		searchResultJSON string
 		playerType       db.PlayerType
