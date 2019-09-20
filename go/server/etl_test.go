@@ -5,15 +5,13 @@ import (
 	"time"
 )
 
-type previousMidnightTest struct {
-	dateTime time.Time
-	want     time.Time
-}
-
-var (
-	pacificLocation, _    = time.LoadLocation("America/Los_Angeles")
-	hawaiiLocation, _     = time.LoadLocation("Pacific/Honolulu")
-	previousMidnightTests = []previousMidnightTest{
+func TestPreviousMidnight(t *testing.T) {
+	pacificLocation, _ := time.LoadLocation("America/Los_Angeles")
+	hawaiiLocation, _ := time.LoadLocation("Pacific/Honolulu")
+	previousMidnightTests := []struct {
+		dateTime time.Time
+		want     time.Time
+	}{
 		{
 			dateTime: time.Date(2019, time.August, 22, 0, 0, 0, 0, time.UTC), // 12 AM
 			want:     time.Date(2019, time.August, 21, 10, 0, 0, 0, time.UTC),
@@ -31,9 +29,6 @@ var (
 			want:     time.Date(2019, time.August, 22, 0, 0, 0, 0, hawaiiLocation),
 		},
 	}
-)
-
-func TestPreviousMidnight(t *testing.T) {
 	for i, test := range previousMidnightTests {
 		got := previousMidnight(test.dateTime)
 		if test.want != got {

@@ -6,41 +6,38 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
-type transformURLPathTest struct {
-	urlPath       string
-	wantSportType db.SportType
-	wantURLPath   string
-}
-
-var transformURLPathTests = []transformURLPathTest{
-	{
-		urlPath:       "",
-		wantSportType: 0,
-		wantURLPath:   "",
-	},
-	{
-		urlPath:       "/",
-		wantSportType: 0,
-		wantURLPath:   "",
-	},
-	{
-		urlPath:       "/mlb",
-		wantSportType: db.SportTypeMlb,
-		wantURLPath:   "/SportType",
-	},
-	{
-		urlPath:       "/nfl/admin",
-		wantSportType: db.SportTypeNfl,
-		wantURLPath:   "/SportType/nfl/admin",
-	},
-	{
-		urlPath:       "/admin",
-		wantSportType: 0,
-		wantURLPath:   "admin",
-	},
-}
-
 func TestTransformURLPath(t *testing.T) {
+	var transformURLPathTests = []struct {
+		urlPath       string
+		wantSportType db.SportType
+		wantURLPath   string
+	}{
+		{
+			urlPath:       "",
+			wantSportType: 0,
+			wantURLPath:   "",
+		},
+		{
+			urlPath:       "/",
+			wantSportType: 0,
+			wantURLPath:   "",
+		},
+		{
+			urlPath:       "/mlb",
+			wantSportType: db.SportTypeMlb,
+			wantURLPath:   "/SportType",
+		},
+		{
+			urlPath:       "/nfl/admin",
+			wantSportType: db.SportTypeNfl,
+			wantURLPath:   "/SportType/nfl/admin",
+		},
+		{
+			urlPath:       "/admin",
+			wantSportType: 0,
+			wantURLPath:   "admin",
+		},
+	}
 	mockSportTypes := map[string]db.SportType{
 		"mlb": db.SportTypeMlb,
 		"nfl": db.SportTypeNfl,

@@ -2,27 +2,24 @@ package db
 
 import "testing"
 
-type passwordIsValidTest struct {
-	password password
-	want     bool
-}
-
-var passwordIsValidTests = []passwordIsValidTest{
-	{
-		password: "okPassword123",
-		want:     true,
-	},
-	{
-		password: "",
-		want:     false,
-	},
-	{
-		password: "no spaces are allowed",
-		want:     false,
-	},
-}
-
 func TestPasswordIsValid(t *testing.T) {
+	passwordIsValidTests := []struct {
+		password password
+		want     bool
+	}{
+		{
+			password: "okPassword123",
+			want:     true,
+		},
+		{
+			password: "",
+			want:     false,
+		},
+		{
+			password: "no spaces are allowed",
+			want:     false,
+		},
+	}
 	for i, test := range passwordIsValidTests {
 		got := test.password.isValid()
 		if test.want != got {
