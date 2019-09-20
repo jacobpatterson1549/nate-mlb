@@ -90,18 +90,12 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 			},
 		},
 		{
-			pt:   db.PlayerTypePitcher,
-			year: 2019,
-			friends: []db.Friend{
-				{ID: 8, DisplayOrder: 1, Name: "Brandon"},
-			},
-			players: []db.Player{
-				{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}, // Blake Snell 6
-			},
-			playerNamesJSON: `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
-			playerStatsJSONs: map[db.ID]string{
-				605483: `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`,
-			},
+			pt:               db.PlayerTypePitcher,
+			year:             2019,
+			friends:          []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
+			players:          []db.Player{{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}}, // Blake Snell 6
+			playerNamesJSON:  `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
+			playerStatsJSONs: map[db.ID]string{605483: `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`},
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypePitcher,
 				FriendScores: []FriendScore{
@@ -109,6 +103,39 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 6,
 						PlayerScores: []PlayerScore{
 							{ID: 7, Name: "Blake Snell", Score: 6, DisplayOrder: 1, SourceID: 605483}},
+					},
+				},
+			},
+		},
+		{
+			pt:               db.PlayerTypeHitter,
+			year:             2019,
+			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
+			playerNamesJSON:  `{"People":[]}`,
+			playerStatsJSONs: map[db.ID]string{592450: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
+			wantErr:          true, // incorrect number of names
+		},
+		{
+			pt:               db.PlayerTypeNflQB,
+			year:             2019,
+			players:          []db.Player{{ID: 9, SourceID: 2532975, FriendID: 6, DisplayOrder: 1}}, // Russell Wilson 0
+			playerNamesJSON:  `{"People":[{"id":2532975,"fullName":"Russell Wilson"}]}`,
+			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":0}}]}]}`},
+			wantErr:          true, // incorrect playerType for MlbPlayerStats.getStat(pt)
+		},
+		{
+			pt:               db.PlayerTypePitcher,
+			year:             2019,
+			friends:          []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
+			players:          []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
+			playerNamesJSON:  `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
+			want: ScoreCategory{
+				PlayerType: db.PlayerTypePitcher,
+				FriendScores: []FriendScore{
+					{
+						DisplayOrder: 1, ID: 4, Name: "Cameron", Score: 0,
+						PlayerScores: []PlayerScore{
+							{ID: 2, Name: "Luis Severino", Score: 0, DisplayOrder: 1, SourceID: 622663}},
 					},
 				},
 			},

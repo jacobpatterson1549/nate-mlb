@@ -124,7 +124,6 @@ func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, 
 		}
 	}
 	if i != len(sourceIDs) {
-		// this might not be read if names for the same sourceID occur multiple times and this request takes longer than the stat requests
 		quit <- fmt.Errorf("expected to receive %d mlb player names, but only got %d", len(sourceIDs), i)
 	}
 }
