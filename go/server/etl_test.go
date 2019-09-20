@@ -6,8 +6,14 @@ import (
 )
 
 func TestPreviousMidnight(t *testing.T) {
-	pacificLocation, _ := time.LoadLocation("America/Los_Angeles")
-	hawaiiLocation, _ := time.LoadLocation("Pacific/Honolulu")
+	pacificLocation, err := time.LoadLocation("America/Los_Angeles")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hawaiiLocation, err := time.LoadLocation("Pacific/Honolulu")
+	if err != nil {
+		t.Fatal(err)
+	}
 	previousMidnightTests := []struct {
 		dateTime time.Time
 		want     time.Time
