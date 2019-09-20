@@ -124,11 +124,11 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 			wantErr:          true, // incorrect playerType for MlbPlayerStats.getStat(pt)
 		},
 		{
-			pt:               db.PlayerTypePitcher,
-			year:             2019,
-			friends:          []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
-			players:          []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
-			playerNamesJSON:  `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
+			pt:              db.PlayerTypePitcher,
+			year:            2019,
+			friends:         []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
+			players:         []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
+			playerNamesJSON: `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypePitcher,
 				FriendScores: []FriendScore{
