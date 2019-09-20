@@ -62,9 +62,9 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 				{ID: 4, SourceID: 429665, FriendID: 1, DisplayOrder: 2}, // Edwin Encarnacion 34
 			},
 			playerNamesJSON: `{"People":[
-				{"id": 545361,"fullName":"Mike Trout"},
-				{"id": 429665,"fullName":"Edwin Encarnacion"},
-				{"id": 547180,"fullName":"Bryce Harper"}]}`,
+				{"id":545361,"fullName":"Mike Trout"},
+				{"id":429665,"fullName":"Edwin Encarnacion"},
+				{"id":547180,"fullName":"Bryce Harper"}]}`,
 			playerStatsJSONs: map[db.ID]string{
 				547180: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":31}}]}]}`,
 				545361: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":45}}]}]}`,
@@ -85,6 +85,30 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 							{ID: 4, Name: "Edwin Encarnacion", Score: 34, DisplayOrder: 2, SourceID: 429665},
 							{ID: 2, Name: "Mike Trout", Score: 45, DisplayOrder: 3, SourceID: 545361},
 						},
+					},
+				},
+			},
+		},
+		{
+			pt:   db.PlayerTypePitcher,
+			year: 2019,
+			friends: []db.Friend{
+				{ID: 8, DisplayOrder: 1, Name: "Brandon"},
+			},
+			players: []db.Player{
+				{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}, // Blake Snell 6
+			},
+			playerNamesJSON: `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
+			playerStatsJSONs: map[db.ID]string{
+				605483: `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`,
+			},
+			want: ScoreCategory{
+				PlayerType: db.PlayerTypePitcher,
+				FriendScores: []FriendScore{
+					{
+						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 6,
+						PlayerScores: []PlayerScore{
+							{ID: 7, Name: "Blake Snell", Score: 6, DisplayOrder: 1, SourceID: 605483}},
 					},
 				},
 			},
