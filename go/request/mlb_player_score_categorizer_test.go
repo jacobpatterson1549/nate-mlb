@@ -37,7 +37,7 @@ func TestLastStatScore(t *testing.T) {
 	}
 }
 
-func TestMlbRequestScoreCategoryHitters(t *testing.T) {
+func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 	requestScoreCategoryTests := []struct {
 		pt               db.PlayerType
 		year             int
