@@ -74,18 +74,12 @@ func TestMlbRequestScoreCategoryHitters(t *testing.T) {
 				PlayerType: db.PlayerTypeHitter,
 				FriendScores: []FriendScore{
 					{
-						ID:           2,
-						Name:         "Charles",
-						Score:        31,
-						DisplayOrder: 1,
+						DisplayOrder: 1, ID: 2, Name: "Charles", Score: 31,
 						PlayerScores: []PlayerScore{
 							{ID: 3, Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180}},
 					},
 					{
-						ID:           1,
-						Name:         "Bobby",
-						Score:        79, // only sum top two scores
-						DisplayOrder: 2,
+						DisplayOrder: 2, ID: 1, Name: "Bobby", Score: 79, // only sum top two scores
 						PlayerScores: []PlayerScore{
 							{ID: 1, Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180},
 							{ID: 4, Name: "Edwin Encarnacion", Score: 34, DisplayOrder: 2, SourceID: 429665},
