@@ -86,10 +86,7 @@ func (r *mlbPlayerRequestor) requestScoreCategory(pt db.PlayerType, year int, fr
 			}
 		}
 	}
-	playerNameScores, err := playerNameScoresFromFieldMaps(players, playerNames, playerStats)
-	if err != nil {
-		return scoreCategory, err
-	}
+	playerNameScores := playerNameScoresFromFieldMaps(players, playerNames, playerStats)
 	return newScoreCategory(pt, friends, players, playerNameScores, true), nil
 }
 

@@ -1,7 +1,6 @@
 package request
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -129,23 +128,15 @@ func getFriendScore(playerScores []PlayerScore, onlySumTopTwoPlayerScores bool) 
 	return friendScore
 }
 
-func playerNameScoresFromFieldMaps(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) (map[db.ID]nameScore, error) {
+func playerNameScoresFromFieldMaps(players []db.Player, names map[db.SourceID]string, stats map[db.SourceID]int) map[db.ID]nameScore {
 	playerNameScores := make(map[db.ID]nameScore, len(players))
 	for _, player := range players {
-		name, ok := names[player.SourceID]
-		if !ok {
-			return playerNameScores, fmt.Errorf("no name for player %d", player.ID)
-		}
-		stat, ok := stats[player.SourceID]
-		if !ok {
-			return playerNameScores, fmt.Errorf("no stat for player %d", player.ID)
-		}
 		playerNameScores[player.ID] = nameScore{
-			name:  name,
-			score: stat,
+			name:  names[player.SourceID],
+			score: stats[player.SourceID],
 		}
 	}
-	return playerNameScores, nil
+	return playerNameScores
 }
 
 func playerNameScoresFromSourceIDMap(players []db.Player, sourceIDNameScores map[db.SourceID]nameScore) map[db.ID]nameScore {
