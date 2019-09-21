@@ -4,8 +4,8 @@ import "github.com/jacobpatterson1549/nate-mlb/go/db"
 
 type (
 	// Searcher requests PlayerSearchResults
-	Searcher interface {
-		PlayerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error)
+	searcher interface {
+		playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error)
 	}
 
 	// PlayerSearchResult contains information about the result for a searched player.

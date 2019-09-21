@@ -92,13 +92,8 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 }
 
 func getScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
-	scoreCategorizer, ok := request.ScoreCategorizers[pt]
-	if !ok {
-		quit <- fmt.Errorf("no scoreCategorizer for player type %v", pt)
-		return
-	}
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
-	scoreCategory, err := scoreCategorizer.RequestScoreCategory(pt, year, friends, players)
+	scoreCategory, err := request.Score(pt, year, friends, players)
 	if err != nil {
 		quit <- err
 		return

@@ -54,7 +54,7 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflTeamRequestor := nflTeamRequestor{requestor: r}
-		got, err := nflTeamRequestor.RequestScoreCategory(db.PlayerTypeNflTeam, 2019, test.friends, test.players)
+		got, err := nflTeamRequestor.requestScoreCategory(db.PlayerTypeNflTeam, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -97,7 +97,7 @@ func TestNflTeamPlayerSearchResults(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflTeamRequestor := nflTeamRequestor{requestor: r}
-		got, err := nflTeamRequestor.PlayerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
+		got, err := nflTeamRequestor.playerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {

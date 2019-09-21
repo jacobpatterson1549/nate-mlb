@@ -47,11 +47,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
-	searcher, ok := request.Searchers[playerType]
-	if !ok {
-		return nil, fmt.Errorf("finding searcher for playerType %v", playerType)
-	}
-	return searcher.PlayerSearchResults(playerType, year, searchQuery, activePlayersOnlyB)
+	return request.PlayerSearchResults(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {

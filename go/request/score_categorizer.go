@@ -9,8 +9,8 @@ import (
 
 type (
 	// ScoreCategorizer requests data for and creates a ScoreCategory for the FriendPlayerInfo
-	ScoreCategorizer interface {
-		RequestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error)
+	scoreCategorizer interface {
+		requestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error)
 	}
 
 	// ScoreCategory contain the FriendScores for each PlayerType

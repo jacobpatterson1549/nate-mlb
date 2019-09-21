@@ -28,11 +28,11 @@ type (
 )
 
 var (
-	// ScoreCategorizers maps PlayerTypes to ScoreCategorizers for them
-	ScoreCategorizers = make(map[db.PlayerType]ScoreCategorizer)
+	// scoreCategorizers maps PlayerTypes to scoreCategorizers for them
+	scoreCategorizers = make(map[db.PlayerType]scoreCategorizer)
 
-	// Searchers maps PlayerTypes to Searchers for them.
-	Searchers = make(map[db.PlayerType]Searcher)
+	// searchers maps PlayerTypes to searchers for them.
+	searchers = make(map[db.PlayerType]searcher)
 
 	// About provides details about the deployment of the application
 	About aboutRequestor
@@ -55,21 +55,29 @@ func init() {
 	nflTeamRequestor := nflTeamRequestor{requestor: &r}
 	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
 
-	ScoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	ScoreCategorizers[db.PlayerTypeHitter] = &mlbPlayerScoreCategorizer
-	ScoreCategorizers[db.PlayerTypePitcher] = &mlbPlayerScoreCategorizer
-	ScoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
-	ScoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
-	ScoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	scoreCategorizers[db.PlayerTypeHitter] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypePitcher] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
+	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
+	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
-	Searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	Searchers[db.PlayerTypeHitter] = &mlbPlayerSearcher
-	Searchers[db.PlayerTypePitcher] = &mlbPlayerSearcher
-	Searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
-	Searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
-	Searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	searchers[db.PlayerTypeHitter] = &mlbPlayerSearcher
+	searchers[db.PlayerTypePitcher] = &mlbPlayerSearcher
+	searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
+	searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
+	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
 	About = aboutRequestor{requestor: &r}
+}
+
+func Score(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+	return scoreCategorizers[pt].requestScoreCategory(pt, year, friends, players)
+}
+
+func PlayerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+	return searchers[pt].playerSearchResults(pt, year, playerNamePrefix, activePlayersOnly)
 }
 
 func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {

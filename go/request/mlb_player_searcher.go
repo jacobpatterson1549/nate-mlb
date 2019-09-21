@@ -50,7 +50,7 @@ type (
 )
 
 // PlayerSearchResults implements the Searcher interface
-func (s *mlbPlayerSearcher) PlayerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (s *mlbPlayerSearcher) playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"

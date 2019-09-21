@@ -150,7 +150,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		mlbPlayerRequestor := mlbPlayerRequestor{requestor: r}
-		got, err := mlbPlayerRequestor.RequestScoreCategory(test.pt, 2019, test.friends, test.players)
+		got, err := mlbPlayerRequestor.requestScoreCategory(test.pt, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {
