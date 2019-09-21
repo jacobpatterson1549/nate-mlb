@@ -9,7 +9,7 @@ import (
 
 func TestNflPlayerRequestScoreCategory(t *testing.T) {
 	requestScoreCategoryTests := []struct {
-		pt db.PlayerType
+		pt          db.PlayerType
 		friends     []db.Friend
 		players     []db.Player
 		playersJSON string
@@ -20,7 +20,7 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 			wantErr: true, // no playersJSON
 		},
 		{
-			pt: db.PlayerTypeNflQB,
+			pt:      db.PlayerTypeNflQB,
 			friends: []db.Friend{{ID: 2, DisplayOrder: 1, Name: "Carl"}},
 			players: []db.Player{
 				{ID: 3, SourceID: 2532975, FriendID: 2, DisplayOrder: 1}, // Russell Wilson 6
@@ -40,7 +40,7 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 			},
 		},
 		{
-			pt: db.PlayerTypeNflMisc,
+			pt:      db.PlayerTypeNflMisc,
 			friends: []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Dave"}},
 			players: []db.Player{
 				{ID: 1, SourceID: 2540258, FriendID: 8, DisplayOrder: 3}, // Travis Kelce 1
@@ -73,6 +73,49 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 		r := newMockHTTPRequestor(jsonFunc)
 		nflPlayerRequestor := nflPlayerRequestor{requestor: r}
 		got, err := nflPlayerRequestor.RequestScoreCategory(test.pt, 2019, test.friends, test.players)
+		switch {
+		case test.wantErr:
+			if err == nil {
+				t.Errorf("Test %v: wanted error but did not get one", i)
+			}
+		case err != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, err)
+		case !reflect.DeepEqual(test.want, got):
+			t.Errorf("Test %v: Not equal:\nWanted: %v\nGot:    %v", i, test.want, got)
+		}
+	}
+}
+
+func TestNflPlayerPlayerSearchResults(t *testing.T) {
+	playerSearchResultsTests := []struct {
+		pt               db.PlayerType
+		playerNamePrefix string
+		playersJSON      string
+		wantErr          bool
+		want             []PlayerSearchResult
+	}{
+		{
+			playerNamePrefix: "cam",
+			wantErr:          true, // no playersJSON
+		},
+		{
+			pt:               db.PlayerTypeNflQB,
+			playerNamePrefix: "russell",
+			playersJSON: `{"players":[
+				{"id":"2541944","name":"Russell Shepard","position":"WR","teamAbbr":"NYG","stats":{"1":"1"}},
+				{"id":"2532975","name":"Russell Wilson","position":"QB","teamAbbr":"SEA","stats":{"1":"2","6":"5"}}]}`,
+			want: []PlayerSearchResult{
+				{Name: "Russell Wilson", Details: "Team: SEA, Position: QB", SourceID: 2532975},
+			},
+		},
+	}
+	for i, test := range playerSearchResultsTests {
+		jsonFunc := func(urlPath string) string {
+			return test.playersJSON
+		}
+		r := newMockHTTPRequestor(jsonFunc)
+		nflPlayerRequestor := nflPlayerRequestor{requestor: r}
+		got, err := nflPlayerRequestor.PlayerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {
