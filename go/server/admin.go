@@ -47,7 +47,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
-	return request.PlayerSearchResults(playerType, year, searchQuery, activePlayersOnlyB)
+	return request.Search(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
 func updatePlayers(st db.SportType, r *http.Request) error {

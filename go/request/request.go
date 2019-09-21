@@ -72,12 +72,14 @@ func init() {
 	About = aboutRequestor{requestor: &r}
 }
 
+// Score gets the ScoreCategory for the PlayerType/year
 func Score(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	return scoreCategorizers[pt].requestScoreCategory(pt, year, friends, players)
 }
 
-func PlayerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	return searchers[pt].playerSearchResults(pt, year, playerNamePrefix, activePlayersOnly)
+// Search gets the PlayerSearchResults for the PlayerType/year
+func Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+	return searchers[pt].search(pt, year, playerNamePrefix, activePlayersOnly)
 }
 
 func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {

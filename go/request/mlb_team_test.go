@@ -97,7 +97,7 @@ func TestMlbTeamPlayerSearchResults(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		mlbTeamRequestor := mlbTeamRequestor{requestor: r}
-		got, err := mlbTeamRequestor.playerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
+		got, err := mlbTeamRequestor.search(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {

@@ -64,7 +64,7 @@ func (r *nflPlayerRequestor) requestScoreCategory(pt db.PlayerType, year int, fr
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (r *nflPlayerRequestor) playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (r *nflPlayerRequestor) search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	nflPlayerList, err := r.requestNflPlayerList(year)
 	if err != nil {
 		return nil, err

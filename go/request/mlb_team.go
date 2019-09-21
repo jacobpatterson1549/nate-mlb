@@ -58,7 +58,7 @@ func (r *mlbTeamRequestor) requestScoreCategory(pt db.PlayerType, year int, frie
 }
 
 // PlayerSearchResults implements the Searcher interface
-func (r *mlbTeamRequestor) playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (r *mlbTeamRequestor) search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	var teamSearchResults []PlayerSearchResult
 	teams, err := r.requestMlbTeams(year)
 	if err != nil {

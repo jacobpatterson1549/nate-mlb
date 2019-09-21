@@ -175,22 +175,22 @@ func TestRequestScore(t *testing.T) {
 }
 
 type mockSearcher struct {
-	psr []PlayerSearchResult
+	playerSearchResults []PlayerSearchResult
 }
 
-func (m mockSearcher) playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	return m.psr, nil
+func (m mockSearcher) search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+	return m.playerSearchResults, nil
 }
 
 func TestPlayerSearchResults(t *testing.T) {
 	searchers = map[db.PlayerType]searcher{
-		1: mockSearcher{psr: []PlayerSearchResult{{Name: "art"}}},
-		2: mockSearcher{psr: []PlayerSearchResult{{Name: "bart"}}},
-		3: mockSearcher{psr: []PlayerSearchResult{{Name: "curt"}}},
+		1: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "art"}}},
+		2: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "bart"}}},
+		3: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "curt"}}},
 	}
 
 	want := []PlayerSearchResult{{Name: "curt"}}
-	got, err := PlayerSearchResults(db.PlayerType(3), 0, "", true)
+	got, err := Search(db.PlayerType(3), 0, "", true)
 
 	switch {
 	case err != nil:
