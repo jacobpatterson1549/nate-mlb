@@ -21,7 +21,6 @@ func TestMlbTeamRequestScoreCategory(t *testing.T) {
 				{ID: 5, SourceID: 133, FriendID: 3, DisplayOrder: 2}, // Oakland Athletics 102
 				{ID: 8, SourceID: 136, FriendID: 3, DisplayOrder: 1}, // Seattle Mariners 116
 				{ID: 9, SourceID: 112, FriendID: 3, DisplayOrder: 3}, // Chicago Cubs 88
-
 			},
 			teamsJSON: `{"records":[
 				{"teamRecords":[
