@@ -1,4 +1,4 @@
-// package server runs the http server after initializing the database
+// Package server runs the http server after initializing the database.
 package server
 
 import (
