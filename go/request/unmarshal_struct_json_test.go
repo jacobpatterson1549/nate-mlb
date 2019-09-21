@@ -101,12 +101,11 @@ func TestUnmarshalStructJson(t *testing.T) {
 			},
 		},
 		{
-			interfaceJSON: `{"nflTeams":{"20":{"nflTeamId":"20","fullName":"Minnesota Vikings","Record":"8-7-1"}}}`,
+			interfaceJSON: `{"nflTeams":{"20":{"fullName":"Minnesota Vikings","Record":"8-7-1"}}}`,
 			got:           new(NflTeamsSchedule),
 			want: &NflTeamsSchedule{
 				Teams: map[db.SourceID]NflTeam{
 					20: {
-						ID:     20,
 						Name:   "Minnesota Vikings",
 						Record: "8-7-1",
 					},

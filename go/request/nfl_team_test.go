@@ -19,7 +19,7 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 			wantErr: true, // no teamsJSON
 		},
 		{
-			teamsJSON: `{"nflTeams":{"30":{"nflTeamId":"30","fullName":"Seattle Seahawks","record":"all-0-0"}}}`,
+			teamsJSON: `{"nflTeams":{"30":{"fullName":"Seattle Seahawks","record":"all-0-0"}}}`,
 			wantErr:   true, // bad wins
 		},
 		{
@@ -29,11 +29,10 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 				{ID: 1, SourceID: 20, FriendID: 7, DisplayOrder: 3}, // Minnesota Vikings 8
 				{ID: 3, SourceID: 29, FriendID: 7, DisplayOrder: 2}, // San Francisco 49er 4
 			},
-			// TODO: don't read "nflTeamId" field on map
 			teamsJSON: `{"nflTeams":{
-				"20":{"nflTeamId":"20","fullName":"Minnesota Vikings","record":"8-7-1"},
-				"29":{"nflTeamId":"29","fullName":"San Francisco 49ers","record":"4-12-0"},
-				"30":{"nflTeamId":"30","fullName":"Seattle Seahawks","record":"10-6-0"}}}`,
+				"20":{"fullName":"Minnesota Vikings","record":"8-7-1"},
+				"29":{"fullName":"San Francisco 49ers","record":"4-12-0"},
+				"30":{"fullName":"Seattle Seahawks","record":"10-6-0"}}}`,
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeNflTeam,
 				FriendScores: []FriendScore{

@@ -21,9 +21,8 @@ type (
 
 	// NflTeam contains information about an NFL team for a specifc year
 	NflTeam struct {
-		ID     db.SourceID `json:"nflTeamId,string"`
-		Name   string      `json:"fullName"`
-		Record string      `json:"record"`
+		Name   string `json:"fullName"`
+		Record string `json:"record"`
 	}
 )
 
@@ -79,8 +78,8 @@ func (r *nflTeamRequestor) requestNflTeams(year int) (map[db.SourceID]NflTeam, e
 		return nil, err
 	}
 	nflTeams := make(map[db.SourceID]NflTeam)
-	for _, nflTeam := range nflSchedule.Teams {
-		nflTeams[nflTeam.ID] = nflTeam
+	for nflTeamID, nflTeam := range nflSchedule.Teams {
+		nflTeams[nflTeamID] = nflTeam
 	}
 	return nflTeams, nil
 }
