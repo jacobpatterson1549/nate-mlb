@@ -1,3 +1,4 @@
+// Package request requests scores and performs searches for different sports/players.
 package request
 
 import (

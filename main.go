@@ -1,3 +1,4 @@
+// Package main can run the server or set the admin password from main()
 package main
 
 import (

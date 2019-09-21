@@ -1,3 +1,4 @@
+// package server runs the http server after initializing the database
 package server
 
 import (

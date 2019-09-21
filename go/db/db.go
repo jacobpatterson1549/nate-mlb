@@ -1,3 +1,4 @@
+// Package db contains persistence functions to store and query data for the server.
 package db
 
 import (
