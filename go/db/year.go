@@ -11,7 +11,7 @@ type Year struct {
 	Active bool
 }
 
-// GetYears gets the specified years
+// GetYears gets years for a SportType
 func GetYears(st SportType) ([]Year, error) {
 	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
@@ -42,7 +42,7 @@ func GetYears(st SportType) ([]Year, error) {
 	return years, nil
 }
 
-// SaveYears saves the specified years and sets the active year
+// SaveYears saves the specified years and sets the active year for a SportType
 func SaveYears(st SportType, futureYears []Year) error {
 	previousYears, err := GetYears(st)
 	if err != nil {

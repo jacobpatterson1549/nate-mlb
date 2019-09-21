@@ -18,7 +18,7 @@ type (
 	SourceID int
 )
 
-// GetPlayers gets the players for the active year
+// GetPlayers gets the players for the active year for a SportType
 func GetPlayers(st SportType) ([]Player, error) {
 	sqlFunction := newReadSQLFunction("get_players", []string{"id", "player_type_id", "source_id", "friend_id", "display_order"}, st)
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
@@ -40,7 +40,7 @@ func GetPlayers(st SportType) ([]Player, error) {
 	return players, nil
 }
 
-// SavePlayers saves the specified players for the active year
+// SavePlayers saves the specified players for the active year for a SportType
 func SavePlayers(st SportType, futurePlayers []Player) error {
 	players, err := GetPlayers(st)
 	if err != nil {

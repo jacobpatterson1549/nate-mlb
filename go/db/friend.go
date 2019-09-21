@@ -11,7 +11,7 @@ type Friend struct {
 	Name         string
 }
 
-// GetFriends gets the friends for the active year
+// GetFriends gets the friends for the active year for a SportType
 func GetFriends(st SportType) ([]Friend, error) {
 	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
@@ -33,7 +33,7 @@ func GetFriends(st SportType) ([]Friend, error) {
 	return friends, nil
 }
 
-// SaveFriends saves the specified friends for the active year
+// SaveFriends saves the specified friends for the active year for a SportType
 func SaveFriends(st SportType, futureFriends []Friend) error {
 	friends, err := GetFriends(st)
 	if err != nil {
