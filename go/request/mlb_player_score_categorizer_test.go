@@ -128,13 +128,13 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			pt:              db.PlayerTypeHitter,
 			players:         []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON: `{"People":[{"id":592450,"fullName":"Aaron Judge"}]}`,
-			wantErr: true, // no playerStatsJSON
+			wantErr:         true, // no playerStatsJSON
 		},
 		{
-			pt:              db.PlayerTypePitcher,
-			friends:         []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
-			players:         []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
-			playerNamesJSON: `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
+			pt:               db.PlayerTypePitcher,
+			friends:          []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
+			players:          []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
+			playerNamesJSON:  `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
 			playerStatsJSONs: map[db.ID]string{622663: `{"stats":[]}`}, // no stats
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypePitcher,
