@@ -5,7 +5,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
+
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
 type (
@@ -142,5 +145,57 @@ func TestClearCache(t *testing.T) {
 	ClearCache()
 	if httpCache.contains(url) {
 		t.Error("wanted cache to not contain url did")
+	}
+}
+
+type mockScoreCategorizer struct {
+	scoreCategory ScoreCategory
+}
+
+func (m mockScoreCategorizer) requestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+	return m.scoreCategory, nil
+}
+
+func TestRequestScore(t *testing.T) {
+	scoreCategorizers = map[db.PlayerType]scoreCategorizer{
+		1: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "a"}},
+		2: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "b"}},
+		3: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "c"}},
+	}
+
+	want := ScoreCategory{Name: "b"}
+	got, err := Score(2, 0, nil, nil)
+
+	switch {
+	case err != nil:
+		t.Error(err)
+	case !reflect.DeepEqual(want, got):
+		t.Errorf("not equal\nwanted: %v\ngot:    %v", want, got)
+	}
+}
+
+type mockSearcher struct {
+	psr []PlayerSearchResult
+}
+
+func (m mockSearcher) playerSearchResults(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+	return m.psr, nil
+}
+
+func TestPlayerSearchResults(t *testing.T) {
+	searchers = map[db.PlayerType]searcher{
+		1: mockSearcher{psr: []PlayerSearchResult{{Name: "art"}}},
+		2: mockSearcher{psr: []PlayerSearchResult{{Name: "bart"}}},
+		3: mockSearcher{psr: []PlayerSearchResult{{Name: "curt"}}},
+	}
+
+	want := []PlayerSearchResult{{Name: "curt"}}
+	got, err := PlayerSearchResults(db.PlayerType(3), 0, "", true)
+
+	switch {
+	case err != nil:
+		t.Error(err)
+	case !reflect.DeepEqual(want, got):
+		t.Errorf("not equal\nwanted: %v\ngot:    %v", want, got)
 	}
 }
