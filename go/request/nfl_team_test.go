@@ -69,6 +69,49 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 	}
 }
 
+func TestNflTeamPlayerSearchResults(t *testing.T) {
+	playerSearchResultsTests := []struct {
+		playerNamePrefix string
+		teamsJSON        string
+		wantErr          bool
+		want             []PlayerSearchResult
+	}{
+		{
+			playerNamePrefix: "cowboys",
+			wantErr:          true, // no teamsJSON
+		},
+		{
+			playerNamePrefix: "Bay",
+			teamsJSON: `{"nflTeams":{
+				"2":{"nflTeamId":"2","fullName":"Baltimore Ravens","record":"2-0-0"},
+				"11":{"nflTeamId":"11","fullName":"Green Bay Packers","record":"2-0-0"},
+				"31":{"nflTeamId":"31","fullName":"Tampa Bay Buccaneers","record":"1-1-0"}}}`,
+			want: []PlayerSearchResult{
+				{Name: "Green Bay Packers", Details: "2-0-0 Record", SourceID: 11},
+				{Name: "Tampa Bay Buccaneers", Details: "1-1-0 Record", SourceID: 31},
+			},
+		},
+	}
+	for i, test := range playerSearchResultsTests {
+		jsonFunc := func(urlPath string) string {
+			return test.teamsJSON
+		}
+		r := newMockHTTPRequestor(jsonFunc)
+		nflTeamRequestor := nflTeamRequestor{requestor: r}
+		got, err := nflTeamRequestor.PlayerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
+		switch {
+		case test.wantErr:
+			if err == nil {
+				t.Errorf("Test %v: wanted error but did not get one", i)
+			}
+		case err != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, err)
+		case !reflect.DeepEqual(test.want, got):
+			t.Errorf("Test %v: Not equal:\nWanted: %v\nGot:    %v", i, test.want, got)
+		}
+	}
+}
+
 func TestNflTeamWins(t *testing.T) {
 	nflTeamWinsTests := []struct {
 		nflTeam   NflTeam
