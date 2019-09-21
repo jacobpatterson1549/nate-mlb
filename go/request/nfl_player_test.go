@@ -103,6 +103,7 @@ func TestNflPlayerPlayerSearchResults(t *testing.T) {
 			playerNamePrefix: "russell",
 			playersJSON: `{"players":[
 				{"id":"2541944","name":"Russell Shepard","position":"WR","teamAbbr":"NYG","stats":{"1":"1"}},
+				{"id":"2562717","name":"Dontavius Russell","position":"DL","teamAbbr":"JAX","stats":{"1":"1"}},
 				{"id":"2532975","name":"Russell Wilson","position":"QB","teamAbbr":"SEA","stats":{"1":"2","6":"5"}}]}`,
 			want: []PlayerSearchResult{
 				{Name: "Russell Wilson", Details: "Team: SEA, Position: QB", SourceID: 2532975},
@@ -115,7 +116,7 @@ func TestNflPlayerPlayerSearchResults(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflPlayerRequestor := nflPlayerRequestor{requestor: r}
-		got, err := nflPlayerRequestor.PlayerSearchResults(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
+		got, err := nflPlayerRequestor.PlayerSearchResults(test.pt, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {

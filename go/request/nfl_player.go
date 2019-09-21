@@ -73,6 +73,9 @@ func (r *nflPlayerRequestor) PlayerSearchResults(pt db.PlayerType, year int, pla
 	var nflPlayerSearchResults []PlayerSearchResult
 	lowerQuery := strings.ToLower(playerNamePrefix)
 	for _, nflPlayer := range nflPlayerList.Players {
+		if !nflPlayer.matches(pt) {
+			continue
+		}
 		lowerTeamName := strings.ToLower(nflPlayer.Name)
 		if strings.Contains(lowerTeamName, lowerQuery) {
 			nflPlayerSearchResults = append(nflPlayerSearchResults, PlayerSearchResult{
