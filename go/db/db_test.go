@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -26,6 +27,7 @@ type (
 		RollbackFunc func() error
 	}
 	mockStmt struct {
+		query        string
 		closed       bool
 		CloseFunc    func() error
 		NumInputFunc func() int
@@ -37,6 +39,7 @@ type (
 		RowsAffectedFunc func() (int64, error)
 	}
 	mockRows struct {
+		query       string
 		closed      bool
 		ColumnsFunc func() []string
 		CloseFunc   func() error
@@ -61,7 +64,7 @@ func (m mockConn) Prepare(query string) (driver.Stmt, error) {
 	if m.PrepareFunc != nil {
 		return m.PrepareFunc(query)
 	}
-	return mockStmt{}, nil
+	return mockStmt{query: query}, nil
 }
 func (m mockConn) Close() error {
 	if m.closed {
@@ -137,7 +140,7 @@ func (m mockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	if m.QueryFunc != nil {
 		return m.QueryFunc(args)
 	}
-	return mockRows{}, nil
+	return mockRows{query: m.query}, nil
 }
 
 func (m mockResult) LastInsertId() (int64, error) {
@@ -157,7 +160,9 @@ func (m mockRows) Columns() []string {
 	if m.ColumnsFunc != nil {
 		return m.ColumnsFunc()
 	}
-	return nil
+	commaCount := strings.Count(m.query, ",")
+	columnCount := commaCount + 1
+	return make([]string, columnCount)
 }
 func (m mockRows) Close() error {
 	if m.closed {
