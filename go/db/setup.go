@@ -11,6 +11,9 @@ import (
 
 type password string
 
+var getSetupFileContents = ioutil.ReadFile
+var getSetupFunctionDirContents = ioutil.ReadDir
+
 func setup() error {
 	setupFuncs := []func() error{
 		setupTablesAndFunctions,
@@ -28,9 +31,10 @@ func setup() error {
 func getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
-	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
-	for _, setupFileName := range setupFileNames {
-		b, err := ioutil.ReadFile(fmt.Sprintf("sql/setup/%s.pgsql", setupFileName))
+	setupFileTitles := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
+	for _, setupFileTitle := range setupFileTitles {
+		tableFileName := fmt.Sprintf("sql/setup/%s.pgsql", setupFileTitle)
+		b, err := getSetupFileContents(tableFileName)
 		if err != nil {
 			return nil, err
 		}
@@ -44,13 +48,14 @@ func getSetupFunctionQueries() ([]string, error) {
 	var queries []string
 	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
 	for _, functionDirType := range functionDirTypes {
-		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
-		functionFileInfos, err := ioutil.ReadDir(functionDir)
+		functionDirName := fmt.Sprintf("sql/functions/%s", functionDirType)
+		functionFileInfos, err := getSetupFunctionDirContents(functionDirName)
 		if err != nil {
 			return nil, err
 		}
 		for _, functionFileInfo := range functionFileInfos {
-			b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
+			functionFileName := fmt.Sprintf("%s/%s", functionDirName, functionFileInfo.Name())
+			b, err := getSetupFileContents(functionFileName)
 			if err != nil {
 				return nil, err
 			}
