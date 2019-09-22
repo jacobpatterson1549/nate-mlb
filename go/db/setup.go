@@ -11,20 +11,6 @@ import (
 
 type password string
 
-func setup() error {
-	setupFuncs := []func() error{
-		setupTablesAndFunctions,
-		LoadSportTypes,
-		LoadPlayerTypes,
-	}
-	for _, setupFunc := range setupFuncs {
-		if err := setupFunc(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
@@ -60,7 +46,8 @@ func getSetupFunctionQueries() ([]string, error) {
 	return queries, nil
 }
 
-func setupTablesAndFunctions() error {
+// SetupTablesAndFunctions runs setup scripts to ensure tables are initialized, populated, and re-adds all functions to access/change saved data
+func SetupTablesAndFunctions() error {
 	setupTableQueries, err := getSetupTableQueries()
 	if err != nil {
 		return err

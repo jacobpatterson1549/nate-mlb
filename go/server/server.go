@@ -39,6 +39,14 @@ var serverSportTypeHandlers = sportTypeHandlers{
 
 // Run configures and starts the server
 func Run(portNumber int) error {
+	for _, dbInitFunc := range []func() error{
+		db.LoadSportTypes,
+		db.LoadPlayerTypes,
+	} {
+		if err := dbInitFunc(); err != nil {
+			return err
+		}
+	}
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
 		return fmt.Errorf("reading static dir: %w", err)

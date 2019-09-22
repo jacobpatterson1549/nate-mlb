@@ -34,7 +34,7 @@ func Init(driverName, dataSourceName string) error {
 	if err != nil {
 		return fmt.Errorf("opening database %v", err)
 	}
-	return setup()
+	return nil
 }
 
 // GetUtcTime retrieves the current UTC time
