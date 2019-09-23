@@ -1,6 +1,47 @@
 package db
 
-import "testing"
+import (
+	"os"
+	"testing"
+	"time"
+)
+
+type mockFileInfo struct {
+	NameFunc    func() string
+	SizeFunc    func() int64
+	ModeFunc    func() os.FileMode
+	ModTimeFunc func() time.Time
+	IsDirFunc   func() bool
+	SysFunc     func() interface{}
+}
+
+func (m mockFileInfo) Name() string {
+	return m.NameFunc()
+}
+func (m mockFileInfo) Size() int64 {
+	return m.SizeFunc()
+}
+func (m mockFileInfo) Mode() os.FileMode {
+	return m.ModeFunc()
+}
+func (m mockFileInfo) ModTime() time.Time {
+	return m.ModTimeFunc()
+}
+func (m mockFileInfo) IsDir() bool {
+	return m.IsDirFunc()
+}
+func (m mockFileInfo) Sys() interface{} {
+	return m.SysFunc()
+}
+
+/*
+getSetupFileContents = func(filename string) ([]byte, error) {
+	return []byte{}, nil
+}
+getSetupFunctionDirContents = func(dirname string) ([]os.FileInfo, error) {
+	return []os.FileInfo{}, nil
+}
+*/
 
 func TestPasswordIsValid(t *testing.T) {
 	passwordIsValidTests := []struct {

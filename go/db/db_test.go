@@ -5,10 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
 	"testing"
-	"time"
 )
 
 type (
@@ -44,15 +41,6 @@ type (
 		ColumnsFunc func() []string
 		CloseFunc   func() error
 		NextFunc    func(dest []driver.Value) error
-	}
-
-	mockFileInfo struct {
-		NameFunc    func() string
-		SizeFunc    func() int64
-		ModeFunc    func() os.FileMode
-		ModTimeFunc func() time.Time
-		IsDirFunc   func() bool
-		SysFunc     func() interface{}
 	}
 )
 
@@ -160,9 +148,7 @@ func (m mockRows) Columns() []string {
 	if m.ColumnsFunc != nil {
 		return m.ColumnsFunc()
 	}
-	commaCount := strings.Count(m.query, ",")
-	columnCount := commaCount + 1
-	return make([]string, columnCount)
+	return nil
 }
 func (m mockRows) Close() error {
 	if m.closed {
@@ -185,26 +171,13 @@ func (m mockRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-func (m mockFileInfo) Name() string {
-	return m.NameFunc()
-}
-func (m mockFileInfo) Size() int64 {
-	return m.SizeFunc()
-}
-func (m mockFileInfo) Mode() os.FileMode {
-	return m.ModeFunc()
-}
-func (m mockFileInfo) ModTime() time.Time {
-	return m.ModTimeFunc()
-}
-func (m mockFileInfo) IsDir() bool {
-	return m.IsDirFunc()
-}
-func (m mockFileInfo) Sys() interface{} {
-	return m.SysFunc()
+type mockDB struct {
+	db     sql.DB
+	driver driver.Driver
+	conn   driver.Conn
 }
 
-func TestInit(t *testing.T) {
+func initializeWithTestDb(t *testing.T) {
 	driverName := "mockDriverName"
 	dataSourceName := "mockDataSourceName"
 	if db != nil {
@@ -220,23 +193,71 @@ func TestInit(t *testing.T) {
 		},
 	}
 	sql.Register(driverName, mockDriver)
+	mockDb, err := sql.Open(driverName, dataSourceName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	db = mockDb
+}
 
-	getSetupFileContents = func(filename string) ([]byte, error) {
-		return []byte(filename + ";a;b;c"), nil
+func TestInit_notImported(t *testing.T) {
+	driverName := "unregisteredDriver"
+	dataSourceName := "mockDataSourceName"
+	err := Init(driverName, dataSourceName)
+	if err == nil {
+		t.Error("expected error")
 	}
-	getSetupFunctionDirContents = func(dirname string) ([]os.FileInfo, error) {
-		mockFileInfos := make([]os.FileInfo, 3)
-		for i := range mockFileInfos {
-			mockFileInfos[i] = mockFileInfo{
-				NameFunc: func() string {
-					return fmt.Sprintf("%s/function_%d", dirname, i)
-				},
-			}
-		}
-		return mockFileInfos, nil
+}
+
+func TestInit_ok(t *testing.T) {
+	if db != nil {
+		t.Fatal("database already initialized")
 	}
+	mockDriver := mockDriver{}
+	driverName := "mockDriverNameFAIL"
+	dataSourceName := "mockDataSourceName"
+	sql.Register(driverName, mockDriver)
 	err := Init(driverName, dataSourceName)
 	if err != nil {
-		t.Errorf("failed to init database: %v", err)
+		t.Error("unexpected error:", err)
+	}
+}
+
+func TestExpectSingleRowAffected(t *testing.T) {
+	expectSingleRowAffectedTests := []struct {
+		rowsAffectedErr error
+		rows            int64
+		wantErr         bool
+	}{
+		{
+			rowsAffectedErr: errors.New("could not get rows affected"),
+			rows:            1, // red herring :)
+			wantErr:         true,
+		},
+		{
+			rows: 1, // desired
+		},
+		{
+			rows:    0,
+			wantErr: true,
+		},
+		{
+			rows:    3,
+			wantErr: true,
+		},
+	}
+	for i, test := range expectSingleRowAffectedTests {
+		r := mockResult{
+			RowsAffectedFunc: func() (int64, error) {
+				return test.rows, test.rowsAffectedErr
+			},
+		}
+		err := expectSingleRowAffected(r)
+		switch {
+		case test.wantErr && err == nil:
+			t.Errorf("Test %v: expected error", i)
+		case !test.wantErr && err != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, err)
+		}
 	}
 }
