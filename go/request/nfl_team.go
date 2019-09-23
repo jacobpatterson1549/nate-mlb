@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -67,6 +68,9 @@ func (r nflTeamRequestor) search(pt db.PlayerType, year int, playerNamePrefix st
 			})
 		}
 	}
+	sort.Slice(nflTeamSearchResults, func(i, j int) bool {
+		return nflTeamSearchResults[i].SourceID < nflTeamSearchResults[j].SourceID
+	})
 	return nflTeamSearchResults, nil
 }
 

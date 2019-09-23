@@ -83,8 +83,8 @@ func TestNflTeamPlayerSearchResults(t *testing.T) {
 			playerNamePrefix: "Bay",
 			teamsJSON: `{"nflTeams":{
 				"2":{"nflTeamId":"2","fullName":"Baltimore Ravens","record":"2-0-0"},
-				"11":{"nflTeamId":"11","fullName":"Green Bay Packers","record":"2-0-0"},
-				"31":{"nflTeamId":"31","fullName":"Tampa Bay Buccaneers","record":"1-1-0"}}}`,
+				"31":{"nflTeamId":"31","fullName":"Tampa Bay Buccaneers","record":"1-1-0"},
+				"11":{"nflTeamId":"11","fullName":"Green Bay Packers","record":"2-0-0"}}}`,
 			want: []PlayerSearchResult{
 				{Name: "Green Bay Packers", Details: "2-0-0 Record", SourceID: 11},
 				{Name: "Tampa Bay Buccaneers", Details: "1-1-0 Record", SourceID: 31},
