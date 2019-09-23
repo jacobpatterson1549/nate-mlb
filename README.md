@@ -1,4 +1,4 @@
-# nate-mlb
+# nate-mlb ![nate-mlb favicon](static/favicon.ico)
 A web server which compares MLB baseball scores and NFL football scores.
 
 Built with the [Go](https://github.com/golang/go) programming language.
