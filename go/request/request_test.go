@@ -42,7 +42,7 @@ func newMockHTTPRequestor(jsonFunc func(urlPath string) string) requestor {
 				return w.Result(), nil
 			},
 		},
-		logRequestUrls: true,
+		// logRequestUrls: true,
 	}
 }
 
@@ -93,7 +93,7 @@ func TestStructPointerFromUrl_requestorError(t *testing.T) {
 				return nil, doErr
 			},
 		},
-		logRequestUrls: true,
+		// logRequestUrls: true,
 	}
 	var got interface{}
 	err := r.structPointerFromURL("url", &got)
@@ -126,7 +126,7 @@ func TestStructPointerFromUrl_readBytesError(t *testing.T) {
 				return &response, nil
 			},
 		},
-		logRequestUrls: true,
+		// logRequestUrls: true,
 	}
 	var got interface{}
 	err := r.structPointerFromURL("url", &got)
