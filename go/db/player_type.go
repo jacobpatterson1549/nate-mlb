@@ -99,10 +99,8 @@ func LoadPlayerTypes() error {
 		}
 		displayOrder++
 	}
-	if len(sportTypePlayerTypes) != 2 ||
-		len(sportTypePlayerTypes[SportTypeNfl]) != 3 ||
-		len(sportTypePlayerTypes[SportTypeMlb]) != 3 {
-		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(sportTypePlayerTypes))
+	if len(playerTypes) == 0 {
+		return fmt.Errorf("did not load any PlayerTypes")
 	}
 	return nil
 }
