@@ -64,8 +64,11 @@ func init() {
 			applicationName = appName
 		}
 	}
-	err := db.Init(databaseDriverName, dataSourceName)
-	if err != nil {
+
+	if err := db.Init(databaseDriverName, dataSourceName); err != nil {
+		log.Fatal(err)
+	}
+	if err := db.SetupTablesAndFunctions(); err != nil {
 		log.Fatal(err)
 	}
 }
