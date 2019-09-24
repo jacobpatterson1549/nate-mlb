@@ -60,15 +60,13 @@ type (
 )
 
 func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
-	getSportEntry := func(st db.SportType) SportEntry {
-		return SportEntry{
+	sportTypes := db.SportTypes()
+	sports := make([]SportEntry, len(sportTypes))
+	for i, st := range sportTypes {
+		sports[i] = SportEntry{
 			URL:  strings.ToLower(st.Name()),
 			Name: st.Name(),
 		}
-	}
-	sports := []SportEntry{
-		getSportEntry(db.SportTypeMlb),
-		getSportEntry(db.SportTypeNfl),
 	}
 	return Page{
 		ApplicationName: applicationName,

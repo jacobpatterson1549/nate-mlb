@@ -21,8 +21,9 @@ const (
 )
 
 var (
-	sportTypes    = make(map[SportType]sportType)
-	urlSportTypes = make(map[string]SportType)
+	sportTypes       = make(map[SportType]sportType)
+	urlSportTypes    = make(map[string]SportType)
+	loadedSportTypes []SportType
 )
 
 // Name gets the name for a SportType
@@ -40,6 +41,10 @@ func SportTypeFromURL(url string) SportType {
 	return urlSportTypes[url]
 }
 
+func SportTypes() []SportType {
+	return loadedSportTypes
+}
+
 // LoadSportTypes loads the SportTypes from the database
 func LoadSportTypes() error {
 	rows, err := db.Query("SELECT id, name, url FROM get_sport_types()")
@@ -53,6 +58,7 @@ func LoadSportTypes() error {
 		name string
 		url  string
 	)
+	loadedSportTypes = make([]SportType, 0, 2)
 	for rows.Next() {
 		err = rows.Scan(&id, &name, &url)
 		if err != nil {
@@ -69,6 +75,7 @@ func LoadSportTypes() error {
 		default:
 			return fmt.Errorf("unknown SportType id: %v", id)
 		}
+		loadedSportTypes = append(loadedSportTypes, id)
 	}
 
 	if len(sportTypes) == 0 {
