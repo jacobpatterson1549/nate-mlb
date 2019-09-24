@@ -38,7 +38,7 @@ func init() {
 	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to environment variable "+environmentVariableDatabaseURL)
 	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to environment variable "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
-	flag.StringVar(&applicationName, "n", os.Args[0], "The name of the application user password.")
+	flag.StringVar(&applicationName, "n", os.Args[0], "The name of the application.")
 	flag.Parse()
 	var ok bool
 	if len(dataSourceName) == 0 {
