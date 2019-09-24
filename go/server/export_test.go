@@ -14,9 +14,10 @@ func TestExportToCsv(t *testing.T) {
 		sportTypeName: "rugby",
 		year:          2008,
 	}
+	applicationName := "my_app"
 	var w bytes.Buffer
-	err := exportToCsv(es, &w)
-	want := "nate-mlb,2008 rugby scores\n\ntype,friend,value,player,score\n"
+	err := exportToCsv(es, applicationName, &w)
+	want := "my_app,2008 rugby scores\n\ntype,friend,value,player,score\n"
 	got := w.String()
 	switch {
 	case err != nil:
@@ -37,8 +38,9 @@ func (w errWriter) Write(p []byte) (n int, err error) {
 func TestExportToCsv_writeError(t *testing.T) {
 	err := errors.New("write failed")
 	var es EtlStats
+	var applicationName string
 	w := errWriter{err: err}
-	got := exportToCsv(es, w)
+	got := exportToCsv(es, applicationName, w)
 	if !errors.Is(got, err) {
 		t.Errorf("did not get expected export error: wanted: %v, got: %v", err, got)
 	}
@@ -84,10 +86,11 @@ func TestCreateCsvRecords(t *testing.T) {
 		sportTypeName: "american football",
 		year:          2018,
 	}
-	got := createCsvRecords(es)
+	applicationName := "app2"
+	got := createCsvRecords(es, applicationName)
 
 	want := [][]string{
-		{"nate-mlb", "2018 american football scores"},
+		{"app2", "2018 american football scores"},
 		nil,
 		{"type", "friend", "value", "player", "score"},
 		nil,

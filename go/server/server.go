@@ -23,6 +23,7 @@ type (
 	sportTypeHandlers    map[httpMethod]map[string]sportTypeHandler
 )
 
+var applicationName string
 var serverSportTypeHandlers = sportTypeHandlers{
 	"GET": {
 		"/":                       handleHomePage,
@@ -38,7 +39,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // Run configures and starts the server
-func Run(portNumber int) error {
+func Run(portNumber int, applicationName string) error {
 	for _, dbInitFunc := range []func() error{
 		db.LoadSportTypes,
 		db.LoadPlayerTypes,
@@ -193,10 +194,10 @@ func handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	asOfDate := es.etlTime.Format("2006-01-02")
-	fileName := fmt.Sprintf("nate-mlb_%s-%d_%s.csv", es.sportTypeName, es.year, asOfDate)
+	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", applicationName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	return exportToCsv(es, w)
+	return exportToCsv(es, applicationName, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {

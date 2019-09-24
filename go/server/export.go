@@ -9,8 +9,8 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-func exportToCsv(es EtlStats, w io.Writer) error {
-	records := createCsvRecords(es)
+func exportToCsv(es EtlStats, applicationName string, w io.Writer) error {
+	records := createCsvRecords(es, applicationName)
 	csvWriter := csv.NewWriter(w)
 	err := csvWriter.WriteAll(records)
 	if err != nil {
@@ -19,10 +19,10 @@ func exportToCsv(es EtlStats, w io.Writer) error {
 	return nil
 }
 
-func createCsvRecords(es EtlStats) [][]string {
+func createCsvRecords(es EtlStats, applicationName string) [][]string {
 	records := make([][]string, 3)
 	title := fmt.Sprintf("%d %s scores", es.year, es.sportTypeName)
-	records[0] = []string{"nate-mlb", title}
+	records[0] = []string{applicationName, title}
 	records[2] = []string{"type", "friend", "value", "player", "score"}
 	for i, sc := range es.scoreCategories {
 		if i != 0 {
