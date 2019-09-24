@@ -16,10 +16,7 @@ func TestExportToCsv(t *testing.T) {
 	}
 	var w bytes.Buffer
 	err := exportToCsv(es, &w)
-	want := `nate-mlb,2008 rugby scores
-
-type,friend,value,player,score
-`
+	want := "nate-mlb,2008 rugby scores\n\ntype,friend,value,player,score\n"
 	got := w.String()
 	switch {
 	case err != nil:
