@@ -61,7 +61,7 @@ func Run(portNumber int, applicationName string) error {
 	http.HandleFunc("/", handleRoot)
 	addr := fmt.Sprintf(":%d", portNumber)
 	fmt.Println("starting server - locally running at http://127.0.0.1" + addr)
-	err = http.ListenAndServe(addr, nil)
+	err = http.ListenAndServe(addr, nil) // BLOCKS
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %w", err)
 	}
