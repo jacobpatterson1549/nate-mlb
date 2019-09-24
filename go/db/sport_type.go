@@ -41,6 +41,7 @@ func SportTypeFromURL(url string) SportType {
 	return urlSportTypes[url]
 }
 
+// SportTypes returns the loaded SportTypes
 func SportTypes() []SportType {
 	return loadedSportTypes
 }
