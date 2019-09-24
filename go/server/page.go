@@ -13,13 +13,14 @@ import (
 type (
 	// Page is a page that gets rendered by the main template
 	Page struct {
-		Title        string
-		Tabs         []Tab
-		tabName      string
-		ShowTabs     bool
-		Sports       []SportEntry
-		TimesMessage TimesMessage
-		PageLoadTime time.Time
+		ApplicationName string
+		Title           string
+		Tabs            []Tab
+		tabName         string
+		ShowTabs        bool
+		Sports          []SportEntry
+		TimesMessage    TimesMessage
+		PageLoadTime    time.Time
 	}
 
 	// Tab is a tab which gets rendered by the main template
@@ -58,7 +59,7 @@ type (
 	}
 )
 
-func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
+func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
 	getSportEntry := func(st db.SportType) SportEntry {
 		return SportEntry{
 			URL:  strings.ToLower(st.Name()),
@@ -70,13 +71,14 @@ func newPage(title string, tabs []Tab, showTabs bool, timesMessage TimesMessage,
 		getSportEntry(db.SportTypeNfl),
 	}
 	return Page{
-		Title:        title,
-		Tabs:         tabs,
-		tabName:      tabName,
-		Sports:       sports,
-		ShowTabs:     showTabs,
-		TimesMessage: timesMessage,
-		PageLoadTime: db.GetUtcTime(),
+		ApplicationName: applicationName,
+		Title:           title,
+		Tabs:            tabs,
+		tabName:         tabName,
+		Sports:          sports,
+		ShowTabs:        showTabs,
+		TimesMessage:    timesMessage,
+		PageLoadTime:    db.GetUtcTime(),
 	}
 }
 

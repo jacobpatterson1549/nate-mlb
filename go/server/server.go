@@ -23,7 +23,7 @@ type (
 	sportTypeHandlers    map[httpMethod]map[string]sportTypeHandler
 )
 
-var applicationName string
+var serverName string
 var serverSportTypeHandlers = sportTypeHandlers{
 	"GET": {
 		"/":                       handleHomePage,
@@ -40,6 +40,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 
 // Run configures and starts the server
 func Run(portNumber int, applicationName string) error {
+	serverName = applicationName
 	for _, dbInitFunc := range []func() error{
 		db.LoadSportTypes,
 		db.LoadPlayerTypes,
@@ -104,8 +105,9 @@ func transformURLPath(urlPath string, stur sportTypeURLResolver) (db.SportType, 
 }
 
 func handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) error {
+	title := fmt.Sprintf("%s Stats", serverName)
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage("Nate's Stats", []Tab{homeTab}, false, TimesMessage{}, "home")
+	homePage := newPage(serverName, title, []Tab{homeTab}, false, TimesMessage{}, "home")
 	return renderTemplate(w, homePage)
 }
 
@@ -132,8 +134,8 @@ func handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
 		Times:    []time.Time{es.etlRefreshTime, es.etlTime},
 	}
-	title := fmt.Sprintf("Nate's %s pool - %d", st.Name(), es.year)
-	statsPage := newPage(title, tabs, true, timesMessage, "stats")
+	title := fmt.Sprintf("%s %s stats - %d", serverName, st.Name(), es.year)
+	statsPage := newPage(serverName, title, tabs, true, timesMessage, "stats")
 	return renderTemplate(w, statsPage)
 }
 
@@ -169,8 +171,8 @@ func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		AdminTab{Name: "Reset Password", Action: "password"},
 	}
 	timesMessage := TimesMessage{}
-	title := fmt.Sprintf("Nate's %s pool [ADMIN MODE]", st.Name())
-	adminPage := newPage(title, tabs, true, timesMessage, "admin")
+	title := fmt.Sprintf("%s %s [ADMIN MODE]", serverName, st.Name())
+	adminPage := newPage(serverName, title, tabs, true, timesMessage, "admin")
 	return renderTemplate(w, adminPage)
 }
 
@@ -183,8 +185,9 @@ func handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		Messages: []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)},
 		Times:    []time.Time{lastDeploy.Time},
 	}
+	title := fmt.Sprintf("About %s Stats", serverName)
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage("About Nate's Stats", []Tab{aboutTab}, false, timesMessage, "about")
+	aboutPage := newPage(serverName, title, []Tab{aboutTab}, false, timesMessage, "about")
 	return renderTemplate(w, aboutPage)
 }
 
@@ -194,10 +197,10 @@ func handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	asOfDate := es.etlTime.Format("2006-01-02")
-	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", applicationName, es.sportTypeName, es.year, asOfDate)
+	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", serverName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	return exportToCsv(es, applicationName, w)
+	return exportToCsv(es, serverName, w)
 }
 
 func renderTemplate(w http.ResponseWriter, p Page) error {

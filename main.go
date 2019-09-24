@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	environmentVariableDatabaseURL = "DATABASE_URL"
-	environmentVariablePort        = "PORT"
+	environmentVariableDatabaseURL     = "DATABASE_URL"
+	environmentVariablePort            = "PORT"
+	environmentVariableApplicationName = "APPLICATION_NAME"
 )
 
 var (
@@ -38,7 +39,7 @@ func init() {
 	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to environment variable "+environmentVariableDatabaseURL)
 	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to environment variable "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
-	flag.StringVar(&applicationName, "n", os.Args[0], "The name of the application.")
+	flag.StringVar(&applicationName, "n", os.Args[0], "The name of the application. When possible, uses environment variable "+environmentVariableApplicationName)
 	flag.Parse()
 	var ok bool
 	if len(dataSourceName) == 0 {
@@ -57,6 +58,10 @@ func init() {
 		portNumber, err = strconv.Atoi(port)
 		if err != nil {
 			log.Fatal(environmentVariablePort, " environment variable is invalid: ", port)
+		}
+		appName, ok := os.LookupEnv(environmentVariableApplicationName)
+		if ok {
+			applicationName = appName
 		}
 	}
 	err := db.Init(databaseDriverName, dataSourceName)
