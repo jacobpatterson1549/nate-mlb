@@ -23,9 +23,10 @@ Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 The server expects to use PostgreSQL database.  See [Database Setup](sql/README.md) for instructions on creating the database.
 
 ### Set environment variables
-The following environment variables must be set or provided to run the server:
-* **PORT** The server expects the PORT environment variable to contain the port to run on (eg: 8000).
-* **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md).
+The following environment variables should be set or provided:
+* **PORT** The server expects the PORT environment variable to contain the port to run on (eg: 8000). **REQUIRED**
+* **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md). **REQUIRED**
+* **APPLICATION_NAME** The name of the application server to display to users  Visible on the site and on exports.
 
 ### Compile and run server
 Two ways to compile and run the server are listed below.
