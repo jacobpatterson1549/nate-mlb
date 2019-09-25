@@ -41,21 +41,10 @@ var serverSportTypeHandlers = sportTypeHandlers{
 
 // Run configures and starts the server
 func Run(port, applicationName string) error {
-	serverName = applicationName
-	for _, dbInitFunc := range []func() error{
-		func() error {
-			if _, err := strconv.Atoi(port); err != nil {
-				return fmt.Errorf("Invalid port number: %s", port)
-			}
-			return nil
-		},
-		db.LoadSportTypes,
-		db.LoadPlayerTypes,
-	} {
-		if err := dbInitFunc(); err != nil {
-			return err
-		}
+	if _, err := strconv.Atoi(port); err != nil {
+		return fmt.Errorf("Invalid port number: %s", port)
 	}
+	serverName = applicationName
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
 		return fmt.Errorf("reading static dir: %w", err)

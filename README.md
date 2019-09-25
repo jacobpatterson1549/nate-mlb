@@ -28,6 +28,7 @@ The following environment variables should be set or provided:
 * **DATABASE_URL** The server expects the DATABASE_URL environment variable to contain the dataSourceName.  See [Database Setup](sql/README.md). **REQUIRED**
 * **ADMIN_PASSWORD** The administrator password to edit years/players/friends on the site.
 * **APPLICATION_NAME** The name of the application server to display to users  Visible on the site and on exports.
+* **PLAYER_TYPES** A csv whitelist of player type ids to use.  If present, limits player types and sport types to the selected player types.  For example, if the variable is `4,5`, only player types nflTeam and nflQB and sport type nfl will be shown
 
 ### Compile and run server
 Two ways to compile and run the server are listed below.
