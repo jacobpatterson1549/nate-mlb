@@ -79,8 +79,13 @@ func LoadSportTypes() error {
 		loadedSportTypes = append(loadedSportTypes, id)
 	}
 
-	if len(sportTypes) == 0 {
-		return fmt.Errorf("did not load any SportTypes")
+	_, hasMlbSportType := sportTypes[SportTypeMlb]
+	_, hasNflSportType := sportTypes[SportTypeNfl]
+	if len(sportTypes) != 2 ||
+		!hasMlbSportType ||
+		!hasNflSportType ||
+		len(sportTypes) != len(urlSportTypes) {
+		return fmt.Errorf("did not load expected SportTypes.  Loaded: %v", sportTypes)
 	}
 	return nil
 }
