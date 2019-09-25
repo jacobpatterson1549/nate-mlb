@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -39,9 +40,15 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // Run configures and starts the server
-func Run(portNumber int, applicationName string) error {
+func Run(port, applicationName string) error {
 	serverName = applicationName
 	for _, dbInitFunc := range []func() error{
+		func() error {
+			if _, err := strconv.Atoi(port); err != nil {
+				return fmt.Errorf("Invalid port number: %s", port)
+			}
+			return nil
+		},
 		db.LoadSportTypes,
 		db.LoadPlayerTypes,
 	} {
@@ -59,7 +66,7 @@ func Run(portNumber int, applicationName string) error {
 	}
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	http.HandleFunc("/", handleRoot)
-	addr := fmt.Sprintf(":%d", portNumber)
+	addr := fmt.Sprintf(":%s", port)
 	fmt.Println("starting server - locally running at http://127.0.0.1" + addr)
 	err = http.ListenAndServe(addr, nil) // BLOCKS
 	if err != http.ErrServerClosed {
