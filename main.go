@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
@@ -28,7 +29,14 @@ var (
 )
 
 func usage() {
-	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server unless the -ap option is specified")
+	envVars := []string{
+		environmentVariableDatabaseURL,
+		environmentVariablePort,
+		environmentVariableApplicationName,
+		environmentVariableAdminPassword,
+	}
+	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server")
+	fmt.Fprintln(flag.CommandLine.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
 	fmt.Fprintln(flag.CommandLine.Output(), "Usage of", os.Args[0], ":")
 	flag.PrintDefaults()
 }
@@ -43,10 +51,10 @@ func init() {
 		}
 		return applicationName
 	}
-	flag.StringVar(&dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).  Defaults to environment variable "+environmentVariableDatabaseURL)
-	flag.StringVar(&port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.  Defaults to environment variable "+environmentVariablePort)
 	flag.StringVar(&adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
-	flag.StringVar(&applicationName, "n", defaultApplicationName(), "The name of the application. When possible, uses environment variable "+environmentVariableApplicationName)
+	flag.StringVar(&applicationName, "n", defaultApplicationName(), "The name of the application.")
+	flag.StringVar(&dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
+	flag.StringVar(&port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
 	flag.Parse()
 }
 
