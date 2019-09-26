@@ -31,6 +31,7 @@ var playerSearch = {
                 var newPlayer = playersForm.add(playerName, sourceID);
                 newPlayer.focus();
                 playerSearch.showModal(false);
+                playerSearch.clear();
                 return;
             }
         }
@@ -39,6 +40,8 @@ var playerSearch = {
     clear: function () {
         var resultsDiv = document.getElementById('player-search-results-output');
         resultsDiv.innerHTML = '';
+        var searchInput = document.getElementById('player-search');
+        searchInput.value = '';
     },
 
     submit: function (event) {
