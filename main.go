@@ -64,7 +64,7 @@ func init() {
 func main() {
 	startupFuncs := make([]func() error, 0, 5)
 	startupFuncs = append(startupFuncs, func() error { return db.Init(databaseDriverName, dataSourceName) })
-	startupFuncs = append(startupFuncs, func() error { return db.SetupTablesAndFunctions() })
+	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
 	startupFuncs = append(startupFuncs, db.LoadSportTypes)
 	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)
 	if len(playerTypesCsv) != 0 {
