@@ -44,8 +44,8 @@ func (c *cache) add(uri string, value []byte) {
 	}
 }
 
-func (c *cache) get(url string) ([]byte, bool) {
-	b, ok := c.requestValues[url]
+func (c *cache) get(uri string) ([]byte, bool) {
+	b, ok := c.requestValues[uri]
 	return b, ok
 }
 

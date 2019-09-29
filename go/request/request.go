@@ -14,7 +14,7 @@ import (
 
 type (
 	requestor interface {
-		structPointerFromURI(url string, v interface{}) error
+		structPointerFromURI(uri string, v interface{}) error
 	}
 
 	httpClient interface {
@@ -24,7 +24,7 @@ type (
 	httpRequestor struct {
 		cache          cache
 		httpClient     httpClient
-		logRequestUrls bool
+		logRequestURIs bool
 	}
 )
 
@@ -47,7 +47,7 @@ func init() {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		logRequestUrls: false,
+		logRequestURIs: false,
 	}
 
 	mlbTeamRequestor := mlbTeamRequestor{requestor: &r}
@@ -100,24 +100,24 @@ func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
 	return nil
 }
 
-func (r *httpRequestor) bytes(url string) ([]byte, error) {
-	if r.logRequestUrls {
-		log.Printf("%T : requesting %v", r.httpClient, url)
+func (r *httpRequestor) bytes(uri string) ([]byte, error) {
+	if r.logRequestURIs {
+		log.Printf("%T : requesting %v", r.httpClient, uri)
 	}
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
-		return nil, fmt.Errorf("initializing request to %v: %w", url, err)
+		return nil, fmt.Errorf("initializing request to %v: %w", uri, err)
 	}
 	request.Header.Add("Accept", "application/json")
 	response, err := r.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("requesting %v: %w", url, err)
+		return nil, fmt.Errorf("requesting %v: %w", uri, err)
 	}
 	defer response.Body.Close()
 
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading body of %v: %w", url, err)
+		return nil, fmt.Errorf("reading body of %v: %w", uri, err)
 	}
 	return b, nil
 }

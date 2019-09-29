@@ -51,7 +51,7 @@ func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
 
 func TestPreviousDeployment_RequestorError(t *testing.T) {
 	m := mockRequestor{
-		structPointerFromURIFunc: func(url string, v interface{}) error {
+		structPointerFromURIFunc: func(uri string, v interface{}) error {
 			return errors.New("requestorError")
 		},
 	}
