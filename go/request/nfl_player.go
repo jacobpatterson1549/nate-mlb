@@ -89,9 +89,9 @@ func (r *nflPlayerRequestor) search(pt db.PlayerType, year int, playerNamePrefix
 }
 
 func (r *nflPlayerRequestor) requestNflPlayerList(year int) (*NflPlayerList, error) {
-	url := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
+	uri := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	nflPlayerList := new(NflPlayerList)
-	err := r.requestor.structPointerFromURL(url, &nflPlayerList)
+	err := r.requestor.structPointerFromURI(uri, &nflPlayerList)
 	return nflPlayerList, err
 }
 

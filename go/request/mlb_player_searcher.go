@@ -56,9 +56,9 @@ func (s *mlbPlayerSearcher) search(pt db.PlayerType, year int, playerNamePrefix 
 		activePlayers = "Y"
 	}
 	playerNamePrefix = url.QueryEscape(playerNamePrefix)
-	url := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
+	uri := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	var mlbPlayerSearchQueryResult MlbPlayerSearch
-	err := s.requestor.structPointerFromURL(url, &mlbPlayerSearchQueryResult)
+	err := s.requestor.structPointerFromURI(uri, &mlbPlayerSearchQueryResult)
 	if err != nil {
 		return []PlayerSearchResult{}, err
 	}

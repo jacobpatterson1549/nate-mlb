@@ -149,13 +149,12 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 	}
 	for i, test := range requestScoreCategoryTests {
-		jsonFunc := func(urlPath string) string {
-			if strings.HasSuffix(urlPath, "/people") {
+		jsonFunc := func(uri string) string {
+			if strings.Contains(uri, "/people?") {
 				return test.playerNamesJSON
 			}
 			for playerSourceID, playerStatsJSON := range test.playerStatsJSONs {
-				urlSuffix := fmt.Sprintf("%d/stats", playerSourceID)
-				if strings.HasSuffix(urlPath, urlSuffix) {
+				if strings.Contains(uri, fmt.Sprintf("%d/stats?", playerSourceID)) {
 					return playerStatsJSON
 				}
 			}

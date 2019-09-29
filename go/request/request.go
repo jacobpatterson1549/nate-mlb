@@ -14,7 +14,7 @@ import (
 
 type (
 	requestor interface {
-		structPointerFromURL(url string, v interface{}) error
+		structPointerFromURI(url string, v interface{}) error
 	}
 
 	httpClient interface {
@@ -83,19 +83,19 @@ func Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOn
 	return searchers[pt].search(pt, year, playerNamePrefix, activePlayersOnly)
 }
 
-func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
-	b, ok := r.cache.get(url)
+func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
+	b, ok := r.cache.get(uri)
 	if !ok {
 		var err error
-		b, err = r.bytes(url)
+		b, err = r.bytes(uri)
 		if err != nil {
 			return err
 		}
-		r.cache.add(url, b)
+		r.cache.add(uri, b)
 	}
 	err := json.Unmarshal(b, v)
 	if err != nil {
-		return fmt.Errorf("reading json when requesting %v: %w", url, err)
+		return fmt.Errorf("reading json when requesting %v: %w", uri, err)
 	}
 	return nil
 }
