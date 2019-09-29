@@ -1,4 +1,4 @@
-// Package main can run the server or set the admin password from the main() function.
+// Package main can run the server from the main() function.
 package main
 
 import (
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
+	"strings"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
@@ -14,19 +14,31 @@ import (
 )
 
 const (
-	environmentVariableDatabaseURL = "DATABASE_URL"
-	environmentVariablePort        = "PORT"
+	environmentVariableAdminPassword   = "ADMIN_PASSWORD"
+	environmentVariableApplicationName = "APPLICATION_NAME"
+	environmentVariableDatabaseURL     = "DATABASE_URL"
+	environmentVariablePort            = "PORT"
+	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
 )
 
 var (
+	adminPassword      string
+	applicationName    string
 	databaseDriverName string
 	dataSourceName     string
-	portNumber         int
-	adminPassword      string
+	port               string
+	playerTypesCsv     string
 )
 
 func usage() {
-	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server unless the -ap option is specified")
+	envVars := []string{
+		environmentVariableDatabaseURL,
+		environmentVariablePort,
+		environmentVariableApplicationName,
+		environmentVariableAdminPassword,
+	}
+	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server")
+	fmt.Fprintln(flag.CommandLine.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
 	fmt.Fprintln(flag.CommandLine.Output(), "Usage of", os.Args[0], ":")
 	flag.PrintDefaults()
 }
@@ -34,44 +46,39 @@ func usage() {
 func init() {
 	flag.Usage = usage
 	databaseDriverName = "postgres"
-	flag.StringVar(&dataSourceName, "ds", "", "The data source to the PostgreSQL database (connection URI).  Defaults to environment variable "+environmentVariableDatabaseURL)
-	flag.IntVar(&portNumber, "p", 0, "The port number to run the server on.  Defaults to environment variable "+environmentVariablePort)
-	flag.StringVar(&adminPassword, "ap", "", "The admin user password.  Requires the -ds option.")
+	defaultApplicationName := func() string {
+		applicationName, ok := os.LookupEnv(environmentVariableApplicationName)
+		if !ok {
+			return os.Args[0]
+		}
+		return applicationName
+	}
+	flag.StringVar(&adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
+	flag.StringVar(&applicationName, "n", defaultApplicationName(), "The name of the application.")
+	flag.StringVar(&dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
+	flag.StringVar(&port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
+	flag.StringVar(&playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
 	flag.Parse()
-	var ok bool
-	if len(dataSourceName) == 0 {
-		dataSourceName, ok = os.LookupEnv(environmentVariableDatabaseURL)
-		if !ok {
-			log.Fatal(environmentVariableDatabaseURL, " environment variable not set")
-		}
-	}
-	if len(adminPassword) == 0 && portNumber == 0 {
-		var port string
-		port, ok = os.LookupEnv(environmentVariablePort)
-		if !ok {
-			log.Fatal(environmentVariablePort, " environment variable not set")
-		}
-		var err error
-		portNumber, err = strconv.Atoi(port)
-		if err != nil {
-			log.Fatal(environmentVariablePort, " environment variable is invalid: ", port)
-		}
-	}
-	err := db.Init(databaseDriverName, dataSourceName)
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func main() {
-	var err error
-	switch {
-	case len(adminPassword) != 0:
-		err = db.SetAdminPassword(adminPassword)
-	default:
-		err = server.Run(portNumber)
+	startupFuncs := make([]func() error, 0, 5)
+	startupFuncs = append(startupFuncs, func() error { return db.Init(databaseDriverName, dataSourceName) })
+	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
+	startupFuncs = append(startupFuncs, db.LoadSportTypes)
+	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)
+	if len(playerTypesCsv) != 0 {
+		startupFuncs = append(startupFuncs, func() error { return db.LimitPlayerTypes(playerTypesCsv) })
 	}
-	if err != nil {
-		log.Fatal(err)
+	if len(adminPassword) != 0 {
+		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(adminPassword) })
+	}
+	startupFuncs = append(startupFuncs, func() error { return server.Run(port, applicationName) })
+
+	for _, startupFunc := range startupFuncs {
+		err := startupFunc()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

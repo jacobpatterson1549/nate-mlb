@@ -62,7 +62,7 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 	if err != nil {
 		return nil, err
 	}
-	playerTypes := db.GetPlayerTypes(st)
+	playerTypes := db.PlayerTypes(st)
 	playersByType := make(map[db.PlayerType][]db.Player)
 	for _, player := range players {
 		playersByType[player.PlayerType] = append(playersByType[player.PlayerType], player)

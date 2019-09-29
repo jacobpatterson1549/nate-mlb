@@ -6,7 +6,7 @@
     {{ if .Data -}}
     <div class="form-group">
         <label for="select-player-type">Player Type</label>
-        <select id="select-player-type" class="form-control" onchange="playersForm.refresh()()">
+        <select id="select-player-type" class="form-control" onchange="playersForm.refresh()">
             {{ range .Data -}}
             <option value="{{.PlayerType}}">{{.Name}}</option>
             {{ end -}}

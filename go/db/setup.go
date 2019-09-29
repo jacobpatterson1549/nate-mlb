@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -101,4 +102,44 @@ func SetAdminPassword(p string) error {
 func (p password) isValid() bool {
 	whitespaceRE := regexp.MustCompile("\\s")
 	return len(p) > 0 && !whitespaceRE.MatchString(string(p))
+}
+
+// LimitPlayerTypes reduces the player types to those in the specified csv.
+// Also limits the sport types to those for the specified player types.
+func LimitPlayerTypes(playerTypesCsv string) error {
+	if len(playerTypesCsv) == 0 {
+		return nil
+	}
+	playerTypeStrings := strings.Split(playerTypesCsv, ",")
+	// determine which PlayerTypes and SportTypes to use
+	selectedPlayerTypesMap := make(map[PlayerType]bool)
+	selectedSportTypesMap := make(map[SportType]bool)
+	for _, pts := range playerTypeStrings {
+		pti, err := strconv.Atoi(pts)
+		if err != nil {
+			return fmt.Errorf("invalid PlayerType: %w", err)
+		}
+		pt := PlayerType(pti)
+		if _, ok := playerTypes[pt]; !ok {
+			return fmt.Errorf("unknown PlayerType: %v", pt)
+		}
+		selectedPlayerTypesMap[pt] = true
+		selectedSportTypesMap[pt.SportType()] = true
+	}
+	limitPlayerTypes(selectedPlayerTypesMap, selectedSportTypesMap)
+	return nil
+}
+
+func limitPlayerTypes(selectedPlayerTypesMap map[PlayerType]bool, selectedSportTypesMap map[SportType]bool) {
+	for pt := range playerTypes {
+		if _, ok := selectedPlayerTypesMap[pt]; !ok {
+			delete(playerTypes, pt)
+		}
+	}
+	for st := range sportTypes {
+		if _, ok := selectedSportTypesMap[st]; !ok {
+			delete(sportTypes, st)
+			continue
+		}
+	}
 }
