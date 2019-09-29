@@ -74,9 +74,9 @@ func TestSportTypes(t *testing.T) {
 		SportType(1),
 	}
 	sportTypes = map[SportType]sportType{
-		SportType(1): sportType{displayOrder: 3},
-		SportType(2): sportType{displayOrder: 1},
-		SportType(3): sportType{displayOrder: 2},
+		SportType(1): {displayOrder: 3},
+		SportType(2): {displayOrder: 1},
+		SportType(3): {displayOrder: 2},
 	}
 	got := SportTypes()
 	if !reflect.DeepEqual(want, got) {
