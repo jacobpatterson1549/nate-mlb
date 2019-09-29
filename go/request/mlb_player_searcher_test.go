@@ -3,6 +3,7 @@ package request
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -70,7 +71,11 @@ func TestMlbPlayerSearchResults(t *testing.T) {
 	}
 	for i, test := range playerSearchResultsTests {
 		jsonFunc := func(uri string) string {
-			// TODO: switch for Y/N
+			switch {
+			case test.activePlayersOnly && !strings.Contains(uri, "Y"),
+				!test.activePlayersOnly && !strings.Contains(uri, ""):
+				t.Errorf("expected uri of request to contain flag for activePlayersOnly (%v): %v", test.activePlayersOnly, uri)
+			}
 			return test.playersJSON
 		}
 		r := newMockHTTPRequestor(jsonFunc)
