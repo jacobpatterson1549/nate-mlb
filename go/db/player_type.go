@@ -1,6 +1,9 @@
 package db
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type (
 	// PlayerType is an enumeration of types of players
@@ -25,14 +28,20 @@ const (
 	PlayerTypeNflMisc PlayerType = 6
 )
 
-var (
-	playerTypes          = make(map[PlayerType]playerType)
-	sportTypePlayerTypes = make(map[SportType][]PlayerType)
-)
+var playerTypes = make(map[PlayerType]playerType)
 
-// GetPlayerTypes returns the PlayerTypes for a given SportType
-func GetPlayerTypes(st SportType) []PlayerType {
-	return sportTypePlayerTypes[st]
+// PlayerTypes returns the PlayerTypes for a given SportType
+func PlayerTypes(st SportType) []PlayerType {
+	playerTypesList := make([]PlayerType, 0, len(sportTypes))
+	for pt := range playerTypes {
+		if pt.SportType() == st {
+			playerTypesList = append(playerTypesList, pt)
+		}
+	}
+	sort.Slice(playerTypesList, func(i, j int) bool {
+		return playerTypesList[i].DisplayOrder() < playerTypesList[j].DisplayOrder()
+	})
+	return playerTypesList
 }
 
 // SportType gets the SportType for a PlayerType
@@ -93,16 +102,13 @@ func LoadPlayerTypes() error {
 			PlayerTypeMlbTeam, PlayerTypeHitter, PlayerTypePitcher,
 			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflMisc:
 			playerTypes[id] = playerType
-			sportTypePlayerTypes[sportType] = append(sportTypePlayerTypes[sportType], id)
 		default:
 			return fmt.Errorf("unknown PlayerType id: %v", id)
 		}
 		displayOrder++
 	}
-	if len(sportTypePlayerTypes) != 2 ||
-		len(sportTypePlayerTypes[SportTypeNfl]) != 3 ||
-		len(sportTypePlayerTypes[SportTypeMlb]) != 3 {
-		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(sportTypePlayerTypes))
+	if len(playerTypes) != 6 { // TODO: this is not correct
+		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(playerTypes))
 	}
 	return nil
 }

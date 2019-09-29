@@ -126,9 +126,6 @@ func LimitPlayerTypes(playerTypesCsv string) error {
 		selectedPlayerTypesMap[pt] = true
 		selectedSportTypesMap[pt.SportType()] = true
 	}
-	if len(selectedSportTypesMap) == 0 {
-		return fmt.Errorf("must limit to at least one SportType")
-	}
 	limitPlayerTypes(selectedPlayerTypesMap, selectedSportTypesMap)
 	return nil
 }
@@ -139,20 +136,10 @@ func limitPlayerTypes(selectedPlayerTypesMap map[PlayerType]bool, selectedSportT
 			delete(playerTypes, pt)
 		}
 	}
-	selectedSportTypes := make([]SportType, 0, len(selectedSportTypesMap))
 	for st := range sportTypes {
 		if _, ok := selectedSportTypesMap[st]; !ok {
-			delete(urlSportTypes, st.URL())
 			delete(sportTypes, st)
-			delete(sportTypePlayerTypes, st)
 			continue
 		}
-		selectedSportTypes = append(selectedSportTypes, st)
-		for i := len(sportTypePlayerTypes[st]) - 1; i >= 0; i-- {
-			if _, ok := selectedPlayerTypesMap[sportTypePlayerTypes[st][i]]; !ok {
-				sportTypePlayerTypes[st] = append(sportTypePlayerTypes[st][:i], sportTypePlayerTypes[st][i+1:]...)
-			}
-		}
 	}
-	loadedSportTypes = selectedSportTypes
 }

@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"sort"
 )
 
 type (
@@ -9,8 +10,9 @@ type (
 	SportType int
 
 	sportType struct {
-		name string
-		url  string
+		name         string
+		url          string
+		displayOrder int
 	}
 )
 
@@ -20,11 +22,7 @@ const (
 	SportTypeNfl SportType = 2
 )
 
-var (
-	sportTypes       = make(map[SportType]sportType)
-	urlSportTypes    = make(map[string]SportType)
-	loadedSportTypes []SportType
-)
+var sportTypes = make(map[SportType]sportType)
 
 // Name gets the name for a SportType
 func (st SportType) Name() string {
@@ -38,12 +36,29 @@ func (st SportType) URL() string {
 
 // SportTypeFromURL retrieves the SportType for a url
 func SportTypeFromURL(url string) SportType {
-	return urlSportTypes[url]
+	for st := range sportTypes {
+		if st.URL() == url {
+			return st
+		}
+	}
+	return 0
+}
+
+// DisplayOrder gets the display order for a SportType
+func (st SportType) DisplayOrder() int {
+	return sportTypes[st].displayOrder
 }
 
 // SportTypes returns the loaded SportTypes
 func SportTypes() []SportType {
-	return loadedSportTypes
+	sportTypesList := make([]SportType, 0, len(sportTypes))
+	for st := range sportTypes {
+		sportTypesList = append(sportTypesList, st)
+	}
+	sort.Slice(sportTypesList, func(i, j int) bool {
+		return sportTypesList[i].DisplayOrder() < sportTypesList[j].DisplayOrder()
+	})
+	return sportTypesList
 }
 
 // LoadSportTypes loads the SportTypes from the database
@@ -59,32 +74,31 @@ func LoadSportTypes() error {
 		name string
 		url  string
 	)
-	loadedSportTypes = make([]SportType, 0, 2)
+	displayOrder := 0
 	for rows.Next() {
 		err = rows.Scan(&id, &name, &url)
 		if err != nil {
 			return fmt.Errorf("reading SportType: %w", err)
 		}
 		sportType := sportType{
-			name: name,
-			url:  url,
+			name:         name,
+			url:          url,
+			displayOrder: displayOrder,
 		}
 		switch id {
 		case SportTypeMlb, SportTypeNfl:
 			sportTypes[id] = sportType
-			urlSportTypes[url] = id
 		default:
 			return fmt.Errorf("unknown SportType id: %v", id)
 		}
-		loadedSportTypes = append(loadedSportTypes, id)
+		displayOrder++
 	}
 
 	_, hasMlbSportType := sportTypes[SportTypeMlb]
 	_, hasNflSportType := sportTypes[SportTypeNfl]
 	if len(sportTypes) != 2 ||
-		!hasMlbSportType ||
 		!hasNflSportType ||
-		len(sportTypes) != len(urlSportTypes) {
+		!hasMlbSportType {
 		return fmt.Errorf("did not load expected SportTypes.  Loaded: %v", sportTypes)
 	}
 	return nil
