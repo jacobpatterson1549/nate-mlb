@@ -126,6 +126,7 @@ func LimitPlayerTypes(playerTypesCsv string) error {
 		selectedPlayerTypesMap[pt] = true
 		selectedSportTypesMap[pt.SportType()] = true
 	}
+	// limit PlayerTypes and SportTypes
 	for pt := range playerTypes {
 		if _, ok := selectedPlayerTypesMap[pt]; !ok {
 			delete(playerTypes, pt)
