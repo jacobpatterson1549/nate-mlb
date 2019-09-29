@@ -107,8 +107,8 @@ func LoadPlayerTypes() error {
 		}
 		displayOrder++
 	}
-	if len(playerTypes) != 6 { // TODO: this is not correct
-		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d SportTypes", len(playerTypes))
+	if len(playerTypes) != 6 {
+		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d PlayerTypes", len(playerTypes))
 	}
 	return nil
 }
