@@ -1,4 +1,4 @@
-# nate-mlb ![nate-mlb favicon](static/favicon.ico)
+# ![nate-mlb favicon](static/favicon.ico) nate-mlb
 A web server which compares MLB baseball scores and NFL football scores.
 
 Built with the [Go](https://github.com/golang/go) programming language.
@@ -10,7 +10,7 @@ Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 [![GoDoc](https://godoc.org/github.com/jacobpatterson1549/nate-mlb?status.svg)](https://godoc.org/github.com/jacobpatterson1549/nate-mlb)
 
 ## Dependencies
-* New dependencies are automatically added to [go.mod](go.mod) when the project is built.
+New dependencies are automatically added to [go.mod](go.mod) when the project is built.
 * [pq](https://github.com/lib/pq) (PostgreSQL Driver)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
