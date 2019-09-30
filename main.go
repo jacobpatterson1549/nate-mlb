@@ -24,7 +24,6 @@ const (
 var (
 	adminPassword      string
 	applicationName    string
-	databaseDriverName string
 	dataSourceName     string
 	port               string
 	playerTypesCsv     string
@@ -45,7 +44,6 @@ func usage() {
 
 func init() {
 	flag.Usage = usage
-	databaseDriverName = "postgres"
 	defaultApplicationName := func() string {
 		applicationName, ok := os.LookupEnv(environmentVariableApplicationName)
 		if !ok {
@@ -63,7 +61,7 @@ func init() {
 
 func main() {
 	startupFuncs := make([]func() error, 0, 5)
-	startupFuncs = append(startupFuncs, func() error { return db.Init(databaseDriverName, dataSourceName) })
+	startupFuncs = append(startupFuncs, func() error { return db.Init(dataSourceName) })
 	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
 	startupFuncs = append(startupFuncs, db.LoadSportTypes)
 	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)

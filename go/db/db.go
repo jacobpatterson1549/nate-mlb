@@ -28,9 +28,9 @@ type (
 )
 
 // Init initializes the pointer to the database
-func Init(driverName, dataSourceName string) error {
+func Init(dataSourceName string) error {
 	var err error
-	db, err = sql.Open(driverName, dataSourceName)
+	db, err = sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("opening database %v", err)
 	}
