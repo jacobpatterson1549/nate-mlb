@@ -1,0 +1,24 @@
+version: "3"
+services:
+  db:
+    image: postgres:11.5-alpine
+    container_name: "nate-mlb-db"
+    environment:
+      - POSTGRES_USER=nate # DATABASE_USERNAME
+      - POSTGRES_PASSWORD=nate123 # DATABASE_PASSWORD
+      - POSTGRES_DB=nate_mlb_db # DATABASE_NAME
+    ports:
+      - "54320:5432" # DATABASE_PORT (5432 on container maps to 54320)
+  web:
+    build: .
+    container_name: "nate-mlb-web"
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgres://nate:nate123@db/nate_mlb_db?sslmode=disable
+      # - ADMIN_PASSWORD=
+      # - PLAYER_TYPES=
+      # - APPLICATION_NAME=
+    depends_on:
+      - db
