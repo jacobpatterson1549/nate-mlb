@@ -16,10 +16,10 @@ func TestLastStatScore(t *testing.T) {
 		playerType      db.PlayerType
 		want            int
 	}{
-		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`, db.PlayerTypeHitter, 39}, // simple case
+		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`, db.PlayerTypeMlbHitter, 39}, // simple case
 		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`, 0, -1},                   // unknown player type.  Negative number is invalid score
-		{`{"stats":[]}`, db.PlayerTypePitcher, 0}, // Luis Severino did not play in 2019, so the score should be 0
-		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":21}},{"stat":{"homeRuns":9}},{"stat":{"homeRuns":30}}]}]}`, db.PlayerTypeHitter, 30}, // Edwin Encarnacion played for multiple teams in 2019, so the last Stat's score should be returned
+		{`{"stats":[]}`, db.PlayerTypeMlbPitcher, 0}, // Luis Severino did not play in 2019, so the score should be 0
+		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":21}},{"stat":{"homeRuns":9}},{"stat":{"homeRuns":30}}]}]}`, db.PlayerTypeMlbHitter, 30}, // Edwin Encarnacion played for multiple teams in 2019, so the last Stat's score should be returned
 	}
 	for i, test := range mlbPlayerStatsTests {
 		var mlbPlayerStats MlbPlayerStats
@@ -48,7 +48,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		want             ScoreCategory
 	}{
 		{
-			pt: db.PlayerTypeHitter,
+			pt: db.PlayerTypeMlbHitter,
 			friends: []db.Friend{
 				{ID: 1, DisplayOrder: 2, Name: "Bobby"},
 				{ID: 2, DisplayOrder: 1, Name: "Charles"},
@@ -69,7 +69,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 				429665: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":34}}]}]}`,
 			},
 			want: ScoreCategory{
-				PlayerType: db.PlayerTypeHitter,
+				PlayerType: db.PlayerTypeMlbHitter,
 				FriendScores: []FriendScore{
 					{
 						DisplayOrder: 1, ID: 2, Name: "Charles", Score: 31,
@@ -88,13 +88,13 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			},
 		},
 		{
-			pt:               db.PlayerTypePitcher,
+			pt:               db.PlayerTypeMlbPitcher,
 			friends:          []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
 			players:          []db.Player{{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}}, // Blake Snell 6
 			playerNamesJSON:  `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
 			playerStatsJSONs: map[db.ID]string{605483: `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`},
 			want: ScoreCategory{
-				PlayerType: db.PlayerTypePitcher,
+				PlayerType: db.PlayerTypeMlbPitcher,
 				FriendScores: []FriendScore{
 					{
 						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 6,
@@ -105,7 +105,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			},
 		},
 		{
-			pt:               db.PlayerTypeHitter,
+			pt:               db.PlayerTypeMlbHitter,
 			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON:  `{"People":[]}`,
 			playerStatsJSONs: map[db.ID]string{592450: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
@@ -119,25 +119,25 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			wantErr:          true, // incorrect playerType for MlbPlayerStats.getStat(pt)
 		},
 		{
-			pt:               db.PlayerTypeHitter,
+			pt:               db.PlayerTypeMlbHitter,
 			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
 			wantErr:          true, // no playerNamesJSON
 		},
 		{
-			pt:              db.PlayerTypeHitter,
+			pt:              db.PlayerTypeMlbHitter,
 			players:         []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON: `{"People":[{"id":592450,"fullName":"Aaron Judge"}]}`,
 			wantErr:         true, // no playerStatsJSON
 		},
 		{
-			pt:               db.PlayerTypePitcher,
+			pt:               db.PlayerTypeMlbPitcher,
 			friends:          []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
 			players:          []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
 			playerNamesJSON:  `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
 			playerStatsJSONs: map[db.ID]string{622663: `{"stats":[]}`}, // no stats
 			want: ScoreCategory{
-				PlayerType: db.PlayerTypePitcher,
+				PlayerType: db.PlayerTypeMlbPitcher,
 				FriendScores: []FriendScore{
 					{
 						DisplayOrder: 1, ID: 4, Name: "Cameron", Score: 0,

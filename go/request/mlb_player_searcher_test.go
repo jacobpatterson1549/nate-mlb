@@ -19,7 +19,7 @@ func TestMlbPlayerSearchResults(t *testing.T) {
 		want              []PlayerSearchResult
 	}{
 		{
-			pt:                db.PlayerTypePitcher,
+			pt:                db.PlayerTypeMlbPitcher,
 			playerNamePrefix:  "Hader",
 			activePlayersOnly: true,
 			playersJSON: `{"search_player_all":{"queryResults":{
@@ -34,7 +34,7 @@ func TestMlbPlayerSearchResults(t *testing.T) {
 			want: []PlayerSearchResult{{Name: "Josh Hader", Details: "team:MIL, position:P, born:USA,1994-04-07", SourceID: 623352}},
 		},
 		{
-			pt:                db.PlayerTypeHitter,
+			pt:                db.PlayerTypeMlbHitter,
 			playerNamePrefix:  "jose mart",
 			activePlayersOnly: false,
 			playersJSON: `{"search_player_all":{"queryResults":{
@@ -58,12 +58,12 @@ func TestMlbPlayerSearchResults(t *testing.T) {
 			want: []PlayerSearchResult{{Name: "Jose Martinez", Details: "team:PIT, position:2B, born:Cuba,1942-07-26", SourceID: 118370}},
 		},
 		{
-			pt:               db.PlayerTypeHitter,
+			pt:               db.PlayerTypeMlbHitter,
 			playerNamePrefix: "felix",
 			wantErr:          true, // no json
 		},
 		{
-			pt:                db.PlayerTypePitcher,
+			pt:                db.PlayerTypeMlbPitcher,
 			playerNamePrefix:  "bartholomew", // no results
 			activePlayersOnly: true,
 			playersJSON:       `{"search_player_all":{"queryResults":{"totalSize":"0"}}}`,
@@ -104,17 +104,17 @@ func TestGetMlbPlayerSearchResults(t *testing.T) {
 		{
 			// bad json
 			searchResultJSON: `{}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 		},
 		{
 			// no results
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"0"}}}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 		},
 		{
 			// one result
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 			want: []PlayerSearchResult{
 				{Name: "Mike Trout", Details: "team:LAA, position:CF, born:USA,1991-08-07", SourceID: 545361},
 			},
@@ -122,7 +122,7 @@ func TestGetMlbPlayerSearchResults(t *testing.T) {
 		{
 			// two results (multiple results)
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"2","row":[{"position":"1B","birth_country":"USA","birth_date":"1994-12-07T00:00:00","team_abbrev":"NYM","name_display_first_last":"Pete Alonso","player_id":"624413"},{"position":"1B","birth_country":"Cuba","birth_date":"1987-04-08T00:00:00","team_abbrev":"COL","name_display_first_last":"Yonder Alonso","player_id":"475174"}]}}}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 			want: []PlayerSearchResult{
 				{Name: "Pete Alonso", Details: "team:NYM, position:1B, born:USA,1994-12-07", SourceID: 624413},
 				{Name: "Yonder Alonso", Details: "team:COL, position:1B, born:Cuba,1987-04-08", SourceID: 475174},
@@ -131,19 +131,19 @@ func TestGetMlbPlayerSearchResults(t *testing.T) {
 		{
 			// first player_d is invalid
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"2","row":[{"position":"1B","birth_country":"USA","birth_date":"1994-12-07T00:00:00","team_abbrev":"NYM","name_display_first_last":"Pete Alonso","player_id":"INVALID"},{"position":"1B","birth_country":"Cuba","birth_date":"1987-04-08T00:00:00","team_abbrev":"COL","name_display_first_last":"Yonder Alonso","player_id":"475174"}]}}}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 			wantError:        true,
 		},
 		{
 			// bad birth_date
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
-			playerType:       db.PlayerTypeHitter,
+			playerType:       db.PlayerTypeMlbHitter,
 			wantError:        true,
 		},
 		{
 			// no birth_date
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"P","birth_country":"USA","birth_date":"","team_abbrev":"CHC","name_display_first_last":"Abe Johnson","player_id":"116556"}}}}`,
-			playerType:       db.PlayerTypePitcher,
+			playerType:       db.PlayerTypeMlbPitcher,
 			want: []PlayerSearchResult{
 				{Name: "Abe Johnson", Details: "team:CHC, position:P, born:USA,?", SourceID: 116556},
 			},
@@ -151,7 +151,7 @@ func TestGetMlbPlayerSearchResults(t *testing.T) {
 		{
 			// no results (wrong playerType)
 			searchResultJSON: `{"search_player_all":{"queryResults":{"totalSize":"1","row":{"position":"CF","birth_country":"USA","birth_date":"1991-08-07T00:00:00","team_abbrev":"LAA","name_display_first_last":"Mike Trout","player_id":"545361"}}}}`,
-			playerType:       db.PlayerTypePitcher,
+			playerType:       db.PlayerTypeMlbPitcher,
 		},
 		{
 			// no results (wrong playerType)

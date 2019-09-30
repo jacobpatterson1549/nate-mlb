@@ -57,15 +57,15 @@ func init() {
 	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
 
 	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	scoreCategorizers[db.PlayerTypeHitter] = &mlbPlayerScoreCategorizer
-	scoreCategorizers[db.PlayerTypePitcher] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerScoreCategorizer
 	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
 	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
 	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	searchers[db.PlayerTypeHitter] = &mlbPlayerSearcher
-	searchers[db.PlayerTypePitcher] = &mlbPlayerSearcher
+	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerSearcher
+	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerSearcher
 	searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
 	searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor

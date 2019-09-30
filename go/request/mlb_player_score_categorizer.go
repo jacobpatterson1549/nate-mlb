@@ -161,9 +161,9 @@ func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.Sour
 
 func (mps MlbPlayerStats) getStat(playerType db.PlayerType) (int, error) {
 	switch playerType {
-	case db.PlayerTypeHitter:
+	case db.PlayerTypeMlbHitter:
 		return mps.lastStat("hitting", MlbStat.getHomeRuns), nil
-	case db.PlayerTypePitcher:
+	case db.PlayerTypeMlbPitcher:
 		return mps.lastStat("pitching", MlbStat.getWins), nil
 	default:
 		return -1, fmt.Errorf("cannot get stat of playerType %v for player", playerType)
