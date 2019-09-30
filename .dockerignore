@@ -3,6 +3,7 @@
 .scannerwork
 .vscode
 .travis.yml
+.env
 LICENSE
 README.md
 sql/README.md
