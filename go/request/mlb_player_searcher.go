@@ -55,7 +55,7 @@ func (s *mlbPlayerSearcher) search(pt db.PlayerType, year int, playerNamePrefix 
 	if activePlayersOnly {
 		activePlayers = "Y"
 	}
-	playerNamePrefix = url.QueryEscape(playerNamePrefix) // TODO: test this, do for all requestors?
+	playerNamePrefix = url.QueryEscape(playerNamePrefix)
 	uri := strings.ReplaceAll(fmt.Sprintf("http://lookup-service-prod.mlb.com/json/named.search_player_all.bam?name_part='%s%%25'&active_sw='%s'&sport_code='mlb'&search_player_all.col_in=player_id&search_player_all.col_in=name_display_first_last&search_player_all.col_in=position&search_player_all.col_in=team_abbrev&search_player_all.col_in=team_abbrev&search_player_all.col_in=birth_country&search_player_all.col_in=birth_date", playerNamePrefix, activePlayers), "'", "%27")
 	var mlbPlayerSearchQueryResult MlbPlayerSearch
 	err := s.requestor.structPointerFromURI(uri, &mlbPlayerSearchQueryResult)
