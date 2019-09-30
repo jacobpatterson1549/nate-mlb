@@ -22,11 +22,11 @@ const (
 )
 
 var (
-	adminPassword      string
-	applicationName    string
-	dataSourceName     string
-	port               string
-	playerTypesCsv     string
+	adminPassword   string
+	applicationName string
+	dataSourceName  string
+	port            string
+	playerTypesCsv  string
 )
 
 func usage() {
