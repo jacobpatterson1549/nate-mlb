@@ -7,8 +7,6 @@ services:
       - POSTGRES_USER=nate # DATABASE_USERNAME
       - POSTGRES_PASSWORD=nate123 # DATABASE_PASSWORD
       - POSTGRES_DB=nate_mlb_db # DATABASE_NAME
-    ports:
-      - "54320:5432" # DATABASE_PORT (5432 on container maps to 54320)
   web:
     build: .
     container_name: "nate-mlb-web"

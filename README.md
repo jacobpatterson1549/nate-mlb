@@ -20,7 +20,7 @@ New dependencies are automatically added to [go.mod](go.mod) when the project is
 ## Installation
 
 ### Docker
-Launching the application [Docker](https://www.docker.com) requires minimal configuration to run locally. 
+Launching the application with [Docker](https://www.docker.com) requires minimal configuration to run locally. 
 1. Install [docker-compose](https://github.com/docker/compose)
 1. Update environment variables in [docker-compose.yml](docker-compose.yml)
 1. Run `docker-compose up`
