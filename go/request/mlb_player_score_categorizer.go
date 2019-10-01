@@ -97,14 +97,14 @@ func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, 
 		sourceIDStrings[i] = strconv.Itoa(int(sourceID))
 		i++
 	}
-	playerNamesURL := strings.ReplaceAll(
+	playerNamesURI := strings.ReplaceAll(
 		fmt.Sprintf(
 			"http://statsapi.mlb.com/api/v1/people?personIds=%s&fields=people,id,fullName",
 			strings.Join(sourceIDStrings, ",")),
 		",",
 		"%2C")
 	var mlbPlayerNames MlbPlayerNames
-	err := r.requestor.structPointerFromURL(playerNamesURL, &mlbPlayerNames)
+	err := r.requestor.structPointerFromURI(playerNamesURI, &mlbPlayerNames)
 	if err != nil {
 		quit <- err
 		return
@@ -144,7 +144,7 @@ func (r mlbPlayerRequestor) getPlayerStat(pt db.PlayerType, sourceID db.SourceID
 }
 
 func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.SourceID, year int) (int, error) {
-	mlbPlayerStatsURL := strings.ReplaceAll(
+	mlbPlayerStatsURI := strings.ReplaceAll(
 		fmt.Sprintf(
 			"http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins",
 			sourceID,
@@ -152,7 +152,7 @@ func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.Sour
 		",",
 		"%2C")
 	var mlbPlayerStats MlbPlayerStats
-	err := r.requestor.structPointerFromURL(mlbPlayerStatsURL, &mlbPlayerStats)
+	err := r.requestor.structPointerFromURI(mlbPlayerStatsURI, &mlbPlayerStats)
 	if err != nil {
 		return -1, err
 	}
@@ -161,9 +161,9 @@ func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.Sour
 
 func (mps MlbPlayerStats) getStat(playerType db.PlayerType) (int, error) {
 	switch playerType {
-	case db.PlayerTypeHitter:
+	case db.PlayerTypeMlbHitter:
 		return mps.lastStat("hitting", MlbStat.getHomeRuns), nil
-	case db.PlayerTypePitcher:
+	case db.PlayerTypeMlbPitcher:
 		return mps.lastStat("pitching", MlbStat.getWins), nil
 	default:
 		return -1, fmt.Errorf("cannot get stat of playerType %v for player", playerType)

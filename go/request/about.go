@@ -27,9 +27,9 @@ type (
 func (r *aboutRequestor) PreviousDeployment() (Deployment, error) {
 	owner := "jacobpatterson1549"
 	repo := "nate-mlb"
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
+	uri := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)
 	var grd []GithubRepoDeployment
-	err := r.requestor.structPointerFromURL(url, &grd)
+	err := r.requestor.structPointerFromURI(uri, &grd)
 
 	var previousDeployment Deployment
 	if err != nil {

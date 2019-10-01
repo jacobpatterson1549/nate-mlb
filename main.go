@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
@@ -22,13 +23,21 @@ const (
 )
 
 var (
-	adminPassword      string
-	applicationName    string
-	databaseDriverName string
-	dataSourceName     string
-	port               string
-	playerTypesCsv     string
+	adminPassword   string
+	applicationName string
+	dataSourceName  string
+	port            string
+	playerTypesCsv  string
 )
+
+func main() {
+	initFlags()
+	for _, startupFunc := range startupFuncs() {
+		if err := startupFunc(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
 
 func usage() {
 	envVars := []string{
@@ -43,9 +52,8 @@ func usage() {
 	flag.PrintDefaults()
 }
 
-func init() {
+func initFlags() {
 	flag.Usage = usage
-	databaseDriverName = "postgres"
 	defaultApplicationName := func() string {
 		applicationName, ok := os.LookupEnv(environmentVariableApplicationName)
 		if !ok {
@@ -61,9 +69,20 @@ func init() {
 	flag.Parse()
 }
 
-func main() {
-	startupFuncs := make([]func() error, 0, 5)
-	startupFuncs = append(startupFuncs, func() error { return db.Init(databaseDriverName, dataSourceName) })
+func startupFuncs() []func() error {
+	startupFuncs := make([]func() error, 0, 6)
+	startupFuncs = append(startupFuncs, func() error { return db.Init(dataSourceName) })
+	startupFuncs = append(startupFuncs, func() error {
+		sleepFunc := func(sleepSeconds int) {
+			s := fmt.Sprintf("%ds", sleepSeconds)
+			d, err := time.ParseDuration(s)
+			if err != nil {
+				panic(err)
+			}
+			time.Sleep(d) // BLOCKING
+		}
+		return waitForDb(db.Ping, sleepFunc, 7)
+	})
 	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
 	startupFuncs = append(startupFuncs, db.LoadSportTypes)
 	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)
@@ -73,12 +92,24 @@ func main() {
 	if len(adminPassword) != 0 {
 		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(adminPassword) })
 	}
-	startupFuncs = append(startupFuncs, func() error { return server.Run(port, applicationName) })
+	return append(startupFuncs, func() error { return server.Run(port, applicationName) })
+}
 
-	for _, startupFunc := range startupFuncs {
-		err := startupFunc()
-		if err != nil {
-			log.Fatal(err)
+// waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
+func waitForDb(dbCheckFunc func() error, sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
+	a, b := 1, 0
+	var err error
+	for i := 0; i < numFibonacciTries; i++ {
+		err = dbCheckFunc()
+		if err == nil {
+			fmt.Println("connected to database")
+			return nil
 		}
+		fmt.Printf("failed to connect to database; trying again in %v seconds...\n", b)
+		sleepFunc(b)
+		c := b
+		b = a
+		a = b + c
 	}
+	return err
 }

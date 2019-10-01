@@ -13,7 +13,7 @@ import (
 
 type (
 	mockRequestor struct {
-		structPointerFromURLFunc func(url string, v interface{}) error
+		structPointerFromURIFunc func(uri string, v interface{}) error
 	}
 
 	mockHTTPClient struct {
@@ -21,34 +21,35 @@ type (
 	}
 )
 
-func (r *mockRequestor) structPointerFromURL(url string, v interface{}) error {
-	return r.structPointerFromURLFunc(url, v)
+func (r *mockRequestor) structPointerFromURI(uri string, v interface{}) error {
+	return r.structPointerFromURIFunc(uri, v)
 }
 
 func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
 	return c.DoFunc(r)
 }
 
-func newMockHTTPRequestor(jsonFunc func(urlPath string) string) requestor {
+func newMockHTTPRequestor(jsonFunc func(uriPath string) string) requestor {
 	return &httpRequestor{
 		cache: newCache(0), // (do not cache)
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				w := httptest.NewRecorder()
-				_, err := w.WriteString(jsonFunc(r.URL.Path))
+				uri := r.URL.RequestURI()
+				_, err := w.WriteString(jsonFunc(uri))
 				if err != nil {
 					return nil, err
 				}
 				return w.Result(), nil
 			},
 		},
-		// logRequestUrls: true,
+		// logRequestUris: true,
 	}
 }
 
-func TestStructPointerFromUrl(t *testing.T) {
-	structPointerFromURLTests := []struct {
-		url        string
+func TestStructPointerFromUri(t *testing.T) {
+	structPointerFromURITests := []struct {
+		uri        string
 		returnJSON string
 		wantError  bool
 		want       interface{}
@@ -62,17 +63,17 @@ func TestStructPointerFromUrl(t *testing.T) {
 			wantError:  true,
 		},
 		{
-			url:       "\x00 (bad url character)",
+			uri:       "\x00 (bad uri character)",
 			wantError: true,
 		},
 	}
-	for i, test := range structPointerFromURLTests {
-		jsonFunc := func(urlPath string) string {
+	for i, test := range structPointerFromURITests {
+		jsonFunc := func(uriPath string) string {
 			return test.returnJSON
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		var got interface{}
-		err := r.structPointerFromURL(test.url, &got)
+		err := r.structPointerFromURI(test.uri, &got)
 		switch {
 		case test.wantError:
 			if err == nil {
@@ -84,7 +85,7 @@ func TestStructPointerFromUrl(t *testing.T) {
 	}
 }
 
-func TestStructPointerFromUrl_requestorError(t *testing.T) {
+func TestStructPointerFromUri_requestorError(t *testing.T) {
 	doErr := errors.New("Do error")
 	r := httpRequestor{
 		cache: newCache(0), // (do not cache)
@@ -93,10 +94,10 @@ func TestStructPointerFromUrl_requestorError(t *testing.T) {
 				return nil, doErr
 			},
 		},
-		// logRequestUrls: true,
+		// logRequestUris: true,
 	}
 	var got interface{}
-	err := r.structPointerFromURL("url", &got)
+	err := r.structPointerFromURI("uri", &got)
 	if err == nil || !errors.Is(err, doErr) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
 	}
@@ -114,7 +115,7 @@ func (m mockReadCloser) Read(b []byte) (n int, err error) {
 func (m mockReadCloser) Close() error {
 	return m.closeErr
 }
-func TestStructPointerFromUrl_readBytesError(t *testing.T) {
+func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	readErr := errors.New("read error")
 	r := httpRequestor{
 		cache: newCache(0), // (do not cache)
@@ -126,10 +127,10 @@ func TestStructPointerFromUrl_readBytesError(t *testing.T) {
 				return &response, nil
 			},
 		},
-		// logRequestUrls: true,
+		// logRequestUris: true,
 	}
 	var got interface{}
-	err := r.structPointerFromURL("url", &got)
+	err := r.structPointerFromURI("uri", &got)
 	if err == nil || !errors.Is(err, readErr) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
 	}
@@ -137,14 +138,14 @@ func TestStructPointerFromUrl_readBytesError(t *testing.T) {
 
 func TestClearCache(t *testing.T) {
 	httpCache = newCache(1)
-	url := "url"
-	httpCache.add(url, []byte("bytes"))
-	if !httpCache.contains(url) {
-		t.Error("wanted cache to contain url did not")
+	uri := "uri"
+	httpCache.add(uri, []byte("bytes"))
+	if !httpCache.contains(uri) {
+		t.Error("wanted cache to contain uri did not")
 	}
 	ClearCache()
-	if httpCache.contains(url) {
-		t.Error("wanted cache to not contain url did")
+	if httpCache.contains(uri) {
+		t.Error("wanted cache to not contain uri did")
 	}
 }
 

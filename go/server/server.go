@@ -78,8 +78,8 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePage(w http.ResponseWriter, r *http.Request, stur sportTypeURLResolver, upt urlPathTransformer, sth sportTypeHandlers) error {
-	st, url := upt(r.URL.Path, stur)
-	sportTypeHandler, ok := sth[httpMethod(r.Method)][url]
+	st, urlPath := upt(r.URL.Path, stur)
+	sportTypeHandler, ok := sth[httpMethod(r.Method)][urlPath]
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return nil

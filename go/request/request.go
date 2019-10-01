@@ -14,7 +14,7 @@ import (
 
 type (
 	requestor interface {
-		structPointerFromURL(url string, v interface{}) error
+		structPointerFromURI(uri string, v interface{}) error
 	}
 
 	httpClient interface {
@@ -24,7 +24,7 @@ type (
 	httpRequestor struct {
 		cache          cache
 		httpClient     httpClient
-		logRequestUrls bool
+		logRequestURIs bool
 	}
 )
 
@@ -47,7 +47,7 @@ func init() {
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
-		logRequestUrls: false,
+		logRequestURIs: false,
 	}
 
 	mlbTeamRequestor := mlbTeamRequestor{requestor: &r}
@@ -57,15 +57,15 @@ func init() {
 	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
 
 	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	scoreCategorizers[db.PlayerTypeHitter] = &mlbPlayerScoreCategorizer
-	scoreCategorizers[db.PlayerTypePitcher] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerScoreCategorizer
+	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerScoreCategorizer
 	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
 	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
 	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
-	searchers[db.PlayerTypeHitter] = &mlbPlayerSearcher
-	searchers[db.PlayerTypePitcher] = &mlbPlayerSearcher
+	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerSearcher
+	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerSearcher
 	searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
 	searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
@@ -83,41 +83,41 @@ func Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOn
 	return searchers[pt].search(pt, year, playerNamePrefix, activePlayersOnly)
 }
 
-func (r *httpRequestor) structPointerFromURL(url string, v interface{}) error {
-	b, ok := r.cache.get(url)
+func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
+	b, ok := r.cache.get(uri)
 	if !ok {
 		var err error
-		b, err = r.bytes(url)
+		b, err = r.bytes(uri)
 		if err != nil {
 			return err
 		}
-		r.cache.add(url, b)
+		r.cache.add(uri, b)
 	}
 	err := json.Unmarshal(b, v)
 	if err != nil {
-		return fmt.Errorf("reading json when requesting %v: %w", url, err)
+		return fmt.Errorf("reading json when requesting %v: %w", uri, err)
 	}
 	return nil
 }
 
-func (r *httpRequestor) bytes(url string) ([]byte, error) {
-	if r.logRequestUrls {
-		log.Printf("%T : requesting %v", r.httpClient, url)
+func (r *httpRequestor) bytes(uri string) ([]byte, error) {
+	if r.logRequestURIs {
+		log.Printf("%T : requesting %v", r.httpClient, uri)
 	}
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
-		return nil, fmt.Errorf("initializing request to %v: %w", url, err)
+		return nil, fmt.Errorf("initializing request to %v: %w", uri, err)
 	}
 	request.Header.Add("Accept", "application/json")
 	response, err := r.httpClient.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("requesting %v: %w", url, err)
+		return nil, fmt.Errorf("requesting %v: %w", uri, err)
 	}
 	defer response.Body.Close()
 
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("reading body of %v: %w", url, err)
+		return nil, fmt.Errorf("reading body of %v: %w", uri, err)
 	}
 	return b, nil
 }

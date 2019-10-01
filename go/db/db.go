@@ -28,13 +28,18 @@ type (
 )
 
 // Init initializes the pointer to the database
-func Init(driverName, dataSourceName string) error {
+func Init(dataSourceName string) error {
 	var err error
-	db, err = sql.Open(driverName, dataSourceName)
+	db, err = sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("opening database %v", err)
 	}
 	return nil
+}
+
+// Ping ensures the database connection is active and returns an error if not
+func Ping() error {
+	return db.Ping()
 }
 
 // GetUtcTime retrieves the current UTC time

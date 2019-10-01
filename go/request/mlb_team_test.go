@@ -47,7 +47,7 @@ func TestMlbTeamRequestScoreCategory(t *testing.T) {
 		},
 	}
 	for i, test := range requestScoreCategoryTests {
-		jsonFunc := func(urlPath string) string {
+		jsonFunc := func(uri string) string {
 			return test.teamsJSON
 		}
 		r := newMockHTTPRequestor(jsonFunc)
@@ -92,7 +92,7 @@ func TestMlbTeamPlayerSearchResults(t *testing.T) {
 		},
 	}
 	for i, test := range playerSearchResultsTests {
-		jsonFunc := func(urlPath string) string {
+		jsonFunc := func(uri string) string {
 			return test.teamsJSON
 		}
 		r := newMockHTTPRequestor(jsonFunc)
