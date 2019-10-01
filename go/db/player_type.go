@@ -20,12 +20,12 @@ type (
 
 // The expected PlayerTypes
 const (
-	PlayerTypeMlbTeam   PlayerType = 1
-	PlayerTypeMlbHitter PlayerType = 2
-	PlayerTypeMlbPitcher   PlayerType = 3
-	PlayerTypeNflTeam   PlayerType = 4
-	PlayerTypeNflQB     PlayerType = 5
-	PlayerTypeNflMisc   PlayerType = 6
+	PlayerTypeMlbTeam    PlayerType = 1
+	PlayerTypeMlbHitter  PlayerType = 2
+	PlayerTypeMlbPitcher PlayerType = 3
+	PlayerTypeNflTeam    PlayerType = 4
+	PlayerTypeNflQB      PlayerType = 5
+	PlayerTypeNflMisc    PlayerType = 6
 )
 
 var playerTypes = make(map[PlayerType]playerType)
