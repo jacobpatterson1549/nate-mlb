@@ -16,10 +16,26 @@ func TestLastStatScore(t *testing.T) {
 		playerType      db.PlayerType
 		want            int
 	}{
-		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`, db.PlayerTypeMlbHitter, 39}, // simple case
-		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`, 0, -1},                   // unknown player type.  Negative number is invalid score
-		{`{"stats":[]}`, db.PlayerTypeMlbPitcher, 0}, // Luis Severino did not play in 2019, so the score should be 0
-		{`{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":21}},{"stat":{"homeRuns":9}},{"stat":{"homeRuns":30}}]}]}`, db.PlayerTypeMlbHitter, 30}, // Edwin Encarnacion played for multiple teams in 2019, so the last Stat's score should be returned
+		{ // simple case
+			playerStatsJSON: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`,
+			playerType:      db.PlayerTypeMlbHitter,
+			want:            39,
+		},
+		{ // unknown player type.  Negative number is invalid score
+			playerStatsJSON: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":39}}]}]}`,
+			playerType:      0,
+			want:            -1,
+		},
+		{ // Luis Severino did not play in[most of] 2019, so the score should be 0 [midway through the season]
+			playerStatsJSON: `{"stats":[]}`,
+			playerType:      db.PlayerTypeMlbPitcher,
+			want:            0,
+		},
+		{ // Edwin Encarnacion played for multiple teams in 2019, so the last Stat's score should be returned (multiplying homeRuns from first team by 10 to ensure this)
+			playerStatsJSON: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":210}},{"stat":{"homeRuns":9}},{"stat":{"homeRuns":30}}]}]}`,
+			playerType:      db.PlayerTypeMlbHitter,
+			want:            30,
+		},
 	}
 	for i, test := range mlbPlayerStatsTests {
 		var mlbPlayerStats MlbPlayerStats
