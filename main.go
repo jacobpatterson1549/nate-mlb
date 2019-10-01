@@ -30,6 +30,15 @@ var (
 	playerTypesCsv  string
 )
 
+func main() {
+	initFlags()
+	for _, startupFunc := range startupFuncs() {
+		if err := startupFunc(); err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func usage() {
 	envVars := []string{
 		environmentVariableDatabaseURL,
@@ -84,17 +93,6 @@ func startupFuncs() []func() error {
 		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(adminPassword) })
 	}
 	return append(startupFuncs, func() error { return server.Run(port, applicationName) })
-}
-
-func main() {
-	initFlags()
-	startupFuncs := startupFuncs()
-	for _, startupFunc := range startupFuncs {
-		err := startupFunc()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 }
 
 // waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
