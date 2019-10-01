@@ -15,8 +15,6 @@ FROM alpine:3.10
 
 WORKDIR /app
 
-COPY . /app/
-
 COPY --from=builder /app /app/
 
 CMD /app/nate-mlb
