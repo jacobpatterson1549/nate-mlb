@@ -70,7 +70,7 @@ func startupFuncs() []func() error {
 			if err != nil {
 				panic(err)
 			}
-			time.Sleep(d)
+			time.Sleep(d) // BLOCKING
 		}
 		return waitForDb(db.Ping, sleepFunc, 7)
 	})
