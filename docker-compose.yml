@@ -3,6 +3,8 @@ services:
   db:
     image: postgres:11.5-alpine
     container_name: "nate-mlb-db"
+    ports:
+      - "54320:5432" # DATABASE_PORT (5432 on container maps to 54320 on the docker host)
     environment:
       - POSTGRES_USER=nate # DATABASE_USERNAME
       - POSTGRES_PASSWORD=nate123 # DATABASE_PASSWORD
