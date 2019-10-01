@@ -37,6 +37,11 @@ func Init(dataSourceName string) error {
 	return nil
 }
 
+// Ping ensures the database connection is active and returns an error if not
+func Ping() error {
+	return db.Ping()
+}
+
 // GetUtcTime retrieves the current UTC time
 func GetUtcTime() time.Time {
 	return time.Now().UTC()
