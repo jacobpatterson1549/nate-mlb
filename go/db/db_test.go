@@ -201,9 +201,8 @@ func initializeWithTestDb(t *testing.T) {
 }
 
 func TestInit_notImported(t *testing.T) {
-	driverName := "unregisteredDriver"
 	dataSourceName := "mockDataSourceName"
-	err := Init(driverName, dataSourceName)
+	err := Init(dataSourceName)
 	if err == nil {
 		t.Error("expected error")
 	}
@@ -214,10 +213,10 @@ func TestInit_ok(t *testing.T) {
 		t.Fatal("database already initialized")
 	}
 	mockDriver := mockDriver{}
-	driverName := "mockDriverNameFAIL"
+	driverName := "postgres"
 	dataSourceName := "mockDataSourceName"
 	sql.Register(driverName, mockDriver)
-	err := Init(driverName, dataSourceName)
+	err := Init(dataSourceName)
 	if err != nil {
 		t.Error("unexpected error:", err)
 	}
