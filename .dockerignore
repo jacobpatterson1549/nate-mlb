@@ -1,4 +1,5 @@
 .git
+.gitignore
 .coverage.out
 .scannerwork
 .vscode
