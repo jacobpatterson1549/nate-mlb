@@ -17,8 +17,8 @@ services:
     environment:
       - PORT=8000
       - DATABASE_URL=postgres://nate:nate123@db:5432/nate_mlb_db?sslmode=disable
+      - APPLICATION_NAME=nate-mlb
       # - ADMIN_PASSWORD=
       # - PLAYER_TYPES=
-      # - APPLICATION_NAME=
     depends_on:
       - db
