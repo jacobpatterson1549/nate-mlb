@@ -9,6 +9,7 @@ RUN go mod download
 
 COPY . .
 
+# build application without links to C libraries
 RUN CGO_ENABLED=0 go build -o /app/nate-mlb
 
 FROM scratch
@@ -20,4 +21,5 @@ WORKDIR /app
 
 COPY --from=builder /app /app/
 
+# use exec form to not run from shell, which scratch image does not have
 ENTRYPOINT ["/app/nate-mlb"]
