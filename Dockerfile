@@ -13,7 +13,8 @@ RUN CGO_ENABLED=0 go build -o /app/nate-mlb
 
 FROM scratch
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# copy the x509 certificate file for Alpine Linux
+COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 WORKDIR /app
 
