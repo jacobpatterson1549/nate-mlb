@@ -17,4 +17,4 @@ WORKDIR /app
 
 COPY --from=builder /app /app/
 
-CMD /app/nate-mlb
+ENTRYPOINT /app/nate-mlb
