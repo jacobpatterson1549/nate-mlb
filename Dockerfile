@@ -9,12 +9,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /app/nate-mlb
+RUN CGO_ENABLED=0 go build -o /app/nate-mlb
 
-FROM alpine:3.10
+FROM scratch
 
 WORKDIR /app
 
 COPY --from=builder /app /app/
 
-ENTRYPOINT /app/nate-mlb
+ENTRYPOINT ["/app/nate-mlb"]
