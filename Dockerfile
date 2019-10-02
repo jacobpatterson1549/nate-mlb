@@ -13,6 +13,8 @@ RUN CGO_ENABLED=0 go build -o /app/nate-mlb
 
 FROM scratch
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 WORKDIR /app
 
 COPY --from=builder /app /app/
