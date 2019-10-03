@@ -22,24 +22,24 @@ const (
 	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
 )
 
-var (
+type mainVars struct {
 	adminPassword   string
 	applicationName string
 	dataSourceName  string
 	port            string
 	playerTypesCsv  string
-)
+}
 
 func main() {
-	initFlags()
-	for _, startupFunc := range startupFuncs() {
+	mainVars := initFlags()
+	for _, startupFunc := range startupFuncs(mainVars) {
 		if err := startupFunc(); err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func usage() {
+func usage(programName string) {
 	envVars := []string{
 		environmentVariableDatabaseURL,
 		environmentVariablePort,
@@ -48,30 +48,33 @@ func usage() {
 	}
 	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server")
 	fmt.Fprintln(flag.CommandLine.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
-	fmt.Fprintln(flag.CommandLine.Output(), "Usage of", os.Args[0], ":")
+	fmt.Fprintln(flag.CommandLine.Output(), fmt.Sprintf("Usage of %s:", programName))
 	flag.PrintDefaults()
 }
 
-func initFlags() {
-	flag.Usage = usage
+func initFlags() mainVars {
+	programName := os.Args[0]
+	flag.Usage = func() { usage(programName) }
+	mainVars := mainVars{}
 	defaultApplicationName := func() string {
 		applicationName, ok := os.LookupEnv(environmentVariableApplicationName)
 		if !ok {
-			return os.Args[0]
+			return programName
 		}
 		return applicationName
 	}
-	flag.StringVar(&adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
-	flag.StringVar(&applicationName, "n", defaultApplicationName(), "The name of the application.")
-	flag.StringVar(&dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
-	flag.StringVar(&port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
-	flag.StringVar(&playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
+	flag.StringVar(&mainVars.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
+	flag.StringVar(&mainVars.applicationName, "n", defaultApplicationName(), "The name of the application.")
+	flag.StringVar(&mainVars.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
+	flag.StringVar(&mainVars.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
+	flag.StringVar(&mainVars.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
 	flag.Parse()
+	return mainVars
 }
 
-func startupFuncs() []func() error {
+func startupFuncs(mainVars mainVars) []func() error {
 	startupFuncs := make([]func() error, 0, 6)
-	startupFuncs = append(startupFuncs, func() error { return db.Init(dataSourceName) })
+	startupFuncs = append(startupFuncs, func() error { return db.Init(mainVars.dataSourceName) })
 	startupFuncs = append(startupFuncs, func() error {
 		sleepFunc := func(sleepSeconds int) {
 			s := fmt.Sprintf("%ds", sleepSeconds)
@@ -86,13 +89,13 @@ func startupFuncs() []func() error {
 	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
 	startupFuncs = append(startupFuncs, db.LoadSportTypes)
 	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)
-	if len(playerTypesCsv) != 0 {
-		startupFuncs = append(startupFuncs, func() error { return db.LimitPlayerTypes(playerTypesCsv) })
+	if len(mainVars.playerTypesCsv) != 0 {
+		startupFuncs = append(startupFuncs, func() error { return db.LimitPlayerTypes(mainVars.playerTypesCsv) })
 	}
-	if len(adminPassword) != 0 {
-		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(adminPassword) })
+	if len(mainVars.adminPassword) != 0 {
+		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(mainVars.adminPassword) })
 	}
-	return append(startupFuncs, func() error { return server.Run(port, applicationName) })
+	return append(startupFuncs, func() error { return server.Run(mainVars.port, mainVars.applicationName) })
 }
 
 // waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
