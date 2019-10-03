@@ -30,19 +30,21 @@ func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
 }
 
 func newMockHTTPRequestor(jsonFunc func(uriPath string) string) requestor {
+	do := func(r *http.Request) (*http.Response, error) {
+		w := httptest.NewRecorder()
+		uri := r.URL.RequestURI()
+		_, err := w.WriteString(jsonFunc(uri))
+		if err != nil {
+			return nil, err
+		}
+		return w.Result(), nil
+	}
+	client := mockHTTPClient{
+		DoFunc: do,
+	}
 	return &httpRequestor{
-		cache: newCache(0), // (do not cache)
-		httpClient: mockHTTPClient{
-			DoFunc: func(r *http.Request) (*http.Response, error) {
-				w := httptest.NewRecorder()
-				uri := r.URL.RequestURI()
-				_, err := w.WriteString(jsonFunc(uri))
-				if err != nil {
-					return nil, err
-				}
-				return w.Result(), nil
-			},
-		},
+		cache:      newCache(0), // (do not cache)
+		httpClient: client,
 		// logRequestUris: true,
 	}
 }
