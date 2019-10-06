@@ -49,17 +49,8 @@ go run main.go -p <PORT> -ds <DATA_SOURCE_NAME> -ap <ADMIN_PASSWORD>
 PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> ADMIN_PASSWORD=<ADMIN_PASSWORD> go run main.go
 ```
 ### Heroku
-
-#### Internet
 1. Provision a new app on [Heroku](https://dashboard.heroku.com/apps).
 1. Link Heroku to this GitHub repository.
 1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) add-on
 1. Configure additional environment variables on the "Settings" tab.  The PATH and DATABASE_URL variables are automatically.
 1. Trigger a manual deployment on the "Deploy" tab.
-
-#### Local
-To run locally with the [Heroku CLI](https://github.com/heroku/cli), create an `.env` file in the project root.  It should contain the environment variables on separate lines.  Run with `heroku local`.  Example .env file: 
-```bash
-PORT=<SERVER_PORT>
-DATABASE_URL=<DATA_SOURCE_NAME>
-```
