@@ -22,7 +22,16 @@ New dependencies are automatically added to [go.mod](go.mod) when the project is
 ### Docker
 Launching the application with [Docker](https://www.docker.com) requires minimal configuration to run locally. 
 1. Install [docker-compose](https://github.com/docker/compose)
-1. Update environment variables in [docker-compose.yml](docker-compose.yml)
+1. Set environment variables in a `.env` file in project root (next to Dockerfile).  Sample:
+```
+DATABASE_NAME=nate_mlb_db
+DATABASE_PORT=5432
+DATABASE_USERNAME=nateUser
+DATABASE_PASSWORD=natePass12345
+PORT=8000
+APPLICATION_NAME=nate-mlb
+```
+3. **OPTIONAL**: Configure exposed ports in [docker-compose.yml](docker-compose.yml).  By default, the server is exposed on port `8000` and the database is exposed on port `54320`.
 1. Run `docker-compose up`
 
 ### Run locally
