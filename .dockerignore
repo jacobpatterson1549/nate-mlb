@@ -1,11 +1,12 @@
-.git
-.gitignore
-.coverage.out
-.scannerwork
-.vscode
-.travis.yml
-.env
-LICENSE
-README.md
-sql/README.md
-Procfile
+# Ignore everything
+*
+
+# Necessary files whitelist
+!go.mod
+!go.sum
+!*.go
+!go
+!html
+!js
+!sql
+!static

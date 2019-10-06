@@ -22,8 +22,18 @@ New dependencies are automatically added to [go.mod](go.mod) when the project is
 ### Docker
 Launching the application with [Docker](https://www.docker.com) requires minimal configuration to run locally. 
 1. Install [docker-compose](https://github.com/docker/compose)
-1. Update environment variables in [docker-compose.yml](docker-compose.yml)
+1. Set environment variables in a `.env` file in project root (next to Dockerfile).  The ports are mapped from the container to the docker host. Sample:
+```
+POSTGRES_DB=nate_mlb_db
+POSTGRES_USER=nateUser
+POSTGRES_PASSWORD=natePass12345
+POSTGRES_PORT=54320
+PORT=8000 
+APPLICATION_NAME=nate-mlb
+```
+3. **OPTIONAL**: Configure exposed ports in [docker-compose.yml](docker-compose.yml).  By default, the server is exposed on port `8000` and the database is exposed on port `54320`.
 1. Run `docker-compose up`
+1. Access app.  If port 8000 is used as the server port, open `http://localhost:8000`.
 
 ### Run locally
 
@@ -43,23 +53,16 @@ Two ways to compile and run the server are listed below.
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
 * **1-Command** To set environment variables, compile, and run the server with one command, run the command below and open a browser to http://<SERVER_HOST>:<SERVER_PORT> (eg: http://localhost:8000)
 ```bash
-# Any of these commands compile and run the server
-go install && nate-mlb -p <PORT> -ds <DATA_SOURCE_NAME> -ap <ADMIN_PASSWORD>
-go run main.go -p <PORT> -ds <DATA_SOURCE_NAME> -ap <ADMIN_PASSWORD>
-PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> ADMIN_PASSWORD=<ADMIN_PASSWORD> go run main.go
+PORT="8000"
+DATABASE_URL="postgres://nateUser:natePass12345@127.0.0.1:5432/nate_mlb_db"
+ADMIN_PASSWORD="s3cr3t"
+# Any one of these commands compiles and run the server
+go install && nate-mlb -p $PORT -ds $DATABASE_URL -ap $ADMIN_PASSWORD
+go run main.go -p $PORT -ds $DATABASE_URL -ap $ADMIN_PASSWORD
 ```
 ### Heroku
-
-#### Internet
 1. Provision a new app on [Heroku](https://dashboard.heroku.com/apps).
-1. Link Heroku to this GitHub repository.
-1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) add-on
-1. Configure additional environment variables on the "Settings" tab.  The PATH and DATABASE_URL variables are automatically.
-1. Trigger a manual deployment on the "Deploy" tab.
-
-#### Local
-To run locally with the [Heroku CLI](https://github.com/heroku/cli), create an `.env` file in the project root.  It should contain the environment variables on separate lines.  Run with `heroku local`.  Example .env file: 
-```bash
-PORT=<SERVER_PORT>
-DATABASE_URL=<DATA_SOURCE_NAME>
-```
+1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) **add-on** on the **Overview** (main) tab for the app.
+1. Configure additional environment variables on the **Settings** tab.  The PATH and DATABASE_URL variables are automatically.
+1. Connect the app to this GitHub repository on the **Deploy** tab.
+1. Trigger a **Manual deploy** on the **Deploy** tab.
