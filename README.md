@@ -23,7 +23,7 @@ New dependencies are automatically added to [go.mod](go.mod) when the project is
 Launching the application with [Docker](https://www.docker.com) requires minimal configuration to run locally. 
 1. Install [docker-compose](https://github.com/docker/compose)
 1. Set environment variables in a `.env` file in project root (next to Dockerfile).  The ports are mapped from the container to the docker host. Sample:
-```TOML
+```
 POSTGRES_DB=nate_mlb_db
 POSTGRES_USER=nateUser
 POSTGRES_PASSWORD=natePass12345
