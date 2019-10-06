@@ -59,7 +59,7 @@ PORT=<SERVER_PORT> DATABASE_URL=<DATA_SOURCE_NAME> ADMIN_PASSWORD=<ADMIN_PASSWOR
 ```
 ### Heroku
 1. Provision a new app on [Heroku](https://dashboard.heroku.com/apps).
-1. Link Heroku to this GitHub repository.
-1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) add-on
-1. Configure additional environment variables on the "Settings" tab.  The PATH and DATABASE_URL variables are automatically.
-1. Trigger a manual deployment on the "Deploy" tab.
+1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) **add-on** on the **Overview** (main) tab for the app.
+1. Configure additional environment variables on the **Settings** tab.  The PATH and DATABASE_URL variables are automatically.
+1. Connect the app to this GitHub repository on the **Deploy** tab.
+1. Trigger a **Manual deploy** on the **Deploy** tab.
