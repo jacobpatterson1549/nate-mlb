@@ -20,4 +20,4 @@ COPY --from=builder /etc/ssl/cert.pem /etc/ssl/cert.pem
 COPY --from=builder /app /
 
 # use exec form to not run from shell, which scratch image does not have
-ENTRYPOINT ["/nate-mlb"]
+CMD ["/nate-mlb"]
