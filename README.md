@@ -49,17 +49,11 @@ The following environment variables should be set or provided:
 * **PLAYER_TYPES** A csv whitelist of [PlayerType](https://godoc.org/github.com/jacobpatterson1549/nate-mlb/go/db#PlayerType) ids to use.  If present, limits player types.  For example, when `4,5` is used, only player types nflTeam and nflQB will be shown; nfl will also be the only sport shown.
 
 #### Compile and run server
-Two ways to compile and run the server are listed below.
+There are three main ways to compile and run the server:
+* **Build** The server can be compiled with `go build`.  The binary can be run with `./nate-mlb`.
 * **Install** The server can be compiled with `go install`.  The installed binary can be run with `$GOPATH/bin/nate-mlb`.
-* **1-Command** To set environment variables, compile, and run the server with one command, run the command below and open a browser to http://<SERVER_HOST>:<SERVER_PORT> (eg: http://localhost:8000)
-```bash
-PORT="8000"
-DATABASE_URL="postgres://nateUser:natePass12345@127.0.0.1:5432/nate_mlb_db"
-ADMIN_PASSWORD="s3cr3t"
-# Any one of these commands compiles and run the server
-go install && nate-mlb -p $PORT -ds $DATABASE_URL -ap $ADMIN_PASSWORD
-go run main.go -p $PORT -ds $DATABASE_URL -ap $ADMIN_PASSWORD
-```
+* **1-Command** To compile and run the server with a single command command, run `go run main.go`.
+
 ### Heroku
 1. Provision a new app on [Heroku](https://dashboard.heroku.com/apps).
 1. Provision a [Heroku Postgres](https://www.heroku.com/postgres) **add-on** on the **Overview** (main) tab for the app.
