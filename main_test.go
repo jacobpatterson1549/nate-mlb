@@ -59,7 +59,7 @@ func TestWaitForDb_numTries(t *testing.T) {
 		err := waitForDb(dbCheckFunc, sleepFunc, test.numFibonacciTries)
 		gotError := err != nil
 		if test.wantError != gotError {
-			t.Fatalf("Test %v: wantedError = %v, gotError = %v", i, test.wantError, gotError)
+			t.Errorf("Test %v: wantedError = %v, gotError = %v", i, test.wantError, gotError)
 		}
 	}
 }
