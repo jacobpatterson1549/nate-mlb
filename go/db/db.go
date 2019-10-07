@@ -47,7 +47,7 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) {
+func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) { // TODO: Don't use channels.  Instead, use []writeSQLFunction :: return error
 	tx, err := db.Begin()
 	if err != nil {
 		quit <- fmt.Errorf("starting transaction to save: %w", err)
