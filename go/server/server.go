@@ -56,7 +56,7 @@ func Run(port, applicationName string) error {
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	http.HandleFunc("/", handleRoot)
 	addr := fmt.Sprintf(":%s", port)
-	fmt.Println("starting server - locally running at http://127.0.0.1" + addr)
+	log.Println("starting server - locally running at http://127.0.0.1" + addr)
 	err = http.ListenAndServe(addr, nil) // BLOCKS
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %w", err)

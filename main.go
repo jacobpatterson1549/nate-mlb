@@ -104,10 +104,10 @@ func waitForDb(dbCheckFunc func() error, sleepFunc func(sleepSeconds int), numFi
 	for i := 0; i < numFibonacciTries; i++ {
 		err = dbCheckFunc()
 		if err == nil {
-			fmt.Println("connected to database")
+			log.Println("connected to database")
 			return nil
 		}
-		fmt.Printf("failed to connect to database; trying again in %v seconds...\n", b)
+		log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
 		sleepFunc(b)
 		c := b
 		b = a

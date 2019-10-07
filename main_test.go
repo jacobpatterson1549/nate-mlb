@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
+	"log"
 	"testing"
 )
 
@@ -46,6 +48,7 @@ func TestWaitForDb_numTries(t *testing.T) {
 			wantError:            true,
 		},
 	}
+	log.SetOutput(ioutil.Discard)
 	for i, test := range waitForDbTests {
 		dbCheckCount := 0
 		dbCheckFunc := func() error {
