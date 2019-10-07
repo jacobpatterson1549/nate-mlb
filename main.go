@@ -57,11 +57,10 @@ func initFlags() mainVars {
 	flag.Usage = func() { usage(programName) }
 	mainVars := mainVars{}
 	defaultApplicationName := func() string {
-		applicationName, ok := os.LookupEnv(environmentVariableApplicationName)
-		if !ok {
-			return programName
+		if applicationName, ok := os.LookupEnv(environmentVariableApplicationName); ok {
+			return applicationName
 		}
-		return applicationName
+		return programName
 	}
 	flag.StringVar(&mainVars.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
 	flag.StringVar(&mainVars.applicationName, "n", defaultApplicationName(), "The name of the application.")
