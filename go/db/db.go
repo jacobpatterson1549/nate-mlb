@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var db *sql.DB
+var db database
 
 type (
 	// ID is used to identify an item in the database or a relation to another noun's id
@@ -24,6 +24,14 @@ type (
 	writeSQLFunction struct {
 		name string
 		args []interface{}
+	}
+
+	database interface {
+		Ping() error
+		Query(query string, args ...interface{}) (*sql.Rows, error)
+		QueryRow(query string, args ...interface{}) *sql.Row
+		Exec(query string, args ...interface{}) (sql.Result, error)
+		Begin() (*sql.Tx, error)
 	}
 )
 

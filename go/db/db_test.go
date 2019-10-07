@@ -209,9 +209,7 @@ func TestInit_notImported(t *testing.T) {
 }
 
 func TestInit_ok(t *testing.T) {
-	if db != nil {
-		t.Fatal("database already initialized")
-	}
+	db = nil
 	mockDriver := mockDriver{}
 	driverName := "postgres"
 	dataSourceName := "mockDataSourceName"
