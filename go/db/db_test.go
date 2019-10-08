@@ -90,41 +90,22 @@ func (m mockDriverRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-func initializeWithTestDb(t *testing.T) {
-	driverName := "mockDriverName"
-	dataSourceName := "mockDataSourceName"
+func init() {
+	driverName, dataSourceName := "postgres", "mockDataSourceName"
 	mockConn := mockDriverConn{}
 	mockDriver := mockDriver{
 		OpenFunc: func(name string) (driver.Conn, error) {
 			if name != dataSourceName {
-				return nil, fmt.Errorf("invalid driver name: %v", name)
+				return nil, fmt.Errorf("invalid dataSourceName: %v", name)
 			}
 			return mockConn, nil
 		},
 	}
 	sql.Register(driverName, mockDriver)
-	mockDb, err := sql.Open(driverName, dataSourceName)
-	switch {
-	case err != nil:
-		t.Fatal(err)
-	case mockDb == nil:
-		t.Fatal("no sql database")
-	}
-}
-
-func TestInit_notImported(t *testing.T) {
-	dataSourceName := "mockDataSourceName"
-	err := Init(dataSourceName)
-	if err == nil {
-		t.Error("expected error")
-	}
 }
 
 func TestInit_ok(t *testing.T) {
-	mockDriver := mockDriver{}
-	driverName := "postgres"
 	dataSourceName := "mockDataSourceName"
-	sql.Register(driverName, mockDriver)
 	err := Init(dataSourceName)
 	if err != nil {
 		t.Error("unexpected error:", err)
