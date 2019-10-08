@@ -63,7 +63,8 @@ func SportTypes() []SportType {
 
 // LoadSportTypes loads the SportTypes from the database
 func LoadSportTypes() error {
-	rows, err := db.Query("SELECT id, name, url FROM get_sport_types()")
+	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
+	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("reading sportTypes: %w", err)
 	}
