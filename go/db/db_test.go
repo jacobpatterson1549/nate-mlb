@@ -117,3 +117,45 @@ func TestExpectSingleRowAffected(t *testing.T) {
 		}
 	}
 }
+
+func TestExpectRowFound(t *testing.T) {
+	expectRowFoundTests := []struct {
+		found   bool
+		scanErr error
+		wantErr bool
+	}{
+		{
+			found: true,
+		},
+		{
+			scanErr: fmt.Errorf("scanError"),
+		},
+		{
+			found:   false,
+			wantErr: true,
+		},
+	}
+	for i, test := range expectRowFoundTests {
+		r := mockRow{
+			ScanFunc: func(dest ...interface{}) error {
+				if test.scanErr != nil {
+					return test.scanErr
+				}
+				switch d := dest[0].(type) {
+				case *bool:
+					*d = test.found
+					return nil
+				default:
+					return fmt.Errorf("Expected *bool for destination of scan, but was %T", dest[0])
+				}
+			},
+		}
+		gotErr := expectRowFound(r)
+		switch {
+		case gotErr == nil && (test.scanErr != nil || test.wantErr):
+			t.Errorf("Test %v: expected error", i)
+		case gotErr != nil && test.found:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		}
+	}
+}
