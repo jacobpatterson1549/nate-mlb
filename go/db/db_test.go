@@ -12,33 +12,27 @@ type (
 	mockDriver struct {
 		OpenFunc func(name string) (driver.Conn, error)
 	}
-	mockConn struct {
+	mockDriverConn struct {
 		closed      bool
 		PrepareFunc func(query string) (driver.Stmt, error)
 		CloseFunc   func() error
 		BeginFunc   func() (driver.Tx, error)
 	}
-	mockTx struct {
-		closed       bool
+	mockDriverTx struct {
 		CommitFunc   func() error
 		RollbackFunc func() error
 	}
-	mockStmt struct {
-		query        string
-		closed       bool
+	mockDriverStmt struct {
 		CloseFunc    func() error
 		NumInputFunc func() int
 		ExecFunc     func(args []driver.Value) (driver.Result, error)
 		QueryFunc    func(args []driver.Value) (driver.Rows, error)
 	}
-	// TODO: move to db_backend_test
-	mockResult struct {
+	mockDriverResult struct {
 		LastInsertIDFunc func() (int64, error)
 		RowsAffectedFunc func() (int64, error)
 	}
-	mockRows2 struct {
-		query       string
-		closed      bool
+	mockDriverRows struct {
 		ColumnsFunc func() []string
 		CloseFunc   func() error
 		NextFunc    func(dest []driver.Value) error
@@ -49,133 +43,57 @@ func (m mockDriver) Open(name string) (driver.Conn, error) {
 	return m.OpenFunc(name)
 }
 
-func (m mockConn) Prepare(query string) (driver.Stmt, error) {
-	if m.PrepareFunc != nil {
-		return m.PrepareFunc(query)
-	}
-	return mockStmt{query: query}, nil
+func (m mockDriverConn) Prepare(query string) (driver.Stmt, error) {
+	return m.PrepareFunc(query)
 }
-func (m mockConn) Close() error {
-	if m.closed {
-		return errors.New("mock connection already closed")
-	}
-	m.closed = false
-	if m.CloseFunc != nil {
-		return m.CloseFunc()
-	}
-	return nil
+func (m mockDriverConn) Close() error {
+	return m.CloseFunc()
 }
-func (m mockConn) Begin() (driver.Tx, error) {
-	if m.closed {
-		return nil, errors.New("mock connection already closed")
-	}
-	m.closed = true
-	if m.BeginFunc != nil {
-		return m.BeginFunc()
-	}
-	return mockTx{}, nil
+func (m mockDriverConn) Begin() (driver.Tx, error) {
+	return m.BeginFunc()
 }
 
-func (m mockTx) Commit() error {
-	if m.closed {
-		return errors.New("mock transaction already closed")
-	}
-	m.closed = true
-	if m.CommitFunc != nil {
-		return m.CommitFunc()
-	}
-	return nil
+func (m mockDriverTx) Commit() error {
+	return m.CommitFunc()
 }
-func (m mockTx) Rollback() error {
-	if m.closed {
-		return errors.New("mock transaction already closed")
-	}
-	m.closed = true
-	if m.RollbackFunc != nil {
-		return m.RollbackFunc()
-	}
-	return nil
+func (m mockDriverTx) Rollback() error {
+	return m.RollbackFunc()
 }
 
-func (m mockStmt) Close() error {
-	if m.closed {
-		return errors.New("mock statement already closed")
-	}
-	m.closed = true
-	if m.CloseFunc != nil {
-		return m.CloseFunc()
-	}
-	return nil
+func (m mockDriverStmt) Close() error {
+	return m.CloseFunc()
 }
-func (m mockStmt) NumInput() int {
-	if m.NumInputFunc != nil {
-		return m.NumInputFunc()
-	}
-	return 0
+func (m mockDriverStmt) NumInput() int {
+	return m.NumInputFunc()
 }
-func (m mockStmt) Exec(args []driver.Value) (driver.Result, error) {
-	if m.closed {
-		return nil, errors.New("mock statement already closed")
-	}
-	if m.ExecFunc != nil {
-		return m.ExecFunc(args)
-	}
-	return mockResult{}, nil
+func (m mockDriverStmt) Exec(args []driver.Value) (driver.Result, error) {
+	return m.ExecFunc(args)
 }
-func (m mockStmt) Query(args []driver.Value) (driver.Rows, error) {
-	if m.closed {
-		return nil, errors.New("mock statement already closed")
-	}
-	if m.QueryFunc != nil {
-		return m.QueryFunc(args)
-	}
-	return mockRows2{}, nil
+func (m mockDriverStmt) Query(args []driver.Value) (driver.Rows, error) {
+	return m.QueryFunc(args)
 }
 
-func (m mockResult) LastInsertId() (int64, error) {
-	if m.LastInsertIDFunc != nil {
-		return m.LastInsertIDFunc()
-	}
-	return 0, nil
+func (m mockDriverResult) LastInsertId() (int64, error) {
+	return m.LastInsertIDFunc()
 }
-func (m mockResult) RowsAffected() (int64, error) {
-	if m.RowsAffectedFunc != nil {
-		return m.RowsAffectedFunc()
-	}
-	return 0, nil
+func (m mockDriverResult) RowsAffected() (int64, error) {
+	return m.RowsAffectedFunc()
 }
 
-func (m mockRows2) Columns() []string {
-	if m.ColumnsFunc != nil {
-		return m.ColumnsFunc()
-	}
+func (m mockDriverRows) Columns() []string {
 	return nil
 }
-func (m mockRows2) Close() error {
-	if m.closed {
-		return errors.New("mock rows already closed")
-	}
-	m.closed = true
-	if m.CloseFunc != nil {
-		return m.CloseFunc()
-	}
+func (m mockDriverRows) Close() error {
 	return nil
 }
-func (m mockRows2) Next(dest []driver.Value) error {
-	if m.closed {
-		return errors.New("mock rows already closed")
-	}
-	m.closed = true
-	if m.NextFunc != nil {
-		return m.NextFunc(dest)
-	}
+func (m mockDriverRows) Next(dest []driver.Value) error {
 	return nil
 }
 
 func initializeWithTestDb(t *testing.T) {
 	driverName := "mockDriverName"
 	dataSourceName := "mockDataSourceName"
-	mockConn := mockConn{}
+	mockConn := mockDriverConn{}
 	mockDriver := mockDriver{
 		OpenFunc: func(name string) (driver.Conn, error) {
 			if name != dataSourceName {

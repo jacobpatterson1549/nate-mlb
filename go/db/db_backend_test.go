@@ -29,6 +29,11 @@ type (
 		CommitFunc   func() error
 		RollbackFunc func() error
 	}
+	// mockResult implements the sql.Result interface
+	mockResult struct {
+		LastInsertIDFunc func() (int64, error)
+		RowsAffectedFunc func() (int64, error)
+	}
 )
 
 func (m *mockDatabase) Ping() error {
@@ -66,4 +71,11 @@ func (m *mockTransaction) Commit() error {
 }
 func (m *mockTransaction) Rollback() error {
 	return m.RollbackFunc()
+}
+
+func (m mockResult) LastInsertId() (int64, error) {
+	return m.LastInsertIDFunc()
+}
+func (m mockResult) RowsAffected() (int64, error) {
+	return m.RowsAffectedFunc()
 }
