@@ -65,7 +65,7 @@ func SportTypes() []SportType {
 func LoadSportTypes() error {
 	rows, err := db.Query("SELECT id, name, url FROM get_sport_types()")
 	if err != nil {
-		return fmt.Errorf("reading PlayerTypes for SportTypes: %w", err)
+		return fmt.Errorf("reading sportTypes: %w", err)
 	}
 	defer rows.Close()
 
