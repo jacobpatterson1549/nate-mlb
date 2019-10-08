@@ -83,3 +83,15 @@ func TestSportTypes(t *testing.T) {
 		t.Errorf("Wanted %v, but got %v", want, got)
 	}
 }
+
+// func TestLoadSportTypes(t *testing.T) {
+// 	type sportTypeQueryRow struct {
+// 		id   int
+// 		name string
+// 		url  string
+// 	}
+// 	loadSportTypesTests := []struct {
+// 		queryErr error
+// 		rows     []mockRows
+// 	}{}
+// }

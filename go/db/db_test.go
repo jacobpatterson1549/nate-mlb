@@ -42,6 +42,13 @@ type (
 		CloseFunc   func() error
 		NextFunc    func(dest []driver.Value) error
 	}
+	mockDatabase struct {
+		PingFunc     func() error
+		QueryFunc    func(query string, args ...interface{}) (*sql.Rows, error)
+		QueryRowFunc func(query string, args ...interface{}) *sql.Row
+		ExecFunc     func(query string, args ...interface{}) (sql.Result, error)
+		BeginFunc    func() (*sql.Tx, error)
+	}
 )
 
 func (m mockDriver) Open(name string) (driver.Conn, error) {
@@ -171,18 +178,25 @@ func (m mockRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-type mockDB struct {
-	db     sql.DB
-	driver driver.Driver
-	conn   driver.Conn
+func (m mockDatabase) Ping() error {
+	return m.PingFunc()
+}
+func (m mockDatabase) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return m.QueryFunc(query, args)
+}
+func (m mockDatabase) QueryRow(query string, args ...interface{}) *sql.Row {
+	return m.QueryRowFunc(query, args)
+}
+func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return m.ExecFunc(query, args)
+}
+func (m mockDatabase) Begin() (*sql.Tx, error) {
+	return m.BeginFunc()
 }
 
 func initializeWithTestDb(t *testing.T) {
 	driverName := "mockDriverName"
 	dataSourceName := "mockDataSourceName"
-	if db != nil {
-		t.Fatal("database already initialized")
-	}
 	mockConn := mockConn{}
 	mockDriver := mockDriver{
 		OpenFunc: func(name string) (driver.Conn, error) {
@@ -194,10 +208,12 @@ func initializeWithTestDb(t *testing.T) {
 	}
 	sql.Register(driverName, mockDriver)
 	mockDb, err := sql.Open(driverName, dataSourceName)
-	if err != nil {
+	switch {
+	case err != nil:
 		t.Fatal(err)
+	case mockDb == nil:
+		t.Fatal("no sql database")
 	}
-	db = mockDb
 }
 
 func TestInit_notImported(t *testing.T) {
@@ -209,7 +225,6 @@ func TestInit_notImported(t *testing.T) {
 }
 
 func TestInit_ok(t *testing.T) {
-	db = nil
 	mockDriver := mockDriver{}
 	driverName := "postgres"
 	dataSourceName := "mockDataSourceName"

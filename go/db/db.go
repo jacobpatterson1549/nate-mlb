@@ -25,23 +25,15 @@ type (
 		name string
 		args []interface{}
 	}
-
-	database interface {
-		Ping() error
-		Query(query string, args ...interface{}) (*sql.Rows, error)
-		QueryRow(query string, args ...interface{}) *sql.Row
-		Exec(query string, args ...interface{}) (sql.Result, error)
-		Begin() (*sql.Tx, error)
-	}
 )
 
 // Init initializes the pointer to the database
 func Init(dataSourceName string) error {
-	var err error
-	db, err = sql.Open("postgres", dataSourceName)
+	sqlDb, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("opening database %v", err)
 	}
+	db = &sqlDatabase{db: sqlDb}
 	return nil
 }
 
@@ -99,7 +91,7 @@ func expectSingleRowAffected(r sql.Result) error {
 	return nil
 }
 
-func expectRowFound(row *sql.Row) error {
+func expectRowFound(row row) error {
 	var found bool
 	err := row.Scan(&found)
 	if err != nil {
