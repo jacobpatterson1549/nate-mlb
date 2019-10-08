@@ -18,25 +18,6 @@ type (
 		CloseFunc   func() error
 		BeginFunc   func() (driver.Tx, error)
 	}
-	mockDriverTx struct {
-		CommitFunc   func() error
-		RollbackFunc func() error
-	}
-	mockDriverStmt struct {
-		CloseFunc    func() error
-		NumInputFunc func() int
-		ExecFunc     func(args []driver.Value) (driver.Result, error)
-		QueryFunc    func(args []driver.Value) (driver.Rows, error)
-	}
-	mockDriverResult struct {
-		LastInsertIDFunc func() (int64, error)
-		RowsAffectedFunc func() (int64, error)
-	}
-	mockDriverRows struct {
-		ColumnsFunc func() []string
-		CloseFunc   func() error
-		NextFunc    func(dest []driver.Value) error
-	}
 )
 
 func (m mockDriver) Open(name string) (driver.Conn, error) {
@@ -51,43 +32,6 @@ func (m mockDriverConn) Close() error {
 }
 func (m mockDriverConn) Begin() (driver.Tx, error) {
 	return m.BeginFunc()
-}
-
-func (m mockDriverTx) Commit() error {
-	return m.CommitFunc()
-}
-func (m mockDriverTx) Rollback() error {
-	return m.RollbackFunc()
-}
-
-func (m mockDriverStmt) Close() error {
-	return m.CloseFunc()
-}
-func (m mockDriverStmt) NumInput() int {
-	return m.NumInputFunc()
-}
-func (m mockDriverStmt) Exec(args []driver.Value) (driver.Result, error) {
-	return m.ExecFunc(args)
-}
-func (m mockDriverStmt) Query(args []driver.Value) (driver.Rows, error) {
-	return m.QueryFunc(args)
-}
-
-func (m mockDriverResult) LastInsertId() (int64, error) {
-	return m.LastInsertIDFunc()
-}
-func (m mockDriverResult) RowsAffected() (int64, error) {
-	return m.RowsAffectedFunc()
-}
-
-func (m mockDriverRows) Columns() []string {
-	return nil
-}
-func (m mockDriverRows) Close() error {
-	return nil
-}
-func (m mockDriverRows) Next(dest []driver.Value) error {
-	return nil
 }
 
 func init() {
