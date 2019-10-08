@@ -31,23 +31,17 @@ type (
 		ExecFunc     func(args []driver.Value) (driver.Result, error)
 		QueryFunc    func(args []driver.Value) (driver.Rows, error)
 	}
+	// TODO: move to db_backend_test
 	mockResult struct {
 		LastInsertIDFunc func() (int64, error)
 		RowsAffectedFunc func() (int64, error)
 	}
-	mockRows struct {
+	mockRows2 struct {
 		query       string
 		closed      bool
 		ColumnsFunc func() []string
 		CloseFunc   func() error
 		NextFunc    func(dest []driver.Value) error
-	}
-	mockDatabase struct {
-		PingFunc     func() error
-		QueryFunc    func(query string, args ...interface{}) (*sql.Rows, error)
-		QueryRowFunc func(query string, args ...interface{}) *sql.Row
-		ExecFunc     func(query string, args ...interface{}) (sql.Result, error)
-		BeginFunc    func() (*sql.Tx, error)
 	}
 )
 
@@ -135,7 +129,7 @@ func (m mockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	if m.QueryFunc != nil {
 		return m.QueryFunc(args)
 	}
-	return mockRows{query: m.query}, nil
+	return mockRows2{}, nil
 }
 
 func (m mockResult) LastInsertId() (int64, error) {
@@ -151,13 +145,13 @@ func (m mockResult) RowsAffected() (int64, error) {
 	return 0, nil
 }
 
-func (m mockRows) Columns() []string {
+func (m mockRows2) Columns() []string {
 	if m.ColumnsFunc != nil {
 		return m.ColumnsFunc()
 	}
 	return nil
 }
-func (m mockRows) Close() error {
+func (m mockRows2) Close() error {
 	if m.closed {
 		return errors.New("mock rows already closed")
 	}
@@ -167,7 +161,7 @@ func (m mockRows) Close() error {
 	}
 	return nil
 }
-func (m mockRows) Next(dest []driver.Value) error {
+func (m mockRows2) Next(dest []driver.Value) error {
 	if m.closed {
 		return errors.New("mock rows already closed")
 	}
@@ -176,22 +170,6 @@ func (m mockRows) Next(dest []driver.Value) error {
 		return m.NextFunc(dest)
 	}
 	return nil
-}
-
-func (m mockDatabase) Ping() error {
-	return m.PingFunc()
-}
-func (m mockDatabase) Query(query string, args ...interface{}) (*sql.Rows, error) {
-	return m.QueryFunc(query, args)
-}
-func (m mockDatabase) QueryRow(query string, args ...interface{}) *sql.Row {
-	return m.QueryRowFunc(query, args)
-}
-func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return m.ExecFunc(query, args)
-}
-func (m mockDatabase) Begin() (*sql.Tx, error) {
-	return m.BeginFunc()
 }
 
 func initializeWithTestDb(t *testing.T) {

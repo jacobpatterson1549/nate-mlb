@@ -1,7 +1,6 @@
 package db
 
 import (
-	"context"
 	"database/sql"
 )
 
@@ -26,58 +25,14 @@ type (
 	}
 	rows interface {
 		Close() error
-		ColumnTypes() ([]*sql.ColumnType, error)
-		Columns() ([]string, error)
-		Err() error
 		Next() bool
-		NextResultSet() bool
 		row // Scan method
 	}
 	transaction interface {
-		Commit() error
 		Exec(query string, args ...interface{}) (sql.Result, error)
-		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-		Prepare(query string) (*sql.Stmt, error)
-		PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-		Query(query string, args ...interface{}) (*sql.Rows, error)
-		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
-		QueryRow(query string, args ...interface{}) *sql.Row
-		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+		Commit() error
 		Rollback() error
-		Stmt(stmt *sql.Stmt) *sql.Stmt
-		StmtContext(ctx context.Context, stmt *sql.Stmt) *sql.Stmt
 	}
-	// transaction interface {
-	// 	Commit() error
-	// 	Exec(query string, args ...interface{}) (sql.Result, error)
-	// 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-	// 	Prepare(query string) (stmt, error)
-	// 	PrepareContext(ctx context.Context, query string) (stmt, error)
-	// 	Query(query string, args ...interface{}) (rows, error)
-	// 	QueryContext(ctx context.Context, query string, args ...interface{}) (rows, error)
-	// 	QueryRow(query string, args ...interface{}) row
-	// 	QueryRowContext(ctx context.Context, query string, args ...interface{}) row
-	// 	Rollback() error
-	// 	Stmt(stmt stmt) stmt
-	// 	StmtContext(ctx context.Context, stmt stmt) stmt
-	// }
-	// stmt interface {
-	// 	Close() error
-	// 	Exec(args ...interface{}) (sql.Result, error)
-	// 	ExecContext(ctx context.Context, args ...interface{}) (sql.Result, error)
-	// 	Query(args ...interface{}) (rows, error)
-	// 	QueryContext(ctx context.Context, args ...interface{}) (rows, error)
-	// 	QueryRow(args ...interface{}) row
-	// 	QueryRowContext(ctx context.Context, args ...interface{}) row
-	// }
-	// columnType interface {
-	// 	DatabaseTypeName() string
-	// 	DecimalSize() (precision, scale int64, ok bool)
-	// 	Length() (length int64, ok bool)
-	// 	Name() string
-	// 	Nullable() (nullable, ok bool)
-	// 	ScanType() reflect.Type
-	// }
 )
 
 func (s *sqlDatabase) Ping() error {
