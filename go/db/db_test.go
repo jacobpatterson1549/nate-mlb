@@ -79,6 +79,126 @@ func TestPing(t *testing.T) {
 	}
 }
 
+func TestExecuteInTransaction(t *testing.T) {
+	executeInTransactionTests := []struct {
+		queries     []writeSQLFunction
+		beginErr    error
+		execErr     error
+		rollbackErr error
+		commitErr   error
+	}{
+		{},
+		{
+			queries: []writeSQLFunction{
+				newWriteSQLFunction("query1"),
+				newWriteSQLFunction("query2"),
+				newWriteSQLFunction("query3"),
+			},
+		},
+		{
+			beginErr: errors.New("begin error"),
+		},
+		{
+			queries: []writeSQLFunction{
+				newWriteSQLFunction("query1"),
+			},
+			execErr: errors.New("exec error"),
+		},
+		{
+			queries: []writeSQLFunction{
+				newWriteSQLFunction("query1"),
+			},
+			execErr:     errors.New("exec error"), // causes rollbackError
+			rollbackErr: errors.New("rollback error"),
+		},
+		{
+			// TODO: should not commit if no queries present
+			commitErr: errors.New("commit error"),
+		},
+	}
+	for i, test := range executeInTransactionTests {
+		commitCalled := false
+		rollbackCalled := false
+		tx := mockTransaction{
+			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				if test.execErr != nil {
+					return nil, test.execErr
+				}
+				return mockResult{
+					RowsAffectedFunc: func() (int64, error) {
+						return 1, nil
+					},
+				}, nil
+			},
+			CommitFunc: func() error {
+				commitCalled = true
+				return test.commitErr
+			},
+			RollbackFunc: func() error {
+				rollbackCalled = true
+				return test.rollbackErr
+			},
+		}
+		db = mockDatabase{
+			BeginFunc: func() (transaction, error) {
+				if test.beginErr != nil {
+					return nil, test.beginErr
+				}
+				return tx, nil
+			},
+		}
+		queriesChan := make(chan writeSQLFunction, len(test.queries))
+		quitChan := make(chan error)
+		go executeInTransaction(queriesChan, quitChan)
+		for _, query := range test.queries {
+			queriesChan <- query
+		}
+		close(queriesChan)
+		gotErr := <-quitChan
+		switch {
+		case gotErr == nil:
+			if test.beginErr != nil || test.execErr != nil || test.commitErr != nil {
+				t.Errorf("Test %v: did not cause an error, but should have", i)
+			}
+		case test.beginErr != nil:
+			if !errors.Is(gotErr, test.beginErr) {
+				t.Errorf("Test %v: wanted error during begin, but got: %v", i, gotErr)
+			}
+		case test.execErr != nil:
+			if !errors.Is(gotErr, test.execErr) {
+				t.Errorf("Test %v: wanted error during exec, but got: %v", i, gotErr)
+			}
+		case test.rollbackErr != nil:
+			if !errors.Is(gotErr, test.rollbackErr) {
+				t.Errorf("Test %v: wanted error during rollback, but got: %v", i, gotErr)
+			}
+		case test.commitErr != nil:
+			if !errors.Is(gotErr, test.commitErr) {
+				t.Errorf("Test %v: wanted error during commit, but got: %v", i, gotErr)
+			}
+		default:
+			t.Errorf("Test %v: unknown error: %v", i, gotErr)
+		}
+		// commit/rollback checks
+		switch {
+		case gotErr != nil && test.beginErr == nil && test.commitErr == nil:
+			if !rollbackCalled {
+				t.Errorf("Test %v: expected rollback", i)
+			}
+			if commitCalled && test.commitErr == nil {
+				t.Errorf("Test %v: unexpected commit", i)
+			}
+		case gotErr == nil:
+			if rollbackCalled {
+				t.Errorf("Test %v: unexpected rollback", i)
+			}
+			if !commitCalled {
+				t.Errorf("Test %v: expected commit", i)
+			}
+		}
+	}
+}
+
 func TestExpectSingleRowAffected(t *testing.T) {
 	expectSingleRowAffectedTests := []struct {
 		rowsAffectedErr error

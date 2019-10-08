@@ -60,7 +60,7 @@ func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) { 
 			err = expectSingleRowAffected(result)
 		}
 		if err != nil {
-			err = fmt.Errorf("%s: %v", sqlFunction.name, err)
+			err = fmt.Errorf("%s: %w", sqlFunction.name, err)
 			break
 		}
 	}
