@@ -36,19 +36,19 @@ type (
 	}
 )
 
-func (m *mockDatabase) Ping() error {
+func (m mockDatabase) Ping() error {
 	return m.PingFunc()
 }
-func (m *mockDatabase) Query(query string, args ...interface{}) (rows, error) {
+func (m mockDatabase) Query(query string, args ...interface{}) (rows, error) {
 	return m.QueryFunc(query, args)
 }
-func (m *mockDatabase) QueryRow(query string, args ...interface{}) row {
+func (m mockDatabase) QueryRow(query string, args ...interface{}) row {
 	return m.QueryRowFunc(query, args)
 }
-func (m *mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return m.ExecFunc(query, args)
 }
-func (m *mockDatabase) Begin() (transaction, error) {
+func (m mockDatabase) Begin() (transaction, error) {
 	return m.BeginFunc()
 }
 
