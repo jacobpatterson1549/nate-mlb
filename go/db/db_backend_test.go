@@ -40,36 +40,36 @@ func (m mockDatabase) Ping() error {
 	return m.PingFunc()
 }
 func (m mockDatabase) Query(query string, args ...interface{}) (rows, error) {
-	return m.QueryFunc(query, args)
+	return m.QueryFunc(query, args...)
 }
 func (m mockDatabase) QueryRow(query string, args ...interface{}) row {
-	return m.QueryRowFunc(query, args)
+	return m.QueryRowFunc(query, args...)
 }
 func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return m.ExecFunc(query, args)
+	return m.ExecFunc(query, args...)
 }
 func (m mockDatabase) Begin() (transaction, error) {
 	return m.BeginFunc()
 }
 
-func (m *mockRow) Scan(dest ...interface{}) error {
-	return m.ScanFunc(dest)
+func (m mockRow) Scan(dest ...interface{}) error {
+	return m.ScanFunc(dest...)
 }
 
-func (m *mockRows) Close() error {
+func (m mockRows) Close() error {
 	return m.CloseFunc()
 }
-func (m *mockRows) Next() bool {
+func (m mockRows) Next() bool {
 	return m.NextFunc()
 }
 
-func (m *mockTransaction) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return m.ExecFunc(query, args)
+func (m mockTransaction) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return m.ExecFunc(query, args...)
 }
-func (m *mockTransaction) Commit() error {
+func (m mockTransaction) Commit() error {
 	return m.CommitFunc()
 }
-func (m *mockTransaction) Rollback() error {
+func (m mockTransaction) Rollback() error {
 	return m.RollbackFunc()
 }
 
