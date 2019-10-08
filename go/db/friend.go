@@ -58,19 +58,16 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 		delete(previousFriends, friend.ID)
 	}
 
-	queries := make(chan writeSQLFunction, len(insertFriends)+len(updateFriends)+len(previousFriends))
-	quit := make(chan error)
-	go executeInTransaction(queries, quit)
+	queries := make([]writeSQLFunction, 0, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	for deleteFriendID := range previousFriends {
-		queries <- newWriteSQLFunction("del_friend", deleteFriendID)
+		queries = append(queries, newWriteSQLFunction("del_friend", deleteFriendID))
 	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
-		queries <- newWriteSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st)
+		queries = append(queries, newWriteSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st))
 	}
 	for _, updateFriend := range updateFriends {
-		queries <- newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID)
+		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID))
 	}
-	close(queries)
-	return <-quit
+	return executeInTransaction(queries)
 }

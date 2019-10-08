@@ -64,18 +64,15 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 		delete(previousPlayers, player.ID)
 	}
 
-	queries := make(chan writeSQLFunction, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
-	quit := make(chan error)
-	go executeInTransaction(queries, quit)
+	queries := make([]writeSQLFunction, 0, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	for deleteID := range previousPlayers {
-		queries <- newWriteSQLFunction("del_player", deleteID)
+		queries = append(queries, newWriteSQLFunction("del_player", deleteID))
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries <- newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st)
+		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st))
 	}
 	for _, updateplayer := range updatePlayers {
-		queries <- newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID)
+		queries = append(queries, newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID))
 	}
-	close(queries)
-	return <-quit
+	return executeInTransaction(queries)
 }

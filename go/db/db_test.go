@@ -112,7 +112,9 @@ func TestExecuteInTransaction(t *testing.T) {
 			rollbackErr: errors.New("rollback error"),
 		},
 		{
-			// TODO: should not commit if no queries present
+			queries: []writeSQLFunction{
+				newWriteSQLFunction("query1"),
+			},
 			commitErr: errors.New("commit error"),
 		},
 	}
@@ -147,14 +149,7 @@ func TestExecuteInTransaction(t *testing.T) {
 				return tx, nil
 			},
 		}
-		queriesChan := make(chan writeSQLFunction, len(test.queries))
-		quitChan := make(chan error)
-		go executeInTransaction(queriesChan, quitChan)
-		for _, query := range test.queries {
-			queriesChan <- query
-		}
-		close(queriesChan)
-		gotErr := <-quitChan
+		gotErr := executeInTransaction(test.queries)
 		switch {
 		case gotErr == nil:
 			if test.beginErr != nil || test.execErr != nil || test.commitErr != nil {
@@ -165,7 +160,7 @@ func TestExecuteInTransaction(t *testing.T) {
 				t.Errorf("Test %v: wanted error during begin, but got: %v", i, gotErr)
 			}
 		case test.execErr != nil:
-			if !errors.Is(gotErr, test.execErr) {
+			if test.rollbackErr == nil && !errors.Is(gotErr, test.execErr) {
 				t.Errorf("Test %v: wanted error during exec, but got: %v", i, gotErr)
 			}
 		case test.rollbackErr != nil:
@@ -192,8 +187,11 @@ func TestExecuteInTransaction(t *testing.T) {
 			if rollbackCalled {
 				t.Errorf("Test %v: unexpected rollback", i)
 			}
-			if !commitCalled {
+			if !commitCalled && len(test.queries) != 0 {
 				t.Errorf("Test %v: expected commit", i)
+			}
+			if commitCalled && len(test.queries) == 0 {
+				t.Errorf("Test %v: should not have been committed because there are no queries", i)
 			}
 		}
 	}

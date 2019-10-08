@@ -47,14 +47,13 @@ func GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
-func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) { // TODO: Don't use channels.  Instead, use []writeSQLFunction :: return error
+func executeInTransaction(queries []writeSQLFunction) error {
 	tx, err := db.Begin()
 	if err != nil {
-		quit <- fmt.Errorf("starting transaction to save: %w", err)
-		return
+		return err
 	}
 	var result sql.Result
-	for sqlFunction := range queries {
+	for _, sqlFunction := range queries {
 		result, err = tx.Exec(sqlFunction.sql(), sqlFunction.args...)
 		if err == nil {
 			err = expectSingleRowAffected(result)
@@ -64,20 +63,20 @@ func executeInTransaction(queries <-chan writeSQLFunction, quit chan<- error) { 
 			break
 		}
 	}
-	if err != nil {
+	switch {
+	case err != nil:
 		err = fmt.Errorf("saving: %w", err)
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
-			err = fmt.Errorf("%w, ROLLBACK ERROR: %w", err, rollbackErr)
+			err = fmt.Errorf("%w ROLLBACK ERROR: %w", err, rollbackErr)
 		}
-		quit <- err
-		return
+	case len(queries) > 0:
+		err = tx.Commit()
+		if err != nil {
+			err = fmt.Errorf("committing transaction to save: %w", err)
+		}
 	}
-	err = tx.Commit()
-	if err != nil {
-		err = fmt.Errorf("committing transaction to save: %w", err)
-	}
-	quit <- err
+	return err
 }
 
 func expectSingleRowAffected(r sql.Result) error {
