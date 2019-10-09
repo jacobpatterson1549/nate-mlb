@@ -259,13 +259,7 @@ func TestExpectRowFound(t *testing.T) {
 				if test.scanErr != nil {
 					return test.scanErr
 				}
-				switch d := dest[0].(type) {
-				case *bool:
-					*d = test.found
-					return nil
-				default:
-					return fmt.Errorf("Expected *bool for destination of scan, but was %T", dest[0])
-				}
+				return mockScan(dest[0], test.found)
 			},
 		}
 		gotErr := expectRowFound(r)
