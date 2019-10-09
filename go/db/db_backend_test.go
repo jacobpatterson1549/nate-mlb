@@ -102,6 +102,9 @@ func mockScan(dest, src interface{}) error {
 		case *SportType:
 			*d = SportType(v)
 			return nil
+		case *PlayerType:
+			*d = PlayerType(v)
+			return nil
 		}
 	case string:
 		switch d := dest.(type) {
@@ -130,7 +133,7 @@ func newMockRows(src []interface{}) rows {
 		},
 		ScanFunc: func(dest ...interface{}) error {
 			switch {
-			case  closed:
+			case closed:
 				return fmt.Errorf("already closed")
 			case rowI < 0:
 				return fmt.Errorf("next not called")

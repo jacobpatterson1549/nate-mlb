@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -63,5 +64,78 @@ func TestPlayerTypes(t *testing.T) {
 	got := PlayerTypes(st1)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("Wanted %v, but got %v", want, got)
+	}
+}
+
+func TestLoadPlayerTypes(t *testing.T) {
+	type playerTypeQueryRow struct {
+		ID          int
+		SportType   int
+		Name        string
+		Description string
+		ScoreType   string
+	}
+	loadPlayerTypesTests := []struct {
+		queryErr error
+		rows     []interface{}
+		wantErr  bool
+	}{
+		{
+			queryErr: fmt.Errorf("query error"),
+			wantErr:  true,
+		},
+		{ // no sport types
+			wantErr: true,
+		},
+		{ // scan error (too few fields)
+			rows: []interface{}{
+				struct {
+					ID int
+				}{
+					ID: 1,
+				},
+			},
+			wantErr: true,
+		},
+		{ // happy path
+			rows: []interface{}{
+				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
+				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHittenScoreType"},
+				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
+				playerTypeQueryRow{4, 2, "mockNflTeamName", "mocNflTeamDescription", "mockNflTeamScoreType"},
+				playerTypeQueryRow{5, 2, "mockNflQBName", "mockNflQBDescription", "mockNflQBScoreType"},
+				playerTypeQueryRow{6, 2, "mockNflMiscName", "mockNflMiscDescription", "mockNflMiscType"},
+			},
+		},
+		{ // no nflMisc sportType
+			rows: []interface{}{
+				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
+				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHittenScoreType"},
+				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
+				playerTypeQueryRow{4, 2, "mockNflTeamName", "mocNflTeamDescription", "mockNflTeamScoreType"},
+				playerTypeQueryRow{5, 2, "mockNflQBName", "mockNflQBDescription", "mockNflQBScoreType"},
+				playerTypeQueryRow{7, 2, "mockNflKickerName", "mockNflKickerDescription", "mockNflKickerType"},
+			},
+			wantErr: true,
+		},
+	}
+	for i, test := range loadPlayerTypesTests {
+		db = mockDatabase{
+			QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				if test.queryErr != nil {
+					return nil, test.queryErr
+				}
+				return newMockRows(test.rows), nil
+			},
+		}
+		gotErr := LoadPlayerTypes()
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		}
 	}
 }
