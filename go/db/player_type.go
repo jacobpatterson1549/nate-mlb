@@ -85,6 +85,7 @@ func LoadPlayerTypes() error {
 		description string
 		scoreType   string
 	)
+	playerTypes = make(map[PlayerType]playerType)
 	displayOrder := 0
 	for rows.Next() {
 		err = rows.Scan(&id, &sportType, &name, &description, &scoreType)

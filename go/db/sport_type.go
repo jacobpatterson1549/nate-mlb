@@ -75,6 +75,7 @@ func LoadSportTypes() error {
 		name string
 		url  string
 	)
+	sportTypes = make(map[SportType]sportType)
 	displayOrder := 0
 	for rows.Next() {
 		err = rows.Scan(&id, &name, &url)
