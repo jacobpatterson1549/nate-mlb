@@ -91,47 +91,46 @@ func mockScan(dest, src interface{}) error {
 	case bool:
 		switch d := dest.(type) {
 		case *bool:
-			*d = reflect.ValueOf(src).Bool()
+			*d = s
 			return nil
 		}
 	case int:
-		v := reflect.ValueOf(src).Int()
 		switch d := dest.(type) {
 		case *int:
-			*d = int(v)
+			*d = s
 			return nil
 		case *SportType:
-			*d = SportType(v)
+			*d = SportType(s)
 			return nil
 		case *PlayerType:
-			*d = PlayerType(v)
+			*d = PlayerType(s)
 			return nil
 		case *ID:
-			*d = ID(v)
+			*d = ID(s)
 			return nil
 		}
 	case string:
 		switch d := dest.(type) {
 		case *string:
-			*d = reflect.ValueOf(src).String()
+			*d = s
 			return nil
 		}
 	case ID:
 		switch d := dest.(type) {
 		case *ID:
-			*d = ID(reflect.ValueOf(src).Int())
+			*d = s
 			return nil
 		}
 	case PlayerType:
 		switch d := dest.(type) {
 		case *PlayerType:
-			*d = PlayerType(reflect.ValueOf(src).Int())
+			*d = s
 			return nil
 		}
 	case SourceID:
 		switch d := dest.(type) {
 		case *SourceID:
-			*d = SourceID(reflect.ValueOf(src).Int())
+			*d = s
 			return nil
 		}
 	case *time.Time:
