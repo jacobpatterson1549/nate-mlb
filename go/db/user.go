@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ph passwordHasher = bcryptPasswordHasher{}
+var ph passwordHasher
 
 type (
 	// Password is a string that can be validated

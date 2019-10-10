@@ -51,8 +51,13 @@ func init() {
 func TestInit_ok(t *testing.T) {
 	dataSourceName := "mockDataSourceName"
 	err := Init(dataSourceName)
-	if err != nil {
+	switch {
+	case err != nil:
 		t.Error("unexpected error:", err)
+	case db == nil:
+		t.Error("expected database to not be nil after Init() called, but was")
+	case ph == nil:
+		t.Error("expected passwordHasher not to be nil after Init() called, but was")
 	}
 }
 
