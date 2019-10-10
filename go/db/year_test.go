@@ -11,7 +11,7 @@ func TestGetYears(t *testing.T) {
 		rowsSportType    SportType
 		queryErr         error
 		rows             []interface{}
-		wantYears        []Year
+		wantSlice        []Year
 		wantErr          bool
 	}{
 		{},
@@ -46,7 +46,7 @@ func TestGetYears(t *testing.T) {
 					Active: false,
 				},
 			},
-			wantYears: []Year{
+			wantSlice: []Year{
 				Year{
 					Value:  2017,
 					Active: false,
@@ -120,11 +120,8 @@ func TestGetYears(t *testing.T) {
 				t.Errorf("Test %v: incorrect output rows", i)
 			}
 			for j, got := range gotSlice {
-				want, ok := test.rows[j].(Year)
-				switch {
-				case !ok:
-					t.Errorf("Test %v, %T %v: wanted value was not year, %T", i, j, want, want)
-				case want != got:
+				want := test.wantSlice[j]
+				if want != got {
 					t.Errorf("Test %v, %T %v not equal: want %v, got %v", i, j, want, want, got)
 				}
 			}
