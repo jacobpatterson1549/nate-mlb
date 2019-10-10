@@ -34,6 +34,7 @@ func Init(dataSourceName string) error {
 		return fmt.Errorf("opening database %v", err)
 	}
 	db = &sqlDatabase{db: sqlDb}
+	ph = bcryptPasswordHasher{}
 	return nil
 }
 
