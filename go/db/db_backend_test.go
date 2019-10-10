@@ -121,6 +121,18 @@ func mockScan(dest, src interface{}) error {
 			*d = ID(reflect.ValueOf(src).Int())
 			return nil
 		}
+	case PlayerType:
+		switch d := dest.(type) {
+		case *PlayerType:
+			*d = PlayerType(reflect.ValueOf(src).Int())
+			return nil
+		}
+	case SourceID:
+		switch d := dest.(type) {
+		case *SourceID:
+			*d = SourceID(reflect.ValueOf(src).Int())
+			return nil
+		}
 	}
 	return fmt.Errorf("expected %T for destination of scan, but was %T", dest, src)
 }
