@@ -206,6 +206,58 @@ func TestAddUser(t *testing.T) {
 	}
 }
 
+func TestIsCorrectUserPassword(t *testing.T) {
+	isCorrectUserPasswordTests := []struct {
+		username                     string
+		p                            Password
+		getUserPasswordFuncErr       error
+		passwordHandlerIsCorrectBool bool
+		passwordHandlerIsCorrectErr  error
+		wantErr                      bool
+	}{
+		{},
+		{
+			getUserPasswordFuncErr: errors.New("getUserPasswordFuncErr error"),
+			wantErr:                true,
+		},
+		{
+			passwordHandlerIsCorrectErr: errors.New("getUserPasswordFuncErr error"),
+			wantErr:                     true,
+		},
+		{
+			passwordHandlerIsCorrectBool: true,
+		},
+	}
+	for i, test := range isCorrectUserPasswordTests {
+		getUserPasswordFunc := func(username string) (string, error) {
+			return "hashedUserPassword", test.getUserPasswordFuncErr
+		}
+		mph := mockPasswordHasher{}
+		if test.getUserPasswordFuncErr == nil {
+			mph.isCorrectFunc = func(p Password, hashedPassword string) (bool, error) {
+				return test.passwordHandlerIsCorrectBool, test.passwordHandlerIsCorrectErr
+			}
+		}
+		ph = mph
+		gotBool, gotErr := isCorrectUserPassword(test.username, test.p, getUserPasswordFunc)
+		switch {
+		case test.wantErr:
+			switch {
+			case gotErr == nil:
+				t.Errorf("Test %v: expected error", i)
+			case test.getUserPasswordFuncErr != nil && !errors.Is(gotErr, test.getUserPasswordFuncErr):
+				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.getUserPasswordFuncErr, gotErr)
+			case test.passwordHandlerIsCorrectErr != nil && !errors.Is(gotErr, test.passwordHandlerIsCorrectErr):
+				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.passwordHandlerIsCorrectErr, gotErr)
+			}
+		default:
+			if test.passwordHandlerIsCorrectBool != gotBool {
+				t.Errorf("Test %v: wanted %v, got %v", i, test.passwordHandlerIsCorrectBool, gotBool)
+			}
+		}
+	}
+}
+
 func TestValidatePassword(t *testing.T) {
 	passwordIsValidTests := []struct {
 		p       Password

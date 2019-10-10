@@ -69,7 +69,11 @@ func AddUser(username string, p Password) error {
 
 // IsCorrectUserPassword determines whether the password for the user is correct
 func IsCorrectUserPassword(username string, p Password) (bool, error) {
-	hashedPassword, err := getUserPassword(username)
+	return isCorrectUserPassword(username, p, getUserPassword)
+}
+
+func isCorrectUserPassword(username string, p Password, getUserPasswordFunc func(string) (string, error)) (bool, error) {
+	hashedPassword, err := getUserPasswordFunc(username)
 	if err != nil {
 		return false, err
 	}
