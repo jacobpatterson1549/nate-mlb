@@ -28,7 +28,7 @@ func TestGetUserPassword(t *testing.T) {
 		row         userPasswordQueryRow
 		queryRowErr error
 	}{
-		// {},
+		{},
 		{
 			row: userPasswordQueryRow{
 				Password: "voodoo_cookie73",
@@ -204,10 +204,6 @@ func TestAddUser(t *testing.T) {
 			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
 	}
-}
-
-func TestIsCorrectUserPassword(t *testing.T) {
-	t.Errorf("TODO")
 }
 
 func TestValidatePassword(t *testing.T) {
