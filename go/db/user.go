@@ -60,8 +60,11 @@ func AddUser(username string, p Password) error {
 		return err
 	}
 	sqlFunction := newWriteSQLFunction("add_user", username, hashedPassword)
-	row := db.QueryRow(sqlFunction.sql(), sqlFunction.args...) // TODO: use exec
-	return expectRowFound(row)
+	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
+	if err != nil {
+		return fmt.Errorf("setting user password: %w", err)
+	}
+	return expectSingleRowAffected(result)
 }
 
 // IsCorrectUserPassword determines whether the password for the user is correct
