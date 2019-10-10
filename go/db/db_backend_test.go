@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"time"
 )
 
 type (
@@ -86,7 +87,7 @@ func (m mockResult) RowsAffected() (int64, error) {
 }
 
 func mockScan(dest, src interface{}) error {
-	switch src.(type) {
+	switch s := src.(type) {
 	case bool:
 		switch d := dest.(type) {
 		case *bool:
@@ -133,6 +134,18 @@ func mockScan(dest, src interface{}) error {
 			*d = SourceID(reflect.ValueOf(src).Int())
 			return nil
 		}
+	case *time.Time:
+		switch d := dest.(type) {
+		case **time.Time:
+			*d = s
+			return nil
+		}
+	case *[]byte:
+		switch d := dest.(type) {
+		case **[]byte:
+			*d = s
+			return nil
+		}
 	}
 	return fmt.Errorf("expected %T for destination of scan, but was %T", dest, src)
 }
@@ -161,20 +174,24 @@ func newMockRows(src []interface{}) rows {
 			case rowI >= len(src):
 				return fmt.Errorf("no more rows")
 			}
-			s := reflect.ValueOf(&src[rowI]).Elem().Elem()
-			dI := len(dest)
-			sI := s.NumField()
-			if dI != sI {
-				return fmt.Errorf("dest has %v fields, yet src has %v", dI, sI)
-			}
-			for i := 0; i < dI; i++ {
-				f := s.Field(i)
-				sI := f.Interface()
-				if err := mockScan(dest[i], sI); err != nil {
-					return err
-				}
-			}
-			return nil
+			return mockRowScanFunc(src[rowI], dest...)
 		},
 	}
+}
+
+func mockRowScanFunc(src interface{}, dest ...interface{}) error {
+	s := reflect.ValueOf(&src).Elem().Elem()
+	dI := len(dest)
+	sI := s.NumField()
+	if dI != sI {
+		return fmt.Errorf("dest has %v fields, yet src has %v", dI, sI)
+	}
+	for i := 0; i < dI; i++ {
+		f := s.Field(i)
+		sI := f.Interface()
+		if err := mockScan(dest[i], sI); err != nil {
+			return err
+		}
+	}
+	return nil
 }
