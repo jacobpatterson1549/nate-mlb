@@ -105,6 +105,9 @@ func mockScan(dest, src interface{}) error {
 		case *PlayerType:
 			*d = PlayerType(v)
 			return nil
+		case *ID:
+			*d = ID(v)
+			return nil
 		}
 	case string:
 		switch d := dest.(type) {
@@ -112,8 +115,14 @@ func mockScan(dest, src interface{}) error {
 			*d = reflect.ValueOf(src).String()
 			return nil
 		}
+	case ID:
+		switch d := dest.(type) {
+		case *ID:
+			*d = ID(reflect.ValueOf(src).Int())
+			return nil
+		}
 	}
-	return fmt.Errorf("expected *%T for destination of scan, but was %T", dest, src)
+	return fmt.Errorf("expected %T for destination of scan, but was %T", dest, src)
 }
 
 func newMockRows(src []interface{}) rows {
