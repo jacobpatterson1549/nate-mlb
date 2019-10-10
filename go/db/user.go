@@ -1,9 +1,24 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
+	"regexp"
 
 	"golang.org/x/crypto/bcrypt"
+)
+
+var ph passwordHasher = bcryptPasswordHasher{}
+
+type (
+	// Password is a string that can be validated
+	Password             string
+	bcryptPasswordHasher struct{}
+	passwordHasher       interface {
+		hash(p Password) (string, error)
+		isCorrect(p Password, hashedPassword string) (bool, error)
+	}
 )
 
 // getUserPassword gets the password for the specified user
@@ -19,8 +34,11 @@ func getUserPassword(username string) (string, error) {
 }
 
 // SetUserPassword gets the password for the specified user
-func SetUserPassword(username, password string) error {
-	hashedPassword, err := hashPassword(password)
+func SetUserPassword(username string, p Password) error {
+	if err := p.validate(); err != nil {
+		return err
+	}
+	hashedPassword, err := ph.hash(p)
 	if err != nil {
 		return err
 	}
@@ -30,8 +48,11 @@ func SetUserPassword(username, password string) error {
 }
 
 // AddUser creates a user with the specified username and password
-func AddUser(username, password string) error {
-	hashedPassword, err := hashPassword(password)
+func AddUser(username string, p Password) error {
+	if err := p.validate(); err != nil {
+		return err
+	}
+	hashedPassword, err := ph.hash(p)
 	if err != nil {
 		return err
 	}
@@ -41,21 +62,53 @@ func AddUser(username, password string) error {
 }
 
 // IsCorrectUserPassword determines whether the password for the user is correct
-func IsCorrectUserPassword(username, password string) (bool, error) {
+func IsCorrectUserPassword(username string, p Password) (bool, error) {
 	hashedPassword, err := getUserPassword(username)
 	if err != nil {
 		return false, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return false, nil
-	}
-	correctPassword := err == nil
-	return correctPassword, err
+	return ph.isCorrect(p, hashedPassword)
 }
 
-func hashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+// SetAdminPassword sets the admin password
+// If the admin user does not exist, it is created.
+func SetAdminPassword(p Password) error {
+	username := "admin"
+	_, err := getUserPassword(username)
+	switch {
+	case err == nil:
+		return SetUserPassword(username, p)
+	case !errors.As(err, &sql.ErrNoRows):
+		return err
+	default:
+		return AddUser(username, p)
+	}
+}
+
+func (p Password) validate() error {
+	whitespaceRE := regexp.MustCompile("\\s") // TODO: cache this
+	switch {
+	case len(p) == 0:
+		return fmt.Errorf("password must be nonempty")
+	case whitespaceRE.MatchString(string(p)):
+		return fmt.Errorf("password must not contain whitespace")
+	}
+	return nil
+}
+
+func (bcryptPasswordHasher) isCorrect(p Password, hashedPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(p))
+	switch {
+	case err == bcrypt.ErrMismatchedHashAndPassword:
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("checking password: %w", err)
+	}
+	return true, nil
+}
+
+func (bcryptPasswordHasher) hash(p Password) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
 	if err != nil {
 		err = fmt.Errorf("hashing password: %w", err)
 	}

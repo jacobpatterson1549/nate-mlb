@@ -1,16 +1,11 @@
 package db
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"regexp"
 	"strconv"
 	"strings"
 )
-
-type password string
 
 func getSetupTableQueries() ([]string, error) {
 	var queries []string
@@ -78,30 +73,6 @@ func SetupTablesAndFunctions() error {
 		return fmt.Errorf("committing database setup: %w", err)
 	}
 	return nil
-}
-
-// SetAdminPassword sets the admin password
-// If the admin user does not exist, it is created.
-func SetAdminPassword(p string) error {
-	username := "admin"
-	password := password(p)
-	if !password.isValid() {
-		return errors.New("password cannot contain spaces")
-	}
-	_, err := getUserPassword(username)
-	switch {
-	case err == nil:
-		return SetUserPassword(username, string(password))
-	case !errors.As(err, &sql.ErrNoRows):
-		return err
-	default:
-		return AddUser(username, string(password))
-	}
-}
-
-func (p password) isValid() bool {
-	whitespaceRE := regexp.MustCompile("\\s")
-	return len(p) > 0 && !whitespaceRE.MatchString(string(p))
 }
 
 // LimitPlayerTypes reduces the player types to those in the specified csv.

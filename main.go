@@ -92,7 +92,7 @@ func startupFuncs(mainVars mainVars) []func() error {
 		startupFuncs = append(startupFuncs, func() error { return db.LimitPlayerTypes(mainVars.playerTypesCsv) })
 	}
 	if len(mainVars.adminPassword) != 0 {
-		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(mainVars.adminPassword) })
+		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(db.Password(mainVars.adminPassword)) })
 	}
 	return append(startupFuncs, func() error { return server.Run(mainVars.port, mainVars.applicationName) })
 }

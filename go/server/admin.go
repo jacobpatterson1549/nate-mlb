@@ -112,13 +112,13 @@ func clearCache(st db.SportType, r *http.Request) error {
 func resetPassword(st db.SportType, r *http.Request) error {
 	username := r.FormValue("username")
 	newPassword := r.FormValue("newPassword")
-	return db.SetUserPassword(username, newPassword)
+	return db.SetUserPassword(username, db.Password(newPassword))
 }
 
 func verifyUserPassword(r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword, err := db.IsCorrectUserPassword(username, password)
+	correctPassword, err := db.IsCorrectUserPassword(username, db.Password(password))
 	if err != nil {
 		return fmt.Errorf("verifying password: %w", err)
 	}
