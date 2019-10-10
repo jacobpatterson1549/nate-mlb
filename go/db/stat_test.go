@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 )
@@ -25,7 +24,7 @@ func TestGetStat(t *testing.T) {
 	}{
 		{},
 		{
-			queryRowErr: fmt.Errorf("queryRow error"),
+			queryRowErr: errors.New("queryRow error"),
 			wantErr:     true,
 		},
 		{ // incorrect sportType
@@ -91,6 +90,86 @@ func TestGetStat(t *testing.T) {
 			if test.requestSportType != gotStat.SportType {
 				t.Errorf("Test %v: wanted SportType to be %v (requested SportType); got %v", i, test.requestSportType, gotStat.SportType)
 			}
+		}
+	}
+}
+
+func TestSetStat(t *testing.T) {
+	setStatTests := []struct {
+		stat         Stat
+		rowsAffected int64
+		execError    error
+		wantErr      bool
+	}{
+		{
+			rowsAffected: 1,
+		},
+		{
+			execError: errors.New("queryRow error"),
+			wantErr:   true,
+		},
+		{
+			rowsAffected: 4,
+			wantErr:      true,
+		},
+	}
+	for i, test := range setStatTests {
+		db = mockDatabase{
+			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				if test.execError != nil {
+					return nil, test.execError
+				}
+				return mockResult{
+					RowsAffectedFunc: func() (int64, error) {
+						return test.rowsAffected, nil
+					},
+				}, nil
+			},
+		}
+		gotErr := SetStat(test.stat)
+		switch {
+		case test.wantErr:
+			switch {
+			case gotErr == nil:
+				t.Errorf("Test %v: expected error", i)
+			case test.execError != nil && !errors.Is(gotErr, test.execError):
+				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.execError, gotErr)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		}
+	}
+}
+
+func TestClearStat(t *testing.T) {
+	clearStatTests := []struct {
+		st        SportType
+		execError error
+		wantErr   bool
+	}{
+		{},
+		{
+			execError: errors.New("queryRow error"),
+			wantErr:   true,
+		},
+	}
+	for i, test := range clearStatTests {
+		db = mockDatabase{
+			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				return nil, test.execError
+			},
+		}
+		gotErr := ClearStat(test.st)
+		switch {
+		case test.wantErr:
+			switch {
+			case gotErr == nil:
+				t.Errorf("Test %v: expected error", i)
+			case test.execError != nil && !errors.Is(gotErr, test.execError):
+				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.execError, gotErr)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
 	}
 }
