@@ -137,7 +137,7 @@ func TestSetUserPassword(t *testing.T) {
 	}
 }
 func TestAddUser(t *testing.T) {
-	setUserPasswordTests := []struct {
+	addUserTests := []struct {
 		username     string
 		p            Password
 		hashErr      error
@@ -168,7 +168,7 @@ func TestAddUser(t *testing.T) {
 			rowsAffected: 1,
 		},
 	}
-	for i, test := range setUserPasswordTests {
+	for i, test := range addUserTests {
 		db = mockDatabase{
 			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 				if test.execErr != nil {
@@ -204,6 +204,10 @@ func TestAddUser(t *testing.T) {
 			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
 	}
+}
+
+func TestIsCorrectUserPassword(t *testing.T) {
+	t.Errorf("TODO")
 }
 
 func TestValidatePassword(t *testing.T) {
