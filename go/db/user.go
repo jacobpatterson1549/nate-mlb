@@ -97,7 +97,7 @@ func setAdminPassword(p Password,
 	switch {
 	case err == nil:
 		return setUserPasswordFunc(username, p)
-	case errors.Is(err, sql.ErrNoRows):
+	case !errors.Is(err, sql.ErrNoRows):
 		return err
 	default:
 		return addUserFunc(username, p)
