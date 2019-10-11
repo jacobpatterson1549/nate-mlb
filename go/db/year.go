@@ -44,7 +44,11 @@ func GetYears(st SportType) ([]Year, error) {
 
 // SaveYears saves the specified years and sets the active year for a SportType
 func SaveYears(st SportType, futureYears []Year) error {
-	previousYears, err := GetYears(st)
+	return saveYears(st, futureYears, GetYears, executeInTransaction)
+}
+
+func saveYears(st SportType, futureYears []Year, getYearsFunc func(st SportType) ([]Year, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
+	previousYears, err := getYearsFunc(st)
 	if err != nil {
 		return err
 	}
@@ -59,7 +63,7 @@ func SaveYears(st SportType, futureYears []Year) error {
 	for _, year := range futureYears {
 		if year.Active {
 			if activeYearPresent {
-				return fmt.Errorf("multiple active years present in %w", err)
+				return fmt.Errorf("multiple active years present in %v", futureYears)
 			}
 			activeYear = year.Value
 			activeYearPresent = true
@@ -79,6 +83,8 @@ func SaveYears(st SportType, futureYears []Year) error {
 	for _, insertYear := range insertYears {
 		queries = append(queries, newWriteSQLFunction("add_year", st, insertYear))
 	}
-	queries = append(queries, newWriteSQLFunction("set_year_active", st, activeYear))
-	return executeInTransaction(queries)
+	if activeYearPresent {
+		queries = append(queries, newWriteSQLFunction("set_year_active", st, activeYear))
+	}
+	return executeInTransactionFunc(queries)
 }
