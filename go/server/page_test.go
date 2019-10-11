@@ -13,9 +13,15 @@ func TestTabGetID(t *testing.T) {
 	}{
 		{
 			tab: AdminTab{
+				Name: "",
+			},
+			want: "y",
+		},
+		{
+			tab: AdminTab{
 				Name: "& Smart Functions",
 			},
-			want: "--smart-functions",
+			want: "z--smart-functions",
 		},
 		{
 			tab: StatsTab{
@@ -27,7 +33,7 @@ func TestTabGetID(t *testing.T) {
 		},
 	}
 	for i, test := range getNameTests {
-		got := test.tab.GetID(test.tab.GetName()) // TODO: GetID() should call getName internally
+		got := test.tab.GetID()
 		if test.want != got {
 			t.Errorf("Test %v: want %v, got %v", i, test.want, got)
 		}

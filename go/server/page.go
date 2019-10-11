@@ -26,21 +26,17 @@ type (
 	// Tab is a tab which gets rendered by the main template
 	Tab interface {
 		GetName() string
-		GetID(string) string
+		GetID() string
 	}
-
-	jsTab struct{}
 
 	// StatsTab provides stats information
 	StatsTab struct {
-		jsTab
 		ScoreCategory request.ScoreCategory
 		ExportURL     string
 	}
 
 	// AdminTab provides tabs with admin tasks.
 	AdminTab struct {
-		jsTab
 		Name   string
 		Action string
 		Data   []interface{} // each template knows what data to expect
@@ -86,8 +82,14 @@ func (p Page) tabFilePatternGlob() string {
 
 // GetID returns the js-safe id for the specified name
 // https://www.w3.org/TR/html4/types.html#type-id
-func (jsTab) GetID(name string) string {
+func jsID(name string) string {
 	invalidCharacterRegex := regexp.MustCompile("[^-_:.A-Za-z0-9]")
+	switch {
+	case len(name) == 0:
+		return "y"
+	case invalidCharacterRegex.MatchString(name[:1]):
+		name = "z" + name
+	}
 	return strings.ToLower(invalidCharacterRegex.ReplaceAllString(name, "-"))
 }
 
@@ -96,7 +98,17 @@ func (at AdminTab) GetName() string {
 	return at.Name
 }
 
+// GetID implements the Tab interface for AdminTab
+func (at AdminTab) GetID() string {
+	return jsID(at.GetName())
+}
+
 // GetName implements the Tab interface for StatsTab
 func (st StatsTab) GetName() string {
 	return st.ScoreCategory.Name
+}
+
+// GetID implements the Tab interface for StatsTab
+func (st StatsTab) GetID() string {
+	return jsID(st.GetName())
 }
