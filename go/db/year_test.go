@@ -216,11 +216,11 @@ func TestSaveYears(t *testing.T) {
 		}
 		wantErr := test.wantErr || test.getYearsErr != nil || test.executeInTransactionErr != nil
 		gotErr := saveYears(test.st, test.futureYears, getYearsFunc, executeInTransactionFunc)
+		hadErr := gotErr != nil
+		if wantErr != hadErr {
+			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)
+		}
 		switch {
-		case wantErr && gotErr == nil:
-			t.Errorf("Test %v: wanted error", i)
-		case !wantErr && gotErr != nil:
-			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		case test.getYearsErr != nil && !errors.Is(gotErr, test.getYearsErr):
 			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.getYearsErr, gotErr)
 		case test.executeInTransactionErr != nil && !errors.Is(gotErr, test.executeInTransactionErr):
