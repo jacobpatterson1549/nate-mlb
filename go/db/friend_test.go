@@ -1,7 +1,9 @@
 package db
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -119,6 +121,110 @@ func TestGetFriends(t *testing.T) {
 					t.Errorf("Test %v, %T %v not equal: want %v, got %v", i, j, want, want, got)
 				}
 			}
+		}
+	}
+}
+
+func TestSaveFriends(t *testing.T) {
+	saveFriendsTests := []struct {
+		st                      SportType
+		futureFriends           []Friend
+		previousFriends         []Friend
+		getFriendsErr           error
+		executeInTransactionErr error
+		wantQueryArgs           [][]interface{}
+	}{
+		{},
+		{ // happy path
+			st: 9,
+			futureFriends: []Friend{
+				{
+					ID:           8,
+					DisplayOrder: 2,
+					Name:         "bobby",
+				},
+				{
+					DisplayOrder: 1,
+					Name:         "new alice",
+				},
+				{
+					ID:           7,
+					DisplayOrder: 3,
+					Name:         "curt",
+				},
+				{
+					ID:           5,
+					DisplayOrder: 4,
+					Name:         "jeb",
+				},
+			},
+			previousFriends: []Friend{
+				{
+					ID:           1,
+					DisplayOrder: 1,
+					Name:         "alfred",
+				},
+				{
+					ID:           8,
+					DisplayOrder: 3,
+					Name:         "bob",
+				},
+				{
+					ID:           7,
+					DisplayOrder: 2,
+					Name:         "curt",
+				},
+				{
+					ID:           5,
+					DisplayOrder: 4,
+					Name:         "jeb",
+				},
+			},
+			wantQueryArgs: [][]interface{}{
+				{ID(1)}, // alfred
+				{1, "new alice", SportType(9)},
+				{2, "bobby", ID(8)},
+				{3, "curt", ID(7)},
+			},
+		},
+		{
+			getFriendsErr: errors.New("getFriends error"),
+		},
+		{
+			executeInTransactionErr: errors.New("executeInTransaction error"),
+		},
+	}
+	for i, test := range saveFriendsTests {
+		getFriendsFunc := func(st SportType) ([]Friend, error) {
+			if test.st != st {
+				t.Errorf("Test %v: wanted to get friends for SportType %v, but got %v", i, test.st, st)
+			}
+			return test.previousFriends, test.getFriendsErr
+		}
+		executeInTransactionFunc := func(queries []writeSQLFunction) error {
+			// delete friendIds, insert friends {displayOrder, name}, update friends {displayOrder, name, id}
+			if len(test.wantQueryArgs) != len(queries) {
+				t.Errorf("Test %v: wanted %v queries, got %v", i, len(test.wantQueryArgs), len(queries))
+			}
+			for j, wantQueryArgs := range test.wantQueryArgs {
+				queryArgs := queries[j].args
+				if !reflect.DeepEqual(wantQueryArgs, queryArgs) {
+					t.Errorf("Test %v: query %v args: wanted %v, got %v", i, j, wantQueryArgs, queryArgs)
+				}
+			}
+			return test.executeInTransactionErr
+		}
+		wantErr := test.getFriendsErr != nil || test.executeInTransactionErr != nil
+		gotErr := saveFriends(test.st, test.futureFriends, getFriendsFunc, executeInTransactionFunc)
+		hadErr := gotErr != nil
+		if wantErr != hadErr {
+			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)
+		}
+		switch {
+		case test.getFriendsErr != nil && !errors.Is(gotErr, test.getFriendsErr):
+			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.getFriendsErr, gotErr)
+		case test.executeInTransactionErr != nil && !errors.Is(gotErr, test.executeInTransactionErr):
+			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.executeInTransactionErr, gotErr)
 		}
 	}
 }

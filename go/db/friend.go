@@ -35,7 +35,11 @@ func GetFriends(st SportType) ([]Friend, error) {
 
 // SaveFriends saves the specified friends for the active year for a SportType
 func SaveFriends(st SportType, futureFriends []Friend) error {
-	friends, err := GetFriends(st)
+	return saveFriends(st, futureFriends, GetFriends, executeInTransaction)
+}
+
+func saveFriends(st SportType, futureFriends []Friend, getFriendsFunc func(st SportType) ([]Friend, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
+	friends, err := getFriendsFunc(st)
 	if err != nil {
 		return err
 	}
@@ -69,5 +73,5 @@ func SaveFriends(st SportType, futureFriends []Friend) error {
 	for _, updateFriend := range updateFriends {
 		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID))
 	}
-	return executeInTransaction(queries)
+	return executeInTransactionFunc(queries)
 }
