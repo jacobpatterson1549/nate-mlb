@@ -42,7 +42,11 @@ func GetPlayers(st SportType) ([]Player, error) {
 
 // SavePlayers saves the specified players for the active year for a SportType
 func SavePlayers(st SportType, futurePlayers []Player) error {
-	players, err := GetPlayers(st)
+	return savePlayers(st, futurePlayers, GetPlayers, executeInTransaction)
+}
+
+func savePlayers(st SportType, futurePlayers []Player, getPlayersFunc func(st SportType) ([]Player, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
+	players, err := getPlayersFunc(st)
 	if err != nil {
 		return err
 	}
@@ -74,5 +78,5 @@ func SavePlayers(st SportType, futurePlayers []Player) error {
 	for _, updateplayer := range updatePlayers {
 		queries = append(queries, newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID))
 	}
-	return executeInTransaction(queries)
+	return executeInTransactionFunc(queries)
 }

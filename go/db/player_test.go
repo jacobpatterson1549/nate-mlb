@@ -1,7 +1,9 @@
 package db
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -137,6 +139,128 @@ func TestGetPlayers(t *testing.T) {
 					t.Errorf("Test %v, %T %v not equal: want %v, got %v", i, j, want, want, got)
 				}
 			}
+		}
+	}
+}
+
+func TestSavePlayers(t *testing.T) {
+	savePlayersTests := []struct {
+		st                      SportType
+		futurePlayers           []Player
+		previousPlayers         []Player
+		getPlayersErr           error
+		executeInTransactionErr error
+		wantQueryArgs           [][]interface{}
+	}{
+		{},
+		{ // happy path
+			st: SportType(3),
+			futurePlayers: []Player{
+				{
+					ID:           29,
+					PlayerType:   1,
+					SourceID:     9,
+					FriendID:     7,
+					DisplayOrder: 2,
+				},
+				{
+					ID:           97,
+					PlayerType:   1,
+					SourceID:     81,
+					FriendID:     7,
+					DisplayOrder: 1,
+				},
+				{ // not in previous implies new: id is ignored
+					ID:           66,
+					PlayerType:   6,
+					SourceID:     477,
+					FriendID:     4,
+					DisplayOrder: 1,
+				},
+				{
+					ID:           63,
+					PlayerType:   3,
+					SourceID:     13,
+					FriendID:     3,
+					DisplayOrder: 1,
+				},
+			},
+			previousPlayers: []Player{
+				{
+					ID:           29,
+					PlayerType:   1,
+					SourceID:     9,
+					FriendID:     7,
+					DisplayOrder: 1,
+				},
+				{
+					ID:           97,
+					PlayerType:   1,
+					SourceID:     81,
+					FriendID:     7,
+					DisplayOrder: 2,
+				},
+				{
+					ID:           14,
+					PlayerType:   1,
+					SourceID:     13,
+					FriendID:     4,
+					DisplayOrder: 1,
+				},
+				{
+					ID:           63,
+					PlayerType:   3,
+					SourceID:     13,
+					FriendID:     3,
+					DisplayOrder: 1,
+				},
+			},
+			wantQueryArgs: [][]interface{}{
+				{ID(14)},
+				// TODO: Remove last param from add_player.sql() (SportType) -> it can be derived from the playerType table.
+				{1, PlayerType(6), SourceID(477), ID(4), SportType(3)},
+				{2, ID(29)},
+				{1, ID(97)},
+			},
+		},
+		{
+			getPlayersErr: errors.New("getPlayers error"),
+		},
+		{
+			executeInTransactionErr: errors.New("executeInTransaction error"),
+		},
+	}
+	for i, test := range savePlayersTests {
+		getPlayersFunc := func(st SportType) ([]Player, error) {
+			if test.st != st {
+				t.Errorf("Test %v: wanted to get players for SportType %v, but got %v", i, test.st, st)
+			}
+			return test.previousPlayers, test.getPlayersErr
+		}
+		executeInTransactionFunc := func(queries []writeSQLFunction) error {
+			// delete playerIds, insert players {displayOrder, playerType, sourceID, friendID, SportType}, update players {displayOrder,, id}
+			if len(test.wantQueryArgs) != len(queries) {
+				t.Errorf("Test %v: wanted %v queries, got %v", i, len(test.wantQueryArgs), len(queries))
+			}
+			for j, wantQueryArgs := range test.wantQueryArgs {
+				queryArgs := queries[j].args
+				if !reflect.DeepEqual(wantQueryArgs, queryArgs) {
+					t.Errorf("Test %v: query %v args: wanted %v, got %v", i, j, wantQueryArgs, queryArgs)
+				}
+			}
+			return test.executeInTransactionErr
+		}
+		wantErr := test.getPlayersErr != nil || test.executeInTransactionErr != nil
+		gotErr := savePlayers(test.st, test.futurePlayers, getPlayersFunc, executeInTransactionFunc)
+		hadErr := gotErr != nil
+		if wantErr != hadErr {
+			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)
+		}
+		switch {
+		case test.getPlayersErr != nil && !errors.Is(gotErr, test.getPlayersErr):
+			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.getPlayersErr, gotErr)
+		case test.executeInTransactionErr != nil && !errors.Is(gotErr, test.executeInTransactionErr):
+			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.executeInTransactionErr, gotErr)
 		}
 	}
 }
