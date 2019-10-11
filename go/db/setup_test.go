@@ -1,6 +1,9 @@
 package db
 
 import (
+	"database/sql"
+	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -35,14 +38,146 @@ func (m mockFileInfo) Sys() interface{} {
 	return m.SysFunc()
 }
 
-/*
-getSetupFileContents = func(filename string) ([]byte, error) {
-	return []byte{}, nil
+func TestSetupTablesAndFunctions(t *testing.T) {
+	setupTablesAndFunctionsTests := []struct {
+		getSetupTableQueriesErr    error
+		getSetupFunctionQueriesErr error
+		beginErr                   error
+		execErr                    error
+		rollbackErr                error
+		commitErr                  error
+	}{
+		{}, // happy path
+		{
+			getSetupTableQueriesErr: errors.New("getSetupTableQueries error"),
+		},
+		{
+			getSetupFunctionQueriesErr: errors.New("getSetupFunctionQueries error"),
+		},
+		{
+			beginErr: errors.New("begin error"),
+		},
+		{
+			execErr: errors.New("exec error"),
+		},
+		{
+			execErr:     errors.New("exec error"),
+			rollbackErr: errors.New("rollback error"),
+		},
+		{
+			commitErr: errors.New("commit error"),
+		},
+	}
+	for i, test := range setupTablesAndFunctionsTests {
+		readFileFunc := func(filename string) ([]byte, error) {
+			if test.getSetupTableQueriesErr != nil {
+				return nil, test.getSetupTableQueriesErr
+			}
+			return []byte("1;2;3;4;5;6;7"), nil
+		}
+		readDirFunc := func(dirname string) ([]os.FileInfo, error) {
+			if test.getSetupFunctionQueriesErr != nil {
+				return nil, test.getSetupFunctionQueriesErr
+			}
+			fileInfos := make([]os.FileInfo, 11)
+			for i := range fileInfos {
+				fileInfos[i] = mockFileInfo{
+					NameFunc: func() string {
+						return fmt.Sprintf("mock_file_%d", i)
+					},
+				}
+			}
+			return fileInfos, nil
+		}
+		commitCalled := false
+		rollbackCalled := false
+		execFuncCount := 0
+		tx := mockTransaction{
+			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				if test.execErr != nil {
+					return nil, test.execErr
+				}
+				execFuncCount++
+				return mockResult{
+					RowsAffectedFunc: func() (int64, error) {
+						return 1, nil
+					},
+				}, nil
+			},
+			CommitFunc: func() error {
+				commitCalled = true
+				return test.commitErr
+			},
+			RollbackFunc: func() error {
+				rollbackCalled = true
+				return test.rollbackErr
+			},
+		}
+		db = mockDatabase{
+			BeginFunc: func() (transaction, error) {
+				if test.beginErr != nil {
+					return nil, test.beginErr
+				}
+				return tx, nil
+			},
+		}
+		gotErr := setupTablesAndFunctions(readFileFunc, readDirFunc)
+		switch {
+		case gotErr != nil:
+			switch {
+			case test.getSetupTableQueriesErr != nil:
+				if !errors.Is(gotErr, test.getSetupTableQueriesErr) {
+					t.Errorf("Test %v: wanted: %v, got: %v", i, test.getSetupTableQueriesErr, gotErr)
+				}
+			case test.getSetupFunctionQueriesErr != nil:
+				if !errors.Is(gotErr, test.getSetupFunctionQueriesErr) {
+					t.Errorf("Test %v: wanted: %v, got: %v", i, test.getSetupFunctionQueriesErr, gotErr)
+				}
+			case test.beginErr != nil:
+				if !errors.Is(gotErr, test.beginErr) {
+					t.Errorf("Test %v: wanted: %v, got: %v", i, test.beginErr, gotErr)
+				}
+			case test.execErr != nil:
+				switch {
+				case test.rollbackErr == nil && !errors.Is(gotErr, test.execErr):
+					t.Errorf("Test %v: wanted: %v, got: %v", i, test.execErr, gotErr)
+				case test.rollbackErr != nil:
+					if !errors.Is(gotErr, test.rollbackErr) {
+						t.Errorf("Test %v: wanted: %v, got: %v", i, test.rollbackErr, gotErr)
+					}
+					if !rollbackCalled {
+						t.Errorf("Test %v: rollback not called", i)
+					}
+				}
+			case test.commitErr != nil:
+				if !errors.Is(gotErr, test.commitErr) {
+					t.Errorf("Test %v: wanted: %v, got: %v", i, test.commitErr, gotErr)
+				}
+				if !commitCalled {
+					t.Errorf("Test %v: commit not called", i)
+				}
+				if rollbackCalled {
+					t.Errorf("Test %v: rollback called", i)
+				}
+			default:
+				t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+			}
+		default:
+			if !commitCalled {
+				t.Errorf("Test %v: commit not called", i)
+			}
+			if rollbackCalled {
+				t.Errorf("Test %v: rollback called", i)
+			}
+			// 6 setup files, each with 7 queries
+			// 5 function folders, each with 11 files
+			wantFunctionCount := 6*7 + 5*11
+			if wantFunctionCount != execFuncCount { // this will need to be updated every time additional setup query types are added
+				t.Errorf("Test %v: wanted %v functions to be executed, got %v", i, wantFunctionCount, execFuncCount)
+			}
+		}
+	}
 }
-getSetupFunctionDirContents = func(dirname string) ([]os.FileInfo, error) {
-	return []os.FileInfo{}, nil
-}
-*/
 
 func TestLimitPlayerTypes(t *testing.T) {
 	limitPlayerTypesTests := []struct {
