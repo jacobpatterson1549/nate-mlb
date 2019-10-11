@@ -205,7 +205,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 	if err != nil {
 		return fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseGlob(p.tabFilePatternGlob())
+	_, err = t.ParseGlob(p.htmlFolderNameGlob())
 	if err != nil {
 		return fmt.Errorf("loading template page files: %w", err)
 	}

@@ -1,10 +1,23 @@
 package server
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
+
+func TestHtmlFolderNameGlob(t *testing.T) {
+	p := Page{htmlFolderName: "special_folder_name"}
+	got := p.htmlFolderNameGlob()
+	if !strings.Contains(got, p.htmlFolderName) {
+		t.Errorf("%v does not contain %v", got, p.htmlFolderName)
+	}
+	wantEnding := "/*.html"
+	if got[len(got)-len(wantEnding):] != wantEnding {
+		t.Errorf("%v does not end with %v", got, wantEnding)
+	}
+}
 
 func TestTabGetID(t *testing.T) {
 	getNameTests := []struct {

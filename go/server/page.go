@@ -16,7 +16,7 @@ type (
 		ApplicationName string
 		Title           string
 		Tabs            []Tab
-		tabName         string
+		htmlFolderName  string
 		ShowTabs        bool
 		Sports          []SportEntry
 		TimesMessage    TimesMessage
@@ -55,7 +55,7 @@ type (
 	}
 )
 
-func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, tabName string) Page {
+func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
 	sportTypes := db.SportTypes()
 	sports := make([]SportEntry, len(sportTypes))
 	for i, st := range sportTypes {
@@ -68,7 +68,7 @@ func newPage(applicationName string, title string, tabs []Tab, showTabs bool, ti
 		ApplicationName: applicationName,
 		Title:           title,
 		Tabs:            tabs,
-		tabName:         tabName,
+		htmlFolderName:  htmlFolderName,
 		Sports:          sports,
 		ShowTabs:        showTabs,
 		TimesMessage:    timesMessage,
@@ -76,8 +76,8 @@ func newPage(applicationName string, title string, tabs []Tab, showTabs bool, ti
 	}
 }
 
-func (p Page) tabFilePatternGlob() string {
-	return fmt.Sprintf("html/%s/*.html", p.tabName)
+func (p Page) htmlFolderNameGlob() string {
+	return fmt.Sprintf("html/%s/*.html", p.htmlFolderName)
 }
 
 // GetID returns the js-safe id for the specified name
