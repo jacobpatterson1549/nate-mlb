@@ -72,7 +72,9 @@ func IsCorrectUserPassword(username string, p Password) (bool, error) {
 	return isCorrectUserPassword(username, p, getUserPassword)
 }
 
-func isCorrectUserPassword(username string, p Password, getUserPasswordFunc func(string) (string, error)) (bool, error) {
+func isCorrectUserPassword(
+	username string, p Password,
+	getUserPasswordFunc func(string) (string, error)) (bool, error) {
 	hashedPassword, err := getUserPasswordFunc(username)
 	if err != nil {
 		return false, err
@@ -83,15 +85,22 @@ func isCorrectUserPassword(username string, p Password, getUserPasswordFunc func
 // SetAdminPassword sets the admin password
 // If the admin user does not exist, it is created.
 func SetAdminPassword(p Password) error {
+	return setAdminPassword(p, getUserPassword, SetUserPassword, AddUser)
+}
+
+func setAdminPassword(p Password,
+	getUserPasswordFunc func(string) (string, error),
+	setUserPasswordFunc func(string, Password) error,
+	addUserFunc func(string, Password) error) error {
 	username := "admin"
-	_, err := getUserPassword(username)
+	_, err := getUserPasswordFunc(username)
 	switch {
 	case err == nil:
-		return SetUserPassword(username, p)
+		return setUserPasswordFunc(username, p)
 	case !errors.As(err, &sql.ErrNoRows):
 		return err
 	default:
-		return AddUser(username, p)
+		return addUserFunc(username, p)
 	}
 }
 

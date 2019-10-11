@@ -258,6 +258,80 @@ func TestIsCorrectUserPassword(t *testing.T) {
 	}
 }
 
+func TestSetAdminPassword(t *testing.T) {
+	setAdminPasswordTests := []struct {
+		p                      Password
+		getUserPasswordFuncErr error
+		setUserPasswordFuncErr error
+		addUserFuncErr         error
+	}{
+		{}, // user exists, password successfully set
+		{
+			setUserPasswordFuncErr: errors.New("setUserPassword error"),
+		},
+		{
+			getUserPasswordFuncErr: errors.New("getUserPassword error"),
+		},
+		{ // user new, password successfully set
+			getUserPasswordFuncErr: sql.ErrNoRows,
+		},
+		{
+			getUserPasswordFuncErr: sql.ErrNoRows,
+			addUserFuncErr:         errors.New("addUser error"),
+		},
+	}
+	for i, test := range setAdminPasswordTests {
+		wantUsername := "admin"
+		getUserPasswordFunc := func(username string) (string, error) {
+			if wantUsername != username {
+				t.Errorf("Test %v: wanted call to getUserPasswordFunc with %v, got %v", i, wantUsername, username)
+			}
+			return "hashedPasswordToIgnore", test.getUserPasswordFuncErr
+		}
+		var setUserPasswordFunc func(string, Password) error
+		var addUserFunc func(string, Password) error
+		switch {
+		case test.getUserPasswordFuncErr == nil:
+			setUserPasswordFunc = func(username string, p Password) error {
+				switch {
+				case wantUsername != username:
+					t.Errorf("Test %v: wanted call to setUserPasswordFunc [username] with %v, got %v", i, wantUsername, username)
+				case test.p != p:
+					t.Errorf("Test %v: wanted call to setUserPasswordFunc [p] with %v, got %v", i, test.p, p)
+				}
+				return test.setUserPasswordFuncErr
+			}
+		case test.getUserPasswordFuncErr != nil:
+			addUserFunc = func(username string, p Password) error {
+				switch {
+				case wantUsername != username:
+					t.Errorf("Test %v: wanted call to addUserFunc [username] with %v, got %v", i, wantUsername, username)
+				case test.p != p:
+					t.Errorf("Test %v: wanted call to addUserFunc [p] with %v, got %v", i, test.p, p)
+				}
+				return test.addUserFuncErr
+			}
+		}
+		gotErr := setAdminPassword(test.p, getUserPasswordFunc, setUserPasswordFunc, addUserFunc)
+		switch {
+		case test.getUserPasswordFuncErr == nil:
+			if test.setUserPasswordFuncErr != gotErr {
+				t.Errorf("Test %v: wanted %v, got %v", i, test.setUserPasswordFuncErr, gotErr)
+			}
+		case test.getUserPasswordFuncErr != sql.ErrNoRows:
+			if test.getUserPasswordFuncErr != gotErr {
+				t.Errorf("Test %v: wanted %v, got %v", i, test.getUserPasswordFuncErr, gotErr)
+
+			}
+		default:
+			if test.addUserFuncErr != gotErr {
+				t.Errorf("Test %v: wanted %v, got %v", i, test.addUserFuncErr, gotErr)
+
+			}
+		}
+	}
+}
+
 func TestValidatePassword(t *testing.T) {
 	passwordIsValidTests := []struct {
 		p       Password
