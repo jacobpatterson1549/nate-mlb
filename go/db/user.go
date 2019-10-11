@@ -62,7 +62,7 @@ func AddUser(username string, p Password) error {
 	sqlFunction := newWriteSQLFunction("add_user", username, hashedPassword)
 	result, err := db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return fmt.Errorf("setting user password: %w", err)
+		return fmt.Errorf("adding user: %w", err)
 	}
 	return expectSingleRowAffected(result)
 }

@@ -68,7 +68,14 @@ func TestGetUserPassword(t *testing.T) {
 }
 
 func TestSetUserPassword(t *testing.T) {
-	setUserPasswordTests := []struct {
+	userExecuteHelperTest(t, SetUserPassword)
+}
+func TestAddUser(t *testing.T) {
+	userExecuteHelperTest(t, AddUser)
+}
+
+func userExecuteHelperTest(t *testing.T, testFunc func(string, Password) error) {
+	userExecuteTests := []struct {
 		username     string
 		p            Password
 		hashErr      error
@@ -99,7 +106,7 @@ func TestSetUserPassword(t *testing.T) {
 			rowsAffected: 1,
 		},
 	}
-	for i, test := range setUserPasswordTests {
+	for i, test := range userExecuteTests {
 		db = mockDatabase{
 			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 				if test.execErr != nil {
@@ -120,76 +127,7 @@ func TestSetUserPassword(t *testing.T) {
 				return string(test.p) + "-hashed!", nil
 			},
 		}
-		gotErr := SetUserPassword(test.username, test.p)
-		switch {
-		case test.wantErr:
-			switch {
-			case gotErr == nil:
-				t.Errorf("Test %v: expected error", i)
-			case test.hashErr != nil && !errors.Is(gotErr, test.hashErr):
-				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.hashErr, gotErr)
-			case test.execErr != nil && !errors.Is(gotErr, test.execErr):
-				t.Errorf("Test %v, wanted error with %v, but got %v", i, test.execErr, gotErr)
-			}
-		case gotErr != nil:
-			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
-		}
-	}
-}
-func TestAddUser(t *testing.T) {
-	addUserTests := []struct {
-		username     string
-		p            Password
-		hashErr      error
-		execErr      error
-		rowsAffected int64
-		wantErr      bool
-	}{
-		{ // empty password
-			wantErr: true,
-		},
-		{
-			p:       "s3cr3t!",
-			hashErr: errors.New("hash error"),
-			wantErr: true,
-		},
-		{
-			p:       "s3cr3t!",
-			execErr: errors.New("exec error"),
-			wantErr: true,
-		},
-		{ // user already exists with username
-			p:            "s3cr3t!",
-			rowsAffected: 0,
-			wantErr:      true,
-		},
-		{ // happy path
-			p:            "s3cr3t!",
-			rowsAffected: 1,
-		},
-	}
-	for i, test := range addUserTests {
-		db = mockDatabase{
-			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
-				if test.execErr != nil {
-					return nil, test.execErr
-				}
-				return mockResult{
-					RowsAffectedFunc: func() (int64, error) {
-						return test.rowsAffected, nil
-					},
-				}, nil
-			},
-		}
-		ph = mockPasswordHasher{
-			hashFunc: func(p Password) (string, error) {
-				if test.hashErr != nil {
-					return "", test.hashErr
-				}
-				return string(test.p) + "-hashed!", nil
-			},
-		}
-		gotErr := AddUser(test.username, test.p)
+		gotErr := testFunc(test.username, test.p)
 		switch {
 		case test.wantErr:
 			switch {
