@@ -179,6 +179,28 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 	}
 }
 
+func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
+	wantErr := errors.New("readFile error")
+	readFileFunc := func(filename string) ([]byte, error) {
+		return nil, wantErr
+	}
+	readDirFunc := func(dirname string) ([]os.FileInfo, error) {
+		fileInfos := make([]os.FileInfo, 11)
+		for i := range fileInfos {
+			fileInfos[i] = mockFileInfo{
+				NameFunc: func() string {
+					return fmt.Sprintf("mock_file_%d", i)
+				},
+			}
+		}
+		return fileInfos, nil
+	}
+	_, gotErr := getSetupFunctionQueries(readFileFunc, readDirFunc)
+	if gotErr == nil || !errors.Is(gotErr, wantErr) {
+		t.Errorf("want %v, got: %v", wantErr, gotErr)
+	}
+}
+
 func TestLimitPlayerTypes(t *testing.T) {
 	limitPlayerTypesTests := []struct {
 		initialPlayerTypes map[PlayerType]playerType
