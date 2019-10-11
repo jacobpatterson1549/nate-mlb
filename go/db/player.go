@@ -61,6 +61,9 @@ func savePlayers(st SportType, futurePlayers []Player, getPlayersFunc func(st Sp
 		previousPlayer, ok := previousPlayers[player.ID]
 		switch {
 		case !ok:
+			if player.PlayerType.SportType() != st {
+				return fmt.Errorf("cannot add Player with PlayerType of %v when saving Players of SportType %v: it has a SportType of %v", player.PlayerType, st, player.PlayerType.SportType())
+			}
 			insertPlayers = append(insertPlayers, player)
 		case player.DisplayOrder != previousPlayer.DisplayOrder: // can only update display order
 			updatePlayers = append(updatePlayers, player)
@@ -73,7 +76,7 @@ func savePlayers(st SportType, futurePlayers []Player, getPlayersFunc func(st Sp
 		queries = append(queries, newWriteSQLFunction("del_player", deleteID))
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st))
+		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID))
 	}
 	for _, updateplayer := range updatePlayers {
 		queries = append(queries, newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID))

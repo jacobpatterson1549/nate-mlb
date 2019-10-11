@@ -150,11 +150,12 @@ func TestSavePlayers(t *testing.T) {
 		previousPlayers         []Player
 		getPlayersErr           error
 		executeInTransactionErr error
+		wantErr                 bool
 		wantQueryArgs           [][]interface{}
 	}{
 		{},
 		{ // happy path
-			st: SportType(3),
+			st: 3,
 			futurePlayers: []Player{
 				{
 					ID:           29,
@@ -172,7 +173,7 @@ func TestSavePlayers(t *testing.T) {
 				},
 				{ // not in previous implies new: id is ignored
 					ID:           66,
-					PlayerType:   6,
+					PlayerType:   3,
 					SourceID:     477,
 					FriendID:     4,
 					DisplayOrder: 1,
@@ -217,8 +218,7 @@ func TestSavePlayers(t *testing.T) {
 			},
 			wantQueryArgs: [][]interface{}{
 				{ID(14)},
-				// TODO: Remove last param from add_player.sql() (SportType) -> it can be derived from the playerType table.
-				{1, PlayerType(6), SourceID(477), ID(4), SportType(3)},
+				{1, PlayerType(3), SourceID(477), ID(4)},
 				{2, ID(29)},
 				{1, ID(97)},
 			},
@@ -229,6 +229,26 @@ func TestSavePlayers(t *testing.T) {
 		{
 			executeInTransactionErr: errors.New("executeInTransaction error"),
 		},
+		{ // playerType is for wrong SportType
+			st: 3,
+			futurePlayers: []Player{
+				{
+					PlayerType:   8,
+					SourceID:     87,
+					FriendID:     3,
+					DisplayOrder: 1,
+				},
+			},
+			wantQueryArgs: [][]interface{}{
+				{1, PlayerType(8), SourceID(87), ID(3)},
+			},
+			wantErr: true,
+		},
+	}
+	playerTypes = map[PlayerType]playerType{
+		PlayerType(1): playerType{sportType: SportType(3)},
+		PlayerType(3): playerType{sportType: SportType(3)},
+		PlayerType(8): playerType{sportType: SportType(4)},
 	}
 	for i, test := range savePlayersTests {
 		getPlayersFunc := func(st SportType) ([]Player, error) {
@@ -238,7 +258,7 @@ func TestSavePlayers(t *testing.T) {
 			return test.previousPlayers, test.getPlayersErr
 		}
 		executeInTransactionFunc := func(queries []writeSQLFunction) error {
-			// delete playerIds, insert players {displayOrder, playerType, sourceID, friendID, SportType}, update players {displayOrder,, id}
+			// delete playerIds, insert players {displayOrder, playerType, sourceID, friendID}, update players {displayOrder, id}
 			if len(test.wantQueryArgs) != len(queries) {
 				t.Errorf("Test %v: wanted %v queries, got %v", i, len(test.wantQueryArgs), len(queries))
 			}
@@ -250,7 +270,7 @@ func TestSavePlayers(t *testing.T) {
 			}
 			return test.executeInTransactionErr
 		}
-		wantErr := test.getPlayersErr != nil || test.executeInTransactionErr != nil
+		wantErr := test.wantErr || test.getPlayersErr != nil || test.executeInTransactionErr != nil
 		gotErr := savePlayers(test.st, test.futurePlayers, getPlayersFunc, executeInTransactionFunc)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
