@@ -95,12 +95,12 @@ func setAdminPassword(p Password,
 	username := "admin"
 	_, err := getUserPasswordFunc(username)
 	switch {
-	case err == nil:
+	case err == nil: // user exists
 		return setUserPasswordFunc(username, p)
-	case !errors.Is(err, sql.ErrNoRows):
-		return err
-	default:
+	case errors.Is(err, sql.ErrNoRows): // user does not exist
 		return addUserFunc(username, p)
+	default: // problem checking if user exists
+		return err
 	}
 }
 

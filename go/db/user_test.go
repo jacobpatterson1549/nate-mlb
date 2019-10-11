@@ -207,15 +207,15 @@ func TestSetAdminPassword(t *testing.T) {
 		{
 			setUserPasswordFuncErr: errors.New("setUserPassword error"),
 		},
-		{
-			getUserPasswordFuncErr: errors.New("getUserPassword error"),
-		},
 		{ // user new, password successfully set
 			getUserPasswordFuncErr: sql.ErrNoRows,
 		},
 		{
 			getUserPasswordFuncErr: sql.ErrNoRows,
 			addUserFuncErr:         errors.New("addUser error"),
+		},
+		{
+			getUserPasswordFuncErr: errors.New("getUserPassword error"),
 		},
 	}
 	for i, test := range setAdminPasswordTests {
