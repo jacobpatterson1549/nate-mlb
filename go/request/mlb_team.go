@@ -38,7 +38,7 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r *mlbTeamRequestor) requestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (r *mlbTeamRequestor) requestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
 	teams, err := r.requestMlbTeams(year)
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *mlbTeamRequestor) requestScoreCategory(pt db.PlayerType, year int, frie
 		}
 	}
 	playerNameScores := playerNameScoresFromSourceIDMap(players, sourceIDNameScores)
-	return newScoreCategory(pt, friends, players, playerNameScores, false), nil
+	return newScoreCategory(pt, ptInfo, friends, players, playerNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface

@@ -52,3 +52,35 @@ func TestTransformURLPath(t *testing.T) {
 		}
 	}
 }
+
+func TestSportTypeFromURL(t *testing.T) {
+	sportTypeFromURLTests := []struct {
+		loadedSportTypes map[db.SportType]db.SportTypeInfo
+		url              string
+		want             db.SportType
+	}{
+		{},
+		{
+			loadedSportTypes: map[db.SportType]db.SportTypeInfo{
+				db.SportType(2): {URL: "here"},
+				db.SportType(8): {URL: "somewhere"},
+			},
+			url:  "somewhere",
+			want: db.SportType(8),
+		},
+		{
+			loadedSportTypes: map[db.SportType]db.SportTypeInfo{
+				db.SportType(3): {URL: "*"},
+			},
+			url:  "anywhere",
+			want: db.SportType(0),
+		},
+	}
+	for i, test := range sportTypeFromURLTests {
+		sportTypes = test.loadedSportTypes
+		got := sportTypeFromURL(test.url)
+		if test.want != got {
+			t.Errorf("Test :%v:\nwanted: %v\ngot:    %v", i, test.want, got)
+		}
+	}
+}

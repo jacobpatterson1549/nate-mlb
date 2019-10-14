@@ -155,7 +155,7 @@ type mockScoreCategorizer struct {
 	scoreCategory ScoreCategory
 }
 
-func (m mockScoreCategorizer) requestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (m mockScoreCategorizer) requestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	return m.scoreCategory, nil
 }
 
@@ -167,7 +167,7 @@ func TestRequestScore(t *testing.T) {
 	}
 
 	want := ScoreCategory{Name: "b"}
-	got, err := Score(2, 0, nil, nil)
+	got, err := Score(2, db.PlayerTypeInfo{}, 0, nil, nil)
 
 	switch {
 	case err != nil:

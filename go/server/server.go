@@ -25,6 +25,8 @@ type (
 )
 
 var serverName string
+var sportTypes map[db.SportType]db.SportTypeInfo
+var playerTypes map[db.PlayerType]db.PlayerTypeInfo
 var serverSportTypeHandlers = sportTypeHandlers{
 	"GET": {
 		"/":                       handleHomePage,
@@ -40,11 +42,13 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // Run configures and starts the server
-func Run(port, applicationName string) error {
+func Run(port, applicationName string, availableSportTypes map[db.SportType]db.SportTypeInfo, availablePlayerTypes map[db.PlayerType]db.PlayerTypeInfo) error {
 	if _, err := strconv.Atoi(port); err != nil {
 		return fmt.Errorf("Invalid port number: %s", port)
 	}
 	serverName = applicationName
+	sportTypes = availableSportTypes
+	playerTypes = availablePlayerTypes
 	fileInfo, err := ioutil.ReadDir("static")
 	if err != nil {
 		return fmt.Errorf("reading static dir: %w", err)
@@ -70,7 +74,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	err := handlePage(w, r, db.SportTypeFromURL, transformURLPath, serverSportTypeHandlers)
+	err := handlePage(w, r, sportTypeFromURL, transformURLPath, serverSportTypeHandlers)
 	if err != nil {
 		log.Printf("server error: %q", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
@@ -113,10 +117,11 @@ func handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 	tabs := make([]Tab, len(es.scoreCategories))
+	stURL := sportTypes[es.sportType].URL
 	for i, sc := range es.scoreCategories {
 		tabs[i] = StatsTab{
 			ScoreCategory: sc,
-			ExportURL:     fmt.Sprintf("/%s/export", es.sportType.URL()),
+			ExportURL:     fmt.Sprintf("/%s/export", stURL),
 		}
 	}
 	if len(tabs) == 0 {
@@ -130,7 +135,8 @@ func handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
 		Times:    []time.Time{es.etlRefreshTime, es.etlTime},
 	}
-	title := fmt.Sprintf("%s %s stats - %d", serverName, st.Name(), es.year)
+	stName := sportTypes[st].Name
+	title := fmt.Sprintf("%s %s stats - %d", serverName, stName, es.year)
 	statsPage := newPage(serverName, title, tabs, true, timesMessage, "stats")
 	return renderTemplate(w, statsPage)
 }
@@ -167,7 +173,8 @@ func handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) er
 		AdminTab{Name: "Reset Password", Action: "password"},
 	}
 	timesMessage := TimesMessage{}
-	title := fmt.Sprintf("%s %s [ADMIN MODE]", serverName, st.Name())
+	stName := sportTypes[st].Name
+	title := fmt.Sprintf("%s %s [ADMIN MODE]", serverName, stName)
 	adminPage := newPage(serverName, title, tabs, true, timesMessage, "admin")
 	return renderTemplate(w, adminPage)
 }
@@ -241,4 +248,13 @@ func handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) 
 		return fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
 	}
 	return nil
+}
+
+func sportTypeFromURL(url string) db.SportType { // TODO: make cache that is map[string]SportType
+	for st, stInfo := range sportTypes {
+		if url == stInfo.URL {
+			return st
+		}
+	}
+	return 0
 }

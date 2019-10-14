@@ -30,6 +30,9 @@ type mainVars struct {
 	playerTypesCsv  string
 }
 
+var sportTypes map[db.SportType]db.SportTypeInfo
+var playerTypes map[db.PlayerType]db.PlayerTypeInfo
+
 func main() {
 	mainVars := initFlags()
 	for _, startupFunc := range startupFuncs(mainVars) {
@@ -86,15 +89,29 @@ func startupFuncs(mainVars mainVars) []func() error {
 		return waitForDb(db.Ping, sleepFunc, 7)
 	})
 	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
-	startupFuncs = append(startupFuncs, db.LoadSportTypes)
-	startupFuncs = append(startupFuncs, db.LoadPlayerTypes)
+	startupFuncs = append(startupFuncs, func() error {
+		var err error
+		sportTypes, err = db.GetSportTypes()
+		return err
+	})
+	startupFuncs = append(startupFuncs, func() error {
+		var err error
+		playerTypes, err = db.GetPlayerTypes()
+		return err
+	})
 	if len(mainVars.playerTypesCsv) != 0 {
-		startupFuncs = append(startupFuncs, func() error { return db.LimitPlayerTypes(mainVars.playerTypesCsv) })
+		startupFuncs = append(startupFuncs, func() error {
+			return db.LimitPlayerTypes(mainVars.playerTypesCsv, sportTypes, playerTypes)
+		})
 	}
 	if len(mainVars.adminPassword) != 0 {
-		startupFuncs = append(startupFuncs, func() error { return db.SetAdminPassword(db.Password(mainVars.adminPassword)) })
+		startupFuncs = append(startupFuncs, func() error {
+			return db.SetAdminPassword(db.Password(mainVars.adminPassword))
+		})
 	}
-	return append(startupFuncs, func() error { return server.Run(mainVars.port, mainVars.applicationName) })
+	return append(startupFuncs, func() error {
+		return server.Run(mainVars.port, mainVars.applicationName, sportTypes, playerTypes)
+	})
 }
 
 // waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts

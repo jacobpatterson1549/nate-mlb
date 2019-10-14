@@ -63,7 +63,7 @@ func updatePlayers(st db.SportType, r *http.Request) error {
 		}
 	}
 
-	err := db.SavePlayers(st, players)
+	err := db.SavePlayers(st, players, playerTypes)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Pl
 		return player, fmt.Errorf("converting player type '%v' to number: %w", playerType, err)
 	}
 	player.PlayerType = db.PlayerType(playerTypeI)
-	if st != player.PlayerType.SportType() {
+	if st != playerTypes[player.PlayerType].SportType {
 		return player, fmt.Errorf("invalid playerType: %v", player.PlayerType)
 	}
 

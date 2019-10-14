@@ -41,11 +41,11 @@ func GetPlayers(st SportType) ([]Player, error) {
 }
 
 // SavePlayers saves the specified players for the active year for a SportType
-func SavePlayers(st SportType, futurePlayers []Player) error {
-	return savePlayers(st, futurePlayers, GetPlayers, executeInTransaction)
+func SavePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo) error {
+	return savePlayers(st, futurePlayers, playerTypes, GetPlayers, executeInTransaction)
 }
 
-func savePlayers(st SportType, futurePlayers []Player, getPlayersFunc func(st SportType) ([]Player, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
+func savePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo, getPlayersFunc func(st SportType) ([]Player, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
 	players, err := getPlayersFunc(st)
 	if err != nil {
 		return err
@@ -61,8 +61,9 @@ func savePlayers(st SportType, futurePlayers []Player, getPlayersFunc func(st Sp
 		previousPlayer, ok := previousPlayers[player.ID]
 		switch {
 		case !ok:
-			if player.PlayerType.SportType() != st {
-				return fmt.Errorf("cannot add Player with PlayerType of %v when saving Players of SportType %v: it has a SportType of %v", player.PlayerType, st, player.PlayerType.SportType())
+			ptInfo := playerTypes[player.PlayerType]
+			if ptInfo.SportType != st {
+				return fmt.Errorf("cannot add Player with PlayerType of %v when saving Players of SportType %v: it has a SportType of %v", player.PlayerType, st, ptInfo.SportType)
 			}
 			insertPlayers = append(insertPlayers, player)
 		case player.DisplayOrder != previousPlayer.DisplayOrder: // can only update display order

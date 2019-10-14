@@ -82,7 +82,8 @@ func setupTablesAndFunctions(readFileFunc func(filename string) ([]byte, error),
 
 // LimitPlayerTypes reduces the player types to those in the specified csv.
 // Also limits the sport types to those for the specified player types.
-func LimitPlayerTypes(playerTypesCsv string) error {
+// Note that this function mutates the supplied maps.
+func LimitPlayerTypes(playerTypesCsv string, sportTypes map[SportType]SportTypeInfo, playerTypes map[PlayerType]PlayerTypeInfo) error {
 	if len(playerTypesCsv) == 0 {
 		return nil
 	}
@@ -96,11 +97,12 @@ func LimitPlayerTypes(playerTypesCsv string) error {
 			return fmt.Errorf("invalid PlayerType: %w", err)
 		}
 		pt := PlayerType(pti)
-		if _, ok := playerTypes[pt]; !ok {
+		ptInfo, ok := playerTypes[pt]
+		if !ok {
 			return fmt.Errorf("unknown PlayerType: %v", pt)
 		}
 		selectedPlayerTypesMap[pt] = true
-		selectedSportTypesMap[pt.SportType()] = true
+		selectedSportTypesMap[ptInfo.SportType] = true
 	}
 	// limit PlayerTypes and SportTypes
 	for pt := range playerTypes {

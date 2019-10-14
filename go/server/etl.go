@@ -30,7 +30,7 @@ func getEtlStats(st db.SportType) (EtlStats, error) {
 	if err != nil || stat == nil {
 		return es, err
 	}
-	es.sportTypeName = st.Name()
+	es.sportTypeName = sportTypes[st].Name
 	es.sportType = st
 	es.year = stat.Year
 	if stat.EtlTimestamp == nil || stat.EtlJSON == nil || stat.EtlTimestamp.Before(es.etlRefreshTime) {
@@ -62,17 +62,17 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 	if err != nil {
 		return nil, err
 	}
-	playerTypes := db.PlayerTypes(st)
+	stPlayerTypes := getPlayerTypes(st)
 	playersByType := make(map[db.PlayerType][]db.Player)
 	for _, player := range players {
 		playersByType[player.PlayerType] = append(playersByType[player.PlayerType], player)
 	}
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(playerTypes))
 	quit := make(chan error)
-	for _, playerType := range playerTypes {
-		go getScoreCategory(playerType, year, friends, playersByType[playerType], scoreCategoriesCh, quit)
+	for _, pt := range stPlayerTypes {
+		go getScoreCategory(pt, year, friends, playersByType[pt], scoreCategoriesCh, quit)
 	}
-	scoreCategories := make([]request.ScoreCategory, len(playerTypes))
+	scoreCategories := make([]request.ScoreCategory, len(stPlayerTypes))
 	finishedScoreCategories := 0
 	for {
 		select {
@@ -82,18 +82,33 @@ func getScoreCategories(st db.SportType, year int) ([]request.ScoreCategory, err
 			scoreCategories[finishedScoreCategories] = scoreCategory
 			finishedScoreCategories++
 		}
-		if finishedScoreCategories == len(playerTypes) {
+		if finishedScoreCategories == len(stPlayerTypes) {
+			displayOrder := func(i int) int { return playerTypes[scoreCategories[i].PlayerType].DisplayOrder }
 			sort.Slice(scoreCategories, func(i, j int) bool {
-				return scoreCategories[i].PlayerType.DisplayOrder() < scoreCategories[j].PlayerType.DisplayOrder()
+				return displayOrder(i) < displayOrder(j)
 			})
 			return scoreCategories, nil
 		}
 	}
 }
 
+func getPlayerTypes(st db.SportType) []db.PlayerType {
+	playerTypesList := make([]db.PlayerType, 0, len(playerTypes))
+	for pt, ptInfo := range playerTypes {
+		if ptInfo.SportType == st {
+			playerTypesList = append(playerTypesList, pt)
+		}
+	}
+	displayOrder := func(i int) int { return playerTypes[playerTypesList[i]].DisplayOrder }
+	sort.Slice(playerTypesList, func(i, j int) bool {
+		return displayOrder(i) < displayOrder(j)
+	})
+	return playerTypesList
+}
+
 func getScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
-	scoreCategory, err := request.Score(pt, year, friends, players)
+	scoreCategory, err := request.Score(pt, playerTypes[pt], year, friends, players)
 	if err != nil {
 		quit <- err
 		return

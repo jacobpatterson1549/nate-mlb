@@ -245,10 +245,10 @@ func TestSavePlayers(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	playerTypes = map[PlayerType]playerType{
-		PlayerType(1): playerType{sportType: SportType(3)},
-		PlayerType(3): playerType{sportType: SportType(3)},
-		PlayerType(8): playerType{sportType: SportType(4)},
+	playerTypes := map[PlayerType]PlayerTypeInfo{
+		PlayerType(1): PlayerTypeInfo{SportType: SportType(3)},
+		PlayerType(3): PlayerTypeInfo{SportType: SportType(3)},
+		PlayerType(8): PlayerTypeInfo{SportType: SportType(4)},
 	}
 	for i, test := range savePlayersTests {
 		getPlayersFunc := func(st SportType) ([]Player, error) {
@@ -271,7 +271,7 @@ func TestSavePlayers(t *testing.T) {
 			return test.executeInTransactionErr
 		}
 		wantErr := test.wantErr || test.getPlayersErr != nil || test.executeInTransactionErr != nil
-		gotErr := savePlayers(test.st, test.futurePlayers, getPlayersFunc, executeInTransactionFunc)
+		gotErr := savePlayers(test.st, test.futurePlayers, playerTypes, getPlayersFunc, executeInTransactionFunc)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
 			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)

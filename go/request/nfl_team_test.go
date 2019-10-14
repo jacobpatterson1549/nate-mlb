@@ -54,7 +54,7 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflTeamRequestor := nflTeamRequestor{requestor: r}
-		got, err := nflTeamRequestor.requestScoreCategory(db.PlayerTypeNflTeam, 2019, test.friends, test.players)
+		got, err := nflTeamRequestor.requestScoreCategory(db.PlayerTypeNflTeam, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {

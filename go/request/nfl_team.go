@@ -28,7 +28,7 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r nflTeamRequestor) requestScoreCategory(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (r nflTeamRequestor) requestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
 	nflTeams, err := r.requestNflTeams(year)
 	if err != nil {
@@ -46,7 +46,7 @@ func (r nflTeamRequestor) requestScoreCategory(pt db.PlayerType, year int, frien
 		}
 	}
 	playerNameScores := playerNameScoresFromSourceIDMap(players, sourceIDNameScores)
-	return newScoreCategory(pt, friends, players, playerNameScores, false), nil
+	return newScoreCategory(pt, ptInfo, friends, players, playerNameScores, false), nil
 }
 
 // PlayerSearchResults implements the Searcher interface
@@ -68,8 +68,9 @@ func (r nflTeamRequestor) search(pt db.PlayerType, year int, playerNamePrefix st
 			})
 		}
 	}
+	sourceID := func(i int) int { return int(nflTeamSearchResults[i].SourceID) }
 	sort.Slice(nflTeamSearchResults, func(i, j int) bool {
-		return nflTeamSearchResults[i].SourceID < nflTeamSearchResults[j].SourceID
+		return sourceID(i) < sourceID(j)
 	})
 	return nflTeamSearchResults, nil
 }

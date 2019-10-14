@@ -2,19 +2,19 @@ package db
 
 import (
 	"fmt"
-	"sort"
 )
 
 type (
 	// PlayerType is an enumeration of types of players
 	PlayerType int
 
-	playerType struct {
-		sportType    SportType
-		name         string
-		description  string
-		scoreType    string
-		displayOrder int
+	// PlayerTypeInfo contains supplementary information about a PlayerType
+	PlayerTypeInfo struct {
+		SportType    SportType
+		Name         string
+		Description  string
+		ScoreType    string
+		DisplayOrder int
 	}
 )
 
@@ -28,53 +28,12 @@ const (
 	PlayerTypeNflMisc    PlayerType = 6
 )
 
-var playerTypes = make(map[PlayerType]playerType)
-
-// PlayerTypes returns the PlayerTypes for a given SportType
-func PlayerTypes(st SportType) []PlayerType {
-	playerTypesList := make([]PlayerType, 0, len(sportTypes))
-	for pt := range playerTypes {
-		if pt.SportType() == st {
-			playerTypesList = append(playerTypesList, pt)
-		}
-	}
-	sort.Slice(playerTypesList, func(i, j int) bool {
-		return playerTypesList[i].DisplayOrder() < playerTypesList[j].DisplayOrder()
-	})
-	return playerTypesList
-}
-
-// SportType gets the SportType for a PlayerType
-func (pt PlayerType) SportType() SportType {
-	return playerTypes[pt].sportType
-}
-
-// Name gets the name for a PlayerType
-func (pt PlayerType) Name() string {
-	return playerTypes[pt].name
-}
-
-// Description gets the description for a PlayerType
-func (pt PlayerType) Description() string {
-	return playerTypes[pt].description
-}
-
-// ScoreType gets the score type for a PlayerType
-func (pt PlayerType) ScoreType() string {
-	return playerTypes[pt].scoreType
-}
-
-// DisplayOrder gets the display order for a PlayerType
-func (pt PlayerType) DisplayOrder() int {
-	return playerTypes[pt].displayOrder
-}
-
-// LoadPlayerTypes loads the PlayerTypes from the database
-func LoadPlayerTypes() error {
+// GetPlayerTypes loads the PlayerTypes from the database
+func GetPlayerTypes() (map[PlayerType]PlayerTypeInfo, error) {
 	sqlFunction := newReadSQLFunction("get_player_types", []string{"id", "sport_type_id", "name", "description", "score_type"})
 	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
-		return fmt.Errorf("reading playerTypes: %w", err)
+		return nil, fmt.Errorf("reading playerTypes: %w", err)
 	}
 	defer rows.Close()
 
@@ -85,32 +44,31 @@ func LoadPlayerTypes() error {
 		description string
 		scoreType   string
 	)
-	playerTypes = make(map[PlayerType]playerType)
+	playerTypes := make(map[PlayerType]PlayerTypeInfo)
 	displayOrder := 0
 	for rows.Next() {
 		err = rows.Scan(&id, &sportType, &name, &description, &scoreType)
 		if err != nil {
-			return fmt.Errorf("reading player type: %w", err)
-		}
-		playerType := playerType{
-			sportType:    sportType,
-			name:         name,
-			description:  description,
-			scoreType:    scoreType,
-			displayOrder: displayOrder,
+			return nil, fmt.Errorf("reading player type: %w", err)
 		}
 		switch id {
 		case
 			PlayerTypeMlbTeam, PlayerTypeMlbHitter, PlayerTypeMlbPitcher,
 			PlayerTypeNflTeam, PlayerTypeNflQB, PlayerTypeNflMisc:
-			playerTypes[id] = playerType
+			playerTypes[id] = PlayerTypeInfo{
+				SportType:    sportType,
+				Name:         name,
+				Description:  description,
+				ScoreType:    scoreType,
+				DisplayOrder: displayOrder,
+			}
 		default:
-			return fmt.Errorf("unknown PlayerType id: %v", id)
+			return nil, fmt.Errorf("unknown PlayerType id: %v", id)
 		}
 		displayOrder++
 	}
 	if len(playerTypes) != 6 {
-		return fmt.Errorf("did not load expected amount of PlayerTypes.  Loaded: %d PlayerTypes", len(playerTypes))
+		return nil, fmt.Errorf("did not load expected PlayerTypes: %v", playerTypes)
 	}
-	return nil
+	return playerTypes, nil
 }

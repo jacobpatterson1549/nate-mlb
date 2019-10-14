@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -44,8 +45,9 @@ type (
 
 	// SportEntry contains the url and name of a SportType
 	SportEntry struct {
-		URL  string
-		Name string
+		URL       string
+		Name      string
+		sportType db.SportType
 	}
 
 	// TimesMessage contains times to insert between messages
@@ -56,20 +58,25 @@ type (
 )
 
 func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
-	sportTypes := db.SportTypes()
-	sports := make([]SportEntry, len(sportTypes))
-	for i, st := range sportTypes {
-		sports[i] = SportEntry{
-			URL:  strings.ToLower(st.Name()),
-			Name: st.Name(),
+	sportEntries := make([]SportEntry, 0, len(sportTypes)) // TODO: cache this
+	for st, stInfo := range sportTypes {
+		sportEntry := SportEntry{
+			URL:       strings.ToLower(stInfo.Name),
+			Name:      stInfo.Name,
+			sportType: st,
 		}
+		sportEntries = append(sportEntries, sportEntry)
 	}
+	displayOrder := func(i int) int { return sportTypes[sportEntries[i].sportType].DisplayOrder }
+	sort.Slice(sportEntries, func(i, j int) bool {
+		return displayOrder(i) < displayOrder(j)
+	})
 	return Page{
 		ApplicationName: applicationName,
 		Title:           title,
 		Tabs:            tabs,
 		htmlFolderName:  htmlFolderName,
-		Sports:          sports,
+		Sports:          sportEntries,
 		ShowTabs:        showTabs,
 		TimesMessage:    timesMessage,
 		PageLoadTime:    db.GetUtcTime(),

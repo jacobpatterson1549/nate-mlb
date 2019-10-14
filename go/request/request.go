@@ -74,8 +74,8 @@ func init() {
 }
 
 // Score gets the ScoreCategory for the PlayerType/year
-func Score(pt db.PlayerType, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
-	return scoreCategorizers[pt].requestScoreCategory(pt, year, friends, players)
+func Score(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+	return scoreCategorizers[pt].requestScoreCategory(pt, ptInfo, year, friends, players)
 }
 
 // Search gets the PlayerSearchResults for the PlayerType/year
