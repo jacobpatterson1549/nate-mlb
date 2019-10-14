@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"testing"
 	"time"
 )
 
@@ -193,4 +194,15 @@ func mockRowScanFunc(src interface{}, dest ...interface{}) error {
 		}
 	}
 	return nil
+}
+
+func TestNewSqlDatabase(t *testing.T) {
+	dataSourceName := "mockDataSourceName"
+	db, err := newSQLDatabase(dataSourceName)
+	switch {
+	case err != nil:
+		t.Error("unexpected error:", err)
+	case db == nil:
+		t.Error("expected database to not be nil after Init() called, but was")
+	}
 }

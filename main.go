@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
 	_ "github.com/lib/pq"
 )
@@ -30,8 +29,11 @@ type mainVars struct {
 	playerTypesCsv  string
 }
 
-var sportTypes map[db.SportType]db.SportTypeInfo
-var playerTypes map[db.PlayerType]db.PlayerTypeInfo
+var (
+	db          db.Database
+	sportTypes  map[db.SportType]db.SportTypeInfo
+	playerTypes map[db.PlayerType]db.PlayerTypeInfo
+)
 
 func main() {
 	mainVars := initFlags()
@@ -76,7 +78,11 @@ func initFlags() mainVars {
 
 func startupFuncs(mainVars mainVars) []func() error {
 	startupFuncs := make([]func() error, 0, 6)
-	startupFuncs = append(startupFuncs, func() error { return db.Init(mainVars.dataSourceName) })
+	startupFuncs = append(startupFuncs, func() error {
+		var err error
+		db, err = db.Init(mainVars.dataSourceName)
+		return err
+	})
 	startupFuncs = append(startupFuncs, func() error {
 		sleepFunc := func(sleepSeconds int) {
 			s := fmt.Sprintf("%ds", sleepSeconds)
@@ -110,7 +116,8 @@ func startupFuncs(mainVars mainVars) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		return server.Run(mainVars.port, mainVars.applicationName, sportTypes, playerTypes)
+		dataStore := db.NewDatastore(db, sportTypes, playerTypes)
+		return server.Run(mainVars.port, mainVars.applicationName, dataStore)
 	})
 }
 

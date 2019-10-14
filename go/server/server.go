@@ -42,7 +42,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // Run configures and starts the server
-func Run(port, applicationName string, availableSportTypes map[db.SportType]db.SportTypeInfo, availablePlayerTypes map[db.PlayerType]db.PlayerTypeInfo) error {
+func Run(port, applicationName string, datastore db.Datastore) error {
 	if _, err := strconv.Atoi(port); err != nil {
 		return fmt.Errorf("Invalid port number: %s", port)
 	}

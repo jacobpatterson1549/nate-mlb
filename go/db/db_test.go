@@ -48,19 +48,6 @@ func init() {
 	sql.Register(driverName, mockDriver)
 }
 
-func TestInit_ok(t *testing.T) {
-	dataSourceName := "mockDataSourceName"
-	err := Init(dataSourceName)
-	switch {
-	case err != nil:
-		t.Error("unexpected error:", err)
-	case db == nil:
-		t.Error("expected database to not be nil after Init() called, but was")
-	case ph == nil:
-		t.Error("expected passwordHasher not to be nil after Init() called, but was")
-	}
-}
-
 func TestPing(t *testing.T) {
 	pingTests := []struct {
 		pingErr error

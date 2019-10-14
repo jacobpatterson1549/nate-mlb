@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type (
@@ -35,18 +36,26 @@ type (
 	}
 )
 
-func (s *sqlDatabase) Ping() error {
+func newSQLDatabase(dataSourceName string) (database, error) {
+	sqlDb, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		return nil, fmt.Errorf("opening database %v", err)
+	}
+	return sqlDatabase{db: sqlDb}, nil
+}
+
+func (s sqlDatabase) Ping() error {
 	return s.db.Ping()
 }
-func (s *sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
+func (s sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
 	return s.db.Query(query, args...)
 }
-func (s *sqlDatabase) QueryRow(query string, args ...interface{}) row {
+func (s sqlDatabase) QueryRow(query string, args ...interface{}) row {
 	return s.db.QueryRow(query, args...)
 }
-func (s *sqlDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (s sqlDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return s.db.Exec(query, args...)
 }
-func (s *sqlDatabase) Begin() (transaction, error) {
+func (s sqlDatabase) Begin() (transaction, error) {
 	return s.db.Begin()
 }
