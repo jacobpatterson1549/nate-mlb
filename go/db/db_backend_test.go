@@ -195,6 +195,26 @@ func mockRowScanFunc(src interface{}, dest ...interface{}) error {
 	return nil
 }
 
+func newMockBeginFunc(commitValidator func(queries []writeSQLFunction) error) func() (transaction, error) {
+	return func() (transaction, error) {
+		var queries []writeSQLFunction
+		r := mockResult{
+			RowsAffectedFunc: func() (int64, error) {
+				return 1, nil
+			},
+		}
+		return mockTransaction{
+			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				queries = append(queries, writeSQLFunction{name: query, args: args})
+				return r, nil
+			},
+			CommitFunc: func() error {
+				return commitValidator(queries)
+			},
+		}, nil
+	}
+}
+
 func TestNewSqlDatabase(t *testing.T) {
 	dataSourceName := "mockDataSourceName"
 	db, err := newSQLDatabase(dataSourceName)

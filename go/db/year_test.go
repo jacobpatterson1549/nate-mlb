@@ -93,18 +93,20 @@ func TestGetYears(t *testing.T) {
 		},
 	}
 	for i, test := range getYearsTests {
-		db = mockDatabase{
-			QueryFunc: func(query string, args ...interface{}) (rows, error) {
-				if test.queryErr != nil {
-					return nil, test.queryErr
-				}
-				if test.requestSportType != test.rowsSportType {
-					return newMockRows([]interface{}{}), nil
-				}
-				return newMockRows(test.rows), nil
+		ds := Datastore{
+			db: mockDatabase{
+				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+					if test.queryErr != nil {
+						return nil, test.queryErr
+					}
+					if test.requestSportType != test.rowsSportType {
+						return newMockRows([]interface{}{}), nil
+					}
+					return newMockRows(test.rows), nil
+				},
 			},
 		}
-		gotSlice, gotErr := GetYears(test.requestSportType)
+		gotSlice, gotErr := ds.GetYears(test.requestSportType)
 		switch {
 		case test.wantErr:
 			if gotErr == nil {
@@ -134,7 +136,7 @@ func TestSaveYears(t *testing.T) {
 	saveYearsTests := []struct {
 		st                      SportType
 		futureYears             []Year
-		previousYears           []Year
+		previousYears           []interface{}
 		getYearsErr             error
 		executeInTransactionErr error
 		wantErr                 bool
@@ -142,7 +144,6 @@ func TestSaveYears(t *testing.T) {
 	}{
 		{},
 		{ // happy path
-			st: 8,
 			futureYears: []Year{
 				{
 					Value:  2019,
@@ -157,12 +158,12 @@ func TestSaveYears(t *testing.T) {
 					Active: false,
 				},
 			},
-			previousYears: []Year{
-				{
+			previousYears: []interface{}{
+				Year{
 					Value:  2017,
 					Active: false,
 				},
-				{
+				Year{
 					Value:  2018,
 					Active: true,
 				},
@@ -190,12 +191,6 @@ func TestSaveYears(t *testing.T) {
 		},
 	}
 	for i, test := range saveYearsTests {
-		getYearsFunc := func(st SportType) ([]Year, error) {
-			if test.st != st {
-				t.Errorf("Test %v: wanted to get years for SportType %v, but got %v", i, test.st, st)
-			}
-			return test.previousYears, test.getYearsErr
-		}
 		executeInTransactionFunc := func(queries []writeSQLFunction) error {
 			// first query is to clear active year, then delete years, insert years, and set active
 			if len(test.wantQueryYears)+1 != len(queries) {
@@ -214,8 +209,16 @@ func TestSaveYears(t *testing.T) {
 			}
 			return test.executeInTransactionErr
 		}
+		ds := Datastore{
+			db: mockDatabase{
+				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+					return newMockRows(test.previousYears), test.getYearsErr
+				},
+				BeginFunc: newMockBeginFunc(executeInTransactionFunc),
+			},
+		}
 		wantErr := test.wantErr || test.getYearsErr != nil || test.executeInTransactionErr != nil
-		gotErr := saveYears(test.st, test.futureYears, getYearsFunc, executeInTransactionFunc)
+		gotErr := ds.SaveYears(test.st, test.futureYears)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
 			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)

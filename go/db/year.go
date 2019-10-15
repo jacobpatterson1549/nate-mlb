@@ -12,9 +12,9 @@ type Year struct {
 }
 
 // GetYears gets years for a SportType
-func GetYears(st SportType) ([]Year, error) {
+func (ds Datastore) GetYears(st SportType) ([]Year, error) {
 	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
-	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading years: %w", err)
 	}
@@ -43,12 +43,8 @@ func GetYears(st SportType) ([]Year, error) {
 }
 
 // SaveYears saves the specified years and sets the active year for a SportType
-func SaveYears(st SportType, futureYears []Year) error {
-	return saveYears(st, futureYears, GetYears, executeInTransaction)
-}
-
-func saveYears(st SportType, futureYears []Year, getYearsFunc func(st SportType) ([]Year, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
-	previousYears, err := getYearsFunc(st)
+func (ds Datastore) SaveYears(st SportType, futureYears []Year) error {
+	previousYears, err := ds.GetYears(st)
 	if err != nil {
 		return err
 	}
@@ -86,5 +82,5 @@ func saveYears(st SportType, futureYears []Year, getYearsFunc func(st SportType)
 	if activeYearPresent {
 		queries = append(queries, newWriteSQLFunction("set_year_active", st, activeYear))
 	}
-	return executeInTransactionFunc(queries)
+	return ds.executeInTransaction(queries)
 }
