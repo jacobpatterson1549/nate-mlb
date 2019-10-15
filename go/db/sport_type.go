@@ -23,9 +23,9 @@ const (
 )
 
 // GetSportTypes returns the SportTypes from the database
-func GetSportTypes() (map[SportType]SportTypeInfo, error) {
+func (ds Datastore) GetSportTypes() (map[SportType]SportTypeInfo, error) {
 	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
-	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading sportTypes: %w", err)
 	}

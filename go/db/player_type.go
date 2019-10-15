@@ -29,9 +29,9 @@ const (
 )
 
 // GetPlayerTypes loads the PlayerTypes from the database
-func GetPlayerTypes() (map[PlayerType]PlayerTypeInfo, error) {
+func (ds Datastore) GetPlayerTypes() (map[PlayerType]PlayerTypeInfo, error) {
 	sqlFunction := newReadSQLFunction("get_player_types", []string{"id", "sport_type_id", "name", "description", "score_type"})
-	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading playerTypes: %w", err)
 	}

@@ -68,15 +68,17 @@ func TestGetPlayerTypes(t *testing.T) {
 		},
 	}
 	for i, test := range getPlayerTypesTests {
-		db = mockDatabase{
-			QueryFunc: func(query string, args ...interface{}) (rows, error) {
-				if test.queryErr != nil {
-					return nil, test.queryErr
-				}
-				return newMockRows(test.rows), nil
+		ds := Datastore{
+			db: mockDatabase{
+				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+					if test.queryErr != nil {
+						return nil, test.queryErr
+					}
+					return newMockRows(test.rows), nil
+				},
 			},
 		}
-		gotPlayerTypes, gotErr := GetPlayerTypes()
+		gotPlayerTypes, gotErr := ds.GetPlayerTypes()
 		switch {
 		case test.wantErr:
 			if gotErr == nil {
