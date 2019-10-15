@@ -195,7 +195,7 @@ func mockRowScanFunc(src interface{}, dest ...interface{}) error {
 	return nil
 }
 
-func newMockBeginFunc(commitValidator func(queries []writeSQLFunction) error) func() (transaction, error) {
+func newMockBeginFunc(beginErr error, commitValidator func(queries []writeSQLFunction)) func() (transaction, error) {
 	return func() (transaction, error) {
 		var queries []writeSQLFunction
 		r := mockResult{
@@ -209,9 +209,10 @@ func newMockBeginFunc(commitValidator func(queries []writeSQLFunction) error) fu
 				return r, nil
 			},
 			CommitFunc: func() error {
-				return commitValidator(queries)
+				commitValidator(queries)
+				return nil
 			},
-		}, nil
+		}, beginErr
 	}
 }
 

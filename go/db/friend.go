@@ -12,9 +12,9 @@ type Friend struct {
 }
 
 // GetFriends gets the friends for the active year for a SportType
-func GetFriends(st SportType) ([]Friend, error) {
+func (ds Datastore) GetFriends(st SportType) ([]Friend, error) {
 	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
-	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading friends: %w", err)
 	}
@@ -34,12 +34,8 @@ func GetFriends(st SportType) ([]Friend, error) {
 }
 
 // SaveFriends saves the specified friends for the active year for a SportType
-func SaveFriends(st SportType, futureFriends []Friend) error {
-	return saveFriends(st, futureFriends, GetFriends, executeInTransaction)
-}
-
-func saveFriends(st SportType, futureFriends []Friend, getFriendsFunc func(st SportType) ([]Friend, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
-	friends, err := getFriendsFunc(st)
+func (ds Datastore) SaveFriends(st SportType, futureFriends []Friend) error {
+	friends, err := ds.GetFriends(st)
 	if err != nil {
 		return err
 	}
@@ -73,5 +69,5 @@ func saveFriends(st SportType, futureFriends []Friend, getFriendsFunc func(st Sp
 	for _, updateFriend := range updateFriends {
 		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID))
 	}
-	return executeInTransactionFunc(queries)
+	return ds.executeInTransaction(queries)
 }
