@@ -106,18 +106,20 @@ func TestGetPlayers(t *testing.T) {
 		},
 	}
 	for i, test := range getPlayersTests {
-		db = mockDatabase{
-			QueryFunc: func(query string, args ...interface{}) (rows, error) {
-				if test.queryErr != nil {
-					return nil, test.queryErr
-				}
-				if test.requestSportType != test.rowsSportType {
-					return newMockRows([]interface{}{}), nil
-				}
-				return newMockRows(test.rows), nil
+		ds := Datastore{
+			db: mockDatabase{
+				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+					if test.queryErr != nil {
+						return nil, test.queryErr
+					}
+					if test.requestSportType != test.rowsSportType {
+						return newMockRows([]interface{}{}), nil
+					}
+					return newMockRows(test.rows), nil
+				},
 			},
 		}
-		gotSlice, gotErr := GetPlayers(test.requestSportType)
+		gotSlice, gotErr := ds.GetPlayers(test.requestSportType)
 		switch {
 		case test.wantErr:
 			if gotErr == nil {
@@ -147,7 +149,7 @@ func TestSavePlayers(t *testing.T) {
 	savePlayersTests := []struct {
 		st                      SportType
 		futurePlayers           []Player
-		previousPlayers         []Player
+		previousPlayers         []interface{}
 		getPlayersErr           error
 		executeInTransactionErr error
 		wantErr                 bool
@@ -186,29 +188,29 @@ func TestSavePlayers(t *testing.T) {
 					DisplayOrder: 1,
 				},
 			},
-			previousPlayers: []Player{
-				{
+			previousPlayers: []interface{}{
+				Player{
 					ID:           29,
 					PlayerType:   1,
 					SourceID:     9,
 					FriendID:     7,
 					DisplayOrder: 1,
 				},
-				{
+				Player{
 					ID:           97,
 					PlayerType:   1,
 					SourceID:     81,
 					FriendID:     7,
 					DisplayOrder: 2,
 				},
-				{
+				Player{
 					ID:           14,
 					PlayerType:   1,
 					SourceID:     13,
 					FriendID:     4,
 					DisplayOrder: 1,
 				},
-				{
+				Player{
 					ID:           63,
 					PlayerType:   3,
 					SourceID:     13,
@@ -251,13 +253,7 @@ func TestSavePlayers(t *testing.T) {
 		PlayerType(8): PlayerTypeInfo{SportType: SportType(4)},
 	}
 	for i, test := range savePlayersTests {
-		getPlayersFunc := func(st SportType) ([]Player, error) {
-			if test.st != st {
-				t.Errorf("Test %v: wanted to get players for SportType %v, but got %v", i, test.st, st)
-			}
-			return test.previousPlayers, test.getPlayersErr
-		}
-		executeInTransactionFunc := func(queries []writeSQLFunction) error {
+		executeInTransactionFunc := func(queries []writeSQLFunction) {
 			// delete playerIds, insert players {displayOrder, playerType, sourceID, friendID}, update players {displayOrder, id}
 			if len(test.wantQueryArgs) != len(queries) {
 				t.Errorf("Test %v: wanted %v queries, got %v", i, len(test.wantQueryArgs), len(queries))
@@ -268,10 +264,20 @@ func TestSavePlayers(t *testing.T) {
 					t.Errorf("Test %v: query %v args: wanted %v, got %v", i, j, wantQueryArgs, queryArgs)
 				}
 			}
-			return test.executeInTransactionErr
+		}
+		ds := Datastore{
+			db: mockDatabase{
+				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+					if len(args) != 1 || !reflect.DeepEqual(test.st, args[0]) {
+						t.Errorf("Test %v: wanted to get friends for SportType %v, but got %v", i, test.st, args)
+					}
+					return newMockRows(test.previousPlayers), test.getPlayersErr
+				},
+				BeginFunc: newMockBeginFunc(test.executeInTransactionErr, executeInTransactionFunc),
+			},
 		}
 		wantErr := test.wantErr || test.getPlayersErr != nil || test.executeInTransactionErr != nil
-		gotErr := savePlayers(test.st, test.futurePlayers, playerTypes, getPlayersFunc, executeInTransactionFunc)
+		gotErr := ds.SavePlayers(test.st, test.futurePlayers, playerTypes)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
 			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)

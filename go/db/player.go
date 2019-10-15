@@ -19,9 +19,9 @@ type (
 )
 
 // GetPlayers gets the players for the active year for a SportType
-func GetPlayers(st SportType) ([]Player, error) {
+func (ds Datastore) GetPlayers(st SportType) ([]Player, error) {
 	sqlFunction := newReadSQLFunction("get_players", []string{"id", "player_type_id", "source_id", "friend_id", "display_order"}, st)
-	rows, err := db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading players: %w", err)
 	}
@@ -41,12 +41,8 @@ func GetPlayers(st SportType) ([]Player, error) {
 }
 
 // SavePlayers saves the specified players for the active year for a SportType
-func SavePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo) error {
-	return savePlayers(st, futurePlayers, playerTypes, GetPlayers, executeInTransaction)
-}
-
-func savePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo, getPlayersFunc func(st SportType) ([]Player, error), executeInTransactionFunc func(queries []writeSQLFunction) error) error {
-	players, err := getPlayersFunc(st)
+func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo) error {
+	players, err := ds.GetPlayers(st)
 	if err != nil {
 		return err
 	}
@@ -82,5 +78,5 @@ func savePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerTyp
 	for _, updateplayer := range updatePlayers {
 		queries = append(queries, newWriteSQLFunction("set_player", updateplayer.DisplayOrder, updateplayer.ID))
 	}
-	return executeInTransactionFunc(queries)
+	return ds.executeInTransaction(queries)
 }
