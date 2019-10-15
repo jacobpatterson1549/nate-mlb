@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -39,21 +40,23 @@ func TestGetUserPassword(t *testing.T) {
 		},
 	}
 	for i, test := range getUserPasswordTests {
-		db = mockDatabase{
-			QueryRowFunc: func(query string, args ...interface{}) row {
-				return mockRow{
-					ScanFunc: func(dest ...interface{}) error {
-						switch {
-						case test.queryRowErr != nil:
-							return test.queryRowErr
-						default:
-							return mockRowScanFunc(test.row, dest...)
-						}
-					},
-				}
+		ds := Datastore{
+			db: mockDatabase{
+				QueryRowFunc: func(query string, args ...interface{}) row {
+					return mockRow{
+						ScanFunc: func(dest ...interface{}) error {
+							switch {
+							case test.queryRowErr != nil:
+								return test.queryRowErr
+							default:
+								return mockRowScanFunc(test.row, dest...)
+							}
+						},
+					}
+				},
 			},
 		}
-		gotPassword, gotErr := getUserPassword(test.username)
+		gotPassword, gotErr := ds.getUserPassword(test.username)
 		switch {
 		case gotErr != nil:
 			if !errors.Is(gotErr, test.queryRowErr) {
@@ -68,13 +71,13 @@ func TestGetUserPassword(t *testing.T) {
 }
 
 func TestSetUserPassword(t *testing.T) {
-	userExecuteHelperTest(t, SetUserPassword)
+	userExecuteHelperTest(t, Datastore.SetUserPassword)
 }
 func TestAddUser(t *testing.T) {
-	userExecuteHelperTest(t, AddUser)
+	userExecuteHelperTest(t, Datastore.AddUser)
 }
 
-func userExecuteHelperTest(t *testing.T, testFunc func(string, Password) error) {
+func userExecuteHelperTest(t *testing.T, testFunc func(Datastore, string, Password) error) {
 	userExecuteTests := []struct {
 		username     string
 		p            Password
@@ -107,27 +110,29 @@ func userExecuteHelperTest(t *testing.T, testFunc func(string, Password) error) 
 		},
 	}
 	for i, test := range userExecuteTests {
-		db = mockDatabase{
-			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
-				if test.execErr != nil {
-					return nil, test.execErr
-				}
-				return mockResult{
-					RowsAffectedFunc: func() (int64, error) {
-						return test.rowsAffected, nil
-					},
-				}, nil
+		ds := Datastore{
+			db: mockDatabase{
+				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+					if test.execErr != nil {
+						return nil, test.execErr
+					}
+					return mockResult{
+						RowsAffectedFunc: func() (int64, error) {
+							return test.rowsAffected, nil
+						},
+					}, nil
+				},
+			},
+			ph: mockPasswordHasher{
+				hashFunc: func(p Password) (string, error) {
+					if test.hashErr != nil {
+						return "", test.hashErr
+					}
+					return string(test.p) + "-hashed!", nil
+				},
 			},
 		}
-		ph = mockPasswordHasher{
-			hashFunc: func(p Password) (string, error) {
-				if test.hashErr != nil {
-					return "", test.hashErr
-				}
-				return string(test.p) + "-hashed!", nil
-			},
-		}
-		gotErr := testFunc(test.username, test.p)
+		gotErr := testFunc(ds, test.username, test.p)
 		switch {
 		case test.wantErr:
 			switch {
@@ -167,17 +172,31 @@ func TestIsCorrectUserPassword(t *testing.T) {
 		},
 	}
 	for i, test := range isCorrectUserPasswordTests {
-		getUserPasswordFunc := func(username string) (string, error) {
-			return "hashedUserPassword", test.getUserPasswordFuncErr
+		ds := Datastore{
+			db: mockDatabase{
+				QueryRowFunc: func(query string, args ...interface{}) row {
+					return mockRow{
+						ScanFunc: func(dest ...interface{}) error {
+							if test.getUserPasswordFuncErr != nil {
+								return test.getUserPasswordFuncErr
+							}
+							p := struct {
+								Password string
+							}{
+								Password: string(test.p),
+							}
+							return mockRowScanFunc(p, dest...)
+						},
+					}
+				},
+			},
+			ph: mockPasswordHasher{
+				isCorrectFunc: func(p Password, hashedPassword string) (bool, error) {
+					return test.passwordHandlerIsCorrectBool, test.passwordHandlerIsCorrectErr
+				},
+			},
 		}
-		mph := mockPasswordHasher{}
-		if test.getUserPasswordFuncErr == nil {
-			mph.isCorrectFunc = func(p Password, hashedPassword string) (bool, error) {
-				return test.passwordHandlerIsCorrectBool, test.passwordHandlerIsCorrectErr
-			}
-		}
-		ph = mph
-		gotBool, gotErr := isCorrectUserPassword(test.username, test.p, getUserPasswordFunc)
+		gotBool, gotErr := ds.IsCorrectUserPassword(test.username, test.p)
 		switch {
 		case test.wantErr:
 			switch {
@@ -203,66 +222,80 @@ func TestSetAdminPassword(t *testing.T) {
 		setUserPasswordFuncErr error
 		addUserFuncErr         error
 	}{
-		{}, // user exists, password successfully set
 		{
+			p: "valid_password17",
+		}, // user exists, password successfully set
+		{
+			p:                      "valid_password17",
 			setUserPasswordFuncErr: errors.New("setUserPassword error"),
 		},
 		{ // user new, password successfully set
+			p:                      "valid_password17",
 			getUserPasswordFuncErr: sql.ErrNoRows,
 		},
 		{
+			p:                      "valid_password17",
 			getUserPasswordFuncErr: sql.ErrNoRows,
 			addUserFuncErr:         errors.New("addUser error"),
 		},
 		{
+			p:                      "valid_password17",
 			getUserPasswordFuncErr: errors.New("getUserPassword error"),
 		},
 	}
 	for i, test := range setAdminPasswordTests {
-		wantUsername := "admin"
-		getUserPasswordFunc := func(username string) (string, error) {
-			if wantUsername != username {
-				t.Errorf("Test %v: wanted call to getUserPasswordFunc with %v, got %v", i, wantUsername, username)
-			}
-			return "hashedPasswordToIgnore", test.getUserPasswordFuncErr
+		ds := Datastore{
+			db: mockDatabase{
+				QueryRowFunc: func(query string, args ...interface{}) row {
+					return mockRow{
+						ScanFunc: func(dest ...interface{}) error {
+							if test.getUserPasswordFuncErr != nil {
+								return test.getUserPasswordFuncErr
+							}
+							p := struct {
+								Password string
+							}{
+								Password: string(test.p),
+							}
+							return mockRowScanFunc(p, dest...)
+						},
+					}
+				},
+				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+					r := mockResult{
+						RowsAffectedFunc: func() (int64, error) {
+							return 1, nil
+						},
+					}
+					switch {
+					case query[:10] == "SELECT set":
+						return r, test.setUserPasswordFuncErr
+					case query[:10] == "SELECT add":
+						return r, test.addUserFuncErr
+					default:
+						return nil, fmt.Errorf("Unknown exec query: %v", query)
+					}
+				},
+			},
+			ph: mockPasswordHasher{
+				hashFunc: func(p Password) (string, error) {
+					return string(p) + "-hashed!", nil
+				},
+			},
 		}
-		var setUserPasswordFunc func(string, Password) error
-		var addUserFunc func(string, Password) error
+		gotErr := ds.SetAdminPassword(test.p)
 		switch {
 		case test.getUserPasswordFuncErr == nil:
-			setUserPasswordFunc = func(username string, p Password) error {
-				switch {
-				case wantUsername != username:
-					t.Errorf("Test %v: wanted call to setUserPasswordFunc [username] with %v, got %v", i, wantUsername, username)
-				case test.p != p:
-					t.Errorf("Test %v: wanted call to setUserPasswordFunc [p] with %v, got %v", i, test.p, p)
-				}
-				return test.setUserPasswordFuncErr
-			}
-		case test.getUserPasswordFuncErr != nil:
-			addUserFunc = func(username string, p Password) error {
-				switch {
-				case wantUsername != username:
-					t.Errorf("Test %v: wanted call to addUserFunc [username] with %v, got %v", i, wantUsername, username)
-				case test.p != p:
-					t.Errorf("Test %v: wanted call to addUserFunc [p] with %v, got %v", i, test.p, p)
-				}
-				return test.addUserFuncErr
-			}
-		}
-		gotErr := setAdminPassword(test.p, getUserPasswordFunc, setUserPasswordFunc, addUserFunc)
-		switch {
-		case test.getUserPasswordFuncErr == nil:
-			if test.setUserPasswordFuncErr != gotErr {
+			if !errors.Is(gotErr, test.setUserPasswordFuncErr) {
 				t.Errorf("Test %v: wanted %v, got %v", i, test.setUserPasswordFuncErr, gotErr)
 			}
 		case test.getUserPasswordFuncErr != sql.ErrNoRows:
-			if test.getUserPasswordFuncErr != gotErr {
+			if !errors.Is(gotErr, test.getUserPasswordFuncErr) {
 				t.Errorf("Test %v: wanted %v, got %v", i, test.getUserPasswordFuncErr, gotErr)
 
 			}
 		default:
-			if test.addUserFuncErr != gotErr {
+			if !errors.Is(gotErr, test.addUserFuncErr) {
 				t.Errorf("Test %v: wanted %v, got %v", i, test.addUserFuncErr, gotErr)
 
 			}

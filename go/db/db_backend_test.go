@@ -35,7 +35,6 @@ type (
 	}
 	// mockResult implements the sql.Result interface
 	mockResult struct {
-		LastInsertIDFunc func() (int64, error)
 		RowsAffectedFunc func() (int64, error)
 	}
 )
@@ -81,7 +80,7 @@ func (m mockTransaction) Rollback() error {
 }
 
 func (m mockResult) LastInsertId() (int64, error) {
-	return m.LastInsertIDFunc()
+	panic("should not be called") // required by sql.Result interface
 }
 func (m mockResult) RowsAffected() (int64, error) {
 	return m.RowsAffectedFunc()

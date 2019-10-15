@@ -58,13 +58,15 @@ func TestPing(t *testing.T) {
 		},
 	}
 	for i, test := range pingTests {
-		db = mockDatabase{
-			PingFunc: func() error {
-				return test.pingErr
+		ds := Datastore{
+			db: mockDatabase{
+				PingFunc: func() error {
+					return test.pingErr
+				},
 			},
 		}
 		wantErr := test.pingErr
-		gotErr := Ping()
+		gotErr := ds.Ping()
 		if wantErr != gotErr {
 			t.Errorf("Test %v: wanted %v, got %v", i, wantErr, gotErr)
 		}

@@ -42,6 +42,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // Run configures and starts the server
+// TODO: create ServerConfig struct to house port, applicationName, datasource)
 func Run(port, applicationName string, datastore db.Datastore) error {
 	if _, err := strconv.Atoi(port); err != nil {
 		return fmt.Errorf("Invalid port number: %s", port)

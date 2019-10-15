@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 )
@@ -27,18 +29,50 @@ type (
 	}
 )
 
+// Datastore interface can be used to access and persist data
+type Datastore struct {
+	db           database
+	ph           passwordHasher
+	sportTypes   map[SportType]SportTypeInfo
+	playerTypes  map[PlayerType]PlayerTypeInfo
+	readFileFunc func(filename string) ([]byte, error)
+	readDirFunc  func(dirname string) ([]os.FileInfo, error)
+}
+
+// NewDatastore creates a new sqlDatastore
+func NewDatastore(dataSourceName string, sportTypes map[SportType]SportTypeInfo, playerTypes map[PlayerType]PlayerTypeInfo) (*Datastore, error) {
+	db, err := newSQLDatabase(dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	ds := Datastore{
+		db:           db,
+		ph:           bcryptPasswordHasher{},
+		sportTypes:   sportTypes,
+		playerTypes:  playerTypes,
+		readFileFunc: ioutil.ReadFile,
+		readDirFunc:  ioutil.ReadDir,
+	}
+	return &ds, nil
+}
+
 // Ping ensures the database connection is active and returns an error if not
-func Ping() error {
-	return db.Ping()
+func (ds Datastore) Ping() error {
+	return ds.db.Ping()
 }
 
 // GetUtcTime retrieves the current UTC time
-func GetUtcTime() time.Time {
+func (Datastore) GetUtcTime() time.Time {
 	return time.Now().UTC()
 }
 
+// Deprecated: use Datastore.executeInTransaction()  TODO: DELETEME
 func executeInTransaction(queries []writeSQLFunction) error {
-	tx, err := db.Begin()
+	return Datastore{db: db}.executeInTransaction(queries)
+}
+
+func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {
+	tx, err := ds.db.Begin()
 	if err != nil {
 		return err
 	}
