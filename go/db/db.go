@@ -11,8 +11,6 @@ import (
 	"time"
 )
 
-var db database
-
 type (
 	// ID is used to identify an item in the database or a relation to another noun's id
 	ID int
@@ -64,11 +62,6 @@ func (ds Datastore) Ping() error {
 // GetUtcTime retrieves the current UTC time
 func (Datastore) GetUtcTime() time.Time {
 	return time.Now().UTC()
-}
-
-// Deprecated: use Datastore.executeInTransaction()  TODO: DELETEME
-func executeInTransaction(queries []writeSQLFunction) error {
-	return Datastore{db: db}.executeInTransaction(queries)
 }
 
 func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {

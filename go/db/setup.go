@@ -2,18 +2,16 @@ package db
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 )
 
-func getSetupTableQueries(readFileFunc func(filename string) ([]byte, error)) ([]string, error) {
+func (ds Datastore) getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
 	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
 	for _, setupFileName := range setupFileNames {
-		b, err := readFileFunc(fmt.Sprintf("sql/setup/%s.pgsql", setupFileName))
+		b, err := ds.readFileFunc(fmt.Sprintf("sql/setup/%s.pgsql", setupFileName))
 		if err != nil {
 			return nil, err
 		}
@@ -23,17 +21,17 @@ func getSetupTableQueries(readFileFunc func(filename string) ([]byte, error)) ([
 	return queries, nil
 }
 
-func getSetupFunctionQueries(readFileFunc func(filename string) ([]byte, error), readDirFunc func(dirname string) ([]os.FileInfo, error)) ([]string, error) {
+func (ds Datastore) getSetupFunctionQueries() ([]string, error) {
 	var queries []string
 	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
 	for _, functionDirType := range functionDirTypes {
 		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
-		functionFileInfos, err := readDirFunc(functionDir)
+		functionFileInfos, err := ds.readDirFunc(functionDir)
 		if err != nil {
 			return nil, err
 		}
 		for _, functionFileInfo := range functionFileInfos {
-			b, err := readFileFunc(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
+			b, err := ds.readFileFunc(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
 			if err != nil {
 				return nil, err
 			}
@@ -44,21 +42,17 @@ func getSetupFunctionQueries(readFileFunc func(filename string) ([]byte, error),
 }
 
 // SetupTablesAndFunctions runs setup scripts to ensure tables are initialized, populated, and re-adds all functions to access/change saved data
-func SetupTablesAndFunctions() error {
-	return setupTablesAndFunctions(ioutil.ReadFile, ioutil.ReadDir)
-}
-
-func setupTablesAndFunctions(readFileFunc func(filename string) ([]byte, error), readDirFunc func(dirname string) ([]os.FileInfo, error)) error {
-	setupTableQueries, err := getSetupTableQueries(readFileFunc)
+func (ds Datastore) SetupTablesAndFunctions() error {
+	setupTableQueries, err := ds.getSetupTableQueries()
 	if err != nil {
 		return err
 	}
-	setupFunctionQueries, err := getSetupFunctionQueries(readFileFunc, readDirFunc)
+	setupFunctionQueries, err := ds.getSetupFunctionQueries()
 	if err != nil {
 		return err
 	}
 	queries := append(setupTableQueries, setupFunctionQueries...)
-	tx, err := db.Begin()
+	tx, err := ds.db.Begin()
 	if err != nil {
 		return fmt.Errorf("starting database setup: %w", err)
 	}

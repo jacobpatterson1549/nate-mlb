@@ -113,7 +113,7 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		db = mockDatabase{
+		db := mockDatabase{
 			BeginFunc: func() (transaction, error) {
 				if test.beginErr != nil {
 					return nil, test.beginErr
@@ -121,7 +121,12 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 				return tx, nil
 			},
 		}
-		gotErr := setupTablesAndFunctions(readFileFunc, readDirFunc)
+		ds := Datastore{
+			db:           db,
+			readFileFunc: readFileFunc,
+			readDirFunc:  readDirFunc,
+		}
+		gotErr := ds.SetupTablesAndFunctions()
 		switch {
 		case gotErr != nil:
 			switch {
@@ -195,7 +200,11 @@ func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
 		}
 		return fileInfos, nil
 	}
-	_, gotErr := getSetupFunctionQueries(readFileFunc, readDirFunc)
+	ds := Datastore{
+		readFileFunc: readFileFunc,
+		readDirFunc:  readDirFunc,
+	}
+	_, gotErr := ds.getSetupFunctionQueries()
 	if gotErr == nil || !errors.Is(gotErr, wantErr) {
 		t.Errorf("want %v, got: %v", wantErr, gotErr)
 	}

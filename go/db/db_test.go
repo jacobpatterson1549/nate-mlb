@@ -135,7 +135,7 @@ func TestExecuteInTransaction(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		db = mockDatabase{
+		db := mockDatabase{
 			BeginFunc: func() (transaction, error) {
 				if test.beginErr != nil {
 					return nil, test.beginErr
@@ -143,7 +143,8 @@ func TestExecuteInTransaction(t *testing.T) {
 				return tx, nil
 			},
 		}
-		gotErr := executeInTransaction(test.queries)
+		ds := Datastore{db: db}
+		gotErr := ds.executeInTransaction(test.queries)
 		switch {
 		case gotErr == nil:
 			if test.beginErr != nil || test.execErr != nil || test.commitErr != nil {
