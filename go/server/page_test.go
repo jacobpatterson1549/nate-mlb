@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
@@ -38,6 +39,55 @@ func TestNewSportEntries(t *testing.T) {
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("not equal:\nwant: %v\ngot:  %v", want, got)
 	}
+}
+
+func TestNewPage(t *testing.T) {
+	applicationName := "aWesome App"
+	sportEntries := []SportEntry{
+		{
+			URL:       "/q",
+			Name:      "query",
+			sportType: db.SportType(8),
+		},
+	}
+	time1 := time.Date(2019, time.October, 17, 3, 19, 42, 197, time.UTC)
+	time2 := time.Date(2019, time.October, 17, 3, 19, 42, 200, time.UTC)
+	time3 := time.Date(2019, time.June, 6, 12, 0, 0, 0, time.UTC)
+	tg := mockTimeGetter{
+		GetUtcTimeFunc: func() time.Time {
+			return time1
+		},
+	}
+	title := "Shall be lifted -- nevermore!"
+	tabs := []Tab{} // none
+	showTabs := true
+	timesMessage := TimesMessage{
+		Messages: []string{"a", "scary", "omen"},
+		Times:    []time.Time{time2, time3},
+	}
+	htmlFolderName := "edgar_p"
+	want := Page{
+		ApplicationName: applicationName,
+		Title:           title,
+		Tabs:            tabs,
+		htmlFolderName:  htmlFolderName,
+		ShowTabs:        showTabs,
+		Sports:          sportEntries,
+		TimesMessage:    timesMessage,
+		PageLoadTime:    time1,
+	}
+	got := newPage(applicationName, sportEntries, tg, title, tabs, showTabs, timesMessage, htmlFolderName)
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("not equal:\nwant: %v\ngot:  %v", want, got)
+	}
+}
+
+type mockTimeGetter struct {
+	GetUtcTimeFunc func() time.Time
+}
+
+func (tg mockTimeGetter) GetUtcTime() time.Time {
+	return tg.GetUtcTimeFunc()
 }
 
 func TestHtmlFolderNameGlob(t *testing.T) {
