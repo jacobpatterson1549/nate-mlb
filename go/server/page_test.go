@@ -1,11 +1,44 @@
 package server
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
+
+func TestNewSportEntries(t *testing.T) {
+	sportTypes := db.SportTypeMap{
+		db.SportType(1): db.SportTypeInfo{
+			Name:         "apples",
+			URL:          "/a",
+			DisplayOrder: 2,
+		},
+		db.SportType(2): db.SportTypeInfo{
+			Name:         "berries",
+			URL:          "/b",
+			DisplayOrder: 1,
+		},
+	}
+	want := []SportEntry{
+		{
+			URL:       "/b",
+			Name:      "berries",
+			sportType: db.SportType(2),
+		},
+		{
+			URL:       "/a",
+			Name:      "apples",
+			sportType: db.SportType(1),
+		},
+	}
+	got := newSportEntries(sportTypes)
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("not equal:\nwant: %v\ngot:  %v", want, got)
+	}
+}
 
 func TestHtmlFolderNameGlob(t *testing.T) {
 	p := Page{htmlFolderName: "special_folder_name"}

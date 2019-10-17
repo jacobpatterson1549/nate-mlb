@@ -65,7 +65,7 @@ func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
 	sportEntries := make([]SportEntry, 0, len(sportTypes))
 	for st, stInfo := range sportTypes {
 		sportEntry := SportEntry{
-			URL:       strings.ToLower(stInfo.Name),
+			URL:       stInfo.URL,
 			Name:      stInfo.Name,
 			sportType: st,
 		}
