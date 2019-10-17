@@ -2,53 +2,12 @@ package db
 
 import (
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"testing"
 )
-
-type (
-	mockDriver struct {
-		OpenFunc func(name string) (driver.Conn, error)
-	}
-	mockDriverConn struct {
-		closed      bool
-		PrepareFunc func(query string) (driver.Stmt, error)
-		CloseFunc   func() error
-		BeginFunc   func() (driver.Tx, error)
-	}
-)
-
-func (m mockDriver) Open(name string) (driver.Conn, error) {
-	return m.OpenFunc(name)
-}
-
-func (m mockDriverConn) Prepare(query string) (driver.Stmt, error) {
-	return m.PrepareFunc(query)
-}
-func (m mockDriverConn) Close() error {
-	return m.CloseFunc()
-}
-func (m mockDriverConn) Begin() (driver.Tx, error) {
-	return m.BeginFunc()
-}
-
-func init() {
-	driverName, dataSourceName := "postgres", "mockDataSourceName"
-	mockConn := mockDriverConn{}
-	mockDriver := mockDriver{
-		OpenFunc: func(name string) (driver.Conn, error) {
-			if name != dataSourceName {
-				return nil, fmt.Errorf("invalid dataSourceName: %v", name)
-			}
-			return mockConn, nil
-		},
-	}
-	sql.Register(driverName, mockDriver)
-}
 
 func TestPing(t *testing.T) {
 	pingTests := []struct {

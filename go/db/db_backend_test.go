@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"testing"
@@ -36,6 +37,18 @@ type (
 	// mockResult implements the sql.Result interface
 	mockResult struct {
 		RowsAffectedFunc func() (int64, error)
+	}
+
+	// mockDriver implements the sql/driver interface
+	mockDriver struct {
+		OpenFunc func(name string) (driver.Conn, error)
+	}
+	// mockDriverConn implements the sql/conn interface
+	mockDriverConn struct {
+		closed      bool
+		PrepareFunc func(query string) (driver.Stmt, error)
+		CloseFunc   func() error
+		BeginFunc   func() (driver.Tx, error)
 	}
 )
 
@@ -216,6 +229,20 @@ func newMockBeginFunc(beginErr error, commitValidator func(queries []writeSQLFun
 	}
 }
 
+func init() { // for TestNewSqlDatabase
+	driverName := "postgres"
+	dataSourceName := "mockDataSourceName"
+	mockConn := mockDriverConn{}
+	mockDriver := mockDriver{
+		OpenFunc: func(name string) (driver.Conn, error) {
+			if name != dataSourceName {
+				return nil, fmt.Errorf("invalid dataSourceName: %v", name)
+			}
+			return mockConn, nil
+		},
+	}
+	sql.Register(driverName, mockDriver)
+}
 func TestNewSqlDatabase(t *testing.T) {
 	dataSourceName := "mockDataSourceName"
 	db, err := newSQLDatabase(dataSourceName)
@@ -225,4 +252,16 @@ func TestNewSqlDatabase(t *testing.T) {
 	case db == nil:
 		t.Error("expected database to not be nil after Init() called, but was")
 	}
+}
+func (m mockDriver) Open(name string) (driver.Conn, error) {
+	return m.OpenFunc(name)
+}
+func (m mockDriverConn) Prepare(query string) (driver.Stmt, error) {
+	return m.PrepareFunc(query)
+}
+func (m mockDriverConn) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverConn) Begin() (driver.Tx, error) {
+	return m.BeginFunc()
 }
