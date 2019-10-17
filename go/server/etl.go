@@ -21,13 +21,13 @@ type (
 		year            int
 	}
 	etlDatastore interface {
-		GetUtcTime() time.Time
 		GetStat(st db.SportType) (*db.Stat, error)
 		GetFriends(st db.SportType) ([]db.Friend, error)
 		GetPlayers(st db.SportType) ([]db.Player, error)
 		SetStat(stat db.Stat) error
 		db.SportTypeGetter
 		db.PlayerTypeGetter
+		timeGetter
 	}
 )
 

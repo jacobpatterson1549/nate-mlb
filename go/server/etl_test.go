@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
+
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
@@ -64,5 +66,54 @@ func TestPlayerTypes(t *testing.T) {
 	got := getPlayerTypes(st1, playerTypes)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("Wanted %v, but got %v", want, got)
+	}
+}
+
+func TestSetStat(t *testing.T) {
+	time1 := time.Date(2019, time.October, 17, 15, 41, 42, 0, time.UTC)
+	setStatTests := []struct {
+		statEtlTimestamp time.Time
+		statEtlJSON      []byte
+		wantErr          bool
+		want             EtlStats
+	}{
+		{ // no EtlJSON (see below for set iff len>0 switch)
+			wantErr: true,
+		},
+		{ // bad EtlJSON
+			statEtlJSON: []byte(`bad encoding`),
+			wantErr:     true,
+		},
+		{ // happy path
+			statEtlTimestamp: time1,
+			statEtlJSON:      []byte(`[{"Name":"something"},{"Name":"misc","Description":"?"}]`),
+			want: EtlStats{
+				etlTime: time1,
+				scoreCategories: []request.ScoreCategory{
+					{Name: "something"},
+					{Name: "misc", Description: "?"},
+				},
+			},
+		},
+	}
+	for i, test := range setStatTests {
+		es := EtlStats{}
+		stat := db.Stat{
+			EtlTimestamp: &test.statEtlTimestamp,
+		}
+		if len(test.statEtlJSON) > 0 {
+			stat.EtlJSON = &test.statEtlJSON
+		}
+		gotErr := es.setStat(stat)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		case !reflect.DeepEqual(test.want, es):
+			t.Errorf("Test %v: did not mutate caller correctly:\n wanted: %v\ngot:    %v", i, test.want, es)
+		}
 	}
 }
