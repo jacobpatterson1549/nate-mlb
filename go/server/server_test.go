@@ -38,15 +38,16 @@ func TestTransformURLPath(t *testing.T) {
 			wantURLPath:   "admin",
 		},
 	}
-	mockSportTypes := map[string]db.SportType{
+
+	sportTypesURLLookup := map[string]db.SportType{
 		"mlb": db.SportTypeMlb,
 		"nfl": db.SportTypeNfl,
 	}
-	var mockSTUR sportTypeURLResolver = func(urlPath string) db.SportType {
-		return mockSportTypes[urlPath]
+	var mockSTUR sportTypeURLResolver = func(sportTypes db.SportTypeMap, urlPath string) db.SportType {
+		return sportTypesURLLookup[urlPath]
 	}
 	for i, test := range transformURLPathTests {
-		gotSportType, gotURLPath := transformURLPath(test.urlPath, mockSTUR)
+		gotSportType, gotURLPath := transformURLPath(nil, test.urlPath, mockSTUR)
 		if test.wantSportType != gotSportType || test.wantURLPath != test.wantURLPath {
 			t.Errorf("Test %d: wanted '{%v,%v}', but got '{%v,%v}' for url '%v'", i, test.wantSportType, test.wantURLPath, gotSportType, gotURLPath, test.urlPath)
 		}
@@ -55,13 +56,13 @@ func TestTransformURLPath(t *testing.T) {
 
 func TestSportTypeFromURL(t *testing.T) {
 	sportTypeFromURLTests := []struct {
-		loadedSportTypes map[db.SportType]db.SportTypeInfo
+		loadedSportTypes db.SportTypeMap
 		url              string
 		want             db.SportType
 	}{
 		{},
 		{
-			loadedSportTypes: map[db.SportType]db.SportTypeInfo{
+			loadedSportTypes: db.SportTypeMap{
 				db.SportType(2): {URL: "here"},
 				db.SportType(8): {URL: "somewhere"},
 			},
@@ -69,7 +70,7 @@ func TestSportTypeFromURL(t *testing.T) {
 			want: db.SportType(8),
 		},
 		{
-			loadedSportTypes: map[db.SportType]db.SportTypeInfo{
+			loadedSportTypes: db.SportTypeMap{
 				db.SportType(3): {URL: "*"},
 			},
 			url:  "anywhere",
@@ -77,8 +78,7 @@ func TestSportTypeFromURL(t *testing.T) {
 		},
 	}
 	for i, test := range sportTypeFromURLTests {
-		sportTypes = test.loadedSportTypes
-		got := sportTypeFromURL(test.url)
+		got := sportTypeFromURL(test.loadedSportTypes, test.url)
 		if test.want != got {
 			t.Errorf("Test :%v:\nwanted: %v\ngot:    %v", i, test.want, got)
 		}

@@ -16,6 +16,14 @@ type (
 		ScoreType    string
 		DisplayOrder int
 	}
+
+	// PlayerTypeMap contains information about multiple PlayerTypes and their PlayerTypeInfos
+	PlayerTypeMap map[PlayerType]PlayerTypeInfo
+
+	// PlayerTypeGetter is used to retrieve a PlayerTypeMap
+	PlayerTypeGetter interface {
+		PlayerTypes() PlayerTypeMap
+	}
 )
 
 // The expected PlayerTypes
@@ -29,7 +37,7 @@ const (
 )
 
 // GetPlayerTypes loads the PlayerTypes from the database
-func (ds Datastore) GetPlayerTypes() (map[PlayerType]PlayerTypeInfo, error) {
+func (ds Datastore) GetPlayerTypes() (PlayerTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_player_types", []string{"id", "sport_type_id", "name", "description", "score_type"})
 	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {

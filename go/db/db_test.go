@@ -5,6 +5,8 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"testing"
 )
 
@@ -264,5 +266,77 @@ func TestExpectRowFound(t *testing.T) {
 		case gotErr != nil && test.found:
 			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
+	}
+}
+
+func TestWaitForDb_numTries(t *testing.T) {
+	waitForDbTests := []struct {
+		successfulConnectTry int
+		numFibonacciTries    int
+		wantError            bool
+	}{
+		{ // should not fail when not attempted to connect
+		},
+		{
+			successfulConnectTry: 1,
+			numFibonacciTries:    1,
+		},
+		{
+			successfulConnectTry: 2,
+			numFibonacciTries:    3,
+		},
+		{
+			successfulConnectTry: 4,
+			numFibonacciTries:    3,
+			wantError:            true,
+		},
+	}
+	log.SetOutput(ioutil.Discard)
+	for i, test := range waitForDbTests {
+		dbCheckCount := 0
+		db := mockDatabase{
+			PingFunc: func() error {
+				dbCheckCount++
+				if dbCheckCount != test.successfulConnectTry {
+					return errors.New("check failed")
+				}
+				return nil
+			},
+		}
+		sleepFunc := func(waitTime int) {}
+		err := waitForDb(db, sleepFunc, test.numFibonacciTries)
+		gotError := err != nil
+		if test.wantError != gotError {
+			t.Errorf("Test %v: wantedError = %v, gotError = %v", i, test.wantError, gotError)
+		}
+	}
+}
+
+func TestWaitForDb_fibonacci(t *testing.T) {
+	wantFibonacciSleepSeconds := []int{0, 1, 1, 2, 3, 5, 8}
+	dbCheckCount := 0
+	db := mockDatabase{
+		PingFunc: func() error {
+			dbCheckCount++
+			return fmt.Errorf("check failed")
+		},
+	}
+	i := 0
+	sleepFunc := func(sleepSeconds int) {
+		if wantFibonacciSleepSeconds[i] != sleepSeconds {
+			t.Errorf("unexpected %vth wait time: wanted %v, got %v", i, wantFibonacciSleepSeconds[i], sleepSeconds)
+		}
+		i++
+	}
+	numFibonacciTries := len(wantFibonacciSleepSeconds)
+	err := waitForDb(db, sleepFunc, numFibonacciTries)
+	if err == nil {
+		t.Error("expected db wait check to error out")
+	}
+	if numFibonacciTries != i {
+		t.Errorf("expected to wait for db to start %v times, got %v", numFibonacciTries, i)
+	}
+	if numFibonacciTries != dbCheckCount {
+		t.Errorf("expected to check the db %v times, got %v", numFibonacciTries, dbCheckCount)
 	}
 }

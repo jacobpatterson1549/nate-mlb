@@ -41,7 +41,7 @@ func (ds Datastore) GetPlayers(st SportType) ([]Player, error) {
 }
 
 // SavePlayers saves the specified players for the active year for a SportType
-func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player, playerTypes map[PlayerType]PlayerTypeInfo) error {
+func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player) error {
 	players, err := ds.GetPlayers(st)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player, playerType
 		previousPlayer, ok := previousPlayers[player.ID]
 		switch {
 		case !ok:
-			ptInfo := playerTypes[player.PlayerType]
+			ptInfo := ds.playerTypes[player.PlayerType]
 			if ptInfo.SportType != st {
 				return fmt.Errorf("cannot add Player with PlayerType of %v when saving Players of SportType %v: it has a SportType of %v", player.PlayerType, st, ptInfo.SportType)
 			}

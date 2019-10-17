@@ -17,7 +17,7 @@ func TestGetPlayerTypes(t *testing.T) {
 	getPlayerTypesTests := []struct {
 		queryErr        error
 		rows            []interface{}
-		wantPlayerTypes map[PlayerType]PlayerTypeInfo
+		wantPlayerTypes PlayerTypeMap
 		wantErr         bool
 	}{
 		{
@@ -46,7 +46,7 @@ func TestGetPlayerTypes(t *testing.T) {
 				playerTypeQueryRow{6, 2, "mockNflMiscName", "mockNflMiscDescription", "mockNflMiscType"}, // (should be loaded as displayOrder=5 because the db presents it before PlayerTypeNflQB)
 				playerTypeQueryRow{5, 2, "mockNflQBName", "mockNflQBDescription", "mockNflQBScoreType"},
 			},
-			wantPlayerTypes: map[PlayerType]PlayerTypeInfo{
+			wantPlayerTypes: PlayerTypeMap{
 				1: {SportType: 1, Name: "mockMlbTeamName", Description: "mockMlbTeamDescription", ScoreType: "mockMlbTeamScoreType", DisplayOrder: 1},
 				2: {SportType: 1, Name: "mockMlbHitterName", Description: "mockMlbHitterDescription", ScoreType: "mockMlbHitterScoreType", DisplayOrder: 2},
 				3: {SportType: 1, Name: "mockMlbPitcherName", Description: "mockMlbPitcherDescription", ScoreType: "mockMlbPitcherScoreType", DisplayOrder: 3},

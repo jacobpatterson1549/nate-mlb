@@ -14,6 +14,14 @@ type (
 		URL          string
 		DisplayOrder int
 	}
+
+	// SportTypeMap contains information about multiple SportTypes and their SportTypeInfos
+	SportTypeMap map[SportType]SportTypeInfo
+
+	// SportTypeGetter is used to retrieve a SportTypeMap
+	SportTypeGetter interface {
+		SportTypes() SportTypeMap
+	}
 )
 
 // The expected SportTypes
@@ -23,7 +31,7 @@ const (
 )
 
 // GetSportTypes returns the SportTypes from the database
-func (ds Datastore) GetSportTypes() (map[SportType]SportTypeInfo, error) {
+func (ds Datastore) GetSportTypes() (SportTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
 	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {

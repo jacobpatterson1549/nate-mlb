@@ -24,6 +24,10 @@ type (
 		PageLoadTime    time.Time
 	}
 
+	timeGetter interface {
+		GetUtcTime() time.Time
+	}
+
 	// Tab is a tab which gets rendered by the main template
 	Tab interface {
 		GetName() string
@@ -57,8 +61,8 @@ type (
 	}
 )
 
-func newPage(applicationName string, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
-	sportEntries := make([]SportEntry, 0, len(sportTypes)) // TODO: cache this
+func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
+	sportEntries := make([]SportEntry, 0, len(sportTypes))
 	for st, stInfo := range sportTypes {
 		sportEntry := SportEntry{
 			URL:       strings.ToLower(stInfo.Name),
@@ -71,6 +75,11 @@ func newPage(applicationName string, title string, tabs []Tab, showTabs bool, ti
 	sort.Slice(sportEntries, func(i, j int) bool {
 		return displayOrder(i) < displayOrder(j)
 	})
+	return sportEntries
+}
+
+func newPage(applicationName string, sportEntries []SportEntry, tg timeGetter, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
+	// TODO: make function params more simple/shorter
 	return Page{
 		ApplicationName: applicationName,
 		Title:           title,
@@ -79,7 +88,7 @@ func newPage(applicationName string, title string, tabs []Tab, showTabs bool, ti
 		Sports:          sportEntries,
 		ShowTabs:        showTabs,
 		TimesMessage:    timesMessage,
-		PageLoadTime:    db.GetUtcTime(),
+		PageLoadTime:    tg.GetUtcTime(),
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -31,26 +32,55 @@ type (
 type Datastore struct {
 	db           database
 	ph           passwordHasher
-	sportTypes   map[SportType]SportTypeInfo
-	playerTypes  map[PlayerType]PlayerTypeInfo
+	sportTypes   SportTypeMap
+	playerTypes  PlayerTypeMap
 	readFileFunc func(filename string) ([]byte, error)
 	readDirFunc  func(dirname string) ([]os.FileInfo, error)
 }
 
 // NewDatastore creates a new sqlDatastore
-func NewDatastore(dataSourceName string, sportTypes map[SportType]SportTypeInfo, playerTypes map[PlayerType]PlayerTypeInfo) (*Datastore, error) {
+func NewDatastore(dataSourceName string) (*Datastore, error) {
 	db, err := newSQLDatabase(dataSourceName)
 	if err != nil {
 		return nil, err
 	}
+
+	sleepFunc := func(sleepSeconds int) {
+		s := fmt.Sprintf("%ds", sleepSeconds)
+		d, err := time.ParseDuration(s)
+		if err != nil {
+			panic(err)
+		}
+		time.Sleep(d) // BLOCKING
+	}
+	numFibonacciTries := 7
+	if err := waitForDb(db, sleepFunc, numFibonacciTries); err != nil {
+		return nil, fmt.Errorf("establishing connection: %v", err)
+	}
+
 	ds := Datastore{
 		db:           db,
 		ph:           bcryptPasswordHasher{},
-		sportTypes:   sportTypes,
-		playerTypes:  playerTypes,
 		readFileFunc: ioutil.ReadFile,
 		readDirFunc:  ioutil.ReadDir,
 	}
+
+	if err = ds.SetupTablesAndFunctions(); err != nil {
+		return nil, err
+	}
+
+	sportTypes, err := ds.GetSportTypes()
+	if err != nil {
+		return nil, err
+	}
+	ds.sportTypes = sportTypes
+
+	playerTypes, err := ds.GetPlayerTypes()
+	if err != nil {
+		return nil, err
+	}
+	ds.playerTypes = playerTypes
+
 	return &ds, nil
 }
 
@@ -62,6 +92,16 @@ func (ds Datastore) Ping() error {
 // GetUtcTime retrieves the current UTC time
 func (Datastore) GetUtcTime() time.Time {
 	return time.Now().UTC()
+}
+
+// SportTypes implements the SportTypeGetter interface for Datastore
+func (ds Datastore) SportTypes() SportTypeMap {
+	return ds.sportTypes
+}
+
+// PlayerTypes implements the PlayerTypeGetter interface for Datastore
+func (ds Datastore) PlayerTypes() PlayerTypeMap {
+	return ds.playerTypes
 }
 
 func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {
@@ -148,4 +188,23 @@ func (f writeSQLFunction) sql() string {
 		argIndexes[i] = fmt.Sprintf("$%d", i+1)
 	}
 	return fmt.Sprintf("SELECT %s(%s)", f.name, strings.Join(argIndexes, ", "))
+}
+
+// waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
+func waitForDb(d database, sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
+	a, b := 1, 0
+	var err error
+	for i := 0; i < numFibonacciTries; i++ {
+		err = d.Ping()
+		if err == nil {
+			log.Println("connected to database")
+			return nil
+		}
+		log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
+		sleepFunc(b)
+		c := b
+		b = a
+		a = b + c
+	}
+	return err
 }

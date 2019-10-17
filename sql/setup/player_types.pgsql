@@ -12,9 +12,13 @@ CREATE INDEX IF NOT EXISTS get_player_types_idx ON player_types (sport_type_id, 
 
 INSERT INTO player_types (id, sport_type_id, name, description, score_type)
     SELECT id, sport_type_id, name, description, score_type FROM ( VALUES
-      (5, 2, 'Quarterbacks', 'Touchdown (passes+runs)', 'TDs')
+      (1, 1, 'Teams', 'Wins', 'Wins')
+    , (2, 1, 'Hitting', 'Home Runs', 'HRs')
+    , (3, 1, 'Pitching', 'Wins', 'Wins')
+    , (4, 2, 'Teams', 'Wins', 'Wins')
+    , (5, 2, 'Quarterbacks', 'Touchdown (passes+runs)', 'TDs')
     , (6, 2, 'Misc', 'Touchdowns (RB/WR/TE) (Rushing/Receiving)', 'TDs')
     ) new_player_types (id, sport_type_id, name, description, score_type)
-    WHERE NOT EXISTS (SELECT * FROM player_types WHERE id BETWEEN 5 AND 6)
+    WHERE NOT EXISTS (SELECT * FROM player_types WHERE id BETWEEN 1 AND 6)
     ;
   

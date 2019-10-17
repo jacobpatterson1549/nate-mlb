@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
+	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
 	_ "github.com/lib/pq"
 )
@@ -21,7 +21,7 @@ const (
 	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
 )
 
-type mainVars struct {
+type mainFlags struct {
 	adminPassword   string
 	applicationName string
 	dataSourceName  string
@@ -29,15 +29,11 @@ type mainVars struct {
 	playerTypesCsv  string
 }
 
-var (
-	db          db.Database
-	sportTypes  map[db.SportType]db.SportTypeInfo
-	playerTypes map[db.PlayerType]db.PlayerTypeInfo
-)
+var ds *db.Datastore
 
 func main() {
-	mainVars := initFlags()
-	for _, startupFunc := range startupFuncs(mainVars) {
+	mainFlags := initFlags()
+	for _, startupFunc := range startupFuncs(mainFlags) {
 		if err := startupFunc(); err != nil {
 			log.Fatal(err)
 		}
@@ -57,85 +53,47 @@ func usage(programName string) {
 	flag.PrintDefaults()
 }
 
-func initFlags() mainVars {
+func initFlags() mainFlags {
 	programName := os.Args[0]
 	flag.Usage = func() { usage(programName) }
-	mainVars := mainVars{}
+	mainFlags := mainFlags{}
 	defaultApplicationName := func() string {
 		if applicationName, ok := os.LookupEnv(environmentVariableApplicationName); ok {
 			return applicationName
 		}
 		return programName
 	}
-	flag.StringVar(&mainVars.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
-	flag.StringVar(&mainVars.applicationName, "n", defaultApplicationName(), "The name of the application.")
-	flag.StringVar(&mainVars.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
-	flag.StringVar(&mainVars.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
-	flag.StringVar(&mainVars.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
+	flag.StringVar(&mainFlags.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
+	flag.StringVar(&mainFlags.applicationName, "n", defaultApplicationName(), "The name of the application.")
+	flag.StringVar(&mainFlags.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
+	flag.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
+	flag.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
 	flag.Parse()
-	return mainVars
+	return mainFlags
 }
 
-func startupFuncs(mainVars mainVars) []func() error {
-	startupFuncs := make([]func() error, 0, 6)
+func startupFuncs(mainFlags mainFlags) []func() error {
+	startupFuncs := make([]func() error, 0, 2)
 	startupFuncs = append(startupFuncs, func() error {
 		var err error
-		db, err = db.Init(mainVars.dataSourceName)
+		ds, err = db.NewDatastore(mainFlags.dataSourceName)
 		return err
 	})
-	startupFuncs = append(startupFuncs, func() error {
-		sleepFunc := func(sleepSeconds int) {
-			s := fmt.Sprintf("%ds", sleepSeconds)
-			d, err := time.ParseDuration(s)
-			if err != nil {
-				panic(err)
-			}
-			time.Sleep(d) // BLOCKING
-		}
-		return waitForDb(db.Ping, sleepFunc, 7)
-	})
-	startupFuncs = append(startupFuncs, db.SetupTablesAndFunctions)
-	startupFuncs = append(startupFuncs, func() error {
-		var err error
-		sportTypes, err = db.GetSportTypes()
-		return err
-	})
-	startupFuncs = append(startupFuncs, func() error {
-		var err error
-		playerTypes, err = db.GetPlayerTypes()
-		return err
-	})
-	if len(mainVars.playerTypesCsv) != 0 {
+	if len(mainFlags.playerTypesCsv) != 0 {
 		startupFuncs = append(startupFuncs, func() error {
-			return db.LimitPlayerTypes(mainVars.playerTypesCsv, sportTypes, playerTypes)
+			return ds.LimitPlayerTypes(mainFlags.playerTypesCsv)
 		})
 	}
-	if len(mainVars.adminPassword) != 0 {
+	if len(mainFlags.adminPassword) != 0 {
 		startupFuncs = append(startupFuncs, func() error {
-			return db.SetAdminPassword(db.Password(mainVars.adminPassword))
+			return ds.SetAdminPassword(db.Password(mainFlags.adminPassword))
 		})
 	}
 	return append(startupFuncs, func() error {
-		dataStore := db.NewDatastore(db, sportTypes, playerTypes)
-		return server.Run(mainVars.port, mainVars.applicationName, dataStore)
-	})
-}
-
-// waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
-func waitForDb(dbCheckFunc func() error, sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
-	a, b := 1, 0
-	var err error
-	for i := 0; i < numFibonacciTries; i++ {
-		err = dbCheckFunc()
-		if err == nil {
-			log.Println("connected to database")
-			return nil
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port)
+		if err != nil {
+			return err
 		}
-		log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
-		sleepFunc(b)
-		c := b
-		b = a
-		a = b + c
-	}
-	return err
+		return server.Run(*cfg)
+	})
 }

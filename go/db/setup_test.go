@@ -212,12 +212,12 @@ func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
 
 func TestLimitPlayerTypes(t *testing.T) {
 	limitPlayerTypesTests := []struct {
-		initialPlayerTypes map[PlayerType]PlayerTypeInfo
-		initialSportTypes  map[SportType]SportTypeInfo
+		initialPlayerTypes PlayerTypeMap
+		initialSportTypes  SportTypeMap
 		playerTypesCsv     string
 		wantErr            bool
-		wantPlayerTypes    map[PlayerType]PlayerTypeInfo
-		wantSportTypes     map[SportType]SportTypeInfo
+		wantPlayerTypes    PlayerTypeMap
+		wantSportTypes     SportTypeMap
 	}{
 		{ // no playerTypes ok
 		},
@@ -230,29 +230,31 @@ func TestLimitPlayerTypes(t *testing.T) {
 			wantErr:        true,
 		},
 		{ // wanted playerType that is not loaded
-			initialPlayerTypes: map[PlayerType]PlayerTypeInfo{1: {}},
+			initialPlayerTypes: PlayerTypeMap{1: {}},
 			playerTypesCsv:     "2",
 			wantErr:            true,
 		},
 		{ // no filter
-			initialPlayerTypes: map[PlayerType]PlayerTypeInfo{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}},
-			initialSportTypes:  map[SportType]SportTypeInfo{1: {}, 2: {}},
+			initialPlayerTypes: PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}},
+			initialSportTypes:  SportTypeMap{1: {}, 2: {}},
 			playerTypesCsv:     "",
-			wantPlayerTypes:    map[PlayerType]PlayerTypeInfo{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}},
-			wantSportTypes:     map[SportType]SportTypeInfo{1: {}, 2: {}},
+			wantPlayerTypes:    PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}},
+			wantSportTypes:     SportTypeMap{1: {}, 2: {}},
 		},
 		{ // filter to one playerType
-			initialPlayerTypes: map[PlayerType]PlayerTypeInfo{1: {SportType: 1}, 2: {SportType: 1}, 3: {SportType: 1}, 4: {SportType: 2}, 5: {SportType: 2}, 6: {SportType: 2}},
-			initialSportTypes:  map[SportType]SportTypeInfo{1: {}, 2: {}},
+			initialPlayerTypes: PlayerTypeMap{1: {SportType: 1}, 2: {SportType: 1}, 3: {SportType: 1}, 4: {SportType: 2}, 5: {SportType: 2}, 6: {SportType: 2}},
+			initialSportTypes:  SportTypeMap{1: {}, 2: {}},
 			playerTypesCsv:     "4",
-			wantPlayerTypes:    map[PlayerType]PlayerTypeInfo{4: {SportType: 2}},
-			wantSportTypes:     map[SportType]SportTypeInfo{2: {}},
+			wantPlayerTypes:    PlayerTypeMap{4: {SportType: 2}},
+			wantSportTypes:     SportTypeMap{2: {}},
 		},
 	}
 	for i, test := range limitPlayerTypesTests {
-		playerTypes := test.initialPlayerTypes
-		sportTypes := test.initialSportTypes
-		err := LimitPlayerTypes(test.playerTypesCsv, sportTypes, playerTypes)
+		ds := Datastore{
+			playerTypes: test.initialPlayerTypes,
+			sportTypes:  test.initialSportTypes,
+		}
+		err := ds.LimitPlayerTypes(test.playerTypesCsv)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -262,10 +264,10 @@ func TestLimitPlayerTypes(t *testing.T) {
 			t.Errorf("Test %v: unexpected error: %v", i, err)
 		default:
 			switch {
-			case !reflect.DeepEqual(test.wantPlayerTypes, playerTypes):
-				t.Errorf("Test %v: playerTypes:\nwanted: %v\ngot:    %v", i, test.wantPlayerTypes, playerTypes)
-			case !reflect.DeepEqual(test.wantSportTypes, sportTypes):
-				t.Errorf("Test %v: sportTypes:\nwanted: %v\ngot:    %v", i, test.wantSportTypes, sportTypes)
+			case !reflect.DeepEqual(test.wantPlayerTypes, ds.playerTypes):
+				t.Errorf("Test %v: playerTypes:\nwanted: %v\ngot:    %v", i, test.wantPlayerTypes, ds.playerTypes)
+			case !reflect.DeepEqual(test.wantSportTypes, ds.sportTypes):
+				t.Errorf("Test %v: sportTypes:\nwanted: %v\ngot:    %v", i, test.wantSportTypes, ds.sportTypes)
 			}
 		}
 	}

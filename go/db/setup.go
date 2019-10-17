@@ -77,7 +77,7 @@ func (ds Datastore) SetupTablesAndFunctions() error {
 // LimitPlayerTypes reduces the player types to those in the specified csv.
 // Also limits the sport types to those for the specified player types.
 // Note that this function mutates the supplied maps.
-func LimitPlayerTypes(playerTypesCsv string, sportTypes map[SportType]SportTypeInfo, playerTypes map[PlayerType]PlayerTypeInfo) error {
+func (ds *Datastore) LimitPlayerTypes(playerTypesCsv string) error {
 	if len(playerTypesCsv) == 0 {
 		return nil
 	}
@@ -91,7 +91,7 @@ func LimitPlayerTypes(playerTypesCsv string, sportTypes map[SportType]SportTypeI
 			return fmt.Errorf("invalid PlayerType: %w", err)
 		}
 		pt := PlayerType(pti)
-		ptInfo, ok := playerTypes[pt]
+		ptInfo, ok := ds.playerTypes[pt]
 		if !ok {
 			return fmt.Errorf("unknown PlayerType: %v", pt)
 		}
@@ -99,14 +99,14 @@ func LimitPlayerTypes(playerTypesCsv string, sportTypes map[SportType]SportTypeI
 		selectedSportTypesMap[ptInfo.SportType] = true
 	}
 	// limit PlayerTypes and SportTypes
-	for pt := range playerTypes {
+	for pt := range ds.playerTypes {
 		if _, ok := selectedPlayerTypesMap[pt]; !ok {
-			delete(playerTypes, pt)
+			delete(ds.playerTypes, pt)
 		}
 	}
-	for st := range sportTypes {
+	for st := range ds.sportTypes {
 		if _, ok := selectedSportTypesMap[st]; !ok {
-			delete(sportTypes, st)
+			delete(ds.sportTypes, st)
 			continue
 		}
 	}

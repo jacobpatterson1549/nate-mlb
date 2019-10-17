@@ -247,7 +247,7 @@ func TestSavePlayers(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	playerTypes := map[PlayerType]PlayerTypeInfo{
+	playerTypes := PlayerTypeMap{
 		PlayerType(1): PlayerTypeInfo{SportType: SportType(3)},
 		PlayerType(3): PlayerTypeInfo{SportType: SportType(3)},
 		PlayerType(8): PlayerTypeInfo{SportType: SportType(4)},
@@ -275,9 +275,10 @@ func TestSavePlayers(t *testing.T) {
 				},
 				BeginFunc: newMockBeginFunc(test.executeInTransactionErr, executeInTransactionFunc),
 			},
+			playerTypes: playerTypes,
 		}
 		wantErr := test.wantErr || test.getPlayersErr != nil || test.executeInTransactionErr != nil
-		gotErr := ds.SavePlayers(test.st, test.futurePlayers, playerTypes)
+		gotErr := ds.SavePlayers(test.st, test.futurePlayers)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
 			t.Errorf("Test %v: wanted error %v, got: %v", i, wantErr, gotErr)

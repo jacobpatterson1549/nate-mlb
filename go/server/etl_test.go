@@ -52,7 +52,7 @@ func TestPlayerTypes(t *testing.T) {
 	pt3 := db.PlayerType(3)
 	st1 := db.SportType(1)
 	st2 := db.SportType(2)
-	playerTypes = map[db.PlayerType]db.PlayerTypeInfo{
+	playerTypes := db.PlayerTypeMap{
 		pt1: {SportType: st1, DisplayOrder: 2},
 		pt2: {SportType: st2, DisplayOrder: 0},
 		pt3: {SportType: st1, DisplayOrder: 1},
@@ -61,7 +61,7 @@ func TestPlayerTypes(t *testing.T) {
 		pt3,
 		pt1,
 	}
-	got := getPlayerTypes(st1)
+	got := getPlayerTypes(st1, playerTypes)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("Wanted %v, but got %v", want, got)
 	}

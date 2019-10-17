@@ -16,7 +16,7 @@ func TestGetSportTypes(t *testing.T) {
 		queryErr       error
 		rows           []interface{}
 		wantErr        bool
-		wantSportTypes map[SportType]SportTypeInfo
+		wantSportTypes SportTypeMap
 	}{
 		{
 			queryErr: fmt.Errorf("query error"),

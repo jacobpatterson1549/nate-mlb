@@ -6,12 +6,24 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-var adminActions = map[string](func(db.SportType, *http.Request) error){
+type adminDatastore interface {
+	GetUtcTime() time.Time
+	SaveYears(st db.SportType, futureYears []db.Year) error
+	SaveFriends(st db.SportType, futureFriends []db.Friend) error
+	SavePlayers(st db.SportType, futurePlayers []db.Player) error
+	ClearStat(st db.SportType) error
+	SetUserPassword(username string, p db.Password) error
+	IsCorrectUserPassword(username string, p db.Password) (bool, error)
+	db.PlayerTypeGetter
+}
+
+var adminActions = map[string](func(ds adminDatastore, st db.SportType, r *http.Request) error){
 	"friends":  updateFriends,
 	"players":  updatePlayers,
 	"years":    updateYears,
@@ -19,18 +31,18 @@ var adminActions = map[string](func(db.SportType, *http.Request) error){
 	"password": resetPassword,
 }
 
-func handleAdminPostRequest(st db.SportType, r *http.Request) error {
-	if err := verifyUserPassword(r); err != nil {
+func handleAdminPostRequest(ds adminDatastore, st db.SportType, r *http.Request) error {
+	if err := verifyUserPassword(ds, r); err != nil {
 		return err
 	}
 	actionParam := r.FormValue("action")
 	if action, ok := adminActions[actionParam]; ok {
-		return action(st, r)
+		return action(ds, st, r)
 	}
 	return errors.New("invalid admin action")
 }
 
-func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]request.PlayerSearchResult, error) {
+func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
 		return nil, errors.New("missing search query param: q")
@@ -50,7 +62,7 @@ func handleAdminSearchRequest(st db.SportType, year int, r *http.Request) ([]req
 	return request.Search(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
-func updatePlayers(st db.SportType, r *http.Request) error {
+func updatePlayers(ds adminDatastore, st db.SportType, r *http.Request) error {
 	var players []db.Player
 	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
@@ -63,14 +75,14 @@ func updatePlayers(st db.SportType, r *http.Request) error {
 		}
 	}
 
-	err := db.SavePlayers(st, players, playerTypes)
+	err := ds.SavePlayers(st, players)
 	if err != nil {
 		return err
 	}
-	return db.ClearStat(st)
+	return ds.ClearStat(st)
 }
 
-func updateFriends(st db.SportType, r *http.Request) error {
+func updateFriends(ds adminDatastore, st db.SportType, r *http.Request) error {
 	var friends []db.Friend
 	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
 	for k, v := range r.Form {
@@ -83,14 +95,14 @@ func updateFriends(st db.SportType, r *http.Request) error {
 		}
 	}
 
-	err := db.SaveFriends(st, friends)
+	err := ds.SaveFriends(st, friends)
 	if err != nil {
 		return err
 	}
-	return db.ClearStat(st)
+	return ds.ClearStat(st)
 }
 
-func updateYears(st db.SportType, r *http.Request) error {
+func updateYears(ds adminDatastore, st db.SportType, r *http.Request) error {
 	var years []db.Year
 	for _, y := range r.Form["year"] {
 		year, err := getYear(r, y)
@@ -101,24 +113,24 @@ func updateYears(st db.SportType, r *http.Request) error {
 	}
 
 	// (does not forcefully update cache if active year changed)
-	return db.SaveYears(st, years)
+	return ds.SaveYears(st, years)
 }
 
-func clearCache(st db.SportType, r *http.Request) error {
+func clearCache(ds adminDatastore, st db.SportType, r *http.Request) error {
 	request.ClearCache()
-	return db.ClearStat(st)
+	return ds.ClearStat(st)
 }
 
-func resetPassword(st db.SportType, r *http.Request) error {
+func resetPassword(ds adminDatastore, st db.SportType, r *http.Request) error {
 	username := r.FormValue("username")
 	newPassword := r.FormValue("newPassword")
-	return db.SetUserPassword(username, db.Password(newPassword))
+	return ds.SetUserPassword(username, db.Password(newPassword))
 }
 
-func verifyUserPassword(r *http.Request) error {
+func verifyUserPassword(ds adminDatastore, r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	correctPassword, err := db.IsCorrectUserPassword(username, db.Password(password))
+	correctPassword, err := ds.IsCorrectUserPassword(username, db.Password(password))
 	if err != nil {
 		return fmt.Errorf("verifying password: %w", err)
 	}
@@ -149,9 +161,6 @@ func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Pl
 		return player, fmt.Errorf("converting player type '%v' to number: %w", playerType, err)
 	}
 	player.PlayerType = db.PlayerType(playerTypeI)
-	if st != playerTypes[player.PlayerType].SportType {
-		return player, fmt.Errorf("invalid playerType: %v", player.PlayerType)
-	}
 
 	sourceID := r.FormValue(fmt.Sprintf("player-%s-source-id", id))
 	sourceIDI, err := strconv.Atoi(sourceID)
