@@ -15,16 +15,6 @@ type (
 		EtlTimestamp *time.Time
 		EtlJSON      *[]byte
 	}
-
-	statGetter interface {
-		GetStat(st SportType) (*Stat, error)
-	}
-	statSetter interface {
-		SetStat(stat Stat) error
-	}
-	statClearer interface {
-		ClearStat(st SportType) error
-	}
 )
 
 // GetStat gets the Stat for the active year, nil if there is not active stat
