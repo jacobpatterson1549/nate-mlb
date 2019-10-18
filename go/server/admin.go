@@ -23,6 +23,11 @@ type adminDatastore interface {
 	db.PlayerTypeGetter
 }
 
+var (
+	playerDisplayOrderRE = regexp.MustCompile("^player-([0-9]+)-display-order$")
+	friendDisplayOrderRE = regexp.MustCompile("^friend-([0-9]+)-display-order$")
+)
+
 func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(ds, r); err != nil {
 		return err
@@ -72,9 +77,8 @@ func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, sear
 
 func updatePlayers(ds adminDatastore, st db.SportType, r *http.Request) error {
 	var players []db.Player
-	re := regexp.MustCompile("^player-([0-9]+)-display-order$")
 	for k, v := range r.Form {
-		if matches := re.FindStringSubmatch(k); len(matches) > 1 {
+		if matches := playerDisplayOrderRE.FindStringSubmatch(k); len(matches) > 1 {
 			player, err := getPlayer(st, r, matches[1], v[0])
 			if err != nil {
 				return err
@@ -92,9 +96,9 @@ func updatePlayers(ds adminDatastore, st db.SportType, r *http.Request) error {
 
 func updateFriends(ds adminDatastore, st db.SportType, r *http.Request) error {
 	var friends []db.Friend
-	re := regexp.MustCompile("^friend-([0-9]+)-display-order$")
+
 	for k, v := range r.Form {
-		if matches := re.FindStringSubmatch(k); len(matches) > 1 {
+		if matches := friendDisplayOrderRE.FindStringSubmatch(k); len(matches) > 1 {
 			friend, err := getFriend(r, matches[1], v[0])
 			if err != nil {
 				return err

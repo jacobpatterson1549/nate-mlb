@@ -61,6 +61,8 @@ type (
 	}
 )
 
+var invalidCharacterRE = regexp.MustCompile("[^-_:.A-Za-z0-9]")
+
 func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
 	sportEntries := make([]SportEntry, 0, len(sportTypes))
 	for st, stInfo := range sportTypes {
@@ -99,14 +101,13 @@ func (p Page) htmlFolderNameGlob() string {
 // GetID returns the js-safe id for the specified name
 // https://www.w3.org/TR/html4/types.html#type-id
 func jsID(name string) string {
-	invalidCharacterRegex := regexp.MustCompile("[^-_:.A-Za-z0-9]")
 	switch {
 	case len(name) == 0:
 		return "y"
-	case invalidCharacterRegex.MatchString(name[:1]):
+	case invalidCharacterRE.MatchString(name[:1]):
 		name = "z" + name
 	}
-	return strings.ToLower(invalidCharacterRegex.ReplaceAllString(name, "-"))
+	return strings.ToLower(invalidCharacterRE.ReplaceAllString(name, "-"))
 }
 
 // GetName implements the Tab interface for AdminTab

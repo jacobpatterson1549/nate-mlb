@@ -19,6 +19,8 @@ type (
 	}
 )
 
+var whitespaceRE = regexp.MustCompile("\\s")
+
 // getUserPassword gets the password for the specified user
 func (ds Datastore) getUserPassword(username string) (string, error) {
 	sqlFunction := newReadSQLFunction("get_user_password", []string{"password"}, username)
@@ -90,7 +92,6 @@ func (ds Datastore) SetAdminPassword(p Password) error {
 }
 
 func (p Password) validate() error {
-	whitespaceRE := regexp.MustCompile("\\s") // TODO: cache this
 	switch {
 	case len(p) == 0:
 		return fmt.Errorf("password must be nonempty")
