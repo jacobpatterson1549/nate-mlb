@@ -33,7 +33,6 @@ type (
 
 // getEtlStats retrieves, calculates, and caches the player stats
 func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) (EtlStats, error) {
-	// TODO: use interface for ds/sportTypes/playerTypes
 	currentTime := ds.GetUtcTime()
 	es := EtlStats{
 		etlRefreshTime: previousMidnight(currentTime),
