@@ -31,8 +31,6 @@ func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType
 		return err
 	}
 	actionParam := r.FormValue("action")
-	// if action, ok := adminActions[actionParam]; ok {
-	// }
 	var adminAction func(ds adminDatastore, st db.SportType, r *http.Request) error
 	switch actionParam {
 	case "friends":
