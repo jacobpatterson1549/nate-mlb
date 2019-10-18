@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 type adminDatastore interface {
-	GetUtcTime() time.Time
 	SaveYears(st db.SportType, futureYears []db.Year) error
 	SaveFriends(st db.SportType, futureFriends []db.Friend) error
 	SavePlayers(st db.SportType, futurePlayers []db.Player) error
