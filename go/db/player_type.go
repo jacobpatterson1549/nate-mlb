@@ -19,11 +19,6 @@ type (
 
 	// PlayerTypeMap contains information about multiple PlayerTypes and their PlayerTypeInfos
 	PlayerTypeMap map[PlayerType]PlayerTypeInfo
-
-	// PlayerTypeGetter is used to retrieve a PlayerTypeMap
-	PlayerTypeGetter interface {
-		PlayerTypes() PlayerTypeMap
-	}
 )
 
 // The expected PlayerTypes

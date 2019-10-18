@@ -42,9 +42,17 @@ type (
 		ClearStat(st db.SportType) error
 		SetUserPassword(username string, p db.Password) error
 		IsCorrectUserPassword(username string, p db.Password) (bool, error)
-		// db.Datastore
-		db.SportTypeGetter
-		db.PlayerTypeGetter
+		sportTypeGetter
+		playerTypeGetter
+	}
+	sportTypeGetter interface {
+		SportTypes() db.SportTypeMap
+	}
+	playerTypeGetter interface {
+		PlayerTypes() db.PlayerTypeMap
+	}
+	timeGetter interface {
+		GetUtcTime() time.Time
 	}
 	urlPathTransformer func(sportTypesByURL map[string]db.SportType, url string) (db.SportType, string)
 	httpMethod         string

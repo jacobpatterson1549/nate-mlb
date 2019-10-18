@@ -24,10 +24,6 @@ type (
 		PageLoadTime    time.Time
 	}
 
-	timeGetter interface {
-		GetUtcTime() time.Time
-	}
-
 	// Tab is a tab which gets rendered by the main template
 	Tab interface {
 		GetName() string

@@ -20,7 +20,7 @@ type adminDatastore interface {
 	ClearStat(st db.SportType) error
 	SetUserPassword(username string, p db.Password) error
 	IsCorrectUserPassword(username string, p db.Password) (bool, error)
-	db.PlayerTypeGetter
+	playerTypeGetter
 }
 
 var (

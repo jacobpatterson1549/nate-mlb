@@ -17,11 +17,6 @@ type (
 
 	// SportTypeMap contains information about multiple SportTypes and their SportTypeInfos
 	SportTypeMap map[SportType]SportTypeInfo
-
-	// SportTypeGetter is used to retrieve a SportTypeMap
-	SportTypeGetter interface {
-		SportTypes() SportTypeMap
-	}
 )
 
 // The expected SportTypes
