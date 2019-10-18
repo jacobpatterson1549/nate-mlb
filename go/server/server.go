@@ -23,6 +23,7 @@ type (
 		ds                serverDatastore
 		port              string
 		sportEntries      []SportEntry
+		sportTypesByURL   map[string]db.SportType
 		requestCache      *request.Cache
 		scoreCategorizers map[db.PlayerType]request.ScoreCategorizer
 		searchers         map[db.PlayerType]request.Searcher
@@ -45,12 +46,11 @@ type (
 		db.SportTypeGetter
 		db.PlayerTypeGetter
 	}
-	sportTypeURLResolver func(sportTypes db.SportTypeMap, url string) db.SportType
-	urlPathTransformer   func(sportTypes db.SportTypeMap, url string, stur sportTypeURLResolver) (db.SportType, string)
-	httpMethod           string
-	sportTypeHandler     func(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error
-	sportTypeHandlers    map[httpMethod]map[string]sportTypeHandler
-	httpHandler          func(w http.ResponseWriter, r *http.Request)
+	urlPathTransformer func(sportTypesByURL map[string]db.SportType, url string) (db.SportType, string)
+	httpMethod         string
+	sportTypeHandler   func(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error
+	sportTypeHandlers  map[httpMethod]map[string]sportTypeHandler
+	httpHandler        func(w http.ResponseWriter, r *http.Request)
 )
 
 var serverSportTypeHandlers = sportTypeHandlers{
@@ -72,6 +72,11 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 	if _, err := strconv.Atoi(port); err != nil {
 		return nil, fmt.Errorf("Invalid port number: %s", port)
 	}
+	sportTypes := ds.SportTypes()
+	sportTypesByURL := make(map[string]db.SportType, len(sportTypes))
+	for st, sti := range sportTypes {
+		sportTypesByURL[sti.URL] = st
+	}
 	c := request.NewCache(100)
 	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c)
 	return &Config{
@@ -79,6 +84,7 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 		ds:                ds,
 		port:              port,
 		sportEntries:      newSportEntries(ds.SportTypes()),
+		sportTypesByURL:   sportTypesByURL,
 		scoreCategorizers: scoreCategorizers,
 		searchers:         searchers,
 		aboutRequester:    aboutRequester,
@@ -113,7 +119,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 
 func handleRoot(cfg Config) httpHandler {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := handlePage(cfg, w, r, sportTypeFromURL, transformURLPath, serverSportTypeHandlers)
+		err := handlePage(cfg, w, r, transformURLPath, serverSportTypeHandlers)
 		if err != nil {
 			log.Printf("server error: %q", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
@@ -121,8 +127,8 @@ func handleRoot(cfg Config) httpHandler {
 	}
 }
 
-func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, stur sportTypeURLResolver, upt urlPathTransformer, sth sportTypeHandlers) error {
-	st, urlPath := upt(cfg.ds.SportTypes(), r.URL.Path, stur)
+func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, upt urlPathTransformer, sth sportTypeHandlers) error {
+	st, urlPath := upt(cfg.sportTypesByURL, r.URL.Path)
 	sportTypeHandler, ok := sth[httpMethod(r.Method)][urlPath]
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -131,14 +137,14 @@ func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, stur sportTy
 	return sportTypeHandler(st, cfg, w, r)
 }
 
-func transformURLPath(sportTypes db.SportTypeMap, urlPath string, stur sportTypeURLResolver) (db.SportType, string) {
+func transformURLPath(sportTypesByURL map[string]db.SportType, urlPath string) (db.SportType, string) {
 	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
 		return 0, urlPath
 	}
 	firstPathSegment := parts[1]
-	st := stur(sportTypes, firstPathSegment)
-	if st != 0 {
+	st, ok := sportTypesByURL[firstPathSegment]
+	if ok {
 		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
 	}
 	return st, urlPath
@@ -288,13 +294,4 @@ func handleAdminSearch(st db.SportType, cfg Config, w http.ResponseWriter, r *ht
 		return fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
 	}
 	return nil
-}
-
-func sportTypeFromURL(sportTypes db.SportTypeMap, url string) db.SportType { // TODO: make cache that is map[string]SportType
-	for st, stInfo := range sportTypes {
-		if url == stInfo.URL {
-			return st
-		}
-	}
-	return 0
 }

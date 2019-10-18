@@ -43,44 +43,10 @@ func TestTransformURLPath(t *testing.T) {
 		"mlb": db.SportTypeMlb,
 		"nfl": db.SportTypeNfl,
 	}
-	var mockSTUR sportTypeURLResolver = func(sportTypes db.SportTypeMap, urlPath string) db.SportType {
-		return sportTypesURLLookup[urlPath]
-	}
 	for i, test := range transformURLPathTests {
-		gotSportType, gotURLPath := transformURLPath(nil, test.urlPath, mockSTUR)
+		gotSportType, gotURLPath := transformURLPath(sportTypesURLLookup, test.urlPath)
 		if test.wantSportType != gotSportType || test.wantURLPath != test.wantURLPath {
 			t.Errorf("Test %d: wanted '{%v,%v}', but got '{%v,%v}' for url '%v'", i, test.wantSportType, test.wantURLPath, gotSportType, gotURLPath, test.urlPath)
-		}
-	}
-}
-
-func TestSportTypeFromURL(t *testing.T) {
-	sportTypeFromURLTests := []struct {
-		loadedSportTypes db.SportTypeMap
-		url              string
-		want             db.SportType
-	}{
-		{},
-		{
-			loadedSportTypes: db.SportTypeMap{
-				db.SportType(2): {URL: "here"},
-				db.SportType(8): {URL: "somewhere"},
-			},
-			url:  "somewhere",
-			want: db.SportType(8),
-		},
-		{
-			loadedSportTypes: db.SportTypeMap{
-				db.SportType(3): {URL: "*"},
-			},
-			url:  "anywhere",
-			want: db.SportType(0),
-		},
-	}
-	for i, test := range sportTypeFromURLTests {
-		got := sportTypeFromURL(test.loadedSportTypes, test.url)
-		if test.want != got {
-			t.Errorf("Test :%v:\nwanted: %v\ngot:    %v", i, test.want, got)
 		}
 	}
 }
