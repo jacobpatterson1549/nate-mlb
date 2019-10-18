@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -45,7 +44,7 @@ func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType
 	case "password":
 		adminAction = resetPassword
 	default:
-		return errors.New("invalid admin action")
+		return fmt.Errorf("invalid admin action: %v", actionParam)
 	}
 	return adminAction(ds, st, r)
 }
@@ -53,11 +52,11 @@ func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType
 func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, searchers map[db.PlayerType]request.Searcher, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
-		return nil, errors.New("missing search query param: q")
+		return nil, fmt.Errorf("missing search query param: q")
 	}
 	playerTypeID := r.FormValue("pt")
 	if len(playerTypeID) == 0 {
-		return nil, errors.New("missing player type query param: pt")
+		return nil, fmt.Errorf("missing player type query param: pt")
 	}
 	playerTypeIDI, err := strconv.Atoi(playerTypeID)
 	if err != nil {
@@ -142,7 +141,7 @@ func verifyUserPassword(ds adminDatastore, r *http.Request) error {
 		return fmt.Errorf("verifying password: %w", err)
 	}
 	if !correctPassword {
-		return errors.New("Incorrect Password")
+		return fmt.Errorf("Incorrect Password")
 	}
 	return nil
 }
