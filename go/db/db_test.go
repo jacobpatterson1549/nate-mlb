@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"reflect"
 	"testing"
+	"time"
 )
 
 func TestPing(t *testing.T) {
@@ -31,6 +33,44 @@ func TestPing(t *testing.T) {
 		if wantErr != gotErr {
 			t.Errorf("Test %v: wanted %v, got %v", i, wantErr, gotErr)
 		}
+	}
+}
+
+func TestGetUtcTime(t *testing.T) {
+	ds := Datastore{}
+	got := ds.GetUtcTime()
+	defaultTime := time.Time{}
+	if got.Unix() == defaultTime.Unix() {
+		t.Errorf("expected time to not be same as default time, got %v (unix time)", defaultTime.Unix())
+	}
+}
+
+func TestSportTypes(t *testing.T) {
+	sportTypes := SportTypeMap{
+		1: {Name: "baseball"},
+		2: {URL: "nfl"},
+	}
+	ds := Datastore{
+		sportTypes: sportTypes,
+	}
+	got := ds.SportTypes()
+	if !reflect.DeepEqual(sportTypes, got) {
+		t.Errorf("not equal\nwanted: %v\ngot:    %v", sportTypes, got)
+	}
+}
+
+func TestPlayerTypes(t *testing.T) {
+	playerTypes := PlayerTypeMap{
+		1: {Name: "team"},
+		2: {Description: "players that come up to plate to hit"},
+		3: {ScoreType: "wins"},
+	}
+	ds := Datastore{
+		playerTypes: playerTypes,
+	}
+	got := ds.PlayerTypes()
+	if !reflect.DeepEqual(playerTypes, got) {
+		t.Errorf("not equal\nwanted: %v\ngot:    %v", playerTypes, got)
 	}
 }
 
