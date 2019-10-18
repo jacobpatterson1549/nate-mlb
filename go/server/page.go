@@ -57,7 +57,7 @@ type (
 	}
 )
 
-var invalidCharacterRE = regexp.MustCompile("[^-_:.A-Za-z0-9]")
+var validJavascriptIDCharsRE = regexp.MustCompile("[^-_:.A-Za-z0-9]")
 
 func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
 	sportEntries := make([]SportEntry, 0, len(sportTypes))
@@ -99,10 +99,10 @@ func jsID(name string) string {
 	switch {
 	case len(name) == 0:
 		return "y"
-	case invalidCharacterRE.MatchString(name[:1]):
+	case validJavascriptIDCharsRE.MatchString(name[:1]):
 		name = "z" + name
 	}
-	return strings.ToLower(invalidCharacterRE.ReplaceAllString(name, "-"))
+	return strings.ToLower(validJavascriptIDCharsRE.ReplaceAllString(name, "-"))
 }
 
 // GetName implements the Tab interface for AdminTab
