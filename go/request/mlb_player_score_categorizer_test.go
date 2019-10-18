@@ -54,7 +54,7 @@ func TestLastStatScore(t *testing.T) {
 }
 
 func TestMlbPlayerRequestScoreCategory(t *testing.T) {
-	requestScoreCategoryTests := []struct {
+	RequestScoreCategoryTests := []struct {
 		pt               db.PlayerType
 		friends          []db.Friend
 		players          []db.Player
@@ -164,7 +164,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			},
 		},
 	}
-	for i, test := range requestScoreCategoryTests {
+	for i, test := range RequestScoreCategoryTests {
 		jsonFunc := func(uri string) string {
 			if strings.Contains(uri, "/people?") {
 				return test.playerNamesJSON
@@ -178,7 +178,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		mlbPlayerRequestor := mlbPlayerRequestor{requestor: r}
-		got, err := mlbPlayerRequestor.requestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
+		got, err := mlbPlayerRequestor.RequestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {

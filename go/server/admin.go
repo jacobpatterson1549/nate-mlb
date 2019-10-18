@@ -23,26 +23,33 @@ type adminDatastore interface {
 	db.PlayerTypeGetter
 }
 
-var adminActions = map[string](func(ds adminDatastore, st db.SportType, r *http.Request) error){
-	"friends":  updateFriends,
-	"players":  updatePlayers,
-	"years":    updateYears,
-	"cache":    clearCache,
-	"password": resetPassword,
-}
-
-func handleAdminPostRequest(ds adminDatastore, st db.SportType, r *http.Request) error {
+func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(ds, r); err != nil {
 		return err
 	}
 	actionParam := r.FormValue("action")
-	if action, ok := adminActions[actionParam]; ok {
-		return action(ds, st, r)
+	// if action, ok := adminActions[actionParam]; ok {
+	// }
+	var adminAction func(ds adminDatastore, st db.SportType, r *http.Request) error
+	switch actionParam {
+	case "friends":
+		adminAction = updateFriends
+	case "players":
+		adminAction = updatePlayers
+	case "years":
+		adminAction = updateYears
+	case "cache":
+		adminAction = clearCache
+		c.Clear()
+	case "password":
+		adminAction = resetPassword
+	default:
+		return errors.New("invalid admin action")
 	}
-	return errors.New("invalid admin action")
+	return adminAction(ds, st, r)
 }
 
-func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, r *http.Request) ([]request.PlayerSearchResult, error) {
+func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, searchers map[db.PlayerType]request.Searcher, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
 		return nil, errors.New("missing search query param: q")
@@ -59,7 +66,8 @@ func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, r *h
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
-	return request.Search(playerType, year, searchQuery, activePlayersOnlyB)
+	searcher := searchers[playerType]
+	return searcher.Search(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
 func updatePlayers(ds adminDatastore, st db.SportType, r *http.Request) error {
@@ -117,7 +125,6 @@ func updateYears(ds adminDatastore, st db.SportType, r *http.Request) error {
 }
 
 func clearCache(ds adminDatastore, st db.SportType, r *http.Request) error {
-	request.ClearCache()
 	return ds.ClearStat(st)
 }
 

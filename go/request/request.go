@@ -22,28 +22,17 @@ type (
 	}
 
 	httpRequestor struct {
-		cache          cache
+		cache          Cache
 		httpClient     httpClient
 		logRequestURIs bool
 	}
 )
 
-var (
-	// scoreCategorizers maps PlayerTypes to scoreCategorizers for them
-	scoreCategorizers = make(map[db.PlayerType]scoreCategorizer)
-
-	// searchers maps PlayerTypes to searchers for them.
-	searchers = make(map[db.PlayerType]searcher)
-
-	// About provides details about the deployment of the application
-	About aboutRequestor
-
-	httpCache cache = newCache(100)
-)
-
-func init() {
+// NewRequestors creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequestor
+// TODO: rename requestor to requester
+func NewRequestors(c Cache) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequestor) {
 	r := httpRequestor{
-		cache: httpCache,
+		cache: c,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -56,6 +45,7 @@ func init() {
 	nflTeamRequestor := nflTeamRequestor{requestor: &r}
 	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
 
+	scoreCategorizers := make(map[db.PlayerType]ScoreCategorizer)
 	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
 	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerScoreCategorizer
 	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerScoreCategorizer
@@ -63,6 +53,7 @@ func init() {
 	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
+	searchers := make(map[db.PlayerType]Searcher)
 	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
 	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerSearcher
 	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerSearcher
@@ -70,17 +61,9 @@ func init() {
 	searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
 	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
 
-	About = aboutRequestor{requestor: &r}
-}
+	aboutRequestor := AboutRequestor{requestor: &r}
 
-// Score gets the ScoreCategory for the PlayerType/year
-func Score(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
-	return scoreCategorizers[pt].requestScoreCategory(pt, ptInfo, year, friends, players)
-}
-
-// Search gets the PlayerSearchResults for the PlayerType/year
-func Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	return searchers[pt].search(pt, year, playerNamePrefix, activePlayersOnly)
+	return scoreCategorizers, searchers, aboutRequestor
 }
 
 func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
@@ -120,9 +103,4 @@ func (r *httpRequestor) bytes(uri string) ([]byte, error) {
 		return nil, fmt.Errorf("reading body of %v: %w", uri, err)
 	}
 	return b, nil
-}
-
-// ClearCache clears the request cache
-func ClearCache() {
-	httpCache.clear()
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func TestNflPlayerRequestScoreCategory(t *testing.T) {
-	requestScoreCategoryTests := []struct {
+	RequestScoreCategoryTests := []struct {
 		pt          db.PlayerType
 		friends     []db.Friend
 		players     []db.Player
@@ -66,13 +66,13 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 			},
 		},
 	}
-	for i, test := range requestScoreCategoryTests {
+	for i, test := range RequestScoreCategoryTests {
 		jsonFunc := func(uri string) string {
 			return test.playersJSON
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflPlayerRequestor := nflPlayerRequestor{requestor: r}
-		got, err := nflPlayerRequestor.requestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
+		got, err := nflPlayerRequestor.RequestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -116,7 +116,7 @@ func TestNflPlayerPlayerSearchResults(t *testing.T) {
 		}
 		r := newMockHTTPRequestor(jsonFunc)
 		nflPlayerRequestor := nflPlayerRequestor{requestor: r}
-		got, err := nflPlayerRequestor.search(test.pt, 2019, test.playerNamePrefix, true)
+		got, err := nflPlayerRequestor.Search(test.pt, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {

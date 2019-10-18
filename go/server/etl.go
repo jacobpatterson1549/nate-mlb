@@ -32,7 +32,7 @@ type (
 )
 
 // getEtlStats retrieves, calculates, and caches the player stats
-func getEtlStats(st db.SportType, ds etlDatastore) (EtlStats, error) {
+func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) (EtlStats, error) {
 	// TODO: use interface for ds/sportTypes/playerTypes
 	currentTime := ds.GetUtcTime()
 	es := EtlStats{
@@ -46,7 +46,7 @@ func getEtlStats(st db.SportType, ds etlDatastore) (EtlStats, error) {
 	es.sportType = st
 	es.year = stat.Year
 	if stat.EtlTimestamp == nil || stat.EtlJSON == nil || stat.EtlTimestamp.Before(es.etlRefreshTime) {
-		scoreCategories, err := getScoreCategories(st, ds, es.year)
+		scoreCategories, err := getScoreCategories(st, ds, es.year, scoreCategorizers)
 		if err != nil {
 			return es, err
 		}
@@ -65,7 +65,7 @@ func getEtlStats(st db.SportType, ds etlDatastore) (EtlStats, error) {
 	return es, err
 }
 
-func getScoreCategories(st db.SportType, ds etlDatastore, year int) ([]request.ScoreCategory, error) {
+func getScoreCategories(st db.SportType, ds etlDatastore, year int, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) ([]request.ScoreCategory, error) {
 	friends, err := ds.GetFriends(st)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func getScoreCategories(st db.SportType, ds etlDatastore, year int) ([]request.S
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(stPlayerTypes))
 	quit := make(chan error)
 	for _, pt := range stPlayerTypes {
-		go getScoreCategory(pt, playerTypes[pt], year, friends, playersByType[pt], scoreCategoriesCh, quit)
+		go getScoreCategory(pt, playerTypes[pt], year, friends, playersByType[pt], scoreCategorizers[pt], scoreCategoriesCh, quit)
 	}
 	scoreCategories := make([]request.ScoreCategory, len(stPlayerTypes))
 	finishedScoreCategories := 0
@@ -119,9 +119,9 @@ func getPlayerTypes(st db.SportType, playerTypes db.PlayerTypeMap) []db.PlayerTy
 	return playerTypesList
 }
 
-func getScoreCategory(pt db.PlayerType, pti db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+func getScoreCategory(pt db.PlayerType, pti db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player, scoreCategorizer request.ScoreCategorizer, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
-	scoreCategory, err := request.Score(pt, pti, year, friends, players)
+	scoreCategory, err := scoreCategorizer.RequestScoreCategory(pt, pti, year, friends, players)
 	if err != nil {
 		quit <- err
 		return

@@ -13,11 +13,11 @@ func TestNewCacheTooSmall(t *testing.T) {
 			t.Errorf("wanted panic when trying to create cache with size=%d, but did not get one", cacheSize)
 		}
 	}()
-	newCache(cacheSize)
+	NewCache(cacheSize)
 }
 
 func TestContainsNo(t *testing.T) {
-	cache := newCache(5)
+	cache := NewCache(5)
 	uri := "uri"
 	got := cache.contains(uri)
 	want := false
@@ -27,7 +27,7 @@ func TestContainsNo(t *testing.T) {
 }
 
 func TestContainsZero(t *testing.T) {
-	cache := newCache(0)
+	cache := NewCache(0)
 	uri := "uri"
 	cache.add(uri, nil)
 	got := cache.contains(uri)
@@ -38,7 +38,7 @@ func TestContainsZero(t *testing.T) {
 }
 
 func TestContainsYes(t *testing.T) {
-	cache := newCache(5)
+	cache := NewCache(5)
 	uri := "uri"
 	cache.add(uri, nil)
 	got := cache.contains(uri)
@@ -50,7 +50,7 @@ func TestContainsYes(t *testing.T) {
 
 func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 	cacheSize := 10
-	cache := newCache(cacheSize)
+	cache := NewCache(cacheSize)
 	uri := "uri"
 	cache.add(uri, nil)
 	for i := 0; i < cacheSize; i++ {
@@ -65,7 +65,7 @@ func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	cache := newCache(10)
+	cache := NewCache(10)
 	uri := "uri"
 	value := []byte("abc")
 	cache.add(uri, value)
@@ -80,10 +80,10 @@ func TestGet(t *testing.T) {
 }
 
 func TestClear(t *testing.T) {
-	cache := newCache(1)
+	cache := NewCache(1)
 	uri := "uri"
 	cache.add(uri, nil)
-	cache.clear()
+	cache.Clear()
 	got := cache.contains(uri)
 	want := false
 	if want != got {

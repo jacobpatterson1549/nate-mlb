@@ -6,7 +6,8 @@ import (
 )
 
 type (
-	aboutRequestor struct {
+	// AboutRequestor gets information about the most recent Deployment of the application
+	AboutRequestor struct {
 		requestor requestor
 	}
 
@@ -24,7 +25,7 @@ type (
 )
 
 // PreviousDeployment returns some information about the most recent deployment
-func (r *aboutRequestor) PreviousDeployment() (Deployment, error) {
+func (r *AboutRequestor) PreviousDeployment() (Deployment, error) {
 	owner := "jacobpatterson1549"
 	repo := "nate-mlb"
 	uri := fmt.Sprintf("https://api.github.com/repos/%s/%s/deployments", owner, repo)

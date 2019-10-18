@@ -19,10 +19,14 @@ import (
 type (
 	// Config contains fields which describe the server
 	Config struct {
-		serverName   string
-		ds           serverDatastore
-		port         string
-		sportEntries []SportEntry
+		serverName        string
+		ds                serverDatastore
+		port              string
+		sportEntries      []SportEntry
+		requestCache      *request.Cache
+		scoreCategorizers map[db.PlayerType]request.ScoreCategorizer
+		searchers         map[db.PlayerType]request.Searcher
+		aboutRequestor    request.AboutRequestor
 	}
 	serverDatastore interface {
 		GetUtcTime() time.Time
@@ -68,11 +72,16 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 	if _, err := strconv.Atoi(port); err != nil {
 		return nil, fmt.Errorf("Invalid port number: %s", port)
 	}
+	c := request.NewCache(100)
+	scoreCategorizers, searchers, aboutRequestor := request.NewRequestors(c)
 	return &Config{
-		serverName:   serverName,
-		ds:           ds,
-		port:         port,
-		sportEntries: newSportEntries(ds.SportTypes()),
+		serverName:        serverName,
+		ds:                ds,
+		port:              port,
+		sportEntries:      newSportEntries(ds.SportTypes()),
+		scoreCategorizers: scoreCategorizers,
+		searchers:         searchers,
+		aboutRequestor:    aboutRequestor,
 	}, nil
 }
 
@@ -143,7 +152,7 @@ func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.
 }
 
 func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	es, err := getEtlStats(st, cfg.ds)
+	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
 		return err
 	}
@@ -173,7 +182,7 @@ func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 }
 
 func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	es, err := getEtlStats(st, cfg.ds)
+	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
 		return err
 	}
@@ -211,7 +220,7 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 }
 
 func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	lastDeploy, err := request.About.PreviousDeployment()
+	lastDeploy, err := cfg.aboutRequestor.PreviousDeployment()
 	if err != nil {
 		return err
 	}
@@ -226,7 +235,7 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 }
 
 func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	es, err := getEtlStats(st, cfg.ds)
+	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
 		return err
 	}
@@ -255,7 +264,7 @@ func renderTemplate(w http.ResponseWriter, p Page) error {
 }
 
 func handleAdminPost(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	err := handleAdminPostRequest(cfg.ds, st, r)
+	err := handleAdminPostRequest(cfg.ds, cfg.requestCache, st, r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
@@ -266,11 +275,11 @@ func handleAdminPost(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 }
 
 func handleAdminSearch(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	es, err := getEtlStats(st, cfg.ds)
+	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
 		return err
 	}
-	playerSearchResults, err := handleAdminSearchRequest(cfg.ds, st, es.year, r)
+	playerSearchResults, err := handleAdminSearchRequest(cfg.ds, st, es.year, cfg.searchers, r)
 	if err != nil {
 		return err
 	}

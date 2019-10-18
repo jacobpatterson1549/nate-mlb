@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	// mlbPlayerSearcher implements the searcher interface
+	// mlbPlayerSearcher implements the Searcher interface
 	mlbPlayerSearcher struct {
 		requestor requestor
 	}
@@ -49,8 +49,8 @@ type (
 	}
 )
 
-// PlayerSearchResults implements the Searcher interface
-func (s *mlbPlayerSearcher) search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+// Search implements the Searcher interface
+func (s *mlbPlayerSearcher) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	activePlayers := "N"
 	if activePlayersOnly {
 		activePlayers = "Y"

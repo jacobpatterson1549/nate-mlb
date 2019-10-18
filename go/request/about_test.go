@@ -55,8 +55,7 @@ func TestPreviousDeployment_RequestorError(t *testing.T) {
 			return errors.New("requestorError")
 		},
 	}
-	about := aboutRequestor{requestor: &m}
-
+	about := AboutRequestor{requestor: &m}
 	_, err := about.PreviousDeployment()
 	if err == nil {
 		t.Error("expected request to fail, but did not")
@@ -72,7 +71,7 @@ func TestPreviousDeployment_ok(t *testing.T) {
 		Time:    time.Date(2019, time.September, 19, 17, 45, 8, 0, time.UTC),
 	}
 	r := newMockHTTPRequestor(jsonFunc)
-	about := aboutRequestor{requestor: r}
+	about := AboutRequestor{requestor: r}
 	got, err := about.PreviousDeployment()
 	switch {
 	case err != nil:

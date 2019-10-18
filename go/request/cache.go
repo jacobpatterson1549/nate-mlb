@@ -5,31 +5,34 @@ import (
 	"sync"
 )
 
-type cache struct {
+// Cache keeps track of recent requests.
+// A queue is used to track recent requests.  The stored recent request is returned as long as the request uri is in the cache.
+type Cache struct {
 	requestValues map[string][]byte
 	requestURIs   []string
 	index         int
 	mutex         *sync.Mutex
 }
 
-func newCache(cacheSize int) cache {
-	if cacheSize < 0 {
-		panic(fmt.Sprintf("cache size must be positive - got %v", cacheSize))
+// NewCache creates a Cache with a specified queue size
+func NewCache(queueSize int) Cache {
+	if queueSize < 0 {
+		panic(fmt.Sprintf("cache size must be positive - got %v", queueSize))
 	}
-	return cache{
-		requestValues: make(map[string][]byte, cacheSize),
-		requestURIs:   make([]string, cacheSize),
+	return Cache{
+		requestValues: make(map[string][]byte, queueSize),
+		requestURIs:   make([]string, queueSize),
 		index:         0,
 		mutex:         &sync.Mutex{},
 	}
 }
 
-func (c *cache) contains(uri string) bool {
+func (c *Cache) contains(uri string) bool {
 	_, ok := c.requestValues[uri]
 	return ok
 }
 
-func (c *cache) add(uri string, value []byte) {
+func (c *Cache) add(uri string, value []byte) {
 	if c.index >= len(c.requestURIs) {
 		return
 	}
@@ -44,12 +47,13 @@ func (c *cache) add(uri string, value []byte) {
 	}
 }
 
-func (c *cache) get(uri string) ([]byte, bool) {
+func (c *Cache) get(uri string) ([]byte, bool) {
 	b, ok := c.requestValues[uri]
 	return b, ok
 }
 
-func (c *cache) clear() {
+// Clear removes stored responses for all the URIs is the Cache
+func (c *Cache) Clear() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	for k := range c.requestValues {

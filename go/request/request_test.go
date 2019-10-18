@@ -43,7 +43,7 @@ func newMockHTTPRequestor(jsonFunc func(uriPath string) string) requestor {
 		DoFunc: do,
 	}
 	return &httpRequestor{
-		cache:      newCache(0), // (do not cache)
+		cache:      NewCache(0), // (do not cache)
 		httpClient: client,
 		// logRequestUris: true,
 	}
@@ -90,7 +90,7 @@ func TestStructPointerFromUri(t *testing.T) {
 func TestStructPointerFromUri_requestorError(t *testing.T) {
 	doErr := errors.New("Do error")
 	r := httpRequestor{
-		cache: newCache(0), // (do not cache)
+		cache: NewCache(0), // (do not cache)
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				return nil, doErr
@@ -120,7 +120,7 @@ func (m mockReadCloser) Close() error {
 func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	readErr := errors.New("read error")
 	r := httpRequestor{
-		cache: newCache(0), // (do not cache)
+		cache: NewCache(0), // (do not cache)
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				response := http.Response{
@@ -138,67 +138,25 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	}
 }
 
-func TestClearCache(t *testing.T) {
-	httpCache = newCache(1)
-	uri := "uri"
-	httpCache.add(uri, []byte("bytes"))
-	if !httpCache.contains(uri) {
-		t.Error("wanted cache to contain uri did not")
+func TestNewRequestors(t *testing.T) {
+	c := NewCache(0)
+	scoreCategorizers, searchers, aboutRequestor := NewRequestors(c)
+	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
+	if len(wantPlayerTypes) != len(scoreCategorizers) {
+		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))
 	}
-	ClearCache()
-	if httpCache.contains(uri) {
-		t.Error("wanted cache to not contain uri did")
+	if len(wantPlayerTypes) != len(searchers) {
+		t.Errorf("expected %v searchers, but got %v", len(wantPlayerTypes), len(searchers))
 	}
-}
-
-type mockScoreCategorizer struct {
-	scoreCategory ScoreCategory
-}
-
-func (m mockScoreCategorizer) requestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
-	return m.scoreCategory, nil
-}
-
-func TestRequestScore(t *testing.T) {
-	scoreCategorizers = map[db.PlayerType]scoreCategorizer{
-		1: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "a"}},
-		2: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "b"}},
-		3: mockScoreCategorizer{scoreCategory: ScoreCategory{Name: "c"}},
+	for pt := range wantPlayerTypes {
+		if _, ok := scoreCategorizers[pt]; !ok {
+			t.Errorf("expected ScoreCategorizer for pt %v", pt)
+		}
+		if _, ok := searchers[pt]; !ok {
+			t.Errorf("expected Searcher for pt %v", pt)
+		}
 	}
-
-	want := ScoreCategory{Name: "b"}
-	got, err := Score(2, db.PlayerTypeInfo{}, 0, nil, nil)
-
-	switch {
-	case err != nil:
-		t.Error(err)
-	case !reflect.DeepEqual(want, got):
-		t.Errorf("not equal\nwanted: %v\ngot:    %v", want, got)
-	}
-}
-
-type mockSearcher struct {
-	playerSearchResults []PlayerSearchResult
-}
-
-func (m mockSearcher) search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
-	return m.playerSearchResults, nil
-}
-
-func TestPlayerSearchResults(t *testing.T) {
-	searchers = map[db.PlayerType]searcher{
-		1: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "art"}}},
-		2: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "bart"}}},
-		3: mockSearcher{playerSearchResults: []PlayerSearchResult{{Name: "curt"}}},
-	}
-
-	want := []PlayerSearchResult{{Name: "curt"}}
-	got, err := Search(db.PlayerType(3), 0, "", true)
-
-	switch {
-	case err != nil:
-		t.Error(err)
-	case !reflect.DeepEqual(want, got):
-		t.Errorf("not equal\nwanted: %v\ngot:    %v", want, got)
+	if !reflect.DeepEqual(aboutRequestor.requestor, c) {
+		t.Errorf("requestor not set for aboutRequestor")
 	}
 }
