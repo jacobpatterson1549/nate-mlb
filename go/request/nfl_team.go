@@ -10,9 +10,9 @@ import (
 )
 
 type (
-	// nflTeamRequestor implements the ScoreCategorizer and Searcher interfaces
-	nflTeamRequestor struct {
-		requestor requestor
+	// nflTeamRequester implements the ScoreCategorizer and Searcher interfaces
+	nflTeamRequester struct {
+		requester requester
 	}
 
 	// NflTeamsSchedule contains information about NFL teams for a specific year
@@ -28,7 +28,7 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r nflTeamRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (r nflTeamRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	var scoreCategory ScoreCategory
 	nflTeams, err := r.requestNflTeams(year)
 	if err != nil {
@@ -50,7 +50,7 @@ func (r nflTeamRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.Playe
 }
 
 // Search implements the Searcher interface
-func (r nflTeamRequestor) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (r nflTeamRequester) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	nflTeams, err := r.requestNflTeams(year)
 	if err != nil {
 		return nil, err
@@ -75,10 +75,10 @@ func (r nflTeamRequestor) Search(pt db.PlayerType, year int, playerNamePrefix st
 	return nflTeamSearchResults, nil
 }
 
-func (r *nflTeamRequestor) requestNflTeams(year int) (map[db.SourceID]NflTeam, error) {
+func (r *nflTeamRequester) requestNflTeams(year int) (map[db.SourceID]NflTeam, error) {
 	uri := fmt.Sprintf("https://api.fantasy.nfl.com/v2/nfl/schedule?season=%d&appKey=test_key_1", year)
 	var nflSchedule NflTeamsSchedule
-	err := r.requestor.structPointerFromURI(uri, &nflSchedule)
+	err := r.requester.structPointerFromURI(uri, &nflSchedule)
 	if err != nil {
 		return nil, err
 	}

@@ -9,9 +9,9 @@ import (
 )
 
 type (
-	// mlbPlayerRequestor contains information about requests for hitter/pitcher names/stats
-	mlbPlayerRequestor struct {
-		requestor requestor
+	// mlbPlayerRequester contains information about requests for hitter/pitcher names/stats
+	mlbPlayerRequester struct {
+		requester requester
 	}
 
 	// MlbPlayerNames is used to unmarshal a request for player names
@@ -54,7 +54,7 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r *mlbPlayerRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (r *mlbPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	sourceIDs := make(map[db.SourceID]bool, len(players))
 	for _, player := range players {
 		sourceIDs[player.SourceID] = true
@@ -90,7 +90,7 @@ func (r *mlbPlayerRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 	return newScoreCategory(pt, ptInfo, friends, players, playerNameScores, true), nil
 }
 
-func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
+func (r *mlbPlayerRequester) requestPlayerNames(sourceIDs map[db.SourceID]bool, playerNames chan<- playerName, quit chan<- error) {
 	sourceIDStrings := make([]string, len(sourceIDs))
 	i := 0
 	for sourceID := range sourceIDs {
@@ -104,7 +104,7 @@ func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, 
 		",",
 		"%2C")
 	var mlbPlayerNames MlbPlayerNames
-	err := r.requestor.structPointerFromURI(playerNamesURI, &mlbPlayerNames)
+	err := r.requester.structPointerFromURI(playerNamesURI, &mlbPlayerNames)
 	if err != nil {
 		quit <- err
 		return
@@ -125,13 +125,13 @@ func (r *mlbPlayerRequestor) requestPlayerNames(sourceIDs map[db.SourceID]bool, 
 	}
 }
 
-func (r mlbPlayerRequestor) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
+func (r mlbPlayerRequester) requestPlayerStats(pt db.PlayerType, year int, sourceIDs map[db.SourceID]bool, playerStats chan<- playerStat, quit chan<- error) {
 	for sourceID := range sourceIDs {
 		go r.getPlayerStat(pt, sourceID, year, playerStats, quit)
 	}
 }
 
-func (r mlbPlayerRequestor) getPlayerStat(pt db.PlayerType, sourceID db.SourceID, year int, playerStats chan<- playerStat, quit chan<- error) {
+func (r mlbPlayerRequester) getPlayerStat(pt db.PlayerType, sourceID db.SourceID, year int, playerStats chan<- playerStat, quit chan<- error) {
 	stat, err := r.requestPlayerStat(pt, sourceID, year)
 	if err != nil {
 		quit <- err
@@ -143,7 +143,7 @@ func (r mlbPlayerRequestor) getPlayerStat(pt db.PlayerType, sourceID db.SourceID
 	}
 }
 
-func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.SourceID, year int) (int, error) {
+func (r mlbPlayerRequester) requestPlayerStat(pt db.PlayerType, sourceID db.SourceID, year int) (int, error) {
 	mlbPlayerStatsURI := strings.ReplaceAll(
 		fmt.Sprintf(
 			"http://statsapi.mlb.com/api/v1/people/%d/stats?&season=%d&stats=season&fields=stats,group,displayName,splits,stat,homeRuns,wins",
@@ -152,7 +152,7 @@ func (r mlbPlayerRequestor) requestPlayerStat(pt db.PlayerType, sourceID db.Sour
 		",",
 		"%2C")
 	var mlbPlayerStats MlbPlayerStats
-	err := r.requestor.structPointerFromURI(mlbPlayerStatsURI, &mlbPlayerStats)
+	err := r.requester.structPointerFromURI(mlbPlayerStatsURI, &mlbPlayerStats)
 	if err != nil {
 		return -1, err
 	}

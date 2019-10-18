@@ -49,13 +49,13 @@ func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
 	}
 }
 
-func TestPreviousDeployment_RequestorError(t *testing.T) {
-	m := mockRequestor{
+func TestPreviousDeployment_RequesterError(t *testing.T) {
+	m := mockRequester{
 		structPointerFromURIFunc: func(uri string, v interface{}) error {
-			return errors.New("requestorError")
+			return errors.New("requesterError")
 		},
 	}
-	about := AboutRequestor{requestor: &m}
+	about := AboutRequester{requester: &m}
 	_, err := about.PreviousDeployment()
 	if err == nil {
 		t.Error("expected request to fail, but did not")
@@ -70,8 +70,8 @@ func TestPreviousDeployment_ok(t *testing.T) {
 		Version: "1234567",
 		Time:    time.Date(2019, time.September, 19, 17, 45, 8, 0, time.UTC),
 	}
-	r := newMockHTTPRequestor(jsonFunc)
-	about := AboutRequestor{requestor: r}
+	r := newMockHTTPRequester(jsonFunc)
+	about := AboutRequester{requester: r}
 	got, err := about.PreviousDeployment()
 	switch {
 	case err != nil:

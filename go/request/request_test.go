@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	mockRequestor struct {
+	mockRequester struct {
 		structPointerFromURIFunc func(uri string, v interface{}) error
 	}
 
@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func (r *mockRequestor) structPointerFromURI(uri string, v interface{}) error {
+func (r *mockRequester) structPointerFromURI(uri string, v interface{}) error {
 	return r.structPointerFromURIFunc(uri, v)
 }
 
@@ -28,7 +28,7 @@ func (c mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
 	return c.DoFunc(r)
 }
 
-func newMockHTTPRequestor(jsonFunc func(uriPath string) string) requestor {
+func newMockHTTPRequester(jsonFunc func(uriPath string) string) requester {
 	do := func(r *http.Request) (*http.Response, error) {
 		w := httptest.NewRecorder()
 		uri := r.URL.RequestURI()
@@ -41,7 +41,7 @@ func newMockHTTPRequestor(jsonFunc func(uriPath string) string) requestor {
 	client := mockHTTPClient{
 		DoFunc: do,
 	}
-	return &httpRequestor{
+	return &httpRequester{
 		cache:      NewCache(0), // (do not cache)
 		httpClient: client,
 		// logRequestUris: true,
@@ -72,7 +72,7 @@ func TestStructPointerFromUri(t *testing.T) {
 		jsonFunc := func(uriPath string) string {
 			return test.returnJSON
 		}
-		r := newMockHTTPRequestor(jsonFunc)
+		r := newMockHTTPRequester(jsonFunc)
 		var got interface{}
 		err := r.structPointerFromURI(test.uri, &got)
 		switch {
@@ -86,9 +86,9 @@ func TestStructPointerFromUri(t *testing.T) {
 	}
 }
 
-func TestStructPointerFromUri_requestorError(t *testing.T) {
+func TestStructPointerFromUri_requesterError(t *testing.T) {
 	doErr := errors.New("Do error")
-	r := httpRequestor{
+	r := httpRequester{
 		cache: NewCache(0), // (do not cache)
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
@@ -118,7 +118,7 @@ func (m mockReadCloser) Close() error {
 }
 func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	readErr := errors.New("read error")
-	r := httpRequestor{
+	r := httpRequester{
 		cache: NewCache(0), // (do not cache)
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
@@ -137,9 +137,9 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	}
 }
 
-func TestNewRequestors(t *testing.T) {
+func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
-	scoreCategorizers, searchers, aboutRequestor := NewRequestors(c)
+	scoreCategorizers, searchers, aboutRequester := NewRequesters(c)
 	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
 	if len(wantPlayerTypes) != len(scoreCategorizers) {
 		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))
@@ -155,7 +155,7 @@ func TestNewRequestors(t *testing.T) {
 			t.Errorf("expected Searcher for pt %v", pt)
 		}
 	}
-	if aboutRequestor.requestor == nil {
-		t.Errorf("requestor not set for aboutRequestor")
+	if aboutRequester.requester == nil {
+		t.Errorf("requester not set for aboutRequester")
 	}
 }

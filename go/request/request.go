@@ -13,7 +13,7 @@ import (
 )
 
 type (
-	requestor interface {
+	requester interface {
 		structPointerFromURI(uri string, v interface{}) error
 	}
 
@@ -21,17 +21,16 @@ type (
 		Do(r *http.Request) (*http.Response, error)
 	}
 
-	httpRequestor struct {
+	httpRequester struct {
 		cache          Cache
 		httpClient     httpClient
 		logRequestURIs bool
 	}
 )
 
-// NewRequestors creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequestor
-// TODO: rename requestor to requester
-func NewRequestors(c Cache) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequestor) {
-	r := httpRequestor{
+// NewRequesters creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequester
+func NewRequesters(c Cache) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
+	r := httpRequester{
 		cache: c,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
@@ -39,34 +38,34 @@ func NewRequestors(c Cache) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerTy
 		logRequestURIs: false,
 	}
 
-	mlbTeamRequestor := mlbTeamRequestor{requestor: &r}
-	mlbPlayerScoreCategorizer := mlbPlayerRequestor{requestor: &r}
-	mlbPlayerSearcher := mlbPlayerSearcher{requestor: &r}
-	nflTeamRequestor := nflTeamRequestor{requestor: &r}
-	nflPlayerRequestor := nflPlayerRequestor{requestor: &r}
+	mlbTeamRequester := mlbTeamRequester{requester: &r}
+	mlbPlayerScoreCategorizer := mlbPlayerRequester{requester: &r}
+	mlbPlayerSearcher := mlbPlayerSearcher{requester: &r}
+	nflTeamRequester := nflTeamRequester{requester: &r}
+	nflPlayerRequester := nflPlayerRequester{requester: &r}
 
 	scoreCategorizers := make(map[db.PlayerType]ScoreCategorizer)
-	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequester
 	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerScoreCategorizer
 	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerScoreCategorizer
-	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequestor
-	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequestor
-	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequester
+	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequester
+	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequester
 
 	searchers := make(map[db.PlayerType]Searcher)
-	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequestor
+	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequester
 	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerSearcher
 	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerSearcher
-	searchers[db.PlayerTypeNflTeam] = &nflTeamRequestor
-	searchers[db.PlayerTypeNflQB] = &nflPlayerRequestor
-	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequestor
+	searchers[db.PlayerTypeNflTeam] = &nflTeamRequester
+	searchers[db.PlayerTypeNflQB] = &nflPlayerRequester
+	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequester
 
-	aboutRequestor := AboutRequestor{requestor: &r}
+	aboutRequester := AboutRequester{requester: &r}
 
-	return scoreCategorizers, searchers, aboutRequestor
+	return scoreCategorizers, searchers, aboutRequester
 }
 
-func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
+func (r *httpRequester) structPointerFromURI(uri string, v interface{}) error {
 	b, ok := r.cache.get(uri)
 	if !ok {
 		var err error
@@ -83,7 +82,7 @@ func (r *httpRequestor) structPointerFromURI(uri string, v interface{}) error {
 	return nil
 }
 
-func (r *httpRequestor) bytes(uri string) ([]byte, error) {
+func (r *httpRequester) bytes(uri string) ([]byte, error) {
 	if r.logRequestURIs {
 		log.Printf("%T : requesting %v", r.httpClient, uri)
 	}

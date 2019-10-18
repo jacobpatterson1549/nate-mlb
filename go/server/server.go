@@ -26,7 +26,7 @@ type (
 		requestCache      *request.Cache
 		scoreCategorizers map[db.PlayerType]request.ScoreCategorizer
 		searchers         map[db.PlayerType]request.Searcher
-		aboutRequestor    request.AboutRequestor
+		aboutRequester    request.AboutRequester
 	}
 	serverDatastore interface {
 		GetUtcTime() time.Time
@@ -73,7 +73,7 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 		return nil, fmt.Errorf("Invalid port number: %s", port)
 	}
 	c := request.NewCache(100)
-	scoreCategorizers, searchers, aboutRequestor := request.NewRequestors(c)
+	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c)
 	return &Config{
 		serverName:        serverName,
 		ds:                ds,
@@ -81,7 +81,7 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 		sportEntries:      newSportEntries(ds.SportTypes()),
 		scoreCategorizers: scoreCategorizers,
 		searchers:         searchers,
-		aboutRequestor:    aboutRequestor,
+		aboutRequester:    aboutRequester,
 	}, nil
 }
 
@@ -220,7 +220,7 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 }
 
 func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	lastDeploy, err := cfg.aboutRequestor.PreviousDeployment()
+	lastDeploy, err := cfg.aboutRequester.PreviousDeployment()
 	if err != nil {
 		return err
 	}

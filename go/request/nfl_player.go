@@ -8,9 +8,9 @@ import (
 )
 
 type (
-	// nflPlayerRequestor implements the ScoreCategorizer and Searcher interfaces
-	nflPlayerRequestor struct {
-		requestor requestor
+	// nflPlayerRequester implements the ScoreCategorizer and Searcher interfaces
+	nflPlayerRequester struct {
+		requester requester
 	}
 
 	// NflPlayerList contains information about the stats for all players for a particular year
@@ -39,7 +39,7 @@ type (
 )
 
 // RequestScoreCategory implements the ScoreCategorizer interface
-func (r *nflPlayerRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
+func (r *nflPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	sourceIDs := make(map[db.SourceID]bool, len(players))
 	for _, player := range players {
 		sourceIDs[player.SourceID] = true
@@ -64,7 +64,7 @@ func (r *nflPlayerRequestor) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 }
 
 // Search implements the Searcher interface
-func (r *nflPlayerRequestor) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
+func (r *nflPlayerRequester) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	nflPlayerList, err := r.requestNflPlayerList(year)
 	if err != nil {
 		return nil, err
@@ -88,10 +88,10 @@ func (r *nflPlayerRequestor) Search(pt db.PlayerType, year int, playerNamePrefix
 	return nflPlayerSearchResults, nil
 }
 
-func (r *nflPlayerRequestor) requestNflPlayerList(year int) (*NflPlayerList, error) {
+func (r *nflPlayerRequester) requestNflPlayerList(year int) (*NflPlayerList, error) {
 	uri := fmt.Sprintf("https://api.fantasy.nfl.com/v1/players/stats?statType=seasonStats&season=%d&format=json", year)
 	nflPlayerList := new(NflPlayerList)
-	err := r.requestor.structPointerFromURI(uri, &nflPlayerList)
+	err := r.requester.structPointerFromURI(uri, &nflPlayerList)
 	return nflPlayerList, err
 }
 
