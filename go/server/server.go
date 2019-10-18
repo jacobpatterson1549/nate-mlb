@@ -137,19 +137,6 @@ func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, upt urlPathT
 	return sportTypeHandler(st, cfg, w, r)
 }
 
-func transformURLPath(sportTypesByURL map[string]db.SportType, urlPath string) (db.SportType, string) {
-	parts := strings.Split(urlPath, "/")
-	if len(parts) < 2 {
-		return 0, urlPath
-	}
-	firstPathSegment := parts[1]
-	st, ok := sportTypesByURL[firstPathSegment]
-	if ok {
-		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
-	}
-	return st, urlPath
-}
-
 func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
 	title := fmt.Sprintf("%s Stats", cfg.serverName)
 	homeTab := AdminTab{Name: "Home"}
@@ -294,4 +281,17 @@ func handleAdminSearch(st db.SportType, cfg Config, w http.ResponseWriter, r *ht
 		return fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
 	}
 	return nil
+}
+
+func transformURLPath(sportTypesByURL map[string]db.SportType, urlPath string) (db.SportType, string) {
+	parts := strings.Split(urlPath, "/")
+	if len(parts) < 2 {
+		return 0, urlPath
+	}
+	firstPathSegment := parts[1]
+	st, ok := sportTypesByURL[firstPathSegment]
+	if ok {
+		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
+	}
+	return st, urlPath
 }
