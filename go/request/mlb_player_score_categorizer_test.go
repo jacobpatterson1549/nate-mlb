@@ -141,6 +141,13 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			wantErr:          true, // no playerNamesJSON
 		},
 		{
+			pt:               db.PlayerTypeMlbHitter,
+			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
+			playerNamesJSON:  `Aaron Judge`,
+			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
+			wantErr:          true, // bad playerNamesJSON
+		},
+		{
 			pt:              db.PlayerTypeMlbHitter,
 			players:         []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON: `{"People":[{"id":592450,"fullName":"Aaron Judge"}]}`,
