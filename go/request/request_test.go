@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -156,7 +155,7 @@ func TestNewRequestors(t *testing.T) {
 			t.Errorf("expected Searcher for pt %v", pt)
 		}
 	}
-	if !reflect.DeepEqual(aboutRequestor.requestor, c) {
+	if aboutRequestor.requestor == nil {
 		t.Errorf("requestor not set for aboutRequestor")
 	}
 }
