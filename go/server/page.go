@@ -81,7 +81,6 @@ func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
 }
 
 func newPage(applicationName string, sportEntries []SportEntry, tg timeGetter, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
-	// TODO: make function params more simple/shorter
 	return Page{
 		ApplicationName: applicationName,
 		Title:           title,
