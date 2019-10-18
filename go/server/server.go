@@ -30,20 +30,9 @@ type (
 		aboutRequester    request.AboutRequester
 	}
 	serverDatastore interface {
-		GetUtcTime() time.Time
 		GetYears(st db.SportType) ([]db.Year, error)
-		GetStat(st db.SportType) (*db.Stat, error)
-		GetFriends(st db.SportType) ([]db.Friend, error)
-		GetPlayers(st db.SportType) ([]db.Player, error)
-		SetStat(stat db.Stat) error
-		SaveYears(st db.SportType, futureYears []db.Year) error
-		SaveFriends(st db.SportType, futureFriends []db.Friend) error
-		SavePlayers(st db.SportType, futurePlayers []db.Player) error
-		ClearStat(st db.SportType) error
-		SetUserPassword(username string, p db.Password) error
-		IsCorrectUserPassword(username string, p db.Password) (bool, error)
-		sportTypeGetter
-		playerTypeGetter
+		adminDatastore
+		etlDatastore
 	}
 	sportTypeGetter interface {
 		SportTypes() db.SportTypeMap
