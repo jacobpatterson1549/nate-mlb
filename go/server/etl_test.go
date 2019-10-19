@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -48,7 +49,58 @@ func TestPreviousMidnight(t *testing.T) {
 	}
 }
 
-func TestPlayerTypes(t *testing.T) {
+func TestGetScoreCategory(t *testing.T) {
+	getScoreCategoryTests := []struct {
+		pt                   db.PlayerType
+		pti                  db.PlayerTypeInfo
+		year                 int
+		friends              []db.Friend
+		players              []db.Player
+		requestScoreCategory request.ScoreCategory
+		requestErr           error
+	}{
+		{},
+		{
+			requestScoreCategory: request.ScoreCategory{Name: "points"},
+		},
+		{
+			requestErr: fmt.Errorf("request error"),
+		},
+	}
+	for i, test := range getScoreCategoryTests {
+		scoreCategories := make(chan request.ScoreCategory, 1)
+		quit := make(chan error, 1)
+		scoreCategorizer := mockScoreCategorizer{
+			RequestScoreCategoryFunc: func(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error) {
+				return test.requestScoreCategory, test.requestErr
+			},
+		}
+		getScoreCategory(test.pt, test.pti, test.year, test.friends, test.players, scoreCategorizer, scoreCategories, quit)
+		wantErr := test.requestErr != nil
+		select {
+		case got := <-scoreCategories:
+			if !reflect.DeepEqual(test.requestScoreCategory, got) || wantErr {
+				t.Errorf("Test %v: wanted scoreCategory %v, got scoreCategory: %v (expected error: %v", i, test.requestScoreCategory, got, wantErr)
+			}
+		case got := <-quit:
+			if !wantErr {
+				t.Errorf("Test %v: unexpected error: %v", i, got)
+			}
+		default:
+			t.Errorf("Test %v: did not get message on any channel", i)
+		}
+	}
+}
+
+type mockScoreCategorizer struct {
+	RequestScoreCategoryFunc func(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error)
+}
+
+func (m mockScoreCategorizer) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error) {
+	return m.RequestScoreCategoryFunc(pt, ptInfo, year, friends, players)
+}
+
+func TestGetPlayerTypes(t *testing.T) {
 	pt1 := db.PlayerType(1)
 	pt2 := db.PlayerType(2)
 	pt3 := db.PlayerType(3)
