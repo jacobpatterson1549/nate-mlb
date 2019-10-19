@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jacobpatterson1549/nate-mlb/go/request"
-
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 func TestPreviousMidnight(t *testing.T) {
