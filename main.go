@@ -30,8 +30,6 @@ type mainFlags struct {
 	playerTypesCsv  string
 }
 
-var ds *db.Datastore
-
 func main() {
 	mainFlags := initFlags()
 	var buf bytes.Buffer
@@ -78,6 +76,7 @@ func initFlags() mainFlags {
 }
 
 func startupFuncs(mainFlags mainFlags, log *log.Logger) []func() error {
+	var ds *db.Datastore
 	startupFuncs := make([]func() error, 0, 2)
 	startupFuncs = append(startupFuncs, func() error {
 		var err error
