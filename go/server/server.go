@@ -34,12 +34,6 @@ type (
 		adminDatastore
 		etlDatastore
 	}
-	sportTypeGetter interface {
-		SportTypes() db.SportTypeMap
-	}
-	playerTypeGetter interface {
-		PlayerTypes() db.PlayerTypeMap
-	}
 	timeGetter interface {
 		GetUtcTime() time.Time
 	}

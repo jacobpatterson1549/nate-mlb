@@ -25,8 +25,8 @@ type (
 		GetFriends(st db.SportType) ([]db.Friend, error)
 		GetPlayers(st db.SportType) ([]db.Player, error)
 		SetStat(stat db.Stat) error
-		sportTypeGetter
-		playerTypeGetter
+		SportTypes() db.SportTypeMap
+		PlayerTypes() db.PlayerTypeMap
 		timeGetter
 	}
 )

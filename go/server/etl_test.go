@@ -48,6 +48,63 @@ func TestPreviousMidnight(t *testing.T) {
 	}
 }
 
+func TestGetScoreCategories(t *testing.T) {
+	getScoreCategoriesTests := []struct {
+		st                     db.SportType
+		ds                     etlDatastore
+		year                   int
+		scoreCategorizers      map[db.PlayerType]request.ScoreCategorizer
+		requestScoreCategories []request.ScoreCategory
+		requestErr             error
+		wantErr                bool
+	}{}
+	for i, test := range getScoreCategoriesTests {
+		gotScoreCategories, gotErr := getScoreCategories(test.st, test.ds, test.year, test.scoreCategorizers)
+		switch {
+		case test.wantErr:
+			if gotErr != nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		case !reflect.DeepEqual(test.requestScoreCategories, gotScoreCategories):
+			t.Errorf("Test %v: not equal:\nwant: %v\ngot:  %v", i, test.requestScoreCategories, gotScoreCategories)
+		}
+	}
+}
+
+type mockEtlDatastore struct {
+	GetStatFunc     func(st db.SportType) (*db.Stat, error)
+	GetFriendsFunc  func(st db.SportType) ([]db.Friend, error)
+	GetPlayersFunc  func(st db.SportType) ([]db.Player, error)
+	SetStatFunc     func(stat db.Stat) error
+	SportTypesFunc  func() db.SportTypeMap
+	PlayerTypesFunc func() db.PlayerTypeMap
+	GetUtcTimeFunc  func() time.Time
+}
+
+func (m mockEtlDatastore) GetStat(st db.SportType) (*db.Stat, error) {
+	return m.GetStatFunc(st)
+}
+func (m mockEtlDatastore) GetFriends(st db.SportType) ([]db.Friend, error) {
+	return m.GetFriendsFunc(st)
+}
+func (m mockEtlDatastore) GetPlayers(st db.SportType) ([]db.Player, error) {
+	return m.GetPlayersFunc(st)
+}
+func (m mockEtlDatastore) SetStat(stat db.Stat) error {
+	return m.SetStatFunc(stat)
+}
+func (m mockEtlDatastore) SportTypes() db.SportTypeMap {
+	return m.SportTypesFunc()
+}
+func (m mockEtlDatastore) PlayerTypes() db.PlayerTypeMap {
+	return m.PlayerTypesFunc()
+}
+func (m mockEtlDatastore) GetUtcTime() time.Time {
+	return m.GetUtcTimeFunc()
+}
+
 func TestGetScoreCategory(t *testing.T) {
 	getScoreCategoryTests := []struct {
 		pt                   db.PlayerType
