@@ -36,13 +36,22 @@ type Datastore struct {
 	playerTypes  PlayerTypeMap
 	readFileFunc func(filename string) ([]byte, error)
 	readDirFunc  func(dirname string) ([]os.FileInfo, error)
+	log          *log.Logger
 }
 
 // NewDatastore creates a new sqlDatastore
-func NewDatastore(dataSourceName string) (*Datastore, error) {
+func NewDatastore(dataSourceName string, log *log.Logger) (*Datastore, error) {
 	db, err := newSQLDatabase(dataSourceName)
 	if err != nil {
 		return nil, err
+	}
+
+	ds := Datastore{
+		db:           db,
+		ph:           bcryptPasswordHasher{},
+		readFileFunc: ioutil.ReadFile,
+		readDirFunc:  ioutil.ReadDir,
+		log:          log,
 	}
 
 	sleepFunc := func(sleepSeconds int) {
@@ -54,15 +63,8 @@ func NewDatastore(dataSourceName string) (*Datastore, error) {
 		time.Sleep(d) // BLOCKING
 	}
 	numFibonacciTries := 7
-	if err := waitForDb(db, sleepFunc, numFibonacciTries); err != nil {
+	if err := ds.waitForDb(sleepFunc, numFibonacciTries); err != nil {
 		return nil, fmt.Errorf("establishing connection: %v", err)
-	}
-
-	ds := Datastore{
-		db:           db,
-		ph:           bcryptPasswordHasher{},
-		readFileFunc: ioutil.ReadFile,
-		readDirFunc:  ioutil.ReadDir,
 	}
 
 	if err = ds.SetupTablesAndFunctions(); err != nil {
@@ -191,16 +193,16 @@ func (f writeSQLFunction) sql() string {
 }
 
 // waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
-func waitForDb(d database, sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
+func (ds Datastore) waitForDb(sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
 	a, b := 1, 0
 	var err error
 	for i := 0; i < numFibonacciTries; i++ {
-		err = d.Ping()
+		err = ds.db.Ping()
 		if err == nil {
-			log.Println("connected to database")
+			ds.log.Println("connected to database")
 			return nil
 		}
-		log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
+		ds.log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
 		sleepFunc(b)
 		c := b
 		b = a

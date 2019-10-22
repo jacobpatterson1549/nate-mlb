@@ -1,10 +1,15 @@
 package request
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -86,6 +91,32 @@ func TestStructPointerFromUri(t *testing.T) {
 	}
 }
 
+func TestHttpRequesterLogRequestUrl(t *testing.T) {
+	for _, test := range []bool{true, false} {
+		buffer := bytes.NewBufferString("")
+		log := log.New(buffer, "test", log.LstdFlags)
+		r := httpRequester{
+			cache: NewCache(0), // (do not cache)
+			httpClient: mockHTTPClient{
+				DoFunc: func(r *http.Request) (*http.Response, error) {
+					return nil, fmt.Errorf("request error")
+				},
+			},
+			logRequestURIs: test,
+			log:            log,
+		}
+		uri := "TEST_URI"
+		r.bytes(uri)
+		logText := buffer.String()
+		if test && !strings.Contains(logText, uri) {
+			t.Errorf("expected uri to be written to log, but was not; got: %v", logText)
+		}
+		if !test && buffer.Len() > 0 {
+			t.Errorf("expected nothing to be written to log, but got: %v", logText)
+		}
+	}
+}
+
 func TestStructPointerFromUri_requesterError(t *testing.T) {
 	doErr := errors.New("Do error")
 	r := httpRequester{
@@ -95,7 +126,6 @@ func TestStructPointerFromUri_requesterError(t *testing.T) {
 				return nil, doErr
 			},
 		},
-		// logRequestUris: true,
 	}
 	var got interface{}
 	err := r.structPointerFromURI("uri", &got)
@@ -128,7 +158,6 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 				return &response, nil
 			},
 		},
-		// logRequestUris: true,
 	}
 	var got interface{}
 	err := r.structPointerFromURI("uri", &got)
@@ -139,7 +168,8 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 
 func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
-	scoreCategorizers, searchers, aboutRequester := NewRequesters(c)
+	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, log)
 	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
 	if len(wantPlayerTypes) != len(scoreCategorizers) {
 		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))

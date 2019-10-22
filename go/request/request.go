@@ -25,17 +25,19 @@ type (
 		cache          Cache
 		httpClient     httpClient
 		logRequestURIs bool
+		log            *log.Logger
 	}
 )
 
 // NewRequesters creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequester
-func NewRequesters(c Cache) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
+func NewRequesters(c Cache, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
 	r := httpRequester{
 		cache: c,
 		httpClient: &http.Client{
 			Timeout: 5 * time.Second,
 		},
 		logRequestURIs: false,
+		log:            log,
 	}
 
 	mlbTeamRequester := mlbTeamRequester{requester: &r}
@@ -84,7 +86,7 @@ func (r *httpRequester) structPointerFromURI(uri string, v interface{}) error {
 
 func (r *httpRequester) bytes(uri string) ([]byte, error) {
 	if r.logRequestURIs {
-		log.Printf("%T : requesting %v", r.httpClient, uri)
+		r.log.Printf("%T : requesting %v", r.httpClient, uri)
 	}
 	request, err := http.NewRequest("GET", uri, nil)
 	if err != nil {

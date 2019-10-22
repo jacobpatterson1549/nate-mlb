@@ -28,6 +28,7 @@ type (
 		scoreCategorizers map[db.PlayerType]request.ScoreCategorizer
 		searchers         map[db.PlayerType]request.Searcher
 		aboutRequester    request.AboutRequester
+		log               *log.Logger
 	}
 	serverDatastore interface {
 		GetYears(st db.SportType) ([]db.Year, error)
@@ -59,7 +60,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // NewConfig validates and creates a new configuration
-func NewConfig(serverName string, ds serverDatastore, port string) (*Config, error) {
+func NewConfig(serverName string, ds serverDatastore, port string, log *log.Logger) (*Config, error) {
 	if _, err := strconv.Atoi(port); err != nil {
 		return nil, fmt.Errorf("Invalid port number: %s", port)
 	}
@@ -69,7 +70,7 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 		sportTypesByURL[sti.URL] = st
 	}
 	c := request.NewCache(100)
-	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c)
+	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c, log)
 	return &Config{
 		serverName:        serverName,
 		ds:                ds,
@@ -79,6 +80,7 @@ func NewConfig(serverName string, ds serverDatastore, port string) (*Config, err
 		scoreCategorizers: scoreCategorizers,
 		searchers:         searchers,
 		aboutRequester:    aboutRequester,
+		log:               log,
 	}, nil
 }
 
@@ -95,7 +97,7 @@ func Run(cfg Config) error {
 	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
 	http.HandleFunc("/", handleRoot(cfg))
 	addr := fmt.Sprintf(":%s", cfg.port)
-	log.Println("starting server - locally running at http://127.0.0.1" + addr)
+	cfg.log.Println("starting server - locally running at http://127.0.0.1" + addr)
 	err = http.ListenAndServe(addr, nil) // BLOCKS
 	if err != http.ErrServerClosed {
 		return fmt.Errorf("server stopped unexpectedly: %w", err)
@@ -112,7 +114,7 @@ func handleRoot(cfg Config) httpHandler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := handlePage(cfg, w, r, transformURLPath, serverSportTypeHandlers)
 		if err != nil {
-			log.Printf("server error: %q", err)
+			cfg.log.Printf("server error: %q", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 		}
 	}

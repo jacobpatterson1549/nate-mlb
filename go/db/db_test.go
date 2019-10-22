@@ -290,7 +290,6 @@ func TestWaitForDb_numTries(t *testing.T) {
 			wantError:            true,
 		},
 	}
-	log.SetOutput(ioutil.Discard)
 	for i, test := range waitForDbTests {
 		dbCheckCount := 0
 		db := mockDatabase{
@@ -302,8 +301,10 @@ func TestWaitForDb_numTries(t *testing.T) {
 				return nil
 			},
 		}
+		log := log.New(ioutil.Discard, "test", log.LstdFlags)
+		ds := Datastore{db: db, log: log}
 		sleepFunc := func(waitTime int) {}
-		err := waitForDb(db, sleepFunc, test.numFibonacciTries)
+		err := ds.waitForDb(sleepFunc, test.numFibonacciTries)
 		gotError := err != nil
 		if test.wantError != gotError {
 			t.Errorf("Test %v: wantedError = %v, gotError = %v", i, test.wantError, gotError)
@@ -327,8 +328,10 @@ func TestWaitForDb_fibonacci(t *testing.T) {
 		}
 		i++
 	}
+	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+	ds := Datastore{db: db, log: log}
 	numFibonacciTries := len(wantFibonacciSleepSeconds)
-	err := waitForDb(db, sleepFunc, numFibonacciTries)
+	err := ds.waitForDb(sleepFunc, numFibonacciTries)
 	if err == nil {
 		t.Error("expected db wait check to error out")
 	}

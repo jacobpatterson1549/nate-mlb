@@ -2,6 +2,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"log"
@@ -33,7 +34,11 @@ var ds *db.Datastore
 
 func main() {
 	mainFlags := initFlags()
-	for _, startupFunc := range startupFuncs(mainFlags) {
+	var buf bytes.Buffer
+	log := log.New(&buf, mainFlags.applicationName, log.LstdFlags)
+	log.SetOutput(os.Stdout)
+	startupFuncs := startupFuncs(mainFlags, log)
+	for _, startupFunc := range startupFuncs {
 		if err := startupFunc(); err != nil {
 			log.Fatal(err)
 		}
@@ -72,11 +77,11 @@ func initFlags() mainFlags {
 	return mainFlags
 }
 
-func startupFuncs(mainFlags mainFlags) []func() error {
+func startupFuncs(mainFlags mainFlags, log *log.Logger) []func() error {
 	startupFuncs := make([]func() error, 0, 2)
 	startupFuncs = append(startupFuncs, func() error {
 		var err error
-		ds, err = db.NewDatastore(mainFlags.dataSourceName)
+		ds, err = db.NewDatastore(mainFlags.dataSourceName, log)
 		return err
 	})
 	if len(mainFlags.playerTypesCsv) != 0 {
@@ -90,7 +95,7 @@ func startupFuncs(mainFlags mainFlags) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port)
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, log)
 		if err != nil {
 			return err
 		}
