@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -217,6 +218,91 @@ func TestHandleAdminSearchRequest(t *testing.T) {
 			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		case !reflect.DeepEqual(test.wantPlayerSearchResults, gotPlayerSearchResults):
 			t.Errorf("Test %v: not equal:\nwant: %v\ngot:  %v", i, test.wantPlayerSearchResults, gotPlayerSearchResults)
+		}
+	}
+}
+
+func TestUpdateFriends(t *testing.T) {
+	updateFriendsTests := []struct {
+		st              db.SportType
+		form            map[string][]string
+		wantErr         bool
+		wantSaveFriends []db.Friend
+	}{
+		{},
+		{ // bad displayOrder
+			form: map[string][]string{
+				"friend-8-display-order": {"ONE"},
+				"friend-8-name":          {"bart"},
+			},
+			wantErr: true,
+		},
+		{ // bad friendId (too large)
+			form: map[string][]string{
+				"friend-1234567890123456789012345678901234567890-display-order": {"1"},
+				"friend-1234567890123456789012345678901234567890-name":          {"bart"},
+			},
+			wantErr: true,
+		},
+		{ // happy path
+			form: map[string][]string{
+				"friend-8-display-order":   {"2"},
+				"friend-007-display-order": {"1"},
+				"friend-8-name":            {"bart"},
+				"friend-007-name":          {"alf"},
+			},
+			wantSaveFriends: []db.Friend{
+				{
+					ID:           7,
+					DisplayOrder: 1,
+					Name:         "alf",
+				},
+				{
+					ID:           8,
+					DisplayOrder: 2,
+					Name:         "bart",
+				},
+			},
+		},
+	}
+	for i, test := range updateFriendsTests {
+		ds := mockAdminDatastore{
+			SaveFriendsFunc: func(st db.SportType, futureFriends []db.Friend) error {
+				friendDisplayOrder := func(i int) int {
+					return futureFriends[i].DisplayOrder
+				}
+				sort.Slice(futureFriends, func(i, j int) bool {
+					return friendDisplayOrder(i) < friendDisplayOrder(j)
+				})
+				if !reflect.DeepEqual(test.wantSaveFriends, futureFriends) {
+					t.Errorf("Test %v:\nwanted save friends: %v\ngot: %v", i, test.wantSaveFriends, futureFriends)
+				}
+				return nil
+			},
+			ClearStatFunc: func(st db.SportType) error {
+				return nil
+			},
+		}
+		r := httptest.NewRequest("POST", "/admin", nil)
+		q := r.URL.Query()
+		for key, values := range test.form {
+			for _, value := range values {
+				q.Add(key, value)
+			}
+		}
+		r.URL.RawQuery = q.Encode()
+		if err := r.ParseForm(); err != nil {
+			t.Errorf("Test %v: could not parse request form: %v", i, err)
+		}
+		fmt.Println(r.URL.String())
+		gotErr := updateFriends(ds, test.st, r)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
 	}
 }
