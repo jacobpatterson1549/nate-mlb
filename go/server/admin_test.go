@@ -193,7 +193,7 @@ func TestHandleAdminSearchRequest(t *testing.T) {
 		},
 	}
 	for i, test := range handleAdminSearchRequestTests {
-		r := httptest.NewRequest("GET", "http://localhost/admin/search", nil)
+		r := httptest.NewRequest("POST", "/admin", nil)
 		q := r.URL.Query()
 		q.Add("q", test.searchQuery)
 		q.Add("pt", test.playerTypeID)
@@ -217,6 +217,80 @@ func TestHandleAdminSearchRequest(t *testing.T) {
 			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		case !reflect.DeepEqual(test.wantPlayerSearchResults, gotPlayerSearchResults):
 			t.Errorf("Test %v: not equal:\nwant: %v\ngot:  %v", i, test.wantPlayerSearchResults, gotPlayerSearchResults)
+		}
+	}
+}
+
+func TestUpdateYears(t *testing.T) {
+	updateYearsTests := []struct {
+		st            db.SportType
+		form          map[string][]string
+		wantErr       bool
+		wantSaveYears []db.Year
+	}{
+		{},
+		{ // bad year
+			form: map[string][]string{
+				"year": {
+					"two thousand nineteen",
+				},
+			},
+			wantErr: true,
+		},
+		{ // happy path
+			form: map[string][]string{
+				"year": {
+					"2020",
+					"2019",
+					"2001",
+				},
+				"year-active": {"2019"},
+			},
+			wantSaveYears: []db.Year{
+				{
+					Value:  2020,
+					Active: false,
+				},
+				{
+					Value:  2019,
+					Active: true,
+				},
+				{
+					Value:  2001,
+					Active: false,
+				},
+			},
+		},
+	}
+	for i, test := range updateYearsTests {
+		ds := mockAdminDatastore{
+			SaveYearsFunc: func(st db.SportType, futureYears []db.Year) error {
+				if !reflect.DeepEqual(test.wantSaveYears, futureYears) {
+					t.Errorf("Test %v:\nwanted save years: %v\ngot: %v", i, test.wantSaveYears, futureYears)
+				}
+				return nil
+			},
+		}
+		r := httptest.NewRequest("POST", "/admin", nil)
+		q := r.URL.Query()
+		for key, values := range test.form {
+			for _, value := range values {
+				q.Add(key, value)
+			}
+		}
+		r.URL.RawQuery = q.Encode()
+		if err := r.ParseForm(); err != nil {
+			t.Errorf("Test %v: could not parse request form: %v", i, err)
+		}
+		fmt.Println(r.URL.String())
+		gotErr := updateYears(ds, test.st, r)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
 		}
 	}
 }
