@@ -74,14 +74,12 @@ func TestHandleAdminSearchRequest(t *testing.T) {
 		},
 	}
 	for i, test := range handleAdminSearchRequestTests {
-		// q := http.UR // TODO: get this working
 		r := httptest.NewRequest("GET", "http://localhost/admin/search", nil)
 		q := r.URL.Query()
 		q.Add("q", test.searchQuery)
 		q.Add("pt", test.playerTypeID)
 		q.Add("apo", test.activePlayersOnly)
 		r.URL.RawQuery = q.Encode()
-		// fmt.Println(i, r.URL.String())
 		searchers := make(map[db.PlayerType]request.Searcher, 1)
 		if len(test.searcherPlayerSearchResults) > 0 {
 			searchers[test.wantPlayerType] = mockSearcher{
