@@ -10,21 +10,26 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
-type adminDatastore interface {
-	SaveYears(st db.SportType, futureYears []db.Year) error
-	SaveFriends(st db.SportType, futureFriends []db.Friend) error
-	SavePlayers(st db.SportType, futurePlayers []db.Player) error
-	ClearStat(st db.SportType) error
-	SetUserPassword(username string, p db.Password) error
-	IsCorrectUserPassword(username string, p db.Password) (bool, error)
-}
+type (
+	adminDatastore interface {
+		SaveYears(st db.SportType, futureYears []db.Year) error
+		SaveFriends(st db.SportType, futureFriends []db.Friend) error
+		SavePlayers(st db.SportType, futurePlayers []db.Player) error
+		ClearStat(st db.SportType) error
+		SetUserPassword(username string, p db.Password) error
+		IsCorrectUserPassword(username string, p db.Password) (bool, error)
+	}
+	adminCache interface {
+		Clear()
+	}
+)
 
 var (
 	playerDisplayOrderRE = regexp.MustCompile("^player-([0-9]+)-display-order$")
 	friendDisplayOrderRE = regexp.MustCompile("^friend-([0-9]+)-display-order$")
 )
 
-func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType, r *http.Request) error {
+func handleAdminPostRequest(ds adminDatastore, c adminCache, st db.SportType, r *http.Request) error {
 	if err := verifyUserPassword(ds, r); err != nil {
 		return err
 	}
@@ -38,7 +43,7 @@ func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType
 	case "years":
 		adminAction = updateYears
 	case "cache":
-		adminAction = clearCache
+		adminAction = clearStat
 		c.Clear()
 	case "password":
 		adminAction = resetPassword
@@ -121,11 +126,10 @@ func updateYears(ds adminDatastore, st db.SportType, r *http.Request) error {
 		years = append(years, year)
 	}
 
-	// (does not forcefully update cache if active year changed)
 	return ds.SaveYears(st, years)
 }
 
-func clearCache(ds adminDatastore, st db.SportType, r *http.Request) error {
+func clearStat(ds adminDatastore, st db.SportType, r *http.Request) error {
 	return ds.ClearStat(st)
 }
 

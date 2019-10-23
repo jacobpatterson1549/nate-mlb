@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http/httptest"
 	"reflect"
 	"testing"
@@ -8,6 +9,124 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
+
+func TestHandleAdminPostRequest(t *testing.T) {
+	handleAdminPostRequestTests := []struct {
+		action                   string
+		username                 string
+		password                 string
+		isCorrectUserPassword    bool
+		isCorrectUserPasswordErr error
+		st                       db.SportType
+		wantErr                  bool
+		wantCacheCleared         bool
+		wantActionCount          int
+	}{
+		{
+			isCorrectUserPassword: false,
+			wantErr:               true,
+		},
+		{
+			isCorrectUserPasswordErr: fmt.Errorf("problem checking password"),
+			wantErr:                  true,
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "unknown",
+			wantErr:               true,
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "friends",
+			wantActionCount:       2,
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "players",
+			wantActionCount:       2,
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "years",
+			wantActionCount:       1, // load previously cached year data if possible
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "cache",
+			wantActionCount:       2, // clear cache and stat
+		},
+		{
+			isCorrectUserPassword: true,
+			action:                "password",
+			wantActionCount:       1,
+		},
+	}
+	for i, test := range handleAdminPostRequestTests {
+		ds := mockAdminDatastore{
+			IsCorrectUserPasswordFunc: func(username string, p db.Password) (bool, error) {
+				return test.isCorrectUserPassword, test.isCorrectUserPasswordErr
+			},
+		}
+		c := mockCache{}
+		gotActionCount := 0
+		switch test.action {
+		case "friends":
+			ds.SaveFriendsFunc = func(st db.SportType, futureFriends []db.Friend) error {
+				gotActionCount++
+				return nil
+			}
+			ds.ClearStatFunc = func(st db.SportType) error {
+				gotActionCount++
+				return nil
+			}
+		case "players":
+			ds.SavePlayersFunc = func(st db.SportType, futurePlayers []db.Player) error {
+				gotActionCount++
+				return nil
+			}
+			ds.ClearStatFunc = func(st db.SportType) error {
+				gotActionCount++
+				return nil
+			}
+		case "years":
+			ds.SaveYearsFunc = func(st db.SportType, futureYears []db.Year) error {
+				gotActionCount++
+				return nil
+			}
+		case "cache":
+			c.ClearFunc = func() {
+				gotActionCount++
+			}
+			ds.ClearStatFunc = func(st db.SportType) error {
+				gotActionCount++
+				return nil
+			}
+		case "password":
+			ds.SetUserPasswordFunc = func(username string, p db.Password) error {
+				gotActionCount++
+				return nil
+			}
+		}
+		r := httptest.NewRequest("GET", "http://localhost/admin", nil)
+		q := r.URL.Query()
+		q.Add("action", test.action)
+		r.URL.RawQuery = q.Encode()
+
+		gotErr := handleAdminPostRequest(ds, c, test.st, r)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		default:
+			if test.wantActionCount != gotActionCount {
+				t.Errorf("Test %v: wanted %v action to run, got %v", i, test.wantActionCount, gotActionCount)
+			}
+		}
+	}
+}
 
 func TestHandleAdminSearchRequest(t *testing.T) {
 	handleAdminSearchRequestTests := []struct {
@@ -108,4 +227,40 @@ type mockSearcher struct {
 
 func (s mockSearcher) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]request.PlayerSearchResult, error) {
 	return s.SearchFunc(pt, year, playerNamePrefix, activePlayersOnly)
+}
+
+type mockAdminDatastore struct {
+	SaveYearsFunc             func(st db.SportType, futureYears []db.Year) error
+	SaveFriendsFunc           func(st db.SportType, futureFriends []db.Friend) error
+	SavePlayersFunc           func(st db.SportType, futurePlayers []db.Player) error
+	ClearStatFunc             func(st db.SportType) error
+	SetUserPasswordFunc       func(username string, p db.Password) error
+	IsCorrectUserPasswordFunc func(username string, p db.Password) (bool, error)
+}
+
+func (ds mockAdminDatastore) SaveYears(st db.SportType, futureYears []db.Year) error {
+	return ds.SaveYearsFunc(st, futureYears)
+}
+func (ds mockAdminDatastore) SaveFriends(st db.SportType, futureFriends []db.Friend) error {
+	return ds.SaveFriendsFunc(st, futureFriends)
+}
+func (ds mockAdminDatastore) SavePlayers(st db.SportType, futurePlayers []db.Player) error {
+	return ds.SavePlayersFunc(st, futurePlayers)
+}
+func (ds mockAdminDatastore) ClearStat(st db.SportType) error {
+	return ds.ClearStatFunc(st)
+}
+func (ds mockAdminDatastore) SetUserPassword(username string, p db.Password) error {
+	return ds.SetUserPasswordFunc(username, p)
+}
+func (ds mockAdminDatastore) IsCorrectUserPassword(username string, p db.Password) (bool, error) {
+	return ds.IsCorrectUserPasswordFunc(username, p)
+}
+
+type mockCache struct {
+	ClearFunc func()
+}
+
+func (c mockCache) Clear() {
+	c.ClearFunc()
 }
