@@ -265,7 +265,7 @@ func handleAdminSearch(st db.SportType, cfg Config, w http.ResponseWriter, r *ht
 	if err != nil {
 		return err
 	}
-	playerSearchResults, err := handleAdminSearchRequest(cfg.ds, st, es.year, cfg.searchers, r)
+	playerSearchResults, err := handleAdminSearchRequest(es.year, cfg.searchers, r)
 	if err != nil {
 		return err
 	}

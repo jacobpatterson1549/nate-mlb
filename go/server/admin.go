@@ -48,7 +48,7 @@ func handleAdminPostRequest(ds adminDatastore, c *request.Cache, st db.SportType
 	return adminAction(ds, st, r)
 }
 
-func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, searchers map[db.PlayerType]request.Searcher, r *http.Request) ([]request.PlayerSearchResult, error) {
+func handleAdminSearchRequest(year int, searchers map[db.PlayerType]request.Searcher, r *http.Request) ([]request.PlayerSearchResult, error) {
 	searchQuery := r.FormValue("q")
 	if len(searchQuery) == 0 {
 		return nil, fmt.Errorf("missing search query param: q")
@@ -65,7 +65,10 @@ func handleAdminSearchRequest(ds adminDatastore, st db.SportType, year int, sear
 	activePlayersOnly := r.FormValue("apo")
 	activePlayersOnlyB := activePlayersOnly == "on"
 
-	searcher := searchers[playerType]
+	searcher, ok := searchers[playerType]
+	if !ok {
+		return nil, fmt.Errorf("no searcher for playerType %v", playerType)
+	}
 	return searcher.Search(playerType, year, searchQuery, activePlayersOnlyB)
 }
 
