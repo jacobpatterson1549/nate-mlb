@@ -381,6 +381,32 @@ func TestUpdateYears(t *testing.T) {
 	}
 }
 
+func TestResetPassword(t *testing.T) {
+	wantUsername := "fred"
+	wantPassword := "s3cr3t&#"
+	wantErr := fmt.Errorf("password reset error")
+	r := httptest.NewRequest("POST", "/admin", nil)
+	q := r.URL.Query()
+	q.Add("username", wantUsername)
+	q.Add("newPassword", wantPassword)
+	r.URL.RawQuery = q.Encode()
+	ds := mockAdminDatastore{
+		SetUserPasswordFunc: func(username string, p db.Password) error {
+			if wantUsername != username {
+				t.Errorf("wanted %v, got %v", wantUsername, username)
+			}
+			if wantPassword != string(p) {
+				t.Errorf("wanted %v, got %v", wantPassword, p)
+			}
+			return wantErr
+		},
+	}
+	gotErr := resetPassword(ds, 0, r)
+	if wantErr != gotErr {
+		t.Errorf("wanted %v, got %v", wantErr, gotErr)
+	}
+}
+
 type mockSearcher struct {
 	SearchFunc func(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]request.PlayerSearchResult, error)
 }
