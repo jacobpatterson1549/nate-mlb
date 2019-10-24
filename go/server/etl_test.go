@@ -57,7 +57,9 @@ func TestGetScoreCategories(t *testing.T) {
 		requestScoreCategories []request.ScoreCategory
 		requestErr             error
 		wantErr                bool
-	}{}
+	}{
+		// TODO
+	}
 	for i, test := range getScoreCategoriesTests {
 		gotScoreCategories, gotErr := getScoreCategories(test.st, test.ds, test.year, test.scoreCategorizers)
 		switch {
