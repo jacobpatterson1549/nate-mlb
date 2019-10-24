@@ -307,6 +307,130 @@ func TestUpdateFriends(t *testing.T) {
 	}
 }
 
+func TestUpdatePlayers(t *testing.T) {
+	updatePlayersTests := []struct {
+		st              db.SportType
+		form            map[string][]string
+		wantErr         bool
+		wantSavePlayers []db.Player
+	}{
+		{},
+		{ // bad displayOrder
+			form: map[string][]string{
+				"player-7-display-order": {"ONE"},
+				"player-7-player-type":   {"3"},
+				"player-7-friend-id":     {"9"},
+				"player-7-source-id":     {"8"},
+			},
+			wantErr: true,
+		},
+		{ // bad playerId (too large)
+			form: map[string][]string{
+				"player-1234567890123456789012345678901234567890-display-order": {"1"},
+				"player-1234567890123456789012345678901234567890-player-type":   {"3"},
+				"player-1234567890123456789012345678901234567890-friend-id":     {"9"},
+				"player-1234567890123456789012345678901234567890-source-id":     {"8"},
+			},
+			wantErr: true,
+		},
+		{ // bad friendId
+			form: map[string][]string{
+				"player-7-display-order": {"1"},
+				"player-7-player-type":   {"3"},
+				"player-7-friend-id":     {"9x7"},
+				"player-7-source-id":     {"8"},
+			},
+			wantErr: true,
+		},
+		{ // bad sourceId
+			form: map[string][]string{
+				"player-7-display-order": {"1"},
+				"player-7-player-type":   {"3"},
+				"player-7-friend-id":     {"9"},
+				"player-7-source-id":     {"."},
+			},
+			wantErr: true,
+		},
+		{ // bad playertype
+			form: map[string][]string{
+				"player-7-display-order": {"1"},
+				"player-7-player-type":   {"low"},
+				"player-7-friend-id":     {"9"},
+				"player-7-source-id":     {"8"},
+			},
+			wantErr: true,
+		},
+		{ // happy path
+			form: map[string][]string{
+				"player-6-display-order": {"2"},
+				"player-7-display-order": {"1"},
+				"player-6-player-type":   {"1"},
+				"player-7-player-type":   {"2"},
+				"player-6-friend-id":     {"4"},
+				"player-7-friend-id":     {"6"},
+				"player-6-source-id":     {"8000"},
+				"player-7-source-id":     {"47"},
+			},
+			wantSavePlayers: []db.Player{
+				{
+					ID:           7,
+					DisplayOrder: 1,
+					PlayerType:   2,
+					SourceID:     47,
+					FriendID:     6,
+				},
+				{
+					ID:           6,
+					DisplayOrder: 2,
+					PlayerType:   1,
+					SourceID:     8000,
+					FriendID:     4,
+				},
+			},
+		},
+	}
+	for i, test := range updatePlayersTests {
+		ds := mockAdminDatastore{
+			SavePlayersFunc: func(st db.SportType, futurePlayers []db.Player) error {
+				playerDisplayOrder := func(i int) int {
+					return futurePlayers[i].DisplayOrder
+				}
+				sort.Slice(futurePlayers, func(i, j int) bool {
+					return playerDisplayOrder(i) < playerDisplayOrder(j)
+				})
+				if !reflect.DeepEqual(test.wantSavePlayers, futurePlayers) {
+					t.Errorf("Test %v:\nwanted save players: %v\ngot: %v", i, test.wantSavePlayers, futurePlayers)
+				}
+				return nil
+			},
+			ClearStatFunc: func(st db.SportType) error {
+				return nil
+			},
+		}
+		r := httptest.NewRequest("POST", "/admin", nil)
+		q := r.URL.Query()
+		for key, values := range test.form {
+			for _, value := range values {
+				q.Add(key, value)
+			}
+		}
+		r.URL.RawQuery = q.Encode()
+		if err := r.ParseForm(); err != nil {
+			t.Errorf("Test %v: could not parse request form: %v", i, err)
+		}
+		fmt.Println(r.URL.String())
+		gotErr := updatePlayers(ds, test.st, r)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		}
+	}
+}
+
 func TestUpdateYears(t *testing.T) {
 	updateYearsTests := []struct {
 		st            db.SportType
