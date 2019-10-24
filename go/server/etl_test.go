@@ -109,39 +109,46 @@ func (m mockEtlDatastore) GetUtcTime() time.Time {
 
 func TestGetScoreCategory(t *testing.T) {
 	getScoreCategoryTests := []struct {
-		pt                   db.PlayerType
-		pti                  db.PlayerTypeInfo
-		year                 int
-		friends              []db.Friend
-		players              []db.Player
-		requestScoreCategory request.ScoreCategory
-		requestErr           error
+		pt                db.PlayerType
+		pti               db.PlayerTypeInfo
+		year              int
+		friends           []db.Friend
+		players           []db.Player
+		scoreCategorizer  request.ScoreCategorizer
+		wantErr           bool
+		wantScoreCategory request.ScoreCategory
 	}{
-		{},
-		{
-			requestScoreCategory: request.ScoreCategory{Name: "points"},
+		{ // no ScoreCategorizer
+			wantErr: true,
 		},
-		{
-			requestErr: fmt.Errorf("request error"),
+		{ // happy path
+			scoreCategorizer: mockScoreCategorizer{
+				RequestScoreCategoryFunc: func(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error) {
+					return request.ScoreCategory{Name: "points"}, nil
+				},
+			},
+			wantScoreCategory: request.ScoreCategory{Name: "points"},
+		},
+		{ // problem requesting score category
+			scoreCategorizer: mockScoreCategorizer{
+				RequestScoreCategoryFunc: func(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error) {
+					return request.ScoreCategory{}, fmt.Errorf("request error")
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for i, test := range getScoreCategoryTests {
 		scoreCategories := make(chan request.ScoreCategory, 1)
 		quit := make(chan error, 1)
-		scoreCategorizer := mockScoreCategorizer{
-			RequestScoreCategoryFunc: func(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (request.ScoreCategory, error) {
-				return test.requestScoreCategory, test.requestErr
-			},
-		}
-		getScoreCategory(test.pt, test.pti, test.year, test.friends, test.players, scoreCategorizer, scoreCategories, quit)
-		wantErr := test.requestErr != nil
+		getScoreCategory(test.pt, test.pti, test.year, test.friends, test.players, test.scoreCategorizer, scoreCategories, quit)
 		select {
 		case got := <-scoreCategories:
-			if !reflect.DeepEqual(test.requestScoreCategory, got) || wantErr {
-				t.Errorf("Test %v: wanted scoreCategory %v, got scoreCategory: %v (expected error: %v", i, test.requestScoreCategory, got, wantErr)
+			if test.wantErr || !reflect.DeepEqual(test.wantScoreCategory, got) {
+				t.Errorf("Test %v: wanted scoreCategory %v, got scoreCategory: %v (expected error: %v)", i, test.wantScoreCategory, got, test.wantErr)
 			}
 		case got := <-quit:
-			if !wantErr {
+			if !test.wantErr {
 				t.Errorf("Test %v: unexpected error: %v", i, got)
 			}
 		default:

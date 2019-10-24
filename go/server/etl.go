@@ -119,6 +119,10 @@ func getPlayerTypes(st db.SportType, playerTypes db.PlayerTypeMap) []db.PlayerTy
 }
 
 func getScoreCategory(pt db.PlayerType, pti db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player, scoreCategorizer request.ScoreCategorizer, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+	if scoreCategorizer == nil {
+		quit <- fmt.Errorf("no ScoreCategorizer for PlayerType %v", pt)
+		return
+	}
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
 	scoreCategory, err := scoreCategorizer.RequestScoreCategory(pt, pti, year, friends, players)
 	if err != nil {
