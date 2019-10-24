@@ -35,9 +35,6 @@ type (
 		adminDatastore
 		etlDatastore
 	}
-	timeGetter interface {
-		GetUtcTime() time.Time
-	}
 	urlPathTransformer func(sportTypesByURL map[string]db.SportType, url string) (db.SportType, string)
 	httpMethod         string
 	sportTypeHandler   func(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error
@@ -133,7 +130,7 @@ func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, upt urlPathT
 func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
 	title := fmt.Sprintf("%s Stats", cfg.serverName)
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage(cfg.serverName, cfg.sportEntries, cfg.ds, title, []Tab{homeTab}, false, TimesMessage{}, "home")
+	homePage := newPage(cfg, title, []Tab{homeTab}, false, TimesMessage{}, "home")
 	return renderTemplate(w, homePage)
 }
 
@@ -163,7 +160,7 @@ func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	}
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s stats - %d", cfg.serverName, stName, es.year)
-	statsPage := newPage(cfg.serverName, cfg.sportEntries, cfg.ds, title, tabs, true, timesMessage, "stats")
+	statsPage := newPage(cfg, title, tabs, true, timesMessage, "stats")
 	return renderTemplate(w, statsPage)
 }
 
@@ -201,7 +198,7 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	timesMessage := TimesMessage{}
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s [ADMIN MODE]", cfg.serverName, stName)
-	adminPage := newPage(cfg.serverName, cfg.sportEntries, cfg.ds, title, tabs, true, timesMessage, "admin")
+	adminPage := newPage(cfg, title, tabs, true, timesMessage, "admin")
 	return renderTemplate(w, adminPage)
 }
 
@@ -216,7 +213,7 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	}
 	title := fmt.Sprintf("About %s Stats", cfg.serverName)
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage(cfg.serverName, cfg.sportEntries, cfg.ds, title, []Tab{aboutTab}, false, timesMessage, "about")
+	aboutPage := newPage(cfg, title, []Tab{aboutTab}, false, timesMessage, "about")
 	return renderTemplate(w, aboutPage)
 }
 

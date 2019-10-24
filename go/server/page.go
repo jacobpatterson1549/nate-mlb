@@ -76,16 +76,16 @@ func newSportEntries(sportTypes db.SportTypeMap) []SportEntry {
 	return sportEntries
 }
 
-func newPage(applicationName string, sportEntries []SportEntry, tg timeGetter, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
+func newPage(cfg Config, title string, tabs []Tab, showTabs bool, timesMessage TimesMessage, htmlFolderName string) Page {
 	return Page{
-		ApplicationName: applicationName,
+		ApplicationName: cfg.serverName,
 		Title:           title,
 		Tabs:            tabs,
 		htmlFolderName:  htmlFolderName,
-		Sports:          sportEntries,
+		Sports:          cfg.sportEntries,
 		ShowTabs:        showTabs,
 		TimesMessage:    timesMessage,
-		PageLoadTime:    tg.GetUtcTime(),
+		PageLoadTime:    cfg.ds.GetUtcTime(),
 	}
 }
 

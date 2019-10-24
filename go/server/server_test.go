@@ -6,6 +6,16 @@ import (
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
 
+type mockServerDatastore struct {
+	GetYearsFunc func(st db.SportType) ([]db.Year, error)
+	adminDatastore
+	etlDatastore
+}
+
+func (ds mockServerDatastore) GetYears(st db.SportType) ([]db.Year, error) {
+	return ds.GetYearsFunc(st)
+}
+
 func TestTransformURLPath(t *testing.T) {
 	transformURLPathTests := []struct {
 		urlPath       string

@@ -53,9 +53,13 @@ func TestNewPage(t *testing.T) {
 	time1 := time.Date(2019, time.October, 17, 3, 19, 42, 197, time.UTC)
 	time2 := time.Date(2019, time.October, 17, 3, 19, 42, 200, time.UTC)
 	time3 := time.Date(2019, time.June, 6, 12, 0, 0, 0, time.UTC)
-	tg := mockTimeGetter{
-		GetUtcTimeFunc: func() time.Time {
-			return time1
+	ds := mockServerDatastore{
+		nil,
+		nil,
+		mockEtlDatastore{
+			GetUtcTimeFunc: func() time.Time {
+				return time1
+			},
 		},
 	}
 	title := "Shall be lifted -- nevermore!"
@@ -66,6 +70,11 @@ func TestNewPage(t *testing.T) {
 		Times:    []time.Time{time2, time3},
 	}
 	htmlFolderName := "edgar_p"
+	cfg := Config{
+		serverName:   applicationName,
+		sportEntries: sportEntries,
+		ds:           ds,
+	}
 	want := Page{
 		ApplicationName: applicationName,
 		Title:           title,
@@ -76,7 +85,7 @@ func TestNewPage(t *testing.T) {
 		TimesMessage:    timesMessage,
 		PageLoadTime:    time1,
 	}
-	got := newPage(applicationName, sportEntries, tg, title, tabs, showTabs, timesMessage, htmlFolderName)
+	got := newPage(cfg, title, tabs, showTabs, timesMessage, htmlFolderName)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("not equal:\nwant: %v\ngot:  %v", want, got)
 	}

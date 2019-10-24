@@ -27,7 +27,7 @@ type (
 		SetStat(stat db.Stat) error
 		SportTypes() db.SportTypeMap
 		PlayerTypes() db.PlayerTypeMap
-		timeGetter
+		GetUtcTime() time.Time
 	}
 )
 
