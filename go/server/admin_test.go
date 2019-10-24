@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http/httptest"
 	"reflect"
@@ -226,10 +227,14 @@ func TestUpdateFriends(t *testing.T) {
 	updateFriendsTests := []struct {
 		st              db.SportType
 		form            map[string][]string
+		saveErr         error
 		wantErr         bool
 		wantSaveFriends []db.Friend
 	}{
 		{},
+		{
+			saveErr: fmt.Errorf("save friends error"),
+		},
 		{ // bad displayOrder
 			form: map[string][]string{
 				"friend-8-display-order": {"ONE"},
@@ -277,11 +282,13 @@ func TestUpdateFriends(t *testing.T) {
 				if !reflect.DeepEqual(test.wantSaveFriends, futureFriends) {
 					t.Errorf("Test %v:\nwanted save friends: %v\ngot: %v", i, test.wantSaveFriends, futureFriends)
 				}
-				return nil
+				return test.saveErr
 			},
-			ClearStatFunc: func(st db.SportType) error {
+		}
+		if test.saveErr == nil {
+			ds.ClearStatFunc = func(st db.SportType) error {
 				return nil
-			},
+			}
 		}
 		r := httptest.NewRequest("POST", "/admin", nil)
 		q := r.URL.Query()
@@ -297,6 +304,10 @@ func TestUpdateFriends(t *testing.T) {
 		fmt.Println(r.URL.String())
 		gotErr := updateFriends(ds, test.st, r)
 		switch {
+		case test.saveErr != nil:
+			if !errors.Is(gotErr, test.saveErr) {
+				t.Errorf("Test %v: wanted error %v, bug got %v", i, test.saveErr, gotErr)
+			}
 		case test.wantErr:
 			if gotErr == nil {
 				t.Errorf("Test %v: expected error", i)
@@ -311,10 +322,14 @@ func TestUpdatePlayers(t *testing.T) {
 	updatePlayersTests := []struct {
 		st              db.SportType
 		form            map[string][]string
+		saveErr         error
 		wantErr         bool
 		wantSavePlayers []db.Player
 	}{
 		{},
+		{
+			saveErr: errors.New("save players error"),
+		},
 		{ // bad displayOrder
 			form: map[string][]string{
 				"player-7-display-order": {"ONE"},
@@ -401,11 +416,13 @@ func TestUpdatePlayers(t *testing.T) {
 				if !reflect.DeepEqual(test.wantSavePlayers, futurePlayers) {
 					t.Errorf("Test %v:\nwanted save players: %v\ngot: %v", i, test.wantSavePlayers, futurePlayers)
 				}
-				return nil
+				return test.saveErr
 			},
-			ClearStatFunc: func(st db.SportType) error {
+		}
+		if test.saveErr == nil {
+			ds.ClearStatFunc = func(st db.SportType) error {
 				return nil
-			},
+			}
 		}
 		r := httptest.NewRequest("POST", "/admin", nil)
 		q := r.URL.Query()
@@ -421,6 +438,10 @@ func TestUpdatePlayers(t *testing.T) {
 		fmt.Println(r.URL.String())
 		gotErr := updatePlayers(ds, test.st, r)
 		switch {
+		case test.saveErr != nil:
+			if !errors.Is(gotErr, test.saveErr) {
+				t.Errorf("Test %v: wanted error %v, bug got %v", i, test.saveErr, gotErr)
+			}
 		case test.wantErr:
 			if gotErr == nil {
 				t.Errorf("Test %v: expected error", i)
