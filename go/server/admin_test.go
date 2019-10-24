@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http/httptest"
 	"reflect"
 	"sort"
@@ -29,7 +28,7 @@ func TestHandleAdminPostRequest(t *testing.T) {
 			wantErr:               true,
 		},
 		{
-			isCorrectUserPasswordErr: fmt.Errorf("problem checking password"),
+			isCorrectUserPasswordErr: errors.New("problem checking password"),
 			wantErr:                  true,
 		},
 		{
@@ -233,7 +232,7 @@ func TestUpdateFriends(t *testing.T) {
 	}{
 		{},
 		{
-			saveErr: fmt.Errorf("save friends error"),
+			saveErr: errors.New("save friends error"),
 		},
 		{ // bad displayOrder
 			form: map[string][]string{
@@ -301,7 +300,6 @@ func TestUpdateFriends(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Errorf("Test %v: could not parse request form: %v", i, err)
 		}
-		fmt.Println(r.URL.String())
 		gotErr := updateFriends(ds, test.st, r)
 		switch {
 		case test.saveErr != nil:
@@ -435,7 +433,6 @@ func TestUpdatePlayers(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Errorf("Test %v: could not parse request form: %v", i, err)
 		}
-		fmt.Println(r.URL.String())
 		gotErr := updatePlayers(ds, test.st, r)
 		switch {
 		case test.saveErr != nil:
@@ -513,7 +510,6 @@ func TestUpdateYears(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Errorf("Test %v: could not parse request form: %v", i, err)
 		}
-		fmt.Println(r.URL.String())
 		gotErr := updateYears(ds, test.st, r)
 		switch {
 		case test.wantErr:
@@ -529,7 +525,7 @@ func TestUpdateYears(t *testing.T) {
 func TestResetPassword(t *testing.T) {
 	wantUsername := "fred"
 	wantPassword := "s3cr3t&#"
-	wantErr := fmt.Errorf("password reset error")
+	wantErr := errors.New("password reset error")
 	r := httptest.NewRequest("POST", "/admin", nil)
 	q := r.URL.Query()
 	q.Add("username", wantUsername)
