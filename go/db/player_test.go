@@ -61,21 +61,21 @@ func TestGetPlayers(t *testing.T) {
 				},
 			},
 			wantSlice: []Player{
-				Player{
+				{
 					ID:           1,
 					PlayerType:   1,
 					SourceID:     1,
 					FriendID:     1,
 					DisplayOrder: 1,
 				},
-				Player{
+				{
 					ID:           17,
 					PlayerType:   3,
 					SourceID:     6,
 					FriendID:     2,
 					DisplayOrder: 3,
 				},
-				Player{
+				{
 					ID:           34,
 					PlayerType:   3,
 					SourceID:     4000,

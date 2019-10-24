@@ -53,17 +53,17 @@ func TestGetFriends(t *testing.T) {
 				},
 			},
 			wantSlice: []Friend{
-				Friend{
+				{
 					ID:           1,
 					DisplayOrder: 1,
 					Name:         "alfred",
 				},
-				Friend{
+				{
 					ID:           6,
 					DisplayOrder: 3,
 					Name:         "aaron",
 				},
-				Friend{
+				{
 					ID:           4,
 					DisplayOrder: 2,
 					Name:         "earl",

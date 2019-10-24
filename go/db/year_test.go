@@ -49,15 +49,15 @@ func TestGetYears(t *testing.T) {
 				},
 			},
 			wantSlice: []Year{
-				Year{
+				{
 					Value:  2017,
 					Active: false,
 				},
-				Year{
+				{
 					Value:  2019,
 					Active: true,
 				},
-				Year{
+				{
 					Value:  2018,
 					Active: false,
 				},
