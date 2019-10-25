@@ -230,22 +230,10 @@ func newMockBeginFunc(beginErr error, commitValidator func(queries []writeSQLFun
 }
 
 func init() { // for TestNewSqlDatabase
-	driverName := "postgres"
-	dataSourceName := "mockDataSourceName"
-	mockConn := mockDriverConn{}
-	mockDriver := mockDriver{
-		OpenFunc: func(name string) (driver.Conn, error) {
-			if name != dataSourceName {
-				return nil, fmt.Errorf("invalid dataSourceName: %v", name)
-			}
-			return mockConn, nil
-		},
-	}
-	sql.Register(driverName, mockDriver)
+	sql.Register("postgres", mockDriver{})
 }
 func TestNewSqlDatabase(t *testing.T) {
-	dataSourceName := "mockDataSourceName"
-	db, err := newSQLDatabase(dataSourceName)
+	db, err := newSQLDatabase("mockDataSourceName")
 	switch {
 	case err != nil:
 		t.Error("unexpected error:", err)
@@ -253,6 +241,7 @@ func TestNewSqlDatabase(t *testing.T) {
 		t.Error("expected database to not be nil after Init() called, but was")
 	}
 }
+
 func (m mockDriver) Open(name string) (driver.Conn, error) {
 	return m.OpenFunc(name)
 }
