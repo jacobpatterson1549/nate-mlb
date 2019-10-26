@@ -43,19 +43,3 @@ func newSQLDatabase(dataSourceName string) (database, error) {
 	}
 	return sqlDatabase{db: sqlDb}, nil
 }
-
-func (s sqlDatabase) Ping() error {
-	return s.db.Ping()
-}
-func (s sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
-	return s.db.Query(query, args...)
-}
-func (s sqlDatabase) QueryRow(query string, args ...interface{}) row {
-	return s.db.QueryRow(query, args...)
-}
-func (s sqlDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return s.db.Exec(query, args...)
-}
-func (s sqlDatabase) Begin() (transaction, error) {
-	return s.db.Begin()
-}
