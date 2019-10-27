@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
@@ -86,7 +85,6 @@ func TestFlagUsage(t *testing.T) {
 	fs.SetOutput(b)
 	fs.Usage()
 	gotUsage := b.String()
-	fmt.Println(gotUsage)
 	if len(gotUsage) == 0 {
 		t.Error("expected help message to be written")
 	}
