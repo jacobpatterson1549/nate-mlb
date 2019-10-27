@@ -31,10 +31,14 @@ type mainFlags struct {
 }
 
 func main() {
-	mainFlags := initFlags()
+	fs, mainFlags := initFlags(os.Args[0])
+	flag.CommandLine = fs
+	flag.Parse()
+
 	var buf bytes.Buffer
 	log := log.New(&buf, mainFlags.applicationName, log.LstdFlags)
 	log.SetOutput(os.Stdout)
+
 	startupFuncs := startupFuncs(mainFlags, log)
 	for _, startupFunc := range startupFuncs {
 		if err := startupFunc(); err != nil {
@@ -43,39 +47,38 @@ func main() {
 	}
 }
 
-func usage(programName string) {
+func flagUsage(fs *flag.FlagSet) {
 	envVars := []string{
 		environmentVariableDatabaseURL,
 		environmentVariablePort,
 		environmentVariableApplicationName,
 		environmentVariableAdminPassword,
 	}
-	fmt.Fprintln(flag.CommandLine.Output(), "Starts the server")
-	fmt.Fprintln(flag.CommandLine.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
-	fmt.Fprintln(flag.CommandLine.Output(), fmt.Sprintf("Usage of %s:", programName))
-	flag.PrintDefaults()
+	fmt.Fprintln(fs.Output(), "Starts the server")
+	fmt.Fprintln(fs.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
+	fmt.Fprintln(fs.Output(), fmt.Sprintf("Usage of %s:", fs.Name()))
+	fs.PrintDefaults()
 }
 
-func initFlags() mainFlags {
-	programName := os.Args[0]
-	flag.Usage = func() { usage(programName) }
-	mainFlags := mainFlags{}
+func initFlags(programName string) (*flag.FlagSet, *mainFlags) {
+	fs := flag.NewFlagSet(programName, flag.ExitOnError)
+	fs.Usage = func() { flagUsage(fs) }
+	mainFlags := new(mainFlags)
 	defaultApplicationName := func() string {
 		if applicationName, ok := os.LookupEnv(environmentVariableApplicationName); ok {
 			return applicationName
 		}
 		return programName
 	}
-	flag.StringVar(&mainFlags.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
-	flag.StringVar(&mainFlags.applicationName, "n", defaultApplicationName(), "The name of the application.")
-	flag.StringVar(&mainFlags.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
-	flag.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
-	flag.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
-	flag.Parse()
-	return mainFlags
+	fs.StringVar(&mainFlags.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
+	fs.StringVar(&mainFlags.applicationName, "n", defaultApplicationName(), "The name of the application.")
+	fs.StringVar(&mainFlags.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
+	fs.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
+	fs.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
+	return fs, mainFlags
 }
 
-func startupFuncs(mainFlags mainFlags, log *log.Logger) []func() error {
+func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 	var ds *db.Datastore
 	startupFuncs := make([]func() error, 0, 2)
 	startupFuncs = append(startupFuncs, func() error {
