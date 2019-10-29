@@ -29,6 +29,13 @@ type (
 		PlayerTypes() db.PlayerTypeMap
 		GetUtcTime() time.Time
 	}
+	scoreCategoryInfo struct {
+		pt      db.PlayerType
+		pti     db.PlayerTypeInfo
+		year    int
+		friends []db.Friend
+		players []db.Player
+	}
 )
 
 // getEtlStats retrieves, calculates, and caches the player stats
@@ -82,7 +89,14 @@ func getScoreCategories(st db.SportType, ds etlDatastore, year int, scoreCategor
 	scoreCategoriesCh := make(chan request.ScoreCategory, len(stPlayerTypes))
 	quit := make(chan error)
 	for _, pt := range stPlayerTypes {
-		go getScoreCategory(pt, playerTypes[pt], year, friends, playersByType[pt], scoreCategorizers[pt], scoreCategoriesCh, quit)
+		sci := scoreCategoryInfo{
+			pt:      pt,
+			pti:     playerTypes[pt],
+			year:    year,
+			friends: friends,
+			players: playersByType[pt],
+		}
+		go getScoreCategory(sci, scoreCategorizers[pt], scoreCategoriesCh, quit)
 	}
 	scoreCategories := make([]request.ScoreCategory, len(stPlayerTypes))
 	finishedScoreCategories := 0
@@ -118,13 +132,13 @@ func getPlayerTypes(st db.SportType, playerTypes db.PlayerTypeMap) []db.PlayerTy
 	return playerTypesList
 }
 
-func getScoreCategory(pt db.PlayerType, pti db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player, scoreCategorizer request.ScoreCategorizer, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
+func getScoreCategory(sci scoreCategoryInfo, scoreCategorizer request.ScoreCategorizer, scoreCategories chan<- request.ScoreCategory, quit chan<- error) {
 	if scoreCategorizer == nil {
-		quit <- fmt.Errorf("no ScoreCategorizer for PlayerType %v", pt)
+		quit <- fmt.Errorf("no ScoreCategorizer for PlayerType %v", sci.pt)
 		return
 	}
 	// providing playerType here is somewhat redundant, but this allows some scoreCategorizers to handle multiple PlayerTypes
-	scoreCategory, err := scoreCategorizer.RequestScoreCategory(pt, pti, year, friends, players)
+	scoreCategory, err := scoreCategorizer.RequestScoreCategory(sci.pt, sci.pti, sci.year, sci.friends, sci.players)
 	if err != nil {
 		quit <- err
 		return

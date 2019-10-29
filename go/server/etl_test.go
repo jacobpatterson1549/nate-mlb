@@ -114,7 +114,14 @@ func TestGetScoreCategory(t *testing.T) {
 	for i, test := range getScoreCategoryTests {
 		scoreCategories := make(chan request.ScoreCategory, 1)
 		quit := make(chan error, 1)
-		getScoreCategory(test.pt, test.pti, test.year, test.friends, test.players, test.scoreCategorizer, scoreCategories, quit)
+		sci := scoreCategoryInfo{
+			pt:      test.pt,
+			pti:     test.pti,
+			year:    test.year,
+			friends: test.friends,
+			players: test.players,
+		}
+		getScoreCategory(sci, test.scoreCategorizer, scoreCategories, quit)
 		select {
 		case got := <-scoreCategories:
 			if test.wantErr || !reflect.DeepEqual(test.wantScoreCategory, got) {
