@@ -48,33 +48,6 @@ func TestPreviousMidnight(t *testing.T) {
 	}
 }
 
-func TestGetScoreCategories(t *testing.T) {
-	getScoreCategoriesTests := []struct {
-		st                     db.SportType
-		ds                     etlDatastore
-		year                   int
-		scoreCategorizers      map[db.PlayerType]request.ScoreCategorizer
-		requestScoreCategories []request.ScoreCategory
-		requestErr             error
-		wantErr                bool
-	}{
-		// TODO
-	}
-	for i, test := range getScoreCategoriesTests {
-		gotScoreCategories, gotErr := getScoreCategories(test.st, test.ds, test.year, test.scoreCategorizers)
-		switch {
-		case test.wantErr:
-			if gotErr != nil {
-				t.Errorf("Test %v: expected error", i)
-			}
-		case gotErr != nil:
-			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
-		case !reflect.DeepEqual(test.requestScoreCategories, gotScoreCategories):
-			t.Errorf("Test %v: not equal:\nwant: %v\ngot:  %v", i, test.requestScoreCategories, gotScoreCategories)
-		}
-	}
-}
-
 type mockEtlDatastore struct {
 	GetStatFunc     func(st db.SportType) (*db.Stat, error)
 	GetFriendsFunc  func(st db.SportType) ([]db.Friend, error)
