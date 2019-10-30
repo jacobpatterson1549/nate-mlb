@@ -39,16 +39,33 @@ type (
 		RowsAffectedFunc func() (int64, error)
 	}
 
-	// mockDriver implements the sql/driver interface
+	// mockDriver implements the sql/driver/Driver interface
 	mockDriver struct {
 		OpenFunc func(name string) (driver.Conn, error)
 	}
-	// mockDriverConn implements the sql/conn interface
+	// mockDriverConn implements the sql/driver/Conn interface
 	mockDriverConn struct {
-		closed      bool
 		PrepareFunc func(query string) (driver.Stmt, error)
 		CloseFunc   func() error
 		BeginFunc   func() (driver.Tx, error)
+	}
+	// mockDriverTx implements the sql/driver/Tx interface
+	mockDriverTx struct {
+		CommitFunc   func() error
+		RollbackFunc func() error
+	}
+	// mockDriverStmt implements the sql/driver/Stmt interface
+	mockDriverStmt struct {
+		CloseFunc    func() error
+		NumInputFunc func() int
+		ExecFunc     func(args []driver.Value) (driver.Result, error)
+		QueryFunc    func(args []driver.Value) (driver.Rows, error)
+	}
+	// mockDriverRows implements the sql/driver/Rows interface
+	mockDriverRows struct {
+		ColumnsFunc func() []string
+		CloseFunc   func() error
+		NextFunc    func(dest []driver.Value) error
 	}
 )
 
@@ -229,16 +246,26 @@ func newMockBeginFunc(beginErr error, commitValidator func(queries []writeSQLFun
 	}
 }
 
-func init() { // for TestNewSqlDatabase
-	sql.Register("postgres", mockDriver{})
+func init() {
+	sql.Register("TestNewSqlDatabaseDriver", mockDriver{})
 }
 func TestNewSqlDatabase(t *testing.T) {
-	db, err := newSQLDatabase("mockDataSourceName")
-	switch {
-	case err != nil:
+	db, err := newSQLDatabase("TestNewSqlDatabaseDriver", "mockDataSourceName")
+	if err != nil {
 		t.Error("unexpected error:", err)
-	case db == nil:
+	}
+	if db == nil {
 		t.Error("expected database to not be nil after Init() called, but was")
+	}
+}
+
+func TestNewSqlDatabase_missingDriver(t *testing.T) {
+	db, err := newSQLDatabase("missing driver", "mockDataSourceName")
+	if err == nil {
+		t.Error("expected error because driver is missing")
+	}
+	if db != nil {
+		t.Errorf("did not expect database, but got %v", db)
 	}
 }
 
@@ -253,4 +280,31 @@ func (m mockDriverConn) Close() error {
 }
 func (m mockDriverConn) Begin() (driver.Tx, error) {
 	return m.BeginFunc()
+}
+func (m mockDriverTx) Commit() error {
+	return m.CommitFunc()
+}
+func (m mockDriverTx) Rollback() error {
+	return m.RollbackFunc()
+}
+func (m mockDriverStmt) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverStmt) NumInput() int {
+	return m.NumInputFunc()
+}
+func (m mockDriverStmt) Exec(args []driver.Value) (driver.Result, error) {
+	return m.ExecFunc(args)
+}
+func (m mockDriverStmt) Query(args []driver.Value) (driver.Rows, error) {
+	return m.QueryFunc(args)
+}
+func (m mockDriverRows) Columns() []string {
+	return m.ColumnsFunc()
+}
+func (m mockDriverRows) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverRows) Next(dest []driver.Value) error {
+	return m.NextFunc(dest)
 }

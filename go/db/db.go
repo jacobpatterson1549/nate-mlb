@@ -26,44 +26,67 @@ type (
 		name string
 		args []interface{}
 	}
-)
 
-// Datastore interface can be used to access and persist data
-type Datastore struct {
-	db           database
-	ph           passwordHasher
-	sportTypes   SportTypeMap
-	playerTypes  PlayerTypeMap
-	readFileFunc func(filename string) ([]byte, error)
-	readDirFunc  func(dirname string) ([]os.FileInfo, error)
-	log          *log.Logger
-}
+	datastoreConfig struct {
+		driverName           string
+		dataSourceName       string
+		ph                   passwordHasher
+		readFileFunc         func(filename string) ([]byte, error)
+		readDirFunc          func(dirname string) ([]os.FileInfo, error)
+		pingFailureSleepFunc func(sleepSeconds int)
+		numFibonacciTries    int
+		log                  *log.Logger
+	}
+
+	// Datastore interface can be used to access and persist data
+	Datastore struct {
+		db           database
+		ph           passwordHasher
+		sportTypes   SportTypeMap
+		playerTypes  PlayerTypeMap
+		readFileFunc func(filename string) ([]byte, error)
+		readDirFunc  func(dirname string) ([]os.FileInfo, error)
+		log          *log.Logger
+	}
+)
 
 // NewDatastore creates a new sqlDatastore
 func NewDatastore(dataSourceName string, log *log.Logger) (*Datastore, error) {
-	db, err := newSQLDatabase(dataSourceName)
+	cfg := datastoreConfig{
+		driverName:     "postgres",
+		dataSourceName: dataSourceName,
+		ph:             bcryptPasswordHasher{},
+		readFileFunc:   ioutil.ReadFile,
+		readDirFunc:    ioutil.ReadDir,
+		pingFailureSleepFunc: func(sleepSeconds int) {
+			s := fmt.Sprintf("%ds", sleepSeconds)
+			d, err := time.ParseDuration(s)
+			if err != nil {
+				panic(err)
+			}
+			time.Sleep(d) // BLOCKING
+		},
+		numFibonacciTries: 7,
+		log:               log,
+	}
+	return newDatastore(cfg)
+}
+
+func newDatastore(cfg datastoreConfig) (*Datastore, error) {
+	db, err := newSQLDatabase(cfg.driverName, cfg.dataSourceName)
 	if err != nil {
 		return nil, err
 	}
 
 	ds := Datastore{
 		db:           db,
-		ph:           bcryptPasswordHasher{},
-		readFileFunc: ioutil.ReadFile,
-		readDirFunc:  ioutil.ReadDir,
-		log:          log,
+		ph:           cfg.ph,
+		readFileFunc: cfg.readFileFunc,
+		readDirFunc:  cfg.readDirFunc,
+		log:          cfg.log,
 	}
 
-	sleepFunc := func(sleepSeconds int) {
-		s := fmt.Sprintf("%ds", sleepSeconds)
-		d, err := time.ParseDuration(s)
-		if err != nil {
-			panic(err)
-		}
-		time.Sleep(d) // BLOCKING
-	}
-	numFibonacciTries := 7
-	if err := ds.waitForDb(sleepFunc, numFibonacciTries); err != nil {
+	if err := ds.waitForDb(cfg.pingFailureSleepFunc, cfg.numFibonacciTries); err != nil {
 		return nil, fmt.Errorf("establishing connection: %v", err)
 	}
 
@@ -193,7 +216,7 @@ func (f writeSQLFunction) sql() string {
 }
 
 // waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
-func (ds Datastore) waitForDb(sleepFunc func(sleepSeconds int), numFibonacciTries int) error {
+func (ds Datastore) waitForDb(pingFailureSleepFunc func(sleepSeconds int), numFibonacciTries int) error {
 	a, b := 1, 0
 	var err error
 	for i := 0; i < numFibonacciTries; i++ {
@@ -203,7 +226,7 @@ func (ds Datastore) waitForDb(sleepFunc func(sleepSeconds int), numFibonacciTrie
 			return nil
 		}
 		ds.log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
-		sleepFunc(b)
+		pingFailureSleepFunc(b)
 		c := b
 		b = a
 		a = b + c

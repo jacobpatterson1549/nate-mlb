@@ -36,8 +36,8 @@ type (
 	}
 )
 
-func newSQLDatabase(dataSourceName string) (database, error) {
-	sqlDb, err := sql.Open("postgres", dataSourceName)
+func newSQLDatabase(driverName, dataSourceName string) (database, error) {
+	sqlDb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("opening database %v", err)
 	}

@@ -2,10 +2,13 @@ package db
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -340,5 +343,115 @@ func TestWaitForDb_fibonacci(t *testing.T) {
 	}
 	if numFibonacciTries != dbCheckCount {
 		t.Errorf("expected to check the db %v times, got %v", numFibonacciTries, dbCheckCount)
+	}
+}
+
+var testNewDatastoreDriver *mockDriver
+
+func init() {
+	testNewDatastoreDriver = new(mockDriver)
+	sql.Register("TestNewDatastore", testNewDatastoreDriver)
+}
+func TestNewDatastore(t *testing.T) {
+	newDatastoreTests := []struct {
+		newDatabaseErr             error
+		waitForDbErr               error
+		waitForDbErrIndex          int
+		setupTablesAndFunctionsErr error
+		getSportTypesErr           error
+		getPlayerTypesErr          error
+		wantErr                    bool
+	}{
+		{}, // happy path
+		{
+			newDatabaseErr: errors.New("newSQLDatabase error"),
+			wantErr:        true,
+		},
+		{
+			waitForDbErr:      errors.New("waitForDb error"),
+			waitForDbErrIndex: 4000,
+			wantErr:           false, // 4000 > 5
+		},
+		{
+			waitForDbErr: errors.New("waitForDb error"),
+			wantErr:      true,
+		},
+		{
+			setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
+			wantErr:                    true,
+		},
+		{
+			getSportTypesErr: errors.New("GetSportTypes error"),
+			wantErr:          true,
+		},
+		{
+			getPlayerTypesErr: errors.New("GetPlayerTypes error"),
+			wantErr:           true,
+		},
+	}
+	for i, test := range newDatastoreTests {
+		cfg := datastoreConfig{
+			driverName: "TestNewDatastore",
+			readFileFunc: func(filename string) ([]byte, error) {
+				return nil, test.setupTablesAndFunctionsErr
+			},
+			readDirFunc: func(dirname string) ([]os.FileInfo, error) {
+				return nil, test.setupTablesAndFunctionsErr
+			},
+			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
+			numFibonacciTries:    5,
+			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
+		}
+		mockDriverConn := mockDriverConn{
+			PrepareFunc: func(query string) (driver.Stmt, error) {
+				return mockDriverStmt{
+					CloseFunc: func() error {
+						return nil
+					},
+					NumInputFunc: func() int {
+						return 0
+					},
+					ExecFunc: func(args []driver.Value) (driver.Result, error) {
+						return mockResult{}, nil
+					},
+					QueryFunc: func(args []driver.Value) (driver.Rows, error) {
+						return mockDriverRows{
+							CloseFunc: func() error {
+								return nil
+							},
+							ColumnsFunc: func() []string {
+								return nil
+							},
+							NextFunc: func(dest []driver.Value) error {
+								return io.EOF
+							},
+						}, nil
+					},
+				}, nil
+			},
+			BeginFunc: func() (driver.Tx, error) {
+				return mockDriverTx{
+					CommitFunc: func() error {
+						return nil
+					},
+				}, nil
+			},
+		}
+		testNewDatastoreDriver.OpenFunc = func(name string) (driver.Conn, error) {
+			return mockDriverConn, test.newDatabaseErr // TODO: this should be called
+		}
+		ds, err := newDatastore(cfg)
+		switch {
+		case test.wantErr:
+			if err == nil {
+				t.Errorf("Test %v: expected error", i)
+			}
+		case err != nil:
+			t.Errorf("Test %v: unexpected error: %v", i, err)
+		default:
+			if ds == nil {
+				t.Errorf("Test %v: expected non-nil Datastore: %v", i, ds)
+			}
+		}
 	}
 }
