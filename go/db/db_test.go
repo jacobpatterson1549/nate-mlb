@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -412,20 +413,55 @@ func TestNewDatastore(t *testing.T) {
 						return 0
 					},
 					ExecFunc: func(args []driver.Value) (driver.Result, error) {
+						fmt.Println(query)
 						return mockResult{}, nil
 					},
 					QueryFunc: func(args []driver.Value) (driver.Rows, error) {
+						var columns []string
+						var srcRows [][]driver.Value
+						var queryErr error
+						switch {
+						case strings.Contains(query, "get_sport_types"):
+							columns = []string{"id", "name", "url"}
+							srcRows = [][]driver.Value{
+								{1, "st_1_name", "st_1_url"},
+								{2, "st_2_name", "st_2_url"},
+							}
+							queryErr = test.getSportTypesErr
+						case strings.Contains(query, "get_player_types"):
+							columns = []string{"id", "sport_type_id", "name", "description", "score_type"}
+							srcRows = [][]driver.Value{
+								{1, 1, "pt_1_name", "pt_1_description", "pt_1_score_type"},
+								{2, 1, "pt_2_name", "pt_2_description", "pt_2_score_type"},
+								{3, 1, "pt_3_name", "pt_3_description", "pt_3_score_type"},
+								{4, 2, "pt_4_name", "pt_4_description", "pt_4_score_type"},
+								{5, 2, "pt_5_name", "pt_5_description", "pt_5_score_type"},
+								{6, 2, "pt_6_name", "pt_6_description", "pt_6_score_type"},
+							}
+							queryErr = test.getPlayerTypesErr
+						default:
+							queryErr = fmt.Errorf("unknown query: %v", query)
+						}
+						i := 0
 						return mockDriverRows{
 							CloseFunc: func() error {
 								return nil
 							},
 							ColumnsFunc: func() []string {
-								return nil
+								return columns
 							},
 							NextFunc: func(dest []driver.Value) error {
-								return io.EOF
+								if i == len(srcRows) {
+									return io.EOF
+								}
+								src := srcRows[i]
+								for j := 0; j < len(src); j++ {
+									dest[j] = src[j]
+								}
+								i++
+								return nil
 							},
-						}, nil
+						}, queryErr
 					},
 				}, nil
 			},
@@ -451,6 +487,32 @@ func TestNewDatastore(t *testing.T) {
 		default:
 			if ds == nil {
 				t.Errorf("Test %v: expected non-nil Datastore: %v", i, ds)
+			}
+			wantSportTypes := SportTypeMap{
+				1: {Name: "st_1_name", URL: "st_1_url", DisplayOrder: 0},
+				2: {Name: "st_2_name", URL: "st_2_url", DisplayOrder: 1},
+			}
+			gotSportTypes, err := ds.GetSportTypes()
+			switch {
+			case err != nil:
+				t.Errorf("Test %v: %v", i, err)
+			case !reflect.DeepEqual(wantSportTypes, gotSportTypes):
+				t.Errorf("Test %v:\nwanted: %v\ngot:    %v", i, wantSportTypes, gotSportTypes)
+			}
+			wantPlayerTypes := PlayerTypeMap{
+				1: {SportType: 1, Name: "pt_1_name", Description: "pt_1_description", ScoreType: "pt_1_score_type", DisplayOrder: 0},
+				2: {SportType: 1, Name: "pt_2_name", Description: "pt_2_description", ScoreType: "pt_2_score_type", DisplayOrder: 1},
+				3: {SportType: 1, Name: "pt_3_name", Description: "pt_3_description", ScoreType: "pt_3_score_type", DisplayOrder: 2},
+				4: {SportType: 2, Name: "pt_4_name", Description: "pt_4_description", ScoreType: "pt_4_score_type", DisplayOrder: 3},
+				5: {SportType: 2, Name: "pt_5_name", Description: "pt_5_description", ScoreType: "pt_5_score_type", DisplayOrder: 4},
+				6: {SportType: 2, Name: "pt_6_name", Description: "pt_6_description", ScoreType: "pt_6_score_type", DisplayOrder: 5},
+			}
+			gotPlayerTypes, err := ds.GetPlayerTypes()
+			switch {
+			case err != nil:
+				t.Errorf("Test %v: %v", i, err)
+			case !reflect.DeepEqual(wantPlayerTypes, gotPlayerTypes):
+				t.Errorf("Test %v:\nwanted: %v\ngot:    %v", i, wantPlayerTypes, gotPlayerTypes)
 			}
 		}
 	}
