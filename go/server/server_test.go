@@ -113,6 +113,9 @@ func TestNewConfig(t *testing.T) {
 			if len(cfg.sportEntries) != 2 {
 				t.Errorf("Test %v: wanted len(cfg.sportEntries) to be 2, got %v", i, cfg.sportEntries)
 			}
+			if cfg.requestCache == nil {
+				t.Errorf("Test %v: cache not set", i)
+			}
 		}
 	}
 }

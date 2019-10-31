@@ -74,6 +74,7 @@ func NewConfig(serverName string, ds serverDatastore, port string, log *log.Logg
 		port:              port,
 		sportEntries:      newSportEntries(ds.SportTypes()),
 		sportTypesByURL:   sportTypesByURL,
+		requestCache:      &c,
 		scoreCategorizers: scoreCategorizers,
 		searchers:         searchers,
 		aboutRequester:    aboutRequester,
