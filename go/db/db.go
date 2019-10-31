@@ -3,7 +3,6 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -179,7 +178,7 @@ func expectRowFound(row row) error {
 		return err
 	}
 	if !found {
-		return errors.New("expected to update at least one row, but did not")
+		return fmt.Errorf("expected to update at least one row, but did not")
 	}
 	return nil
 }

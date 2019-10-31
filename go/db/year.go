@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -32,7 +31,7 @@ func (ds Datastore) GetYears(st SportType) ([]Year, error) {
 		}
 		if active {
 			if activeYearFound {
-				return years, errors.New("multiple active years in db")
+				return years, fmt.Errorf("multiple active years in db (second is %v)", years[i].Value)
 			}
 			activeYearFound = true
 			years[i].Active = true
