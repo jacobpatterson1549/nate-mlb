@@ -357,7 +357,7 @@ func TestNewDatastore(t *testing.T) {
 	newDatastoreTests := []struct {
 		newDatabaseErr             error
 		waitForDbErr               error
-		waitForDbErrIndex          int
+		waitForDbErrStopIndex      int
 		setupTablesAndFunctionsErr error
 		getSportTypesErr           error
 		getPlayerTypesErr          error
@@ -369,13 +369,14 @@ func TestNewDatastore(t *testing.T) {
 			wantErr:        true,
 		},
 		{
-			waitForDbErr:      errors.New("waitForDb error"),
-			waitForDbErrIndex: 4000,
-			wantErr:           false, // 4000 > 5
+			waitForDbErr:          errors.New("waitForDb error"),
+			waitForDbErrStopIndex: 4000,
+			wantErr:               true, // 4000 > 5
 		},
 		{
-			waitForDbErr: errors.New("waitForDb error"),
-			wantErr:      true,
+			waitForDbErr:          errors.New("waitForDb error"),
+			waitForDbErrStopIndex: 3,
+			wantErr:               false, // 3 < 5
 		},
 		{
 			setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
@@ -402,6 +403,9 @@ func TestNewDatastore(t *testing.T) {
 			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
 			numFibonacciTries:    5,
 			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
+		}
+		if test.newDatabaseErr != nil {
+			cfg.driverName = "bad driver name"
 		}
 		mockDriverConn := mockDriverConn{
 			PrepareFunc: func(query string) (driver.Stmt, error) {
@@ -473,8 +477,17 @@ func TestNewDatastore(t *testing.T) {
 				}, nil
 			},
 		}
+		pingAttempt := 0
 		testNewDatastoreDriver.OpenFunc = func(name string) (driver.Conn, error) {
-			return mockDriverConn, test.newDatabaseErr // TODO: this should be called
+			pingAttempt++
+			switch {
+			case test.newDatabaseErr != nil:
+				return mockDriverConn, test.newDatabaseErr
+			case pingAttempt < test.waitForDbErrStopIndex:
+				return mockDriverConn, test.waitForDbErr
+			default:
+				return mockDriverConn, nil
+			}
 		}
 		ds, err := newDatastore(cfg)
 		switch {
