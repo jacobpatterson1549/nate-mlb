@@ -417,7 +417,6 @@ func TestNewDatastore(t *testing.T) {
 						return 0
 					},
 					ExecFunc: func(args []driver.Value) (driver.Result, error) {
-						fmt.Println(query)
 						return mockResult{}, nil
 					},
 					QueryFunc: func(args []driver.Value) (driver.Rows, error) {
