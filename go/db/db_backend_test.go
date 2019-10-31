@@ -36,9 +36,9 @@ type (
 	}
 	// mockResult implements the sql.Result interface
 	mockResult struct {
+		LastInsertIDFunc func() (int64, error)
 		RowsAffectedFunc func() (int64, error)
 	}
-
 	// mockDriver implements the sql/driver/Driver interface
 	mockDriver struct {
 		OpenFunc func(name string) (driver.Conn, error)
@@ -84,11 +84,9 @@ func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error
 func (m mockDatabase) Begin() (transaction, error) {
 	return m.BeginFunc()
 }
-
 func (m mockRow) Scan(dest ...interface{}) error {
 	return m.ScanFunc(dest...)
 }
-
 func (m mockRows) Close() error {
 	return m.CloseFunc()
 }
@@ -98,7 +96,6 @@ func (m mockRows) Next() bool {
 func (m mockRows) Scan(dest ...interface{}) error {
 	return m.ScanFunc(dest...)
 }
-
 func (m mockTransaction) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return m.ExecFunc(query, args...)
 }
@@ -108,14 +105,12 @@ func (m mockTransaction) Commit() error {
 func (m mockTransaction) Rollback() error {
 	return m.RollbackFunc()
 }
-
 func (m mockResult) LastInsertId() (int64, error) {
-	panic("should not be called") // required by sql.Result interface
+	return m.LastInsertIDFunc()
 }
 func (m mockResult) RowsAffected() (int64, error) {
 	return m.RowsAffectedFunc()
 }
-
 func (m mockDriver) Open(name string) (driver.Conn, error) {
 	return m.OpenFunc(name)
 }
