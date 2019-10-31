@@ -316,7 +316,7 @@ func init() {
 	sql.Register("TestSQLDatabaseMethods", testSQLDatabaseMethodsDriver)
 }
 func TestSQLDatabaseMethods(t *testing.T) {
-	var pingCalled, queryCalled, queryRowCalled, execCalled, beginTransactionCalled bool
+	var pingCalled, queryCalled, queryRowCalled, execCalled, beginTransactionCalled int
 	mockDriverConn := mockDriverConn{
 		PrepareFunc: func(query string) (driver.Stmt, error) {
 			return mockDriverStmt{
@@ -327,27 +327,27 @@ func TestSQLDatabaseMethods(t *testing.T) {
 					return 0
 				},
 				ExecFunc: func(args []driver.Value) (driver.Result, error) {
-					execCalled = true
+					execCalled++
 					return mockResult{}, nil
 				},
 				QueryFunc: func(args []driver.Value) (driver.Rows, error) {
 					switch query {
 					case "query_sql":
-						queryCalled = true
+						queryCalled++
 					case "query_row_sql":
-						queryRowCalled = true
+						queryRowCalled++
 					}
 					return mockDriverRows{}, nil
 				},
 			}, nil
 		},
 		BeginFunc: func() (driver.Tx, error) {
-			beginTransactionCalled = true
+			beginTransactionCalled++
 			return mockDriverTx{}, nil
 		},
 	}
 	testSQLDatabaseMethodsDriver.OpenFunc = func(name string) (driver.Conn, error) {
-		pingCalled = true
+		pingCalled++
 		return mockDriverConn, nil
 	}
 	db, err := newSQLDatabase("TestSQLDatabaseMethods", "mockDataSourceName")
@@ -357,50 +357,50 @@ func TestSQLDatabaseMethods(t *testing.T) {
 	if db == nil {
 		t.Fatal("expected database to not be nil after Init() called, but was")
 	}
-	fmt.Println(pingCalled, queryCalled, queryRowCalled, execCalled, beginTransactionCalled) // TODO: DELETEME
 	methodTests := []struct {
 		methodName string
-		methodBool *bool
+		count      *int
 		method     func()
 	}{
 		{
 			methodName: "pingCalled",
-			methodBool: &pingCalled,
+			count:      &pingCalled,
 			method:     func() { db.Ping() },
 		},
 		{
 			methodName: "queryCalled",
-			methodBool: &queryCalled,
-			method: func() {
-				db.Query("query_sql")
-			},
+			count:      &queryCalled,
+			method:     func() { db.Query("query_sql") },
 		},
 		{
 			methodName: "queryRowCalled",
-			methodBool: &queryRowCalled,
-			method: func() {
-				db.QueryRow("query_row_sql")
-			},
+			count:      &queryRowCalled,
+			method:     func() { db.QueryRow("query_row_sql") },
 		},
 		{
 			methodName: "execCalled",
-			methodBool: &execCalled,
+			count:      &execCalled,
 			method:     func() { db.Exec("exec_sql") },
 		},
 		{
 			methodName: "beginTransactionCalled",
-			methodBool: &beginTransactionCalled,
+			count:      &beginTransactionCalled,
 			method:     func() { db.Begin() },
 		},
 	}
 	for _, call := range methodTests {
-		if *call.methodBool {
+		if *call.count != 0 {
 			t.Errorf("%v already called", call.methodName)
 			continue
 		}
 		call.method()
-		if !*call.methodBool {
+		if *call.count != 1 {
 			t.Errorf("%v not called", call.methodName)
+		}
+	}
+	for i, call := range methodTests {
+		if i != 0 && *call.count != 1 { // ignore extra Pings
+			t.Errorf("%v called more than once: %v", call.methodName, *call.count)
 		}
 	}
 }
