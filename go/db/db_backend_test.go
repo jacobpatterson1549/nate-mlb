@@ -116,6 +116,46 @@ func (m mockResult) RowsAffected() (int64, error) {
 	return m.RowsAffectedFunc()
 }
 
+func (m mockDriver) Open(name string) (driver.Conn, error) {
+	return m.OpenFunc(name)
+}
+func (m mockDriverConn) Prepare(query string) (driver.Stmt, error) {
+	return m.PrepareFunc(query)
+}
+func (m mockDriverConn) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverConn) Begin() (driver.Tx, error) {
+	return m.BeginFunc()
+}
+func (m mockDriverTx) Commit() error {
+	return m.CommitFunc()
+}
+func (m mockDriverTx) Rollback() error {
+	return m.RollbackFunc()
+}
+func (m mockDriverStmt) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverStmt) NumInput() int {
+	return m.NumInputFunc()
+}
+func (m mockDriverStmt) Exec(args []driver.Value) (driver.Result, error) {
+	return m.ExecFunc(args)
+}
+func (m mockDriverStmt) Query(args []driver.Value) (driver.Rows, error) {
+	return m.QueryFunc(args)
+}
+func (m mockDriverRows) Columns() []string {
+	return m.ColumnsFunc()
+}
+func (m mockDriverRows) Close() error {
+	return m.CloseFunc()
+}
+func (m mockDriverRows) Next(dest []driver.Value) error {
+	return m.NextFunc(dest)
+}
+
 func mockScan(dest, src interface{}) error {
 	switch s := src.(type) {
 	case bool:
@@ -267,46 +307,6 @@ func TestNewSqlDatabase_missingDriver(t *testing.T) {
 	if db != nil {
 		t.Errorf("did not expect database, but got %v", db)
 	}
-}
-
-func (m mockDriver) Open(name string) (driver.Conn, error) {
-	return m.OpenFunc(name)
-}
-func (m mockDriverConn) Prepare(query string) (driver.Stmt, error) {
-	return m.PrepareFunc(query)
-}
-func (m mockDriverConn) Close() error {
-	return m.CloseFunc()
-}
-func (m mockDriverConn) Begin() (driver.Tx, error) {
-	return m.BeginFunc()
-}
-func (m mockDriverTx) Commit() error {
-	return m.CommitFunc()
-}
-func (m mockDriverTx) Rollback() error {
-	return m.RollbackFunc()
-}
-func (m mockDriverStmt) Close() error {
-	return m.CloseFunc()
-}
-func (m mockDriverStmt) NumInput() int {
-	return m.NumInputFunc()
-}
-func (m mockDriverStmt) Exec(args []driver.Value) (driver.Result, error) {
-	return m.ExecFunc(args)
-}
-func (m mockDriverStmt) Query(args []driver.Value) (driver.Rows, error) {
-	return m.QueryFunc(args)
-}
-func (m mockDriverRows) Columns() []string {
-	return m.ColumnsFunc()
-}
-func (m mockDriverRows) Close() error {
-	return m.CloseFunc()
-}
-func (m mockDriverRows) Next(dest []driver.Value) error {
-	return m.NextFunc(dest)
 }
 
 var testSQLDatabaseMethodsDriver *mockDriver
