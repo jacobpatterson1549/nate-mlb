@@ -62,6 +62,7 @@ func NewConfig(serverName string, ds serverDatastore, port string, log *log.Logg
 		return nil, fmt.Errorf("Invalid port number: %s", port)
 	}
 	sportTypes := ds.SportTypes()
+	sportEntries := newSportEntries(sportTypes)
 	sportTypesByURL := make(map[string]db.SportType, len(sportTypes))
 	for st, sti := range sportTypes {
 		sportTypesByURL[sti.URL] = st
@@ -72,7 +73,7 @@ func NewConfig(serverName string, ds serverDatastore, port string, log *log.Logg
 		serverName:        serverName,
 		ds:                ds,
 		port:              port,
-		sportEntries:      newSportEntries(ds.SportTypes()),
+		sportEntries:      sportEntries,
 		sportTypesByURL:   sportTypesByURL,
 		requestCache:      &c,
 		scoreCategorizers: scoreCategorizers,

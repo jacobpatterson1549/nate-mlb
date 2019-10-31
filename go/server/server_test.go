@@ -3,6 +3,7 @@ package server
 import (
 	"io/ioutil"
 	"log"
+	"reflect"
 	"testing"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
@@ -113,8 +114,14 @@ func TestNewConfig(t *testing.T) {
 			if len(cfg.sportEntries) != 2 {
 				t.Errorf("Test %v: wanted len(cfg.sportEntries) to be 2, got %v", i, cfg.sportEntries)
 			}
+			if len(cfg.sportTypesByURL) != 2 {
+				t.Errorf("Test %v: wanted len(cfg.sportTypesByURL) to be 2, got %v", i, cfg.sportTypesByURL)
+			}
 			if cfg.requestCache == nil {
 				t.Errorf("Test %v: cache not set", i)
+			}
+			if !reflect.DeepEqual(log, cfg.log) {
+				t.Errorf("Test %v: wanted log %v, got %v", i, &log, &cfg.log)
 			}
 		}
 	}
