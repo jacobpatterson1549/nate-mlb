@@ -89,8 +89,8 @@ func TestNewConfig(t *testing.T) {
 			mockEtlDatastore{
 				SportTypesFunc: func() db.SportTypeMap {
 					return db.SportTypeMap{
-						1: {},
-						2: {},
+						1: {URL: "st_1_url"},
+						2: {URL: "st_2_url"},
 					}
 				},
 			},
