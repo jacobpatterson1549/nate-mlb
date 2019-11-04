@@ -53,6 +53,7 @@ func flagUsage(fs *flag.FlagSet) {
 		environmentVariablePort,
 		environmentVariableApplicationName,
 		environmentVariableAdminPassword,
+		environmentVariablePlayerTypesCsv,
 	}
 	fmt.Fprintln(fs.Output(), "Starts the server")
 	fmt.Fprintln(fs.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
