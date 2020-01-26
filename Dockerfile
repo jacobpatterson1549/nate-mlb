@@ -17,12 +17,14 @@ RUN CGO_ENABLED=0 go build -o /app/nate-mlb go/cmd/server/main.go
 
 FROM scratch
 
+WORKDIR /app
+
 # copy the x509 certificate file for Alpine Linux to allow server to make https requests
 COPY --from=build /etc/ssl/cert.pem /etc/ssl/cert.pem
 
-COPY --from=build /app /
+COPY --from=build /app /app
 
-COPY --from=build "/usr/local/go/misc/wasm/wasm_exec.js" /js/
+COPY --from=build "/usr/local/go/misc/wasm/wasm_exec.js" /app/js/
 
 # use exec form to not run from shell, which scratch image does not have
-CMD ["/nate-mlb"]
+CMD ["/app/nate-mlb"]
