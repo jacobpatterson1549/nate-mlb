@@ -9,6 +9,8 @@ RUN go mod download
 
 COPY . /app/
 
+RUN cp /usr/local/go/misc/wasm/wasm_exec.js /app/js/wasm_exec.js
+
 # build web assembly
 RUN GOOS=js GOARCH=wasm go build -o /app/static/main.wasm go/cmd/wasm/main.go
 
@@ -23,8 +25,6 @@ WORKDIR /app
 COPY --from=build /etc/ssl/cert.pem /etc/ssl/cert.pem
 
 COPY --from=build /app /app
-
-COPY --from=build "/usr/local/go/misc/wasm/wasm_exec.js" /app/js/
 
 # use exec form to not run from shell, which scratch image does not have
 CMD ["/app/nate-mlb"]
