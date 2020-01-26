@@ -10,6 +10,13 @@
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="/main.css" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script src="/js/wasm_exec.js"></script>
+		<script>
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+				go.run(result.instance);
+			});
+		</script>
 </head>
 
 <body class="d-flex flex-column h-100">
