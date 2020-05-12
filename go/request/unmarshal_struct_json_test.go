@@ -84,17 +84,21 @@ func TestUnmarshalStructJson(t *testing.T) {
 			},
 		},
 		{
-			interfaceJSON: `{"players":[{"id":"2532975","name":"Russell Wilson","position":"QB","teamAbbr":"SEA","stats":{"6":"35"}}]}`,
-			got:           new(NflPlayerList),
-			want: &NflPlayerList{
-				Players: []NflPlayer{
-					{
-						ID:       2532975,
-						Name:     "Russell Wilson",
-						Position: "QB",
-						Team:     "SEA",
-						Stats: NflPlayerStats{
-							PassingTD: 35,
+			interfaceJSON: `{"games":{"102020":{"players":{"2532975":{"playerId":"2532975","name":"Russell Wilson","position":"QB","nflTeamAbbr":"SEA","stats":{"season":{"2018":{"6":"35"}}}}}}}}`,
+			got:           new(NflPlayerSearch),
+			want: &NflPlayerSearch{
+				Games: map[string]NflGame{
+					"102020": NflGame{
+						Players: map[string]NflPlayer{
+							"2532975": {
+								ID:       2532975,
+								Name:     "Russell Wilson",
+								Position: "QB",
+								Team:     "SEA",
+								Stats: map[string]json.RawMessage{
+									"season": json.RawMessage(`{"2018":{"6":"35"}}`),
+								},
+							},
 						},
 					},
 				},
