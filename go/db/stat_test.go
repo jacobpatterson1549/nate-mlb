@@ -7,14 +7,9 @@ import (
 	"time"
 )
 
-func TestGetStat(t *testing.T) {
-	type sportTypeQueryRow struct {
-		Year         int
-		EtlTimestamp *time.Time
-		EtlJSON      *[]byte
-	}
-	testTime := time.Date(2019, time.October, 10, 10, 17, 33, 0, time.UTC)
-	getStatTests := []struct {
+var (
+	testTime     = time.Date(2019, time.October, 10, 10, 17, 33, 0, time.UTC)
+	getStatTests = []struct {
 		requestSportType SportType
 		rowSportType     SportType
 		queryRowErr      error
@@ -34,7 +29,11 @@ func TestGetStat(t *testing.T) {
 		{ // happy path
 			requestSportType: 8,
 			rowSportType:     8,
-			row: sportTypeQueryRow{
+			row: struct {
+				Year         int
+				EtlTimestamp *time.Time
+				EtlJSON      *[]byte
+			}{
 				Year:         2019,
 				EtlTimestamp: &testTime,
 			},
@@ -46,6 +45,9 @@ func TestGetStat(t *testing.T) {
 			},
 		},
 	}
+)
+
+func TestGetStat(t *testing.T) {
 	for i, test := range getStatTests {
 		ds := Datastore{
 			db: mockDatabase{

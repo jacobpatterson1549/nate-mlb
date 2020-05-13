@@ -78,45 +78,46 @@ func TestPlayerTypes(t *testing.T) {
 	}
 }
 
+var executeInTransactionTests = []struct {
+	queries     []writeSQLFunction
+	beginErr    error
+	execErr     error
+	rollbackErr error
+	commitErr   error
+}{
+	{},
+	{
+		queries: []writeSQLFunction{
+			newWriteSQLFunction("query1"),
+			newWriteSQLFunction("query2"),
+			newWriteSQLFunction("query3"),
+		},
+	},
+	{
+		beginErr: errors.New("begin error"),
+	},
+	{
+		queries: []writeSQLFunction{
+			newWriteSQLFunction("query1"),
+		},
+		execErr: errors.New("exec error"),
+	},
+	{
+		queries: []writeSQLFunction{
+			newWriteSQLFunction("query1"),
+		},
+		execErr:     errors.New("exec error"), // causes rollbackError
+		rollbackErr: errors.New("rollback error"),
+	},
+	{
+		queries: []writeSQLFunction{
+			newWriteSQLFunction("query1"),
+		},
+		commitErr: errors.New("commit error"),
+	},
+}
+
 func TestExecuteInTransaction(t *testing.T) {
-	executeInTransactionTests := []struct {
-		queries     []writeSQLFunction
-		beginErr    error
-		execErr     error
-		rollbackErr error
-		commitErr   error
-	}{
-		{},
-		{
-			queries: []writeSQLFunction{
-				newWriteSQLFunction("query1"),
-				newWriteSQLFunction("query2"),
-				newWriteSQLFunction("query3"),
-			},
-		},
-		{
-			beginErr: errors.New("begin error"),
-		},
-		{
-			queries: []writeSQLFunction{
-				newWriteSQLFunction("query1"),
-			},
-			execErr: errors.New("exec error"),
-		},
-		{
-			queries: []writeSQLFunction{
-				newWriteSQLFunction("query1"),
-			},
-			execErr:     errors.New("exec error"), // causes rollbackError
-			rollbackErr: errors.New("rollback error"),
-		},
-		{
-			queries: []writeSQLFunction{
-				newWriteSQLFunction("query1"),
-			},
-			commitErr: errors.New("commit error"),
-		},
-	}
 	for i, test := range executeInTransactionTests {
 		commitCalled := false
 		rollbackCalled := false
@@ -353,44 +354,46 @@ func init() {
 	testNewDatastoreDriver = new(mockDriver)
 	sql.Register("TestNewDatastore", testNewDatastoreDriver)
 }
+
+var newDatastoreTests = []struct {
+	newDatabaseErr             error
+	waitForDbErr               error
+	waitForDbErrStopIndex      int
+	setupTablesAndFunctionsErr error
+	getSportTypesErr           error
+	getPlayerTypesErr          error
+	wantErr                    bool
+}{
+	{}, // happy path
+	{
+		newDatabaseErr: errors.New("newSQLDatabase error"),
+		wantErr:        true,
+	},
+	{
+		waitForDbErr:          errors.New("waitForDb error"),
+		waitForDbErrStopIndex: 4000,
+		wantErr:               true, // 4000 > 5
+	},
+	{
+		waitForDbErr:          errors.New("waitForDb error"),
+		waitForDbErrStopIndex: 3,
+		wantErr:               false, // 3 < 5
+	},
+	{
+		setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
+		wantErr:                    true,
+	},
+	{
+		getSportTypesErr: errors.New("GetSportTypes error"),
+		wantErr:          true,
+	},
+	{
+		getPlayerTypesErr: errors.New("GetPlayerTypes error"),
+		wantErr:           true,
+	},
+}
+
 func TestNewDatastore(t *testing.T) {
-	newDatastoreTests := []struct {
-		newDatabaseErr             error
-		waitForDbErr               error
-		waitForDbErrStopIndex      int
-		setupTablesAndFunctionsErr error
-		getSportTypesErr           error
-		getPlayerTypesErr          error
-		wantErr                    bool
-	}{
-		{}, // happy path
-		{
-			newDatabaseErr: errors.New("newSQLDatabase error"),
-			wantErr:        true,
-		},
-		{
-			waitForDbErr:          errors.New("waitForDb error"),
-			waitForDbErrStopIndex: 4000,
-			wantErr:               true, // 4000 > 5
-		},
-		{
-			waitForDbErr:          errors.New("waitForDb error"),
-			waitForDbErrStopIndex: 3,
-			wantErr:               false, // 3 < 5
-		},
-		{
-			setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
-			wantErr:                    true,
-		},
-		{
-			getSportTypesErr: errors.New("GetSportTypes error"),
-			wantErr:          true,
-		},
-		{
-			getPlayerTypesErr: errors.New("GetPlayerTypes error"),
-			wantErr:           true,
-		},
-	}
 	for i, test := range newDatastoreTests {
 		cfg := datastoreConfig{
 			driverName: "TestNewDatastore",

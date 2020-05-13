@@ -38,36 +38,37 @@ func (m mockFileInfo) Sys() interface{} {
 	return m.SysFunc()
 }
 
+var setupTablesAndFunctionsTests = []struct {
+	getSetupTableQueriesErr    error
+	getSetupFunctionQueriesErr error
+	beginErr                   error
+	execErr                    error
+	rollbackErr                error
+	commitErr                  error
+}{
+	{}, // happy path
+	{
+		getSetupTableQueriesErr: errors.New("getSetupTableQueries error"),
+	},
+	{
+		getSetupFunctionQueriesErr: errors.New("getSetupFunctionQueries error"),
+	},
+	{
+		beginErr: errors.New("begin error"),
+	},
+	{
+		execErr: errors.New("exec error"),
+	},
+	{
+		execErr:     errors.New("exec error"),
+		rollbackErr: errors.New("rollback error"),
+	},
+	{
+		commitErr: errors.New("commit error"),
+	},
+}
+
 func TestSetupTablesAndFunctions(t *testing.T) {
-	setupTablesAndFunctionsTests := []struct {
-		getSetupTableQueriesErr    error
-		getSetupFunctionQueriesErr error
-		beginErr                   error
-		execErr                    error
-		rollbackErr                error
-		commitErr                  error
-	}{
-		{}, // happy path
-		{
-			getSetupTableQueriesErr: errors.New("getSetupTableQueries error"),
-		},
-		{
-			getSetupFunctionQueriesErr: errors.New("getSetupFunctionQueries error"),
-		},
-		{
-			beginErr: errors.New("begin error"),
-		},
-		{
-			execErr: errors.New("exec error"),
-		},
-		{
-			execErr:     errors.New("exec error"),
-			rollbackErr: errors.New("rollback error"),
-		},
-		{
-			commitErr: errors.New("commit error"),
-		},
-	}
 	for i, test := range setupTablesAndFunctionsTests {
 		readFileFunc := func(filename string) ([]byte, error) {
 			if test.getSetupTableQueriesErr != nil {
