@@ -75,7 +75,7 @@ func initFlags(programName string) (*flag.FlagSet, *mainFlags) {
 		return programName
 	}
 	fs.StringVar(&mainFlags.adminPassword, "ap", os.Getenv(environmentVariableAdminPassword), "The admin user password to set.")
-	fs.StringVar(&mainFlags.applicationName, "n", defaultApplicationName(), "The name of the application.")
+	fs.StringVar(&mainFlags.applicationName, "n", defaultApplicationName(), "The name of the application.  Also used as the deploy environment name.")
 	fs.StringVar(&mainFlags.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
 	fs.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
 	fs.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")

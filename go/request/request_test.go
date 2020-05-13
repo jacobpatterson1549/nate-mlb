@@ -215,7 +215,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				response := http.Response{
 					StatusCode: http.StatusOK,
-					Body: mockReadCloser{readErr: readErr},
+					Body:       mockReadCloser{readErr: readErr},
 				}
 				return &response, nil
 			},
@@ -231,7 +231,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
 	log := log.New(ioutil.Discard, "test", log.LstdFlags)
-	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, "dummyNflAppKey", log)
+	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, "dummyNflAppKey", "environmentName", log)
 	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
 	if len(wantPlayerTypes) != len(scoreCategorizers) {
 		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))
@@ -247,7 +247,7 @@ func TestNewRequesters(t *testing.T) {
 			t.Errorf("expected Searcher for pt %v", pt)
 		}
 	}
-	if aboutRequester.requester == nil {
-		t.Errorf("requester not set for aboutRequester")
+	if aboutRequester.environment != "environmentName" {
+		t.Errorf("environment not set for aboutRequester")
 	}
 }

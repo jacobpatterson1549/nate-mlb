@@ -68,7 +68,8 @@ func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, lo
 		sportTypesByURL[sti.URL] = st
 	}
 	c := request.NewCache(100)
-	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c, nflAppKey, log)
+	environment := serverName
+	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(c, nflAppKey, environment, log)
 	return &Config{
 		serverName:        serverName,
 		ds:                ds,
@@ -209,9 +210,10 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	if err != nil {
 		return err
 	}
-	timesMessage := TimesMessage{
-		Messages: []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)},
-		Times:    []time.Time{lastDeploy.Time},
+	var timesMessage TimesMessage
+	if lastDeploy != nil {
+		timesMessage.Messages = []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)}
+		timesMessage.Times = []time.Time{lastDeploy.Time}
 	}
 	title := fmt.Sprintf("About %s Stats", cfg.serverName)
 	aboutTab := AdminTab{Name: "About"}

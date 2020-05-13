@@ -30,7 +30,7 @@ type (
 )
 
 // NewRequesters creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequester
-func NewRequesters(c Cache, nflAppKey string, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
+func NewRequesters(c Cache, nflAppKey, environment string, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
 	r := httpRequester{
 		cache: c,
 		httpClient: &http.Client{
@@ -66,7 +66,7 @@ func NewRequesters(c Cache, nflAppKey string, log *log.Logger) (map[db.PlayerTyp
 	searchers[db.PlayerTypeNflQB] = &nflPlayerRequester
 	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequester
 
-	aboutRequester := AboutRequester{requester: &r}
+	aboutRequester := AboutRequester{environment: environment, requester: &r}
 
 	return scoreCategorizers, searchers, aboutRequester
 }
