@@ -88,7 +88,7 @@ func TestUnmarshalStructJson(t *testing.T) {
 			got:           new(NflPlayerSearch),
 			want: &NflPlayerSearch{
 				Games: map[string]NflGame{
-					"102020": NflGame{
+					"102020": {
 						Players: map[string]NflPlayer{
 							"2532975": {
 								ID:       2532975,
