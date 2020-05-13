@@ -96,7 +96,7 @@ func TestNewConfig(t *testing.T) {
 			},
 		}
 		log := log.New(ioutil.Discard, "test", log.LstdFlags)
-		cfg, err := NewConfig(test.serverName, ds, test.port, log)
+		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", log)
 		switch {
 		case test.wantErr:
 			if err == nil {

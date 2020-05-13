@@ -46,6 +46,7 @@ The following environment variables should be set or provided:
 * **ADMIN_PASSWORD** The administrator password to edit years/players/friends on the site.
 * **APPLICATION_NAME** The name of the application server to display to users  Visible on the site and on exports.
 * **PLAYER_TYPES** A csv whitelist of [PlayerType](https://godoc.org/github.com/jacobpatterson1549/nate-mlb/go/db#PlayerType) ids to use.  If present, limits player types.  For example, when `4,5` is used, only player types nflTeam and nflQB will be shown; nfl will also be the only sport shown.
+* **NFL_APP_KEY** The application key used to get data from the nfl data source at https://api.fantasy.nfl.com.
 
 #### Compile and run server
 There are three main ways to compile and run the server:

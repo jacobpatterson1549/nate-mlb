@@ -45,10 +45,6 @@ type (
 	}
 )
 
-const (
-	nflAppKey = "test_key_1"
-)
-
 // RequestScoreCategory implements the ScoreCategorizer interface
 func (r *nflPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.PlayerTypeInfo, year int, friends []db.Friend, players []db.Player) (ScoreCategory, error) {
 	sourceIDs := make(map[db.SourceID]bool, len(players))
@@ -64,7 +60,7 @@ func (r *nflPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 	if err != nil {
 		return scoreCategory, fmt.Errorf("could not build request url for bulk nfl player stats: %w", err)
 	}
-	uri := fmt.Sprintf("batchservices?appKey=%s&services=%s", nflAppKey, servicesJSON)
+	uri := fmt.Sprintf("batchservices?services=%s", servicesJSON)
 	nflPlayerSearch, err := r.requestNflPlayerSearch(uri)
 	if err != nil {
 		return scoreCategory, err
@@ -91,7 +87,7 @@ func (r *nflPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 // searches active players
 func (r *nflPlayerRequester) Search(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]PlayerSearchResult, error) {
 	positionIds := "1,2,3,4" // QB,RB,WR,TE
-	uri := fmt.Sprintf("players/autocomplete?appKey=%s&positionIds=%s&query=%s", nflAppKey, positionIds, playerNamePrefix)
+	uri := fmt.Sprintf("players/autocomplete?positionIds=%s&query=%s", positionIds, playerNamePrefix)
 	nflPlayerSearch, err := r.requestNflPlayerSearch(uri)
 	if err != nil {
 		return nil, err
@@ -116,7 +112,6 @@ func (r *nflPlayerRequester) Search(pt db.PlayerType, year int, playerNamePrefix
 }
 
 func (r *nflPlayerRequester) requestNflPlayerSearch(uri string) (*NflPlayerSearch, error) {
-	uri = "https://api.fantasy.nfl.com/v2/" + uri
 	nflPlayerSearch := new(NflPlayerSearch)
 	err := r.requester.structPointerFromURI(uri, &nflPlayerSearch)
 	return nflPlayerSearch, err

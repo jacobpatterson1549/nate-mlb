@@ -20,6 +20,7 @@ const (
 	environmentVariableDatabaseURL     = "DATABASE_URL"
 	environmentVariablePort            = "PORT"
 	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
+	environmentVariableNflAppKey       = "NFL_APP_KEY"
 )
 
 type mainFlags struct {
@@ -28,6 +29,7 @@ type mainFlags struct {
 	dataSourceName  string
 	port            string
 	playerTypesCsv  string
+	nflAppKey       string
 }
 
 func main() {
@@ -54,6 +56,7 @@ func flagUsage(fs *flag.FlagSet) {
 		environmentVariableApplicationName,
 		environmentVariableAdminPassword,
 		environmentVariablePlayerTypesCsv,
+		environmentVariableNflAppKey,
 	}
 	fmt.Fprintln(fs.Output(), "Starts the server")
 	fmt.Fprintln(fs.Output(), "Reads environment variables when possible:", fmt.Sprintf("[%s]", strings.Join(envVars, ",")))
@@ -76,6 +79,7 @@ func initFlags(programName string) (*flag.FlagSet, *mainFlags) {
 	fs.StringVar(&mainFlags.dataSourceName, "ds", os.Getenv(environmentVariableDatabaseURL), "The data source to the PostgreSQL database (connection URI).")
 	fs.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
 	fs.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
+	fs.StringVar(&mainFlags.nflAppKey, "ak", os.Getenv(environmentVariableNflAppKey), "The application key used to make nfl requests")
 	return fs, mainFlags
 }
 
@@ -98,7 +102,7 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, log)
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, log)
 		if err != nil {
 			return err
 		}

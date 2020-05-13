@@ -135,17 +135,78 @@ func TestStructPointerFromUri_requesterError(t *testing.T) {
 }
 
 type mockReadCloser struct {
-	io.ReadCloser
+	readFunc func(b []byte) (n int, err error)
 	readErr  error
 	closeErr error
 }
 
 func (m mockReadCloser) Read(b []byte) (n int, err error) {
+	if m.readFunc != nil {
+		return m.readFunc(b)
+	}
 	return len(b), m.readErr
 }
 func (m mockReadCloser) Close() error {
 	return m.closeErr
 }
+
+func TestStructPointerFromUri_okRequest(t *testing.T) {
+	r := httpRequester{
+		cache: NewCache(0), // (do not cache)
+		httpClient: mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				response := http.Response{
+					StatusCode: http.StatusOK,
+					Body: mockReadCloser{
+						readFunc: func(b []byte) (n int, err error) {
+							switch len(b) {
+							case 0:
+								return -1, nil
+							default:
+								b[0] = '7'
+								return 1, io.EOF
+							}
+						},
+					},
+				}
+				return &response, nil
+			},
+		},
+	}
+	want := 7
+	var got int
+	err := r.structPointerFromURI("uri", &got)
+	switch {
+	case err != nil:
+		t.Errorf("unexpected error: %v", err)
+	case want != got:
+		t.Errorf("wanted %d, got %v", want, got)
+	}
+}
+
+func TestStructPointerFromUri_badRequest(t *testing.T) {
+	r := httpRequester{
+		cache: NewCache(0), // (do not cache)
+		httpClient: mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				response := http.Response{
+					StatusCode: http.StatusBadRequest, // should cause failure
+					Body: mockReadCloser{
+						readFunc: func(b []byte) (n int, err error) {
+							return -1, nil
+						},
+					},
+				}
+				return &response, nil
+			},
+		},
+	}
+	err := r.structPointerFromURI("uri", nil)
+	if err == nil {
+		t.Errorf("expected error because the request is bad")
+	}
+}
+
 func TestStructPointerFromUri_readBytesError(t *testing.T) {
 	readErr := errors.New("read error")
 	r := httpRequester{
@@ -153,6 +214,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 		httpClient: mockHTTPClient{
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				response := http.Response{
+					StatusCode: http.StatusOK,
 					Body: mockReadCloser{readErr: readErr},
 				}
 				return &response, nil
@@ -169,7 +231,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
 	log := log.New(ioutil.Discard, "test", log.LstdFlags)
-	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, log)
+	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, "dummyNflAppKey", log)
 	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
 	if len(wantPlayerTypes) != len(scoreCategorizers) {
 		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))

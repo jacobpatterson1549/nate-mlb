@@ -30,7 +30,7 @@ type (
 )
 
 // NewRequesters creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequester
-func NewRequesters(c Cache, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
+func NewRequesters(c Cache, nflAppKey string, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
 	r := httpRequester{
 		cache: c,
 		httpClient: &http.Client{
@@ -39,12 +39,16 @@ func NewRequesters(c Cache, log *log.Logger) (map[db.PlayerType]ScoreCategorizer
 		logRequestURIs: false,
 		log:            log,
 	}
+	nflRequester := nflRequester{
+		appKey:    nflAppKey,
+		requester: &r,
+	}
 
 	mlbTeamRequester := mlbTeamRequester{requester: &r}
 	mlbPlayerScoreCategorizer := mlbPlayerRequester{requester: &r}
 	mlbPlayerSearcher := mlbPlayerSearcher{requester: &r}
-	nflTeamRequester := nflTeamRequester{requester: &r}
-	nflPlayerRequester := nflPlayerRequester{requester: &r}
+	nflTeamRequester := nflTeamRequester{requester: &nflRequester}
+	nflPlayerRequester := nflPlayerRequester{requester: &nflRequester}
 
 	scoreCategorizers := make(map[db.PlayerType]ScoreCategorizer)
 	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequester
@@ -97,8 +101,11 @@ func (r *httpRequester) bytes(uri string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("requesting %v: %w", uri, err)
 	}
-	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("expected ok response, got %v", response.StatusCode)
+	}
 
+	defer response.Body.Close()
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading body of %v: %w", uri, err)
