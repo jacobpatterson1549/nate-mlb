@@ -134,64 +134,65 @@ func TestGetYears(t *testing.T) {
 	}
 }
 
+var saveYearsTests = []struct {
+	st                      SportType
+	futureYears             []Year
+	previousYears           []interface{}
+	getYearsErr             error
+	executeInTransactionErr error
+	wantErr                 bool
+	wantQueryYears          []int
+}{
+	{},
+	{ // happy path
+		futureYears: []Year{
+			{
+				Value:  2019,
+				Active: true,
+			},
+			{
+				Value:  2020,
+				Active: false,
+			},
+			{
+				Value:  2018,
+				Active: false,
+			},
+		},
+		previousYears: []interface{}{
+			Year{
+				Value:  2017,
+				Active: false,
+			},
+			Year{
+				Value:  2018,
+				Active: true,
+			},
+		},
+		wantQueryYears: []int{2017, 2019, 2020, 2019},
+	},
+	{
+		getYearsErr: errors.New("getYears error"),
+	},
+	{
+		executeInTransactionErr: errors.New("executeInTransaction error"),
+	},
+	{ // multiple active years
+		futureYears: []Year{
+			{
+				Value:  2019,
+				Active: true,
+			},
+			{
+				Value:  2020,
+				Active: true,
+			},
+		},
+		wantErr: true,
+	},
+}
+
 func TestSaveYears(t *testing.T) {
-	saveYearsTests := []struct {
-		st                      SportType
-		futureYears             []Year
-		previousYears           []interface{}
-		getYearsErr             error
-		executeInTransactionErr error
-		wantErr                 bool
-		wantQueryYears          []int
-	}{
-		{},
-		{ // happy path
-			futureYears: []Year{
-				{
-					Value:  2019,
-					Active: true,
-				},
-				{
-					Value:  2020,
-					Active: false,
-				},
-				{
-					Value:  2018,
-					Active: false,
-				},
-			},
-			previousYears: []interface{}{
-				Year{
-					Value:  2017,
-					Active: false,
-				},
-				Year{
-					Value:  2018,
-					Active: true,
-				},
-			},
-			wantQueryYears: []int{2017, 2019, 2020, 2019},
-		},
-		{
-			getYearsErr: errors.New("getYears error"),
-		},
-		{
-			executeInTransactionErr: errors.New("executeInTransaction error"),
-		},
-		{ // multiple active years
-			futureYears: []Year{
-				{
-					Value:  2019,
-					Active: true,
-				},
-				{
-					Value:  2020,
-					Active: true,
-				},
-			},
-			wantErr: true,
-		},
-	}
 	for i, test := range saveYearsTests {
 		executeInTransactionFunc := func(queries []writeSQLFunction) {
 			// first query is to clear active year, then delete years, insert years, and set active
