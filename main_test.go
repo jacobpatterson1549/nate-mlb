@@ -5,6 +5,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -33,7 +34,7 @@ func TestStartupFuncs_optionalFlags(t *testing.T) {
 func TestInitFlags(t *testing.T) {
 	programName := "TestInitFlags"
 	fs, mainFlags := initFlags(programName)
-	args := strings.Fields("-ap=pass123 -n=cool_app -ds=user:pass@host/db -p=8080 -pt=2,3,5,6")
+	args := strings.Fields("-ap=pass123 -n=cool_app -ds=user:pass@host/db -p=8080 -pt=2,3,5,6 -logRequestURIs")
 	fs.Parse(args)
 	mainFlagsTests := []struct {
 		fieldName string
@@ -64,6 +65,11 @@ func TestInitFlags(t *testing.T) {
 			fieldName: "playerTypesCsv",
 			wantValue: "2,3,5,6",
 			gotValue:  mainFlags.playerTypesCsv,
+		},
+		{
+			fieldName: "logRequestURIs",
+			wantValue: "true",
+			gotValue:  strconv.FormatBool(mainFlags.logRequestURIs),
 		},
 	}
 	if len(mainFlagsTests) != fs.NFlag() {

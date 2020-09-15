@@ -21,6 +21,7 @@ const (
 	environmentVariablePort            = "PORT"
 	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
 	environmentVariableNflAppKey       = "NFL_APP_KEY"
+	environmentVariableLogRequestURIs  = "LOG_REQUEST_URIS"
 )
 
 type mainFlags struct {
@@ -30,6 +31,7 @@ type mainFlags struct {
 	port            string
 	playerTypesCsv  string
 	nflAppKey       string
+	logRequestURIs  bool
 }
 
 func main() {
@@ -80,6 +82,8 @@ func initFlags(programName string) (*flag.FlagSet, *mainFlags) {
 	fs.StringVar(&mainFlags.port, "p", os.Getenv(environmentVariablePort), "The port number to run the server on.")
 	fs.StringVar(&mainFlags.playerTypesCsv, "pt", os.Getenv(environmentVariablePlayerTypesCsv), "A csv whitelist of player types to use. Must not contain spaces.")
 	fs.StringVar(&mainFlags.nflAppKey, "ak", os.Getenv(environmentVariableNflAppKey), "The application key used to make nfl requests")
+	_, logRequestURIs := os.LookupEnv(environmentVariableLogRequestURIs)
+	fs.BoolVar(&mainFlags.logRequestURIs, "logRequestURIs", logRequestURIs, "logs the uris of requests to external sources for data when set")
 	return fs, mainFlags
 }
 
@@ -102,7 +106,7 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, log)
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log)
 		if err != nil {
 			return err
 		}

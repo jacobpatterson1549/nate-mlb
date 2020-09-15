@@ -230,8 +230,9 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 
 func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
+	logRequestURIs := false
 	log := log.New(ioutil.Discard, "test", log.LstdFlags)
-	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, "dummyNflAppKey", "environmentName", log)
+	scoreCategorizers, searchers, aboutRequester := NewRequesters(c, "dummyNflAppKey", "environmentName", logRequestURIs, log)
 	wantPlayerTypes := db.PlayerTypeMap{1: {}, 2: {}, 3: {}, 4: {}, 5: {}, 6: {}}
 	if len(wantPlayerTypes) != len(scoreCategorizers) {
 		t.Errorf("expected %v scoreCategorizers, but got %v", len(wantPlayerTypes), len(scoreCategorizers))
