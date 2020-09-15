@@ -149,7 +149,7 @@ func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {
 		err = fmt.Errorf("saving: %w", err)
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
-			err = fmt.Errorf("%w ROLLBACK ERROR: %w", err, rollbackErr)
+			err = fmt.Errorf("%v and ROLLBACK ERROR: %w", err, rollbackErr)
 		}
 	case len(queries) > 0:
 		err = tx.Commit()
