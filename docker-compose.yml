@@ -6,8 +6,6 @@ services:
     env_file: ./.env
     ports:
       - "${POSTGRES_PORT}:5432" # port 5432 on container maps to POSTGRES_PORT on the docker host
-    volumes:
-      - ./.pgdata:/var/lib/postgresql/data # save data to .pgdata
   web:
     build: .
     container_name: "nate-mlb-web"

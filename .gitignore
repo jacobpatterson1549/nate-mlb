@@ -12,6 +12,3 @@ __debug_bin
 .scannerwork
 # go test ./... -coverprofile=.coverage.out
 .coverage.out
-
-# Database data for PostgreSQL when running docker-compose
-.pgdata
