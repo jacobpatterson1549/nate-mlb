@@ -19,7 +19,7 @@ type (
 	}
 )
 
-var whitespaceRE = regexp.MustCompile("\\s")
+var whitespaceRE = regexp.MustCompile(`\s`)
 
 // getUserPassword gets the password for the specified user
 func (ds Datastore) getUserPassword(username string) (string, error) {

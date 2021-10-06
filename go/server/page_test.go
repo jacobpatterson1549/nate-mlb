@@ -91,14 +91,6 @@ func TestNewPage(t *testing.T) {
 	}
 }
 
-type mockTimeGetter struct {
-	GetUtcTimeFunc func() time.Time
-}
-
-func (tg mockTimeGetter) GetUtcTime() time.Time {
-	return tg.GetUtcTimeFunc()
-}
-
 func TestHtmlFolderNameGlob(t *testing.T) {
 	p := Page{htmlFolderName: "special_folder_name"}
 	got := p.htmlFolderNameGlob()

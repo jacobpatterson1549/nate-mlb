@@ -147,7 +147,7 @@ func verifyUserPassword(ds adminDatastore, r *http.Request) error {
 		return fmt.Errorf("verifying password: %w", err)
 	}
 	if !correctPassword {
-		return fmt.Errorf("Incorrect Password")
+		return fmt.Errorf("incorrect Password")
 	}
 	return nil
 }

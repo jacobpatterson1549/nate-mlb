@@ -59,7 +59,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 // NewConfig validates and creates a new configuration
 func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, logRequestURIs bool, log *log.Logger) (*Config, error) {
 	if _, err := strconv.Atoi(port); err != nil {
-		return nil, fmt.Errorf("Invalid port number: %s", port)
+		return nil, fmt.Errorf("invalid port number: %s", port)
 	}
 	sportTypes := ds.SportTypes()
 	sportEntries := newSportEntries(sportTypes)

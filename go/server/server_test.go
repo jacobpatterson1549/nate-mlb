@@ -26,14 +26,9 @@ func TestTransformURLPath(t *testing.T) {
 		wantURLPath   string
 	}{
 		{
-			urlPath:       "",
-			wantSportType: 0,
-			wantURLPath:   "",
-		},
-		{
 			urlPath:       "/",
 			wantSportType: 0,
-			wantURLPath:   "",
+			wantURLPath:   "/",
 		},
 		{
 			urlPath:       "/mlb",
@@ -43,12 +38,12 @@ func TestTransformURLPath(t *testing.T) {
 		{
 			urlPath:       "/nfl/admin",
 			wantSportType: db.SportTypeNfl,
-			wantURLPath:   "/SportType/nfl/admin",
+			wantURLPath:   "/SportType/admin",
 		},
 		{
 			urlPath:       "/admin",
 			wantSportType: 0,
-			wantURLPath:   "admin",
+			wantURLPath:   "/admin",
 		},
 	}
 
@@ -58,8 +53,11 @@ func TestTransformURLPath(t *testing.T) {
 	}
 	for i, test := range transformURLPathTests {
 		gotSportType, gotURLPath := transformURLPath(sportTypesURLLookup, test.urlPath)
-		if test.wantSportType != gotSportType || test.wantURLPath != test.wantURLPath {
-			t.Errorf("Test %d: wanted '{%v,%v}', but got '{%v,%v}' for url '%v'", i, test.wantSportType, test.wantURLPath, gotSportType, gotURLPath, test.urlPath)
+		switch {
+		case test.wantSportType != gotSportType:
+			t.Errorf("Test %d: sport types equal for url %v:\nwanted: %v\ngot:    %v", i, test.urlPath, test.wantSportType, gotSportType)
+		case test.wantURLPath != gotURLPath:
+			t.Errorf("Test %d: urls not equal for url %v:\nwanted: %v\ngot:    %v", i, test.urlPath, test.wantURLPath, gotURLPath)
 		}
 	}
 }
