@@ -1,5 +1,5 @@
 var yearsForm = {
-    removeYear: function () {
+    removeYear: function (event) {
         var year = event.target.parentNode;
         year.remove();
     },
