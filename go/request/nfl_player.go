@@ -55,27 +55,29 @@ func (r *nflPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 			"playerDetails": fmt.Sprintf("season=%d&playerId=%d", year, player.SourceID),
 		}
 	}
-	var scoreCategory ScoreCategory
-	servicesJSON, err := json.Marshal(services)
-	if err != nil {
-		return scoreCategory, fmt.Errorf("could not build request url for bulk nfl player stats: %w", err)
-	}
-	uri := fmt.Sprintf("batchservices?services=%s", servicesJSON)
-	nflPlayerSearch, err := r.requestNflPlayerSearch(uri)
-	if err != nil {
-		return scoreCategory, err
-	}
-
 	sourceIDNameScores := make(map[db.SourceID]nameScore, len(sourceIDs))
-	for id, nflPlayer := range nflPlayerSearch.players() {
-		if _, ok := sourceIDs[nflPlayer.ID]; ok {
-			stats, err := nflPlayer.stats()
-			if err != nil {
-				return scoreCategory, fmt.Errorf("could not get season stats for player %v: %w", id, err)
-			}
-			sourceIDNameScores[nflPlayer.ID] = nameScore{
-				name:  nflPlayer.Name,
-				score: stats.stat(pt),
+	if len(sourceIDs) > 0 {
+		var scoreCategory ScoreCategory
+		servicesJSON, err := json.Marshal(services)
+		if err != nil {
+			return scoreCategory, fmt.Errorf("could not build request url for bulk nfl player stats: %w", err)
+		}
+		uri := fmt.Sprintf("batchservices?services=%s", servicesJSON)
+		nflPlayerSearch, err := r.requestNflPlayerSearch(uri)
+		if err != nil {
+			return scoreCategory, err
+		}
+
+		for id, nflPlayer := range nflPlayerSearch.players() {
+			if _, ok := sourceIDs[nflPlayer.ID]; ok {
+				stats, err := nflPlayer.stats()
+				if err != nil {
+					return scoreCategory, fmt.Errorf("could not get season stats for player %v: %w", id, err)
+				}
+				sourceIDNameScores[nflPlayer.ID] = nameScore{
+					name:  nflPlayer.Name,
+					score: stats.stat(pt),
+				}
 			}
 		}
 	}

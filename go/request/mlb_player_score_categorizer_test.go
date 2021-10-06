@@ -120,6 +120,19 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 				},
 			},
 		},
+		{ // no players
+			pt:      db.PlayerTypeMlbPitcher,
+			friends: []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
+			want: ScoreCategory{
+				PlayerType: db.PlayerTypeMlbPitcher,
+				FriendScores: []FriendScore{
+					{
+						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 0,
+						PlayerScores: []PlayerScore{},
+					},
+				},
+			},
+		},
 		{
 			pt:               db.PlayerTypeMlbHitter,
 			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24

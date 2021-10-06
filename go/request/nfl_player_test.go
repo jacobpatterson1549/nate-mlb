@@ -68,6 +68,20 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 				},
 			},
 		},
+		{ // no players
+			pt:          db.PlayerTypeNflMisc,
+			friends:     []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Dave"}},
+			playersJSON: `[]`,
+			want: ScoreCategory{
+				PlayerType: db.PlayerTypeNflMisc,
+				FriendScores: []FriendScore{
+					{
+						DisplayOrder: 1, ID: 8, Name: "Dave", Score: 0,
+						PlayerScores: []PlayerScore{},
+					},
+				},
+			},
+		},
 	}
 	for i, test := range RequestScoreCategoryTests {
 		jsonFunc := func(uri string) string {
