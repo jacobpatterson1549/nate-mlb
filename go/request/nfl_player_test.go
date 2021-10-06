@@ -18,9 +18,6 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 		want        ScoreCategory
 	}{
 		{
-			wantErr: true, // no playersJSON
-		},
-		{
 			pt:      db.PlayerTypeNflQB,
 			friends: []db.Friend{{ID: 2, DisplayOrder: 1, Name: "Carl"}},
 			players: []db.Player{
