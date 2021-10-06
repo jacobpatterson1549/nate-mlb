@@ -34,8 +34,8 @@ var adminTab = {
     init: function () {
         if (!('content' in document.createElement('template'))) {
             var templateSupportCheckElements = document.querySelectorAll('.template-support-check');
-            for (var i = 0; i < templateSupportCheckElements.length; i++) {
-                templateSupportCheckElements[i].innerText =
+            for (var templateSupportCheckElement of templateSupportCheckElements) {
+                templateSupportCheckElement.innerText =
                     'HTML <template> tag not supported in browser, so editor cannot be shown.';
             }
         }

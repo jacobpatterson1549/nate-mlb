@@ -23,8 +23,7 @@ var playerSearch = {
     add: function () {
         var playerSearchResults = document.getElementById('player-search-results');
         playerSearchResults = playerSearchResults.getElementsByClassName('form-group');
-        for (var i = 0; i < playerSearchResults.length; i++) {
-            var psr = playerSearchResults[i];
+        for (var psr of playerSearchResults) {
             if (psr.querySelector('.psr-radio').checked) {
                 var sourceID = psr.querySelector('.psr-source-id').value;
                 var playerName = psr.querySelector('.psr-player-name').value;
@@ -77,8 +76,7 @@ var playerSearch = {
         var template = document.getElementById('player-search-results-template');
         var playerSearchResultsDiv = document.importNode(template.content, true);
         var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
-        for (var i = 0; i < playerSearchResults.length; i++) {
-            var playerSearchResult = playerSearchResults[i];
+        for (var playerSearchResult of playerSearchResults) {
             var template2 = document.getElementById('player-search-result-template');
             var playerSearchResultDiv = document.importNode(template2.content, true);
             var psr = playerSearchResultDiv.querySelector('.form-group');

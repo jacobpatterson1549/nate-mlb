@@ -3,8 +3,8 @@ var friendsForm = {
         var maxFriendId = 0;
         var friendsParent = document.getElementById('friends');
         var friendIdInputs = friendsParent.querySelectorAll('.friend-id');
-        for (var i = 0; i < friendIdInputs.length; i++) {
-            var friendId = parseInt(friendIdInputs[i].value);
+        for (var friendIdInput of friendIdInputs) {
+            var friendId = parseInt(friendIdInput.value);
             if (friendId > maxFriendId) {
                 maxFriendId = friendId;
             }
@@ -37,12 +37,12 @@ var friendsForm = {
             return;
         }
         var friends = document.getElementById('friend-form-items').children;
-        for (var i = 0; i < friends.length; i++) {
-            var id = friends[i].querySelector('.id').innerText;
-            var name = friends[i].querySelector('.name').innerText;
-            var displayOrder = friends[i].querySelector('.displayOrder').innerText;
+        for (var friend of friends) {
+            var id = friend.querySelector('.id').innerText;
+            var name = friend.querySelector('.name').innerText;
+            var displayOrder = friend.querySelector('.displayOrder').innerText;
             var newFriend = friendsForm.create(id, name, displayOrder, name);
-            friends[i].replaceWith(newFriend);
+            friend.replaceWith(newFriend);
         }
     },
 };

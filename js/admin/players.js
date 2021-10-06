@@ -6,8 +6,7 @@ var playersForm = {
         var maxDisplayOrder = 0;
         var players = document.getElementById('player-form-items');
         var playerElements = players.getElementsByClassName('form-group');
-        for (var i = 0; i < playerElements.length; i++) {
-            var player = playerElements[i];
+        for (var player of playerElements) {
             var ID = parseInt(player.querySelector('.player-id').value);
             if (ID > maxID) {
                 maxID = ID;
@@ -50,8 +49,7 @@ var playersForm = {
         var friendID = document.getElementById('select-friend').value;
         var players = document.getElementById('player-form-items');
         var playerElements = players.getElementsByClassName('form-group');
-        for (var i = 0; i < playerElements.length; i++) {
-            var player = playerElements[i];
+        for (var player of playerElements) {
             var currentPlayerType = player.querySelector('.player-player-type').value;
             var currentFriendID = player.querySelector('.player-friend-id').value;
             if (playerType === currentPlayerType && friendID === currentFriendID) {
@@ -74,19 +72,19 @@ var playersForm = {
             return;
         }
         var playerTypes = document.getElementById('player-form-items').children;
-        for (var i = 0; i < playerTypes.length; i++) {
-            var friendScores = playerTypes[i].children;
-            for (var j = 0; j < friendScores.length; j++) {
-                var playerScores = friendScores[j].children;
-                for (var k = 0; k < playerScores.length; k++) {
-                    var id = playerScores[k].querySelector('.id').innerText;
-                    var playerName = playerScores[k].querySelector('.player-name').innerText;
-                    var sourceID = playerScores[k].querySelector('.source-id').innerText;
-                    var displayOrder = playerScores[k].querySelector('.display-order').innerText;
-                    var playerType = playerScores[k].querySelector('.player-type').innerText;
-                    var friendID = playerScores[k].querySelector('.friend-id').innerText;
-                    var newPlayer = playersForm.create(id, playerName, sourceID, displayOrder, playerType, friendID);
-                    playerScores[k].replaceWith(newPlayer);
+        for (var playerType of playerTypes) {
+            var friendScores = playerType.children;
+            for (var friendScore of friendScores) {
+                var playerScores = friendScore.children;
+                for (var playerScore of playerScores) {
+                    var id = playerScore.querySelector('.id').innerText;
+                    var playerName = playerScore.querySelector('.player-name').innerText;
+                    var sourceID = playerScore.querySelector('.source-id').innerText;
+                    var displayOrder = playerScore.querySelector('.display-order').innerText;
+                    var pt = playerScore.querySelector('.player-type').innerText;
+                    var friendID = playerScore.querySelector('.friend-id').innerText;
+                    var newPlayer = playersForm.create(id, playerName, sourceID, displayOrder, pt, friendID);
+                    playerScore.replaceWith(newPlayer);
                 }
             }
         }

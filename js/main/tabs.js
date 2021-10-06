@@ -4,9 +4,9 @@ var tabsTemplate = {
         return;
       }
       var tabs = document.getElementById('main-tabs-tabs').querySelectorAll('.nav-link');
-      for (var i = 0; i < tabs.length; i++) {
-        if (tabs[i].hash === window.location.hash) {
-          tabsTemplate.activateTab(tabs[i]);
+      for (var tab of tabs) {
+        if (tab.hash === window.location.hash) {
+          tabsTemplate.activateTab(tab);
           return;
         }
       }
@@ -26,15 +26,15 @@ var tabsTemplate = {
         return;
       }
       var tabs = document.getElementById('main-tabs-tabs').querySelectorAll('.nav-link');
-      for (var i = 0; i < tabs.length; i++) {
-        var selectedTab = tabs[i].id === clickedTab.id;
-        tabs[i].classList.toggle('active', selectedTab);
+      for (var tab of tabs) {
+        var selectedTab = tab.id === clickedTab.id;
+        tab.classList.toggle('active', selectedTab);
       }
       var tabContents = document.getElementById('main-tabs-content').querySelectorAll('.tab-pane');
-      for (i = 0; i < tabContents.length; i++) {
-        var selectedTabContent = '#' + tabContents[i].id === clickedTab.hash;
-        tabContents[i].classList.toggle('active', selectedTabContent);
-        tabContents[i].classList.toggle('show', selectedTabContent);
+      for (var tabContent of tabContents) {
+        var selectedTabContent = '#' + tabContent.id === clickedTab.hash;
+        tabContent.classList.toggle('active', selectedTabContent);
+        tabContent.classList.toggle('show', selectedTabContent);
       }
     },
   };

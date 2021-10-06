@@ -8,8 +8,8 @@ var yearsForm = {
         var yearsParent = document.getElementById('years');
         var year = document.getElementById('add-year-input').value;
         var yearInputs = yearsParent.querySelectorAll('.year-input');
-        for (var i = 0; i < yearInputs.length; i++) {
-            var yearI = yearInputs[i].value;
+        for (var yearInput of yearInputs) {
+            var yearI = yearInput.value;
             if (yearI === year) {
                 return;
             }
@@ -38,11 +38,11 @@ var yearsForm = {
 
     initYears: function () {
         var years = document.getElementById('year-form-items').children;
-        for (var i = 0; i < years.length; i++) {
-            var value = years[i].querySelector('.value').innerText;
-            var active = years[i].querySelector('.active').innerText;
+        for (var year of years) {
+            var value = year.querySelector('.value').innerText;
+            var active = year.querySelector('.active').innerText;
             var newYear = yearsForm.createYear(value, active);
-            years[i].replaceWith(newYear);
+            year.replaceWith(newYear);
         }
     },
 
