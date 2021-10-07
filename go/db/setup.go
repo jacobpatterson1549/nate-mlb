@@ -2,16 +2,23 @@ package db
 
 import (
 	"fmt"
+	"io/fs"
 	"strconv"
 	"strings"
 )
+
+// ReadDirFileFS is a filesystem that can read directories and files.
+type ReadDirFileFS interface {
+	fs.ReadDirFS
+	fs.ReadFileFS
+}
 
 func (ds Datastore) getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
 	setupFileNames := []string{"users", "sport_types", "stats", "friends", "player_types", "players"}
 	for _, setupFileName := range setupFileNames {
-		b, err := ds.readFileFunc(fmt.Sprintf("sql/setup/%s.pgsql", setupFileName))
+		b, err := ds.fs.ReadFile(fmt.Sprintf("sql/setup/%s.pgsql", setupFileName))
 		if err != nil {
 			return nil, err
 		}
@@ -26,12 +33,12 @@ func (ds Datastore) getSetupFunctionQueries() ([]string, error) {
 	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
 	for _, functionDirType := range functionDirTypes {
 		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
-		functionFileInfos, err := ds.readDirFunc(functionDir)
+		functionFileInfos, err := ds.fs.ReadDir(functionDir)
 		if err != nil {
 			return nil, err
 		}
 		for _, functionFileInfo := range functionFileInfos {
-			b, err := ds.readFileFunc(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
+			b, err := ds.fs.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
 			if err != nil {
 				return nil, err
 			}

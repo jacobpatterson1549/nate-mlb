@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -397,11 +397,13 @@ func TestNewDatastore(t *testing.T) {
 	for i, test := range newDatastoreTests {
 		cfg := datastoreConfig{
 			driverName: "TestNewDatastore",
-			readFileFunc: func(filename string) ([]byte, error) {
-				return nil, test.setupTablesAndFunctionsErr
-			},
-			readDirFunc: func(dirname string) ([]os.FileInfo, error) {
-				return nil, test.setupTablesAndFunctionsErr
+			fs: mockFS{
+				ReadFileFunc: func(filename string) ([]byte, error) {
+					return nil, test.setupTablesAndFunctionsErr
+				},
+				ReadDirFunc: func(dirname string) ([]fs.DirEntry, error) {
+					return nil, test.setupTablesAndFunctionsErr
+				},
 			},
 			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
 			numFibonacciTries:    5,

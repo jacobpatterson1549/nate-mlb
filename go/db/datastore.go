@@ -4,9 +4,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 )
@@ -30,33 +28,29 @@ type (
 		driverName           string
 		dataSourceName       string
 		ph                   passwordHasher
-		readFileFunc         func(filename string) ([]byte, error)
-		readDirFunc          func(dirname string) ([]os.FileInfo, error)
 		pingFailureSleepFunc func(sleepSeconds int)
 		numFibonacciTries    int
 		log                  *log.Logger
+		fs                   ReadDirFileFS
 	}
 
 	// Datastore interface can be used to access and persist data
 	Datastore struct {
-		db           database
-		ph           passwordHasher
-		sportTypes   SportTypeMap
-		playerTypes  PlayerTypeMap
-		readFileFunc func(filename string) ([]byte, error)
-		readDirFunc  func(dirname string) ([]os.FileInfo, error)
-		log          *log.Logger
+		db          database
+		fs          ReadDirFileFS
+		ph          passwordHasher
+		sportTypes  SportTypeMap
+		playerTypes PlayerTypeMap
+		log         *log.Logger
 	}
 )
 
 // NewDatastore creates a new sqlDatastore
-func NewDatastore(dataSourceName string, log *log.Logger) (*Datastore, error) {
+func NewDatastore(dataSourceName string, log *log.Logger, fs ReadDirFileFS) (*Datastore, error) {
 	cfg := datastoreConfig{
 		driverName:     "postgres",
 		dataSourceName: dataSourceName,
 		ph:             bcryptPasswordHasher{},
-		readFileFunc:   ioutil.ReadFile,
-		readDirFunc:    ioutil.ReadDir,
 		pingFailureSleepFunc: func(sleepSeconds int) {
 			s := fmt.Sprintf("%ds", sleepSeconds)
 			d, err := time.ParseDuration(s)
@@ -67,6 +61,7 @@ func NewDatastore(dataSourceName string, log *log.Logger) (*Datastore, error) {
 		},
 		numFibonacciTries: 7,
 		log:               log,
+		fs:                fs,
 	}
 	return newDatastore(cfg)
 }
@@ -78,11 +73,10 @@ func newDatastore(cfg datastoreConfig) (*Datastore, error) {
 	}
 
 	ds := Datastore{
-		db:           db,
-		ph:           cfg.ph,
-		readFileFunc: cfg.readFileFunc,
-		readDirFunc:  cfg.readDirFunc,
-		log:          cfg.log,
+		db:  db,
+		fs:  cfg.fs,
+		ph:  cfg.ph,
+		log: cfg.log,
 	}
 
 	if err := ds.waitForDb(cfg.pingFailureSleepFunc, cfg.numFibonacciTries); err != nil {

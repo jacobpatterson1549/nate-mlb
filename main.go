@@ -3,6 +3,7 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"flag"
 	"fmt"
 	"log"
@@ -22,6 +23,11 @@ const (
 	environmentVariablePlayerTypesCsv  = "PLAYER_TYPES"
 	environmentVariableNflAppKey       = "NFL_APP_KEY"
 	environmentVariableLogRequestURIs  = "LOG_REQUEST_URIS"
+)
+
+var (
+	//go:embed sql
+	sqlFS embed.FS
 )
 
 type mainFlags struct {
@@ -92,7 +98,7 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 	startupFuncs := make([]func() error, 0, 2)
 	startupFuncs = append(startupFuncs, func() error {
 		var err error
-		ds, err = db.NewDatastore(mainFlags.dataSourceName, log)
+		ds, err = db.NewDatastore(mainFlags.dataSourceName, log, sqlFS)
 		return err
 	})
 	if len(mainFlags.playerTypesCsv) != 0 {

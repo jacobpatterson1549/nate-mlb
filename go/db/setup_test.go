@@ -4,38 +4,45 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
+	"io/fs"
 	"reflect"
 	"testing"
-	"time"
 )
 
-type mockFileInfo struct {
-	NameFunc    func() string
-	SizeFunc    func() int64
-	ModeFunc    func() os.FileMode
-	ModTimeFunc func() time.Time
-	IsDirFunc   func() bool
-	SysFunc     func() interface{}
+type mockDirEntry struct {
+	NameFunc  func() string
+	IsDirFunc func() bool
+	TypeFunc  func() fs.FileMode
+	InfoFunc  func() (fs.FileInfo, error)
 }
 
-func (m mockFileInfo) Name() string {
+func (m mockDirEntry) Name() string {
 	return m.NameFunc()
 }
-func (m mockFileInfo) Size() int64 {
-	return m.SizeFunc()
-}
-func (m mockFileInfo) Mode() os.FileMode {
-	return m.ModeFunc()
-}
-func (m mockFileInfo) ModTime() time.Time {
-	return m.ModTimeFunc()
-}
-func (m mockFileInfo) IsDir() bool {
+func (m mockDirEntry) IsDir() bool {
 	return m.IsDirFunc()
 }
-func (m mockFileInfo) Sys() interface{} {
-	return m.SysFunc()
+func (m mockDirEntry) Type() fs.FileMode {
+	return m.TypeFunc()
+}
+func (m mockDirEntry) Info() (fs.FileInfo, error) {
+	return m.InfoFunc()
+}
+
+type mockFS struct {
+	OpenFunc     func(name string) (fs.File, error)
+	ReadFileFunc func(name string) ([]byte, error)
+	ReadDirFunc  func(name string) ([]fs.DirEntry, error)
+}
+
+func (m mockFS) Open(name string) (fs.File, error) {
+	return m.OpenFunc(name)
+}
+func (m mockFS) ReadFile(name string) ([]byte, error) {
+	return m.ReadFileFunc(name)
+}
+func (m mockFS) ReadDir(name string) ([]fs.DirEntry, error) {
+	return m.ReadDirFunc(name)
 }
 
 var setupTablesAndFunctionsTests = []struct {
@@ -76,19 +83,19 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 			}
 			return []byte("1;2;3;4;5;6;7"), nil
 		}
-		readDirFunc := func(dirname string) ([]os.FileInfo, error) {
+		readDirFunc := func(dirname string) ([]fs.DirEntry, error) {
 			if test.getSetupFunctionQueriesErr != nil {
 				return nil, test.getSetupFunctionQueriesErr
 			}
-			fileInfos := make([]os.FileInfo, 11)
-			for i := range fileInfos {
-				fileInfos[i] = mockFileInfo{
+			dirEntries := make([]fs.DirEntry, 11)
+			for i := range dirEntries {
+				dirEntries[i] = mockDirEntry{
 					NameFunc: func() string {
 						return fmt.Sprintf("mock_file_%d", i)
 					},
 				}
 			}
-			return fileInfos, nil
+			return dirEntries, nil
 		}
 		commitCalled := false
 		rollbackCalled := false
@@ -122,10 +129,13 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 				return tx, nil
 			},
 		}
+		fs := mockFS{
+			ReadFileFunc: readFileFunc,
+			ReadDirFunc:  readDirFunc,
+		}
 		ds := Datastore{
-			db:           db,
-			readFileFunc: readFileFunc,
-			readDirFunc:  readDirFunc,
+			db: db,
+			fs: fs,
 		}
 		gotErr := ds.SetupTablesAndFunctions()
 		switch {
@@ -190,20 +200,22 @@ func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
 	readFileFunc := func(filename string) ([]byte, error) {
 		return nil, wantErr
 	}
-	readDirFunc := func(dirname string) ([]os.FileInfo, error) {
-		fileInfos := make([]os.FileInfo, 11)
-		for i := range fileInfos {
-			fileInfos[i] = mockFileInfo{
+	readDirFunc := func(dirname string) ([]fs.DirEntry, error) {
+		dirEntries := make([]fs.DirEntry, 11)
+		for i := range dirEntries {
+			dirEntries[i] = mockDirEntry{
 				NameFunc: func() string {
 					return fmt.Sprintf("mock_file_%d", i)
 				},
 			}
 		}
-		return fileInfos, nil
+		return dirEntries, nil
 	}
 	ds := Datastore{
-		readFileFunc: readFileFunc,
-		readDirFunc:  readDirFunc,
+		fs: mockFS{
+			ReadFileFunc: readFileFunc,
+			ReadDirFunc:  readDirFunc,
+		},
 	}
 	_, gotErr := ds.getSetupFunctionQueries()
 	if gotErr == nil || !errors.Is(gotErr, wantErr) {
