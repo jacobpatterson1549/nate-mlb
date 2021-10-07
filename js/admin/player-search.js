@@ -76,6 +76,7 @@ var playerSearch = {
         var template = document.getElementById('player-search-results-template');
         var playerSearchResultsDiv = document.importNode(template.content, true);
         var playerSearchResultsFieldSet = playerSearchResultsDiv.getElementById('player-search-results');
+        var firstChecked = false
         for (var playerSearchResult of playerSearchResults) {
             var template2 = document.getElementById('player-search-result-template');
             var playerSearchResultDiv = document.importNode(template2.content, true);
@@ -87,8 +88,9 @@ var playerSearch = {
             psr.querySelector('.psr-source-id').value = playerSearchResult.SourceID;
             psr.querySelector('.psr-player-name').value = playerSearchResult.Name;
             playerSearchResultsFieldSet.appendChild(psr);
-            if (i == 0 && playerSearchResults.length == 1) {
+            if (!firstChecked) {
                 psr.querySelector('.psr-radio').checked = true;
+                firstChecked = true;
             }
         }
         var resultsDiv = document.getElementById('player-search-results-output');
