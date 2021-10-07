@@ -10,7 +10,8 @@ RUN go mod download
 COPY . /app/
 
 # build application without links to C libraries
-RUN CGO_ENABLED=0 go build -o /app/nate-mlb
+RUN CGO_ENABLED=0 go test ./... --cover \
+    && CGO_ENABLED=0 go build -o /app/nate-mlb
 
 FROM scratch
 
