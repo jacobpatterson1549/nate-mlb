@@ -7,8 +7,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 	"github.com/jacobpatterson1549/nate-mlb/go/server"
@@ -118,7 +120,10 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log, htmlFS, jsFS, staticFS)
+		httpClient := &http.Client{
+			Timeout: 5 * time.Second,
+		}
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
 		if err != nil {
 			return err
 		}

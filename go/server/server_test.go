@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -22,6 +23,14 @@ type mockServerDatastore struct {
 
 func (ds mockServerDatastore) GetYears(st db.SportType) ([]db.Year, error) {
 	return ds.GetYearsFunc(st)
+}
+
+type mockHTTPClient struct {
+	DoFunc func(r *http.Request) (*http.Response, error)
+}
+
+func (m mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
+	return m.DoFunc(r)
 }
 
 func TestTransformURLPath(t *testing.T) {
@@ -103,7 +112,8 @@ func TestNewConfig(t *testing.T) {
 		htmlFS := fstest.MapFS{}
 		jsFS := fstest.MapFS{}
 		staticFS := fstest.MapFS{}
-		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS)
+		httpClient := mockHTTPClient{}
+		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -231,7 +241,16 @@ func TestServerHandlers(t *testing.T) {
 				Data: []byte(``),
 			},
 		}
-		cfg, _ := NewConfig("serverName", ds, port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS)
+		httpClient := mockHTTPClient{
+			DoFunc: func(r *http.Request) (*http.Response, error) {
+				resp := http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(strings.NewReader(`{}`)),
+				}
+				return &resp, nil
+			},
+		}
+		cfg, _ := NewConfig("serverName", ds, port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
 		h := cfg.handler()
 		ts := httptest.NewTLSServer(h)
 		defer ts.Close()

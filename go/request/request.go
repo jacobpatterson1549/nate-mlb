@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
@@ -17,25 +16,24 @@ type (
 		structPointerFromURI(uri string, v interface{}) error
 	}
 
-	httpClient interface {
+	// HTTPClient makes HTTP requests
+	HTTPClient interface {
 		Do(r *http.Request) (*http.Response, error)
 	}
 
 	httpRequester struct {
 		cache          Cache
-		httpClient     httpClient
+		httpClient     HTTPClient
 		logRequestURIs bool
 		log            *log.Logger
 	}
 )
 
 // NewRequesters creates new ScoreCategorizers and Searchers for the specified PlayerTypes and an aboutRequester
-func NewRequesters(c Cache, nflAppKey, environment string, logRequestURIs bool, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
+func NewRequesters(httpClient HTTPClient, c Cache, nflAppKey, environment string, logRequestURIs bool, log *log.Logger) (map[db.PlayerType]ScoreCategorizer, map[db.PlayerType]Searcher, AboutRequester) {
 	r := httpRequester{
-		cache: c,
-		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
-		},
+		cache:          c,
+		httpClient:     httpClient,
 		logRequestURIs: logRequestURIs,
 		log:            log,
 	}
