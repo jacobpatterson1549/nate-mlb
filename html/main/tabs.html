@@ -1,5 +1,4 @@
 {{ if .ShowTabs -}}
-<script defer src="/js/main/tabs.js"></script>
 <div id="main-tabs">
     <div class="mb-3" id="main-tabs-tabs" role="tablist">
         <ul class="nav nav-tabs">
@@ -19,6 +18,9 @@
         {{ end -}}
     </div>
 </div>
+<script>
+    {{ template "js/main/tabs.js" }}
+</script>
 {{- else -}}
 {{- template "tab.html" . -}}
 {{ end -}}
