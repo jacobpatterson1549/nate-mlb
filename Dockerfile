@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine AS build
+FROM golang:1.17-alpine3.14 AS build
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ FROM scratch
 # copy the x509 certificate file for Alpine Linux to allow server to make https requests
 COPY --from=build /etc/ssl/cert.pem /etc/ssl/cert.pem
 
-COPY --from=build /app /
+COPY --from=build /app/nate-mlb /
 
 # use exec form to not run from shell, which scratch image does not have
 CMD ["/nate-mlb"]
