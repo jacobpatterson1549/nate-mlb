@@ -141,7 +141,7 @@ func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.
 	title := fmt.Sprintf("%s Stats", cfg.serverName)
 	homeTab := AdminTab{Name: "Home"}
 	homePage := newPage(cfg, title, []Tab{homeTab}, false, TimesMessage{}, "home")
-	return renderTemplate(w, homePage, cfg.htmlFS, cfg.jsFS)
+	return cfg.renderTemplate(w, homePage)
 }
 
 func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -171,7 +171,7 @@ func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s stats - %d", cfg.serverName, stName, es.year)
 	statsPage := newPage(cfg, title, tabs, true, timesMessage, "stats")
-	return renderTemplate(w, statsPage, cfg.htmlFS, cfg.jsFS)
+	return cfg.renderTemplate(w, statsPage)
 }
 
 func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -209,7 +209,7 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s [ADMIN MODE]", cfg.serverName, stName)
 	adminPage := newPage(cfg, title, tabs, true, timesMessage, "admin")
-	return renderTemplate(w, adminPage, cfg.htmlFS, cfg.jsFS)
+	return cfg.renderTemplate(w, adminPage)
 }
 
 func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -225,7 +225,7 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	title := fmt.Sprintf("About %s Stats", cfg.serverName)
 	aboutTab := AdminTab{Name: "About"}
 	aboutPage := newPage(cfg, title, []Tab{aboutTab}, false, timesMessage, "about")
-	return renderTemplate(w, aboutPage, cfg.htmlFS, cfg.jsFS)
+	return cfg.renderTemplate(w, aboutPage)
 }
 
 func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -240,19 +240,23 @@ func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Re
 	return exportToCsv(es, cfg.serverName, w)
 }
 
-func renderTemplate(w http.ResponseWriter, p Page, htmlFS, jsFS fs.FS) error {
+func (cfg Config) renderTemplate(w http.ResponseWriter, p Page) error {
 	t := template.New("main.html")
-	_, err := t.ParseFS(htmlFS, "html/main/*.html")
+	_, err := t.ParseFS(cfg.htmlFS, "html/main/*.html")
 	if err != nil {
 		return fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseFS(htmlFS, p.htmlFolderNameGlob())
+	_, err = t.ParseFS(cfg.htmlFS, p.htmlFolderNameGlob())
 	if err != nil {
 		return fmt.Errorf("loading template page files: %w", err)
 	}
-	err = parseJSFS(jsFS, t)
+	err = parseJSFS(cfg.jsFS, t)
 	if err != nil {
 		return fmt.Errorf("loading template js files: %w", err)
+	}
+	_, err = t.ParseFS(cfg.staticFS, "static/main.css")
+	if err != nil {
+		return fmt.Errorf("loading template css file: %w", err)
 	}
 	err = t.Execute(w, p)
 	if err != nil {
