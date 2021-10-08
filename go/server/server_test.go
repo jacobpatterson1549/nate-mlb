@@ -161,16 +161,17 @@ func TestServerHandlers(t *testing.T) {
 		wantCode int
 		method   string
 		path     string
+		body     string
 	}{
 		{wantCode: 200, method: "GET", path: "/"},
 		{wantCode: 200, method: "GET", path: "/favicon.ico"},
 		{wantCode: 200, method: "GET", path: "/robots.txt"},
 		{wantCode: 404, method: "GET", path: "/main.css"},
-		// {wantCode: 200, method: "GET", path: "/about"}, // TODO: do not make live http requests
+		{wantCode: 200, method: "GET", path: "/about", body: `[]`},
 		{wantCode: 200, method: "GET", path: "/st_1_url"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/export"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin"},
-		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=1"},
+		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=1", body: `{}`},
 		// {wantCode: 303, method: "POST", path: "/st_1_url/admin?action=password"}, // TODO: add Location header to response
 	}
 	for i, test := range tests {
@@ -245,7 +246,7 @@ func TestServerHandlers(t *testing.T) {
 			DoFunc: func(r *http.Request) (*http.Response, error) {
 				resp := http.Response{
 					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(`{}`)),
+					Body:       io.NopCloser(strings.NewReader(test.body)),
 				}
 				return &resp, nil
 			},
