@@ -91,30 +91,32 @@ func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, lo
 
 // Run configures and starts the server
 func Run(cfg Config) error {
-	walkDirFunc := func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
-		path2 := "/" + d.Name()
-		http.HandleFunc(path2, cfg.handleStatic)
-		return nil
-	}
-	if err := fs.WalkDir(cfg.staticFS, "static", walkDirFunc); err != nil {
-		return fmt.Errorf("reading static dir: %w", err)
-	}
-	http.Handle("/js/", http.FileServer(http.FS(cfg.jsFS)))
-	http.HandleFunc("/", handleRoot(cfg))
+	h := cfg.handler()
 	addr := fmt.Sprintf(":%s", cfg.port)
 	cfg.log.Println("starting server - locally running at http://127.0.0.1" + addr)
-	if err := http.ListenAndServe(addr, nil); err != http.ErrServerClosed { // BLOCKS
+	if err := http.ListenAndServe(addr, h); err != http.ErrServerClosed { // BLOCKS
 		return fmt.Errorf("server stopped unexpectedly: %w", err)
 	}
 	return nil
 }
 
-func (cfg Config) handleStatic(w http.ResponseWriter, r *http.Request) {
-	r.URL.Path = "static" + r.URL.Path
-	http.FileServer(http.FS(cfg.staticFS)).ServeHTTP(w, r)
+func (cfg Config) handler() http.Handler {
+	mux := new(http.ServeMux)
+	cfg.handleStatic(mux, "/robots.txt", "/favicon.ico")
+	mux.Handle("/js/", http.FileServer(http.FS(cfg.jsFS)))
+	mux.HandleFunc("/", handleRoot(cfg))
+	return mux
+}
+
+func (cfg Config) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
+	staticFS := http.FileServer(http.FS(cfg.staticFS))
+	staticHandler := func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = "/static" + r.URL.Path
+		staticFS.ServeHTTP(w, r)
+	}
+	for _, staticFilename := range staticFilenames {
+		mux.HandleFunc(staticFilename, staticHandler)
+	}
 }
 
 func handleRoot(cfg Config) http.HandlerFunc {
