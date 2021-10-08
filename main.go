@@ -28,6 +28,12 @@ const (
 var (
 	//go:embed sql
 	sqlFS embed.FS
+	//go:embed html
+	htmlFS embed.FS
+	//go:embed js
+	jsFS embed.FS
+	//go:embed static
+	staticFS embed.FS
 )
 
 type mainFlags struct {
@@ -112,7 +118,7 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 		})
 	}
 	return append(startupFuncs, func() error {
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log)
+		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log, htmlFS, jsFS, staticFS)
 		if err != nil {
 			return err
 		}

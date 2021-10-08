@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"testing"
+	"testing/fstest"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
 )
@@ -95,7 +96,10 @@ func TestNewConfig(t *testing.T) {
 		}
 		logRequestURIs := false
 		log := log.New(ioutil.Discard, "test", log.LstdFlags)
-		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", logRequestURIs, log)
+		htmlFS := fstest.MapFS{}
+		jsFS := fstest.MapFS{}
+		staticFS := fstest.MapFS{}
+		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -122,6 +126,33 @@ func TestNewConfig(t *testing.T) {
 			if !reflect.DeepEqual(log, cfg.log) {
 				t.Errorf("Test %v: wanted log %v, got %v", i, &log, &cfg.log)
 			}
+			if !reflect.DeepEqual(htmlFS, cfg.htmlFS) {
+				t.Errorf("Test %v: wanted html fs %v, got %v", i, &htmlFS, &cfg.htmlFS)
+			}
+			if !reflect.DeepEqual(jsFS, cfg.htmlFS) {
+				t.Errorf("Test %v: wanted js fs %v, got %v", i, &jsFS, &cfg.jsFS)
+			}
+			if !reflect.DeepEqual(staticFS, cfg.staticFS) {
+				t.Errorf("Test %v: wanted static fs %v, got %v", i, &staticFS, &cfg.staticFS)
+			}
 		}
 	}
 }
+
+// TODO
+// func TestRunServer(t *testing.T) {
+// 	ds := mockServerDatastore{
+// 		etlDatastore: mockEtlDatastore{
+// 			SportTypesFunc: func() db.SportTypeMap {
+// 				return db.SportTypeMap{
+// 					1: {URL: "st_1_url"},
+// 				}
+// 			},
+// 		},
+// 	}
+// 	logRequestURIs := false
+// 	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+// 	htmlFS := fstest.MapFS{}
+// 	cfg, _ := NewConfig("serverName", ds, 0, "nflAppKey", logRequestURIs, log, htmlFS)
+// 	Run
+// }

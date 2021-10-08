@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"net/http"
 	"strconv"
@@ -29,6 +29,9 @@ type (
 		searchers         map[db.PlayerType]request.Searcher
 		aboutRequester    request.AboutRequester
 		log               *log.Logger
+		htmlFS            fs.FS
+		staticFS          fs.FS
+		jsFS              fs.FS
 	}
 	serverDatastore interface {
 		GetYears(st db.SportType) ([]db.Year, error)
@@ -39,7 +42,6 @@ type (
 	httpMethod         string
 	sportTypeHandler   func(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error
 	sportTypeHandlers  map[httpMethod]map[string]sportTypeHandler
-	httpHandler        func(w http.ResponseWriter, r *http.Request)
 )
 
 var serverSportTypeHandlers = sportTypeHandlers{
@@ -57,7 +59,7 @@ var serverSportTypeHandlers = sportTypeHandlers{
 }
 
 // NewConfig validates and creates a new configuration
-func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, logRequestURIs bool, log *log.Logger) (*Config, error) {
+func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, logRequestURIs bool, log *log.Logger, htmlFS, jsFS, staticFS fs.FS) (*Config, error) {
 	if _, err := strconv.Atoi(port); err != nil {
 		return nil, fmt.Errorf("invalid port number: %s", port)
 	}
@@ -81,36 +83,41 @@ func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, lo
 		searchers:         searchers,
 		aboutRequester:    aboutRequester,
 		log:               log,
+		htmlFS:            htmlFS,
+		jsFS:              jsFS,
+		staticFS:          staticFS,
 	}, nil
 }
 
 // Run configures and starts the server
 func Run(cfg Config) error {
-	fileInfo, err := ioutil.ReadDir("static")
-	if err != nil {
+	walkDirFunc := func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		path2 := "/" + d.Name()
+		http.HandleFunc(path2, cfg.handleStatic)
+		return nil
+	}
+	if err := fs.WalkDir(cfg.staticFS, "static", walkDirFunc); err != nil {
 		return fmt.Errorf("reading static dir: %w", err)
 	}
-	for _, file := range fileInfo {
-		path := "/" + file.Name()
-		http.HandleFunc(path, handleStatic)
-	}
-	http.Handle("/js/", http.StripPrefix("/js/", http.FileServer(http.Dir("js"))))
+	http.Handle("/js/", http.FileServer(http.FS(cfg.jsFS)))
 	http.HandleFunc("/", handleRoot(cfg))
 	addr := fmt.Sprintf(":%s", cfg.port)
 	cfg.log.Println("starting server - locally running at http://127.0.0.1" + addr)
-	err = http.ListenAndServe(addr, nil) // BLOCKS
-	if err != http.ErrServerClosed {
+	if err := http.ListenAndServe(addr, nil); err != http.ErrServerClosed { // BLOCKS
 		return fmt.Errorf("server stopped unexpectedly: %w", err)
 	}
 	return nil
 }
 
-func handleStatic(w http.ResponseWriter, r *http.Request) {
-	path := "static" + r.URL.Path
-	http.ServeFile(w, r, path)
+func (cfg Config) handleStatic(w http.ResponseWriter, r *http.Request) {
+	r.URL.Path = "static" + r.URL.Path
+	http.FileServer(http.FS(cfg.staticFS)).ServeHTTP(w, r)
 }
 
-func handleRoot(cfg Config) httpHandler {
+func handleRoot(cfg Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := handlePage(cfg, w, r, transformURLPath, serverSportTypeHandlers)
 		if err != nil {
@@ -134,7 +141,7 @@ func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.
 	title := fmt.Sprintf("%s Stats", cfg.serverName)
 	homeTab := AdminTab{Name: "Home"}
 	homePage := newPage(cfg, title, []Tab{homeTab}, false, TimesMessage{}, "home")
-	return renderTemplate(w, homePage)
+	return renderTemplate(w, homePage, cfg.htmlFS)
 }
 
 func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -164,7 +171,7 @@ func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s stats - %d", cfg.serverName, stName, es.year)
 	statsPage := newPage(cfg, title, tabs, true, timesMessage, "stats")
-	return renderTemplate(w, statsPage)
+	return renderTemplate(w, statsPage, cfg.htmlFS)
 }
 
 func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -202,7 +209,7 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s [ADMIN MODE]", cfg.serverName, stName)
 	adminPage := newPage(cfg, title, tabs, true, timesMessage, "admin")
-	return renderTemplate(w, adminPage)
+	return renderTemplate(w, adminPage, cfg.htmlFS)
 }
 
 func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -218,7 +225,7 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	title := fmt.Sprintf("About %s Stats", cfg.serverName)
 	aboutTab := AdminTab{Name: "About"}
 	aboutPage := newPage(cfg, title, []Tab{aboutTab}, false, timesMessage, "about")
-	return renderTemplate(w, aboutPage)
+	return renderTemplate(w, aboutPage, cfg.htmlFS)
 }
 
 func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
@@ -233,13 +240,13 @@ func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Re
 	return exportToCsv(es, cfg.serverName, w)
 }
 
-func renderTemplate(w http.ResponseWriter, p Page) error {
+func renderTemplate(w http.ResponseWriter, p Page, fs fs.FS) error {
 	t := template.New("main.html")
-	_, err := t.ParseGlob("html/main/*.html")
+	_, err := t.ParseFS(fs, "html/main/*.html")
 	if err != nil {
 		return fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseGlob(p.htmlFolderNameGlob())
+	_, err = t.ParseFS(fs, p.htmlFolderNameGlob())
 	if err != nil {
 		return fmt.Errorf("loading template page files: %w", err)
 	}
