@@ -38,25 +38,7 @@ type (
 		adminDatastore
 		etlDatastore
 	}
-	urlPathTransformer func(sportTypesByURL map[string]db.SportType, url string) (db.SportType, string)
-	httpMethod         string
-	sportTypeHandler   func(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error
-	sportTypeHandlers  map[httpMethod]map[string]sportTypeHandler
 )
-
-var serverSportTypeHandlers = sportTypeHandlers{
-	"GET": {
-		"/":                       handleHomePage,
-		"/about":                  handleAboutPage,
-		"/SportType":              handleStatsPage,
-		"/SportType/export":       handleExport,
-		"/SportType/admin":        handleAdminPage,
-		"/SportType/admin/search": handleAdminSearch,
-	},
-	"POST": {
-		"/SportType/admin": handleAdminPost,
-	},
-}
 
 // NewConfig validates and creates a new configuration
 func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, logRequestURIs bool, log *log.Logger, htmlFS, jsFS, staticFS fs.FS, httpClient request.HTTPClient) (*Config, error) {
@@ -103,8 +85,8 @@ func Run(cfg Config) error {
 func (cfg Config) handler() http.Handler {
 	mux := new(http.ServeMux)
 	cfg.handleStatic(mux, "/robots.txt", "/favicon.ico")
-	mux.Handle("/js/", http.FileServer(http.FS(cfg.jsFS)))
-	mux.HandleFunc("/", handleRoot(cfg))
+	cfg.handleJavascriptFiles(mux)
+	cfg.handleRoot(mux)
 	return mux
 }
 
@@ -119,37 +101,76 @@ func (cfg Config) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
 	}
 }
 
-func handleRoot(cfg Config) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		err := handlePage(cfg, w, r, transformURLPath, serverSportTypeHandlers)
-		if err != nil {
-			cfg.log.Printf("server error: %q", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
-		}
+func (cfg Config) handleJavascriptFiles(mux *http.ServeMux) {
+	jsHandler := http.FileServer(http.FS(cfg.jsFS))
+	mux.Handle("/js/", jsHandler)
+}
+
+func (cfg Config) handleRoot(mux *http.ServeMux) {
+	rootHandler := func(w http.ResponseWriter, r *http.Request) {
+		st, path := cfg.transformURLPath(r)
+		cfg.handleMethod(st, path, w, r)
+	}
+	mux.HandleFunc("/", rootHandler)
+}
+
+func (cfg Config) handleError(w http.ResponseWriter, err error) {
+	cfg.log.Printf("server error: %q", err)
+	http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
+}
+
+func (cfg Config) handleMethod(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		cfg.handleGet(st, path, w, r)
+	case http.MethodPost:
+		cfg.handlePost(st, path, w, r)
+	default:
+		w.Header().Set("Allow", "GET, POST")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func handlePage(cfg Config, w http.ResponseWriter, r *http.Request, upt urlPathTransformer, sth sportTypeHandlers) error {
-	st, urlPath := upt(cfg.sportTypesByURL, r.URL.Path)
-	sportTypeHandler, ok := sth[httpMethod(r.Method)][urlPath]
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return nil
+func (cfg Config) handleGet(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+	switch path {
+	case "/":
+		cfg.handleHomePage(st, w, r)
+	case "/about":
+		cfg.handleAboutPage(st, w, r)
+	case "/SportType":
+		cfg.handleStatsPage(st, w, r)
+	case "/SportType/export":
+		cfg.handleExport(st, w, r)
+	case "/SportType/admin":
+		cfg.handleAdminPage(st, w, r)
+	case "/SportType/admin/search":
+		cfg.handleAdminSearch(st, w, r)
+	default:
+		w.WriteHeader(http.StatusNotFound)
 	}
-	return sportTypeHandler(st, cfg, w, r)
 }
 
-func handleHomePage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handlePost(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+	switch path {
+	case "/SportType/admin":
+		cfg.handleAdminPost(st, w, r)
+	default:
+		w.WriteHeader(http.StatusNotFound)
+	}
+}
+
+func (cfg Config) handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	title := fmt.Sprintf("%s Stats", cfg.serverName)
 	homeTab := AdminTab{Name: "Home"}
 	homePage := newPage(cfg, title, []Tab{homeTab}, false, TimesMessage{}, "home")
-	return cfg.renderTemplate(w, homePage)
+	cfg.renderTemplate(w, homePage)
 }
 
-func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
 	tabs := make([]Tab, len(es.scoreCategories))
 	stURL := cfg.ds.SportTypes()[es.sportType].URL
@@ -173,17 +194,19 @@ func handleStatsPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s stats - %d", cfg.serverName, stName, es.year)
 	statsPage := newPage(cfg, title, tabs, true, timesMessage, "stats")
-	return cfg.renderTemplate(w, statsPage)
+	cfg.renderTemplate(w, statsPage)
 }
 
-func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
 	years, err := cfg.ds.GetYears(st)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
 	scoreCategoriesData := make([]interface{}, len(es.scoreCategories))
 	for i, sc := range es.scoreCategories {
@@ -211,13 +234,14 @@ func handleAdminPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	stName := cfg.ds.SportTypes()[st].Name
 	title := fmt.Sprintf("%s %s [ADMIN MODE]", cfg.serverName, stName)
 	adminPage := newPage(cfg, title, tabs, true, timesMessage, "admin")
-	return cfg.renderTemplate(w, adminPage)
+	cfg.renderTemplate(w, adminPage)
 }
 
-func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	lastDeploy, err := cfg.aboutRequester.PreviousDeployment()
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
 	var timesMessage TimesMessage
 	if lastDeploy != nil {
@@ -227,47 +251,52 @@ func handleAboutPage(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 	title := fmt.Sprintf("About %s Stats", cfg.serverName)
 	aboutTab := AdminTab{Name: "About"}
 	aboutPage := newPage(cfg, title, []Tab{aboutTab}, false, timesMessage, "about")
-	return cfg.renderTemplate(w, aboutPage)
+	cfg.renderTemplate(w, aboutPage)
 }
 
-func handleExport(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
 	}
 	asOfDate := es.etlTime.Format("2006-01-02")
 	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", cfg.serverName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	return exportToCsv(es, cfg.serverName, w)
+	if err := exportToCsv(es, cfg.serverName, w); err != nil {
+		cfg.handleError(w, err)
+	}
 }
 
-func (cfg Config) renderTemplate(w http.ResponseWriter, p Page) error {
+func (cfg Config) renderTemplate(w http.ResponseWriter, p Page) {
+	// TODO: parse template when building handler
 	t := template.New("main.html")
 	_, err := t.ParseFS(cfg.htmlFS, "html/main/*.html")
 	if err != nil {
-		return fmt.Errorf("loading template main files: %w", err)
+		cfg.handleError(w, fmt.Errorf("loading template main files: %w", err))
+		return
 	}
 	_, err = t.ParseFS(cfg.htmlFS, p.htmlFolderNameGlob())
 	if err != nil {
-		return fmt.Errorf("loading template page files: %w", err)
+		cfg.handleError(w, fmt.Errorf("loading template page files: %w", err))
+		return
 	}
-	err = parseJSFS(cfg.jsFS, t)
+	err = parseJavascriptFS(cfg.jsFS, t)
 	if err != nil {
-		return fmt.Errorf("loading template js files: %w", err)
+		cfg.handleError(w, fmt.Errorf("loading template js files: %w", err))
+		return
 	}
-	_, err = t.ParseFS(cfg.staticFS, "static/main.css")
-	if err != nil {
-		return fmt.Errorf("loading template css file: %w", err)
+	if _, err = t.ParseFS(cfg.staticFS, "static/main.css"); err != nil {
+		cfg.handleError(w, fmt.Errorf("loading template css file: %w", err))
+		return
 	}
-	err = t.Execute(w, p)
-	if err != nil {
-		return fmt.Errorf("rendering template: %w", err)
+	if err = t.Execute(w, p); err != nil {
+		cfg.handleError(w, fmt.Errorf("rendering template: %w", err))
+		return
 	}
-	return nil
 }
 
-func parseJSFS(jsFS fs.FS, t *template.Template) error {
+func parseJavascriptFS(jsFS fs.FS, t *template.Template) error {
 	jsFilenames, err := fs.Glob(jsFS, "js/*/*.js")
 	if err != nil {
 		return fmt.Errorf("reading js filenames: %w", err)
@@ -282,41 +311,41 @@ func parseJSFS(jsFS fs.FS, t *template.Template) error {
 	return nil
 }
 
-func handleAdminPost(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
-	err := handleAdminPostRequest(cfg.ds, cfg.requestCache, st, r)
-	if err != nil {
+func (cfg Config) handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	if err := handleAdminPostRequest(cfg.ds, cfg.requestCache, st, r); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
-		return nil
+		return
 	}
 	w.Header().Add("Location", r.URL.Path)
 	w.WriteHeader(http.StatusSeeOther)
-	return nil
 }
 
-func handleAdminSearch(st db.SportType, cfg Config, w http.ResponseWriter, r *http.Request) error {
+func (cfg Config) handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) {
 	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
 	playerSearchResults, err := handleAdminSearchRequest(es.year, cfg.searchers, r)
 	if err != nil {
-		return err
+		cfg.handleError(w, err)
+		return
 	}
-	err = json.NewEncoder(w).Encode(playerSearchResults)
-	if err != nil {
-		return fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err)
+	if err := json.NewEncoder(w).Encode(playerSearchResults); err != nil {
+		cfg.handleError(w, fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err))
+		return
 	}
-	return nil
 }
 
-func transformURLPath(sportTypesByURL map[string]db.SportType, urlPath string) (db.SportType, string) {
+func (cfg Config) transformURLPath(r *http.Request) (st db.SportType, path string) {
+	urlPath := r.URL.Path
 	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
 		return 0, urlPath
 	}
 	firstPathSegment := parts[1]
-	st, ok := sportTypesByURL[firstPathSegment]
+	st, ok := cfg.sportTypesByURL[firstPathSegment]
 	if ok {
 		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
 	}

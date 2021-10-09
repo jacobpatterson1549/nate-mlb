@@ -61,12 +61,15 @@ func TestTransformURLPath(t *testing.T) {
 		},
 	}
 
-	sportTypesURLLookup := map[string]db.SportType{
-		"mlb": db.SportTypeMlb,
-		"nfl": db.SportTypeNfl,
+	cfg := Config {
+		sportTypesByURL: map[string]db.SportType{
+			"mlb": db.SportTypeMlb,
+			"nfl": db.SportTypeNfl,
+		},
 	}
 	for i, test := range transformURLPathTests {
-		gotSportType, gotURLPath := transformURLPath(sportTypesURLLookup, test.urlPath)
+		r := httptest.NewRequest("GET", test.urlPath, nil)
+		gotSportType, gotURLPath := cfg.transformURLPath(r)
 		switch {
 		case test.wantSportType != gotSportType:
 			t.Errorf("Test %d: sport types equal for url %v:\nwanted: %v\ngot:    %v", i, test.urlPath, test.wantSportType, gotSportType)
@@ -173,6 +176,7 @@ func TestServerHandlers(t *testing.T) {
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=1", body: `{}`},
 		{wantCode: 200, method: "POST", path: "/st_1_url/admin?action=password"}, // should redirect to 200
+		{wantCode: 405, method: "HEAD", path: "/"},
 	}
 	for i, test := range tests {
 		ds := mockServerDatastore{
