@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -293,6 +294,42 @@ func TestServerHandlers(t *testing.T) {
 			body, err := io.ReadAll(resp.Body)
 			resp.Body.Close()
 			t.Errorf("Test %v: wanted %v, got %v:\nresponse: %v\nbody read error: %v\nbody: %s", i, test.wantCode, resp.StatusCode, resp, err, body)
+		}
+	}
+}
+
+func TestWithGzip(t *testing.T) {
+	const wantMessage = "Hello, World!"
+	tests := []struct {
+		acceptEncoding string
+		wantGzip       bool
+		wantBodyStart  string
+	}{
+		{
+			wantBodyStart: wantMessage,
+		},
+		{
+			acceptEncoding: "gzip, deflate, br",
+			wantGzip:       true,
+			wantBodyStart:  "\x1f\x8b\x08", // magic number (1f8b) and compression method for deflate (08)
+		},
+	}
+	for i, test := range tests {
+		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(wantMessage))
+		})
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		r.Header.Add("Accept-Encoding", test.acceptEncoding)
+		withGzip(h).ServeHTTP(w, r)
+		contentEncoding := w.Header().Get("Content-Encoding")
+		gotGzip := contentEncoding == "gzip"
+		gotMessage := w.Body.String()
+		switch {
+		case test.wantGzip != gotGzip:
+			t.Errorf("Test %v: wanted gzip: %v, got %v", i, test.wantGzip, gotGzip)
+		case !strings.HasPrefix(gotMessage, test.wantBodyStart):
+			t.Errorf("Test %v: written message prefixes not equal:\nwanted: %x\ngot:    %x", i, test.wantBodyStart, gotMessage)
 		}
 	}
 }

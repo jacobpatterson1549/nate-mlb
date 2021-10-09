@@ -2,9 +2,11 @@
 package server
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -123,7 +125,7 @@ func (s Server) handler() http.Handler {
 	mux := new(http.ServeMux)
 	s.handleStatic(mux, "/robots.txt", "/favicon.ico")
 	s.handleRoot(mux)
-	return mux
+	return withGzip(mux)
 }
 
 func (s Server) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
@@ -143,6 +145,23 @@ func (s Server) handleRoot(mux *http.ServeMux) {
 		s.handleMethod(st, path, w, r)
 	}
 	mux.HandleFunc("/", rootHandler)
+}
+
+func withGzip(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h.ServeHTTP(w, r)
+			return
+		}
+		gzw := gzip.NewWriter(w)
+		defer gzw.Close()
+		wrw := wrappedResponseWriter{
+			Writer:         gzw,
+			ResponseWriter: w,
+		}
+		wrw.Header().Add("Content-Encoding", "gzip")
+		h.ServeHTTP(wrw, r)
+	}
 }
 
 func (s Server) handleError(w http.ResponseWriter, err error) {
@@ -380,4 +399,15 @@ func (s Server) transformURLPath(r *http.Request) (st db.SportType, path string)
 		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
 	}
 	return st, urlPath
+}
+
+// wrappedResponseWriter wraps response writing with another writer.
+type wrappedResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+// Write delegates the write to the wrapped writer.
+func (wrw wrappedResponseWriter) Write(p []byte) (n int, err error) {
+	return wrw.Writer.Write(p)
 }
