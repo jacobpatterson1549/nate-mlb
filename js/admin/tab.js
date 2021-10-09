@@ -8,7 +8,7 @@ var adminTab = {
             body: data,
             credentials: 'include'
         }).then(async res => {
-            if (res.status == 303) {
+            if (res.status == 200) {
                 return Promise.resolve();
             } else {
                 var message = await res.text();

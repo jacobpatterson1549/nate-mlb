@@ -172,7 +172,7 @@ func TestServerHandlers(t *testing.T) {
 		{wantCode: 200, method: "GET", path: "/st_1_url/export"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=1", body: `{}`},
-		// {wantCode: 303, method: "POST", path: "/st_1_url/admin?action=password"}, // TODO: add Location header to response
+		{wantCode: 200, method: "POST", path: "/st_1_url/admin?action=password"}, // should redirect to 200
 	}
 	for i, test := range tests {
 		ds := mockServerDatastore{

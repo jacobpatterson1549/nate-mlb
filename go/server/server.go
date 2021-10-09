@@ -289,6 +289,7 @@ func handleAdminPost(st db.SportType, cfg Config, w http.ResponseWriter, r *http
 		w.Write([]byte(err.Error()))
 		return nil
 	}
+	w.Header().Add("Location", r.URL.Path)
 	w.WriteHeader(http.StatusSeeOther)
 	return nil
 }
