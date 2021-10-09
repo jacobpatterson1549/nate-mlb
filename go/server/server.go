@@ -122,7 +122,6 @@ func (s Server) Run() error {
 func (s Server) handler() http.Handler {
 	mux := new(http.ServeMux)
 	s.handleStatic(mux, "/robots.txt", "/favicon.ico")
-	s.handleJavascriptFiles(mux)
 	s.handleRoot(mux)
 	return mux
 }
@@ -136,11 +135,6 @@ func (s Server) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
 	for _, staticFilename := range staticFilenames {
 		mux.HandleFunc(staticFilename, staticHandler)
 	}
-}
-
-func (cfg Config) handleJavascriptFiles(mux *http.ServeMux) {
-	jsHandler := http.FileServer(http.FS(cfg.JavascriptFS))
-	mux.Handle("/js/", jsHandler)
 }
 
 func (s Server) handleRoot(mux *http.ServeMux) {
