@@ -273,81 +273,6 @@ func TestExpectRowFound(t *testing.T) {
 	}
 }
 
-func TestWaitForDb_numTries(t *testing.T) {
-	waitForDbTests := []struct {
-		successfulConnectTry int
-		numFibonacciTries    int
-		wantError            bool
-	}{
-		{ // should not fail when not attempted to connect
-		},
-		{
-			successfulConnectTry: 1,
-			numFibonacciTries:    1,
-		},
-		{
-			successfulConnectTry: 2,
-			numFibonacciTries:    3,
-		},
-		{
-			successfulConnectTry: 4,
-			numFibonacciTries:    3,
-			wantError:            true,
-		},
-	}
-	for i, test := range waitForDbTests {
-		dbCheckCount := 0
-		db := mockDatabase{
-			PingFunc: func() error {
-				dbCheckCount++
-				if dbCheckCount != test.successfulConnectTry {
-					return errors.New("check failed")
-				}
-				return nil
-			},
-		}
-		log := log.New(ioutil.Discard, "test", log.LstdFlags)
-		ds := Datastore{db: db, log: log}
-		sleepFunc := func(waitTime int) {}
-		err := ds.waitForDb(sleepFunc, test.numFibonacciTries)
-		gotError := err != nil
-		if test.wantError != gotError {
-			t.Errorf("Test %v: wantedError = %v, gotError = %v", i, test.wantError, gotError)
-		}
-	}
-}
-
-func TestWaitForDb_fibonacci(t *testing.T) {
-	wantFibonacciSleepSeconds := []int{0, 1, 1, 2, 3, 5, 8}
-	dbCheckCount := 0
-	db := mockDatabase{
-		PingFunc: func() error {
-			dbCheckCount++
-			return fmt.Errorf("check failed")
-		},
-	}
-	i := 0
-	sleepFunc := func(sleepSeconds int) {
-		if wantFibonacciSleepSeconds[i] != sleepSeconds {
-			t.Errorf("unexpected %vth wait time: wanted %v, got %v", i, wantFibonacciSleepSeconds[i], sleepSeconds)
-		}
-		i++
-	}
-	log := log.New(ioutil.Discard, "test", log.LstdFlags)
-	ds := Datastore{db: db, log: log}
-	numFibonacciTries := len(wantFibonacciSleepSeconds)
-	err := ds.waitForDb(sleepFunc, numFibonacciTries)
-	if err == nil {
-		t.Error("expected db wait check to error out")
-	}
-	if numFibonacciTries != i {
-		t.Errorf("expected to wait for db to start %v times, got %v", numFibonacciTries, i)
-	}
-	if numFibonacciTries != dbCheckCount {
-		t.Errorf("expected to check the db %v times, got %v", numFibonacciTries, dbCheckCount)
-	}
-}
-
 var testNewDatastoreDriver *mockDriver
 
 func init() {
@@ -357,8 +282,6 @@ func init() {
 
 var newDatastoreTests = []struct {
 	newDatabaseErr             error
-	waitForDbErr               error
-	waitForDbErrStopIndex      int
 	setupTablesAndFunctionsErr error
 	getSportTypesErr           error
 	getPlayerTypesErr          error
@@ -368,16 +291,6 @@ var newDatastoreTests = []struct {
 	{
 		newDatabaseErr: errors.New("newSQLDatabase error"),
 		wantErr:        true,
-	},
-	{
-		waitForDbErr:          errors.New("waitForDb error"),
-		waitForDbErrStopIndex: 4000,
-		wantErr:               true, // 4000 > 5
-	},
-	{
-		waitForDbErr:          errors.New("waitForDb error"),
-		waitForDbErrStopIndex: 3,
-		wantErr:               false, // 3 < 5
 	},
 	{
 		setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
@@ -406,7 +319,6 @@ func TestNewDatastore(t *testing.T) {
 				},
 			},
 			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
-			numFibonacciTries:    5,
 			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
 		}
 		if test.newDatabaseErr != nil {
@@ -487,8 +399,6 @@ func TestNewDatastore(t *testing.T) {
 			switch {
 			case test.newDatabaseErr != nil:
 				return mockDriverConn, test.newDatabaseErr
-			case pingAttempt < test.waitForDbErrStopIndex:
-				return mockDriverConn, test.waitForDbErr
 			default:
 				return mockDriverConn, nil
 			}

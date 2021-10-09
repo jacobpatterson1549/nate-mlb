@@ -1,11 +1,22 @@
-version: "2"
+version: "2.3"
 services:
   db:
     image: postgres:11.5-alpine
     container_name: "nate-mlb-db"
     env_file: ./.env
     ports:
-      - "${POSTGRES_PORT}:5432" # port 5432 on container maps to POSTGRES_PORT on the docker host
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      - PGUSER=${POSTGRES_USER}
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+      - PGPORT=${POSTGRES_PORT}
+      - PGDATABASE=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      timeout: 1s
+      interval: 1s
+      retries: 3
+      start_period: 5s
   web:
     build: .
     container_name: "nate-mlb-web"
@@ -14,6 +25,7 @@ services:
       - "${PORT}:8000" # port 8000 on container maps to PORT on docker host
     environment:
       - PORT=8000
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}?sslmode=disable
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
     depends_on:
-      - db
+      db:
+        condition: service_healthy

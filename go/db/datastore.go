@@ -29,7 +29,6 @@ type (
 		dataSourceName       string
 		ph                   passwordHasher
 		pingFailureSleepFunc func(sleepSeconds int)
-		numFibonacciTries    int
 		log                  *log.Logger
 		fs                   ReadDirFileFS
 	}
@@ -59,7 +58,6 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs ReadDirFileFS) (*Da
 			}
 			time.Sleep(d) // BLOCKING
 		},
-		numFibonacciTries: 7,
 		log:               log,
 		fs:                fs,
 	}
@@ -77,10 +75,6 @@ func newDatastore(cfg datastoreConfig) (*Datastore, error) {
 		fs:  cfg.fs,
 		ph:  cfg.ph,
 		log: cfg.log,
-	}
-
-	if err := ds.waitForDb(cfg.pingFailureSleepFunc, cfg.numFibonacciTries); err != nil {
-		return nil, fmt.Errorf("establishing connection: %v", err)
 	}
 
 	if err = ds.SetupTablesAndFunctions(); err != nil {
@@ -206,23 +200,4 @@ func (f writeSQLFunction) sql() string {
 		argIndexes[i] = fmt.Sprintf("$%d", i+1)
 	}
 	return fmt.Sprintf("SELECT %s(%s)", f.name, strings.Join(argIndexes, ", "))
-}
-
-// waitForDb tries to ensure the database connection is valid, waiting a fibonacci amount of seconds between attempts
-func (ds Datastore) waitForDb(pingFailureSleepFunc func(sleepSeconds int), numFibonacciTries int) error {
-	a, b := 1, 0
-	var err error
-	for i := 0; i < numFibonacciTries; i++ {
-		err = ds.db.Ping()
-		if err == nil {
-			ds.log.Println("connected to database")
-			return nil
-		}
-		ds.log.Printf("failed to connect to database; trying again in %v seconds...\n", b)
-		pingFailureSleepFunc(b)
-		c := b
-		b = a
-		a = b + c
-	}
-	return err
 }
