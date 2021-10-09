@@ -123,10 +123,18 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 		httpClient := &http.Client{
 			Timeout: 5 * time.Second,
 		}
-		cfg, err := server.NewConfig(mainFlags.applicationName, ds, mainFlags.port, mainFlags.nflAppKey, mainFlags.logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
+		cfg := server.Config{
+			DisplayName:  mainFlags.applicationName,
+			NflAppKey:    mainFlags.nflAppKey,
+			Port:         mainFlags.port,
+			HtmlFS:       htmlFS,
+			JavascriptFS: jsFS,
+			StaticFS:     staticFS,
+		}
+		server, err := cfg.New(log, ds, httpClient)
 		if err != nil {
 			return err
 		}
-		return server.Run(*cfg)
+		return server.Run()
 	})
 }

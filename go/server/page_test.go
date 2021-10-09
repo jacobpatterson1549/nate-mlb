@@ -70,8 +70,10 @@ func TestNewPage(t *testing.T) {
 		Times:    []time.Time{time2, time3},
 	}
 	htmlFolderName := "edgar_p"
-	cfg := Config{
-		serverName:   applicationName,
+	s := Server{
+		Config: Config{
+			DisplayName: applicationName,
+		},
 		sportEntries: sportEntries,
 		ds:           ds,
 	}
@@ -85,7 +87,7 @@ func TestNewPage(t *testing.T) {
 		TimesMessage:    timesMessage,
 		PageLoadTime:    time1,
 	}
-	got := newPage(cfg, title, tabs, showTabs, timesMessage, htmlFolderName)
+	got := newPage(s, title, tabs, showTabs, timesMessage, htmlFolderName)
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("not equal:\nwant: %v\ngot:  %v", want, got)
 	}

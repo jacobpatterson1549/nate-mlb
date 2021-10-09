@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
 
 	"github.com/jacobpatterson1549/nate-mlb/go/db"
+	"github.com/jacobpatterson1549/nate-mlb/go/request"
 )
 
 type mockServerDatastore struct {
@@ -31,6 +31,14 @@ type mockHTTPClient struct {
 
 func (m mockHTTPClient) Do(r *http.Request) (*http.Response, error) {
 	return m.DoFunc(r)
+}
+
+type mockAboutRequester struct {
+	PreviousDeploymentFunc func() (*request.Deployment, error)
+}
+
+func (m mockAboutRequester) PreviousDeployment() (*request.Deployment, error) {
+	return m.PreviousDeploymentFunc()
 }
 
 func TestTransformURLPath(t *testing.T) {
@@ -61,7 +69,7 @@ func TestTransformURLPath(t *testing.T) {
 		},
 	}
 
-	cfg := Config {
+	s := Server{
 		sportTypesByURL: map[string]db.SportType{
 			"mlb": db.SportTypeMlb,
 			"nfl": db.SportTypeNfl,
@@ -69,7 +77,7 @@ func TestTransformURLPath(t *testing.T) {
 	}
 	for i, test := range transformURLPathTests {
 		r := httptest.NewRequest("GET", test.urlPath, nil)
-		gotSportType, gotURLPath := cfg.transformURLPath(r)
+		gotSportType, gotURLPath := s.transformURLPath(r)
 		switch {
 		case test.wantSportType != gotSportType:
 			t.Errorf("Test %d: sport types equal for url %v:\nwanted: %v\ngot:    %v", i, test.urlPath, test.wantSportType, gotSportType)
@@ -79,7 +87,7 @@ func TestTransformURLPath(t *testing.T) {
 	}
 }
 
-func TestNewConfig(t *testing.T) {
+func TestNew(t *testing.T) {
 	newConfigTests := []struct {
 		serverName string
 		port       string
@@ -116,7 +124,16 @@ func TestNewConfig(t *testing.T) {
 		jsFS := fstest.MapFS{}
 		staticFS := fstest.MapFS{}
 		httpClient := mockHTTPClient{}
-		cfg, err := NewConfig(test.serverName, ds, test.port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
+		cfg := Config{
+			DisplayName:    test.serverName,
+			Port:           test.port,
+			NflAppKey:      "dummyNflAppKey",
+			LogRequestURIs: logRequestURIs,
+			HtmlFS:         htmlFS,
+			JavascriptFS:   jsFS,
+			StaticFS:       staticFS,
+		}
+		s, err := cfg.New(log, ds, httpClient)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -124,34 +141,29 @@ func TestNewConfig(t *testing.T) {
 			}
 		case err != nil:
 			t.Errorf("Test %v: unexpected error: %v", i, err)
-		default:
-			if test.serverName != cfg.serverName {
-				t.Errorf("Test %v: serverName: wanted %v, got %v", i, test.serverName, cfg.serverName)
-			}
-			if test.port != cfg.port {
-				t.Errorf("Test %v: port: wanted %v, got %v", i, test.port, cfg.port)
-			}
-			if len(cfg.sportEntries) != 2 {
-				t.Errorf("Test %v: wanted len(cfg.sportEntries) to be 2, got %v", i, cfg.sportEntries)
-			}
-			if len(cfg.sportTypesByURL) != 2 {
-				t.Errorf("Test %v: wanted len(cfg.sportTypesByURL) to be 2, got %v", i, cfg.sportTypesByURL)
-			}
-			if cfg.requestCache == nil {
-				t.Errorf("Test %v: cache not set", i)
-			}
-			if !reflect.DeepEqual(log, cfg.log) {
-				t.Errorf("Test %v: wanted log %v, got %v", i, &log, &cfg.log)
-			}
-			if !reflect.DeepEqual(htmlFS, cfg.htmlFS) {
-				t.Errorf("Test %v: wanted html fs %v, got %v", i, &htmlFS, &cfg.htmlFS)
-			}
-			if !reflect.DeepEqual(jsFS, cfg.htmlFS) {
-				t.Errorf("Test %v: wanted js fs %v, got %v", i, &jsFS, &cfg.jsFS)
-			}
-			if !reflect.DeepEqual(staticFS, cfg.staticFS) {
-				t.Errorf("Test %v: wanted static fs %v, got %v", i, &staticFS, &cfg.staticFS)
-			}
+		// happy path testing from here down
+		case test.serverName != s.DisplayName:
+			t.Errorf("Test %v: serverName: wanted %v, got %v", i, test.serverName, s.DisplayName)
+		case cfg.NflAppKey != s.NflAppKey:
+			t.Errorf("Test %v: NflAppKey: wanted %v, got %v", i, cfg.NflAppKey, s.NflAppKey)
+		case test.port != s.Port:
+			t.Errorf("Test %v: port: wanted %v, got %v", i, test.port, s.Port)
+		case len(s.sportEntries) != 2:
+			t.Errorf("Test %v: wanted len(cfg.sportEntries) to be 2, got %v", i, s.sportEntries)
+		case len(s.sportTypesByURL) != 2:
+			t.Errorf("Test %v: wanted len(cfg.sportTypesByURL) to be 2, got %v", i, s.sportTypesByURL)
+		case s.requestCache == nil:
+			t.Errorf("Test %v: cache not set", i)
+		case !reflect.DeepEqual(log, s.log):
+			t.Errorf("Test %v: wanted log %v, got %v", i, &log, &s.log)
+		case s.ds == nil:
+			t.Errorf("Test %v: data store not set", i)
+		case !reflect.DeepEqual(htmlFS, s.HtmlFS):
+			t.Errorf("Test %v: wanted html fs %v, got %v", i, &htmlFS, &s.HtmlFS)
+		case !reflect.DeepEqual(jsFS, s.HtmlFS):
+			t.Errorf("Test %v: wanted js fs %v, got %v", i, &jsFS, &s.JavascriptFS)
+		case !reflect.DeepEqual(staticFS, s.StaticFS):
+			t.Errorf("Test %v: wanted static fs %v, got %v", i, &staticFS, &s.StaticFS)
 		}
 	}
 }
@@ -164,17 +176,16 @@ func TestServerHandlers(t *testing.T) {
 		wantCode int
 		method   string
 		path     string
-		body     string
 	}{
 		{wantCode: 200, method: "GET", path: "/"},
 		{wantCode: 200, method: "GET", path: "/favicon.ico"},
 		{wantCode: 200, method: "GET", path: "/robots.txt"},
 		{wantCode: 404, method: "GET", path: "/main.css"},
-		{wantCode: 200, method: "GET", path: "/about", body: `[]`},
+		{wantCode: 200, method: "GET", path: "/about"},
 		{wantCode: 200, method: "GET", path: "/st_1_url"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/export"},
 		{wantCode: 200, method: "GET", path: "/st_1_url/admin"},
-		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=1", body: `{}`},
+		{wantCode: 200, method: "GET", path: "/st_1_url/admin/search?q=name&pt=77"},
 		{wantCode: 200, method: "POST", path: "/st_1_url/admin?action=password"}, // should redirect to 200
 		{wantCode: 405, method: "HEAD", path: "/"},
 	}
@@ -214,8 +225,6 @@ func TestServerHandlers(t *testing.T) {
 				},
 			},
 		}
-		port := "0"
-		logRequestURIs := false
 		log := log.New(ioutil.Discard, "test", log.LstdFlags)
 		htmlFS := fstest.MapFS{
 			"html/main/main.html": &fstest.MapFile{
@@ -246,17 +255,31 @@ func TestServerHandlers(t *testing.T) {
 				Data: []byte(``),
 			},
 		}
-		httpClient := mockHTTPClient{
-			DoFunc: func(r *http.Request) (*http.Response, error) {
-				resp := http.Response{
-					StatusCode: 200,
-					Body:       io.NopCloser(strings.NewReader(test.body)),
-				}
-				return &resp, nil
+		s := Server{
+			Config: Config{
+				HtmlFS:       htmlFS,
+				JavascriptFS: jsFS,
+				StaticFS:     staticFS,
+			},
+			log: log,
+			ds:  ds,
+			aboutRequester: mockAboutRequester{
+				PreviousDeploymentFunc: func() (*request.Deployment, error) {
+					return new(request.Deployment), nil
+				},
+			},
+			sportTypesByURL: map[string]db.SportType{
+				"st_1_url": 1,
+			},
+			searchers: map[db.PlayerType]request.Searcher{
+				77: mockSearcher{
+					SearchFunc: func(pt db.PlayerType, year int, playerNamePrefix string, activePlayersOnly bool) ([]request.PlayerSearchResult, error) {
+						return nil, nil
+					},
+				},
 			},
 		}
-		cfg, _ := NewConfig("serverName", ds, port, "dummyNflAppKey", logRequestURIs, log, htmlFS, jsFS, staticFS, httpClient)
-		h := cfg.handler()
+		h := s.handler()
 		ts := httptest.NewTLSServer(h)
 		defer ts.Close()
 		client := ts.Client()

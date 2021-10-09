@@ -19,45 +19,67 @@ import (
 type (
 	// Config contains fields which describe the server
 	Config struct {
-		serverName        string
-		ds                serverDatastore
-		port              string
+		DisplayName    string
+		Port           string
+		NflAppKey      string
+		LogRequestURIs bool
+		HtmlFS         fs.FS
+		JavascriptFS   fs.FS
+		StaticFS       fs.FS
+	}
+
+	// Server contains data to serve pages for the user.
+	Server struct {
+		Config
+		ds                ServerDatastore
+		requestCache      *request.Cache
 		sportEntries      []SportEntry
 		sportTypesByURL   map[string]db.SportType
-		requestCache      *request.Cache
+		log               *log.Logger
 		scoreCategorizers map[db.PlayerType]request.ScoreCategorizer
 		searchers         map[db.PlayerType]request.Searcher
-		aboutRequester    request.AboutRequester
-		log               *log.Logger
-		htmlFS            fs.FS
-		staticFS          fs.FS
-		jsFS              fs.FS
+		aboutRequester    AboutRequester
 	}
-	serverDatastore interface {
+
+	// ServerDatastore provides a way for the server to store and retrieve data.
+	ServerDatastore interface {
 		GetYears(st db.SportType) ([]db.Year, error)
 		adminDatastore
 		etlDatastore
 	}
+
+	// AboutRequester gets the previous deployment info for the app.
+	AboutRequester interface {
+		PreviousDeployment() (*request.Deployment, error)
+	}
 )
 
-// NewConfig validates and creates a new configuration
-func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, logRequestURIs bool, log *log.Logger, htmlFS, jsFS, staticFS fs.FS, httpClient request.HTTPClient) (*Config, error) {
-	if _, err := strconv.Atoi(port); err != nil {
-		return nil, fmt.Errorf("invalid port number: %s", port)
+// New validates and creates a new Server from the config
+func (cfg Config) New(log *log.Logger, ds ServerDatastore, httpClient request.HTTPClient) (*Server, error) {
+	if err := cfg.validate(); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
+	}
+	switch {
+	case log == nil:
+		return nil, fmt.Errorf("log required")
+	case ds == nil:
+		return nil, fmt.Errorf("data store required")
+	case httpClient == nil:
+		return nil, fmt.Errorf("httpClient required")
 	}
 	sportTypes := ds.SportTypes()
+	if _, ok := sportTypes[db.SportTypeNfl]; ok && len(cfg.NflAppKey) == 0 {
+		return nil, fmt.Errorf("nfl app key required")
+	}
 	sportEntries := newSportEntries(sportTypes)
 	sportTypesByURL := make(map[string]db.SportType, len(sportTypes))
 	for st, sti := range sportTypes {
 		sportTypesByURL[sti.URL] = st
 	}
 	c := request.NewCache(100)
-	environment := serverName
-	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(httpClient, c, nflAppKey, environment, logRequestURIs, log)
-	return &Config{
-		serverName:        serverName,
-		ds:                ds,
-		port:              port,
+	environment := cfg.DisplayName
+	scoreCategorizers, searchers, aboutRequester := request.NewRequesters(httpClient, c, cfg.NflAppKey, environment, cfg.LogRequestURIs, log)
+	s := Server{
 		sportEntries:      sportEntries,
 		sportTypesByURL:   sportTypesByURL,
 		requestCache:      &c,
@@ -65,33 +87,48 @@ func NewConfig(serverName string, ds serverDatastore, port, nflAppKey string, lo
 		searchers:         searchers,
 		aboutRequester:    aboutRequester,
 		log:               log,
-		htmlFS:            htmlFS,
-		jsFS:              jsFS,
-		staticFS:          staticFS,
-	}, nil
+		ds:                ds,
+	}
+	s.Config = cfg
+	return &s, nil
+}
+
+func (cfg Config) validate() error {
+	if _, err := strconv.Atoi(cfg.Port); err != nil {
+		return fmt.Errorf("invalid port number: %s", cfg.Port)
+	}
+	switch {
+	case cfg.HtmlFS == nil:
+		return fmt.Errorf("html filesystem required")
+	case cfg.JavascriptFS == nil:
+		return fmt.Errorf("javascript filesystem required")
+	case cfg.StaticFS == nil:
+		return fmt.Errorf("static filesystem required")
+	}
+	return nil
 }
 
 // Run configures and starts the server
-func Run(cfg Config) error {
-	h := cfg.handler()
-	addr := fmt.Sprintf(":%s", cfg.port)
-	cfg.log.Println("starting server - locally running at http://127.0.0.1" + addr)
+func (s Server) Run() error {
+	h := s.handler()
+	addr := fmt.Sprintf(":%s", s.Port)
+	s.log.Println("starting server - locally running at http://127.0.0.1" + addr)
 	if err := http.ListenAndServe(addr, h); err != http.ErrServerClosed { // BLOCKS
 		return fmt.Errorf("server stopped unexpectedly: %w", err)
 	}
 	return nil
 }
 
-func (cfg Config) handler() http.Handler {
+func (s Server) handler() http.Handler {
 	mux := new(http.ServeMux)
-	cfg.handleStatic(mux, "/robots.txt", "/favicon.ico")
-	cfg.handleJavascriptFiles(mux)
-	cfg.handleRoot(mux)
+	s.handleStatic(mux, "/robots.txt", "/favicon.ico")
+	s.handleJavascriptFiles(mux)
+	s.handleRoot(mux)
 	return mux
 }
 
-func (cfg Config) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
-	staticFS := http.FileServer(http.FS(cfg.staticFS))
+func (s Server) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
+	staticFS := http.FileServer(http.FS(s.StaticFS))
 	staticHandler := func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = "/static" + r.URL.Path
 		staticFS.ServeHTTP(w, r)
@@ -102,78 +139,78 @@ func (cfg Config) handleStatic(mux *http.ServeMux, staticFilenames ...string) {
 }
 
 func (cfg Config) handleJavascriptFiles(mux *http.ServeMux) {
-	jsHandler := http.FileServer(http.FS(cfg.jsFS))
+	jsHandler := http.FileServer(http.FS(cfg.JavascriptFS))
 	mux.Handle("/js/", jsHandler)
 }
 
-func (cfg Config) handleRoot(mux *http.ServeMux) {
+func (s Server) handleRoot(mux *http.ServeMux) {
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		st, path := cfg.transformURLPath(r)
-		cfg.handleMethod(st, path, w, r)
+		st, path := s.transformURLPath(r)
+		s.handleMethod(st, path, w, r)
 	}
 	mux.HandleFunc("/", rootHandler)
 }
 
-func (cfg Config) handleError(w http.ResponseWriter, err error) {
-	cfg.log.Printf("server error: %q", err)
+func (s Server) handleError(w http.ResponseWriter, err error) {
+	s.log.Printf("server error: %q", err)
 	http.Error(w, err.Error(), http.StatusInternalServerError) // will warn "http: superfluous response.WriteHeader call" if template write fails
 }
 
-func (cfg Config) handleMethod(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+func (s Server) handleMethod(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		cfg.handleGet(st, path, w, r)
+		s.handleGet(st, path, w, r)
 	case http.MethodPost:
-		cfg.handlePost(st, path, w, r)
+		s.handlePost(st, path, w, r)
 	default:
 		w.Header().Set("Allow", "GET, POST")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func (cfg Config) handleGet(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+func (s Server) handleGet(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
 	switch path {
 	case "/":
-		cfg.handleHomePage(st, w, r)
+		s.handleHomePage(st, w, r)
 	case "/about":
-		cfg.handleAboutPage(st, w, r)
+		s.handleAboutPage(st, w, r)
 	case "/SportType":
-		cfg.handleStatsPage(st, w, r)
+		s.handleStatsPage(st, w, r)
 	case "/SportType/export":
-		cfg.handleExport(st, w, r)
+		s.handleExport(st, w, r)
 	case "/SportType/admin":
-		cfg.handleAdminPage(st, w, r)
+		s.handleAdminPage(st, w, r)
 	case "/SportType/admin/search":
-		cfg.handleAdminSearch(st, w, r)
+		s.handleAdminSearch(st, w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (cfg Config) handlePost(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
+func (s Server) handlePost(st db.SportType, path string, w http.ResponseWriter, r *http.Request) {
 	switch path {
 	case "/SportType/admin":
-		cfg.handleAdminPost(st, w, r)
+		s.handleAdminPost(st, w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
 
-func (cfg Config) handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	title := fmt.Sprintf("%s Stats", cfg.serverName)
+func (s Server) handleHomePage(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	title := fmt.Sprintf("%s Stats", s.DisplayName)
 	homeTab := AdminTab{Name: "Home"}
-	homePage := newPage(cfg, title, []Tab{homeTab}, false, TimesMessage{}, "home")
-	cfg.renderTemplate(w, homePage)
+	homePage := newPage(s, title, []Tab{homeTab}, false, TimesMessage{}, "home")
+	s.renderTemplate(w, homePage)
 }
 
-func (cfg Config) handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
+func (s Server) handleStatsPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	es, err := getEtlStats(st, s.ds, s.scoreCategorizers)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	tabs := make([]Tab, len(es.scoreCategories))
-	stURL := cfg.ds.SportTypes()[es.sportType].URL
+	stURL := s.ds.SportTypes()[es.sportType].URL
 	for i, sc := range es.scoreCategories {
 		tabs[i] = StatsTab{
 			ScoreCategory: sc,
@@ -191,21 +228,21 @@ func (cfg Config) handleStatsPage(st db.SportType, w http.ResponseWriter, r *htt
 		Messages: []string{"Stats reset daily after first page load is loaded after", "and last reset at"},
 		Times:    []time.Time{es.etlRefreshTime, es.etlTime},
 	}
-	stName := cfg.ds.SportTypes()[st].Name
-	title := fmt.Sprintf("%s %s stats - %d", cfg.serverName, stName, es.year)
-	statsPage := newPage(cfg, title, tabs, true, timesMessage, "stats")
-	cfg.renderTemplate(w, statsPage)
+	stName := s.ds.SportTypes()[st].Name
+	title := fmt.Sprintf("%s %s stats - %d", s.DisplayName, stName, es.year)
+	statsPage := newPage(s, title, tabs, true, timesMessage, "stats")
+	s.renderTemplate(w, statsPage)
 }
 
-func (cfg Config) handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
+func (s Server) handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	es, err := getEtlStats(st, s.ds, s.scoreCategorizers)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
-	years, err := cfg.ds.GetYears(st)
+	years, err := s.ds.GetYears(st)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	scoreCategoriesData := make([]interface{}, len(es.scoreCategories))
@@ -231,16 +268,16 @@ func (cfg Config) handleAdminPage(st db.SportType, w http.ResponseWriter, r *htt
 		AdminTab{Name: "Reset Password", Action: "password"},
 	}
 	timesMessage := TimesMessage{}
-	stName := cfg.ds.SportTypes()[st].Name
-	title := fmt.Sprintf("%s %s [ADMIN MODE]", cfg.serverName, stName)
-	adminPage := newPage(cfg, title, tabs, true, timesMessage, "admin")
-	cfg.renderTemplate(w, adminPage)
+	stName := s.ds.SportTypes()[st].Name
+	title := fmt.Sprintf("%s %s [ADMIN MODE]", s.DisplayName, stName)
+	adminPage := newPage(s, title, tabs, true, timesMessage, "admin")
+	s.renderTemplate(w, adminPage)
 }
 
-func (cfg Config) handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	lastDeploy, err := cfg.aboutRequester.PreviousDeployment()
+func (s Server) handleAboutPage(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	lastDeploy, err := s.aboutRequester.PreviousDeployment()
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	var timesMessage TimesMessage
@@ -248,71 +285,70 @@ func (cfg Config) handleAboutPage(st db.SportType, w http.ResponseWriter, r *htt
 		timesMessage.Messages = []string{"Server last deployed on", fmt.Sprintf("version %s", lastDeploy.Version)}
 		timesMessage.Times = []time.Time{lastDeploy.Time}
 	}
-	title := fmt.Sprintf("About %s Stats", cfg.serverName)
+	title := fmt.Sprintf("About %s Stats", s.DisplayName)
 	aboutTab := AdminTab{Name: "About"}
-	aboutPage := newPage(cfg, title, []Tab{aboutTab}, false, timesMessage, "about")
-	cfg.renderTemplate(w, aboutPage)
+	aboutPage := newPage(s, title, []Tab{aboutTab}, false, timesMessage, "about")
+	s.renderTemplate(w, aboutPage)
 }
 
-func (cfg Config) handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
+func (s Server) handleExport(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	es, err := getEtlStats(st, s.ds, s.scoreCategorizers)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 	}
 	asOfDate := es.etlTime.Format("2006-01-02")
-	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", cfg.serverName, es.sportTypeName, es.year, asOfDate)
+	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", s.DisplayName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	if err := exportToCsv(es, cfg.serverName, w); err != nil {
-		cfg.handleError(w, err)
+	if err := exportToCsv(es, s.DisplayName, w); err != nil {
+		s.handleError(w, err)
 	}
 }
 
-func (cfg Config) renderTemplate(w http.ResponseWriter, p Page) {
-	// TODO: parse template when building handler
+func (s Server) renderTemplate(w http.ResponseWriter, p Page) {
+	t, err := s.parseTemplate(w, p)
+	if err != nil {
+		s.handleError(w, fmt.Errorf("parsing template: %w", err))
+		return
+	}
+	if err := t.Execute(w, p); err != nil {
+		s.handleError(w, fmt.Errorf("rendering template: %w", err))
+		return
+	}
+}
+
+func (s Server) parseTemplate(w http.ResponseWriter, p Page) (*template.Template, error) {
 	t := template.New("main.html")
-	_, err := t.ParseFS(cfg.htmlFS, "html/main/*.html")
+	_, err := t.ParseFS(s.HtmlFS, "html/main/*.html")
 	if err != nil {
-		cfg.handleError(w, fmt.Errorf("loading template main files: %w", err))
-		return
+		return nil, fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseFS(cfg.htmlFS, p.htmlFolderNameGlob())
+	_, err = t.ParseFS(s.HtmlFS, p.htmlFolderNameGlob())
 	if err != nil {
-		cfg.handleError(w, fmt.Errorf("loading template page files: %w", err))
-		return
+		return nil, fmt.Errorf("loading template page files: %w", err)
 	}
-	err = parseJavascriptFS(cfg.jsFS, t)
+	jsFilenames, err := fs.Glob(s.JavascriptFS, "js/*/*.js")
 	if err != nil {
-		cfg.handleError(w, fmt.Errorf("loading template js files: %w", err))
-		return
-	}
-	if _, err = t.ParseFS(cfg.staticFS, "static/main.css"); err != nil {
-		cfg.handleError(w, fmt.Errorf("loading template css file: %w", err))
-		return
-	}
-	if err = t.Execute(w, p); err != nil {
-		cfg.handleError(w, fmt.Errorf("rendering template: %w", err))
-		return
-	}
-}
-
-func parseJavascriptFS(jsFS fs.FS, t *template.Template) error {
-	jsFilenames, err := fs.Glob(jsFS, "js/*/*.js")
-	if err != nil {
-		return fmt.Errorf("reading js filenames: %w", err)
+		return nil, fmt.Errorf("reading js filenames: %w", err)
 	}
 	for _, jsFilename := range jsFilenames {
-		t2, err := template.ParseFS(jsFS, jsFilename)
+		t2, err := template.ParseFS(s.JavascriptFS, jsFilename)
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("loading template js file: %v: %w", jsFilename, err)
 		}
 		t.AddParseTree(jsFilename, t2.Tree)
 	}
-	return nil
+	if err != nil {
+		return nil, fmt.Errorf("loading template js files: %w", err)
+	}
+	if _, err = t.ParseFS(s.StaticFS, "static/main.css"); err != nil {
+		return nil, fmt.Errorf("loading template css file: %w", err)
+	}
+	return t, nil
 }
 
-func (cfg Config) handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	if err := handleAdminPostRequest(cfg.ds, cfg.requestCache, st, r); err != nil {
+func (s Server) handleAdminPost(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	if err := handleAdminPostRequest(s.ds, s.requestCache, st, r); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
@@ -321,31 +357,31 @@ func (cfg Config) handleAdminPost(st db.SportType, w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusSeeOther)
 }
 
-func (cfg Config) handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) {
-	es, err := getEtlStats(st, cfg.ds, cfg.scoreCategorizers)
+func (s Server) handleAdminSearch(st db.SportType, w http.ResponseWriter, r *http.Request) {
+	es, err := getEtlStats(st, s.ds, s.scoreCategorizers)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
-	playerSearchResults, err := handleAdminSearchRequest(es.year, cfg.searchers, r)
+	playerSearchResults, err := handleAdminSearchRequest(es.year, s.searchers, r)
 	if err != nil {
-		cfg.handleError(w, err)
+		s.handleError(w, err)
 		return
 	}
 	if err := json.NewEncoder(w).Encode(playerSearchResults); err != nil {
-		cfg.handleError(w, fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err))
+		s.handleError(w, fmt.Errorf("converting PlayerSearchResults (%v) to json: %w", playerSearchResults, err))
 		return
 	}
 }
 
-func (cfg Config) transformURLPath(r *http.Request) (st db.SportType, path string) {
+func (s Server) transformURLPath(r *http.Request) (st db.SportType, path string) {
 	urlPath := r.URL.Path
 	parts := strings.Split(urlPath, "/")
 	if len(parts) < 2 {
 		return 0, urlPath
 	}
 	firstPathSegment := parts[1]
-	st, ok := cfg.sportTypesByURL[firstPathSegment]
+	st, ok := s.sportTypesByURL[firstPathSegment]
 	if ok {
 		urlPath = strings.Replace(urlPath, firstPathSegment, "SportType", 1)
 	}
