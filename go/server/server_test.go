@@ -257,16 +257,8 @@ func TestServerHandlers(t *testing.T) {
 		defer ts.Close()
 		client := ts.Client()
 		path := ts.URL + test.path
-		var resp *http.Response
-		var err error
-		switch test.method {
-		case "GET":
-			resp, err = client.Get(path)
-		case "POST":
-			resp, err = client.Post(path, "dummy_content_type", nil)
-		default:
-			t.Errorf("Test %v: unwanted method: %v", i, test.method)
-		}
+		req, _ := http.NewRequest(test.method, path, nil)
+		resp, err := client.Do(req)
 		switch {
 		case err != nil:
 			t.Errorf("Test %v: unwanted error requesting %v: %v", i, path, err)
