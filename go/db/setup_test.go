@@ -127,23 +127,6 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 	}
 }
 
-// TODO: DELETEME
-// func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
-// 	wantErr := errors.New("readFile error")
-// 	readFileFunc := func(filename string) ([]byte, error) {
-// 		return nil, wantErr
-// 	}
-// 	ds := Datastore{
-// 		fs: mockFS{
-// 			ReadFileFunc: readFileFunc,
-// 		},
-// 	}
-// 	_, gotErr := ds.getSetupFunctionQueries()
-// 	if gotErr == nil || !errors.Is(gotErr, wantErr) {
-// 		t.Errorf("want %v, got: %v", wantErr, gotErr)
-// 	}
-// }
-
 func TestLimitPlayerTypes(t *testing.T) {
 	limitPlayerTypesTests := []struct {
 		initialPlayerTypes PlayerTypeMap
