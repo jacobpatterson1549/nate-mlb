@@ -26,11 +26,11 @@ type (
 	}
 
 	datastoreConfig struct {
-		driverName           string
-		dataSourceName       string
-		ph                   passwordHasher
-		log                  *log.Logger
-		fs                   fs.ReadFileFS
+		driverName     string
+		dataSourceName string
+		ph             passwordHasher
+		log            *log.Logger
+		fs             fs.ReadFileFS
 	}
 
 	// Datastore interface can be used to access and persist data
@@ -50,13 +50,13 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Da
 		driverName:     "postgres",
 		dataSourceName: dataSourceName,
 		ph:             bcryptPasswordHasher{},
-		log: log,
-		fs:  fs,
+		log:            log,
+		fs:             fs,
 	}
-	return newDatastore(cfg)
+	return cfg.new()
 }
 
-func newDatastore(cfg datastoreConfig) (*Datastore, error) {
+func (cfg datastoreConfig) new() (*Datastore, error) {
 	db, err := newSQLDatabase(cfg.driverName, cfg.dataSourceName)
 	if err != nil {
 		return nil, err

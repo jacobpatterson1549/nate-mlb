@@ -278,9 +278,9 @@ var newDatastoreTests = []struct {
 func TestNewDatastore(t *testing.T) {
 	for i, test := range newDatastoreTests {
 		cfg := datastoreConfig{
-			driverName:           "TestNewDatastore",
-			fs:                   test.fs,
-			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
+			driverName: "TestNewDatastore",
+			fs:         test.fs,
+			log:        log.New(ioutil.Discard, "test", log.LstdFlags),
 		}
 		if test.newDatabaseErr != nil {
 			cfg.driverName = "bad driver name"
@@ -364,7 +364,7 @@ func TestNewDatastore(t *testing.T) {
 				return mockDriverConn, nil
 			}
 		}
-		ds, err := newDatastore(cfg)
+		ds, err := cfg.new()
 		switch {
 		case test.wantErr:
 			if err == nil {
