@@ -29,7 +29,6 @@ type (
 		driverName           string
 		dataSourceName       string
 		ph                   passwordHasher
-		pingFailureSleepFunc func(sleepSeconds int)
 		log                  *log.Logger
 		fs                   fs.ReadFileFS
 	}
@@ -51,14 +50,6 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Da
 		driverName:     "postgres",
 		dataSourceName: dataSourceName,
 		ph:             bcryptPasswordHasher{},
-		pingFailureSleepFunc: func(sleepSeconds int) {
-			s := fmt.Sprintf("%ds", sleepSeconds)
-			d, err := time.ParseDuration(s)
-			if err != nil {
-				panic(err)
-			}
-			time.Sleep(d) // BLOCKING
-		},
 		log: log,
 		fs:  fs,
 	}

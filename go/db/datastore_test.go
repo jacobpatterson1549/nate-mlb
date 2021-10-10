@@ -280,7 +280,6 @@ func TestNewDatastore(t *testing.T) {
 		cfg := datastoreConfig{
 			driverName:           "TestNewDatastore",
 			fs:                   test.fs,
-			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
 			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
 		}
 		if test.newDatabaseErr != nil {
