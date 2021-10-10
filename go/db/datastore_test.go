@@ -238,42 +238,6 @@ func TestExpectSingleRowAffected(t *testing.T) {
 	}
 }
 
-func TestExpectRowFound(t *testing.T) {
-	expectRowFoundTests := []struct {
-		found   bool
-		scanErr error
-		wantErr bool
-	}{
-		{
-			found: true,
-		},
-		{
-			scanErr: fmt.Errorf("scanError"),
-		},
-		{
-			found:   false,
-			wantErr: true,
-		},
-	}
-	for i, test := range expectRowFoundTests {
-		r := mockRow{
-			ScanFunc: func(dest ...interface{}) error {
-				if test.scanErr != nil {
-					return test.scanErr
-				}
-				return mockScan(dest[0], test.found)
-			},
-		}
-		gotErr := expectRowFound(r)
-		switch {
-		case gotErr == nil && (test.scanErr != nil || test.wantErr):
-			t.Errorf("Test %v: expected error", i)
-		case gotErr != nil && test.found:
-			t.Errorf("Test %v: unexpected error: %v", i, gotErr)
-		}
-	}
-}
-
 var testNewDatastoreDriver *mockDriver
 
 func init() {

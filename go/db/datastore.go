@@ -160,18 +160,6 @@ func expectSingleRowAffected(r sql.Result) error {
 	return nil
 }
 
-func expectRowFound(row row) error {
-	var found bool
-	err := row.Scan(&found)
-	if err != nil {
-		return err
-	}
-	if !found {
-		return fmt.Errorf("expected to update at least one row, but did not")
-	}
-	return nil
-}
-
 func newReadSQLFunction(name string, cols []string, args ...interface{}) readSQLFunction {
 	return readSQLFunction{
 		name: name,
