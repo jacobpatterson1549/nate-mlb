@@ -4,6 +4,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"io/fs"
 	"log"
 	"strings"
 	"time"
@@ -30,13 +31,13 @@ type (
 		ph                   passwordHasher
 		pingFailureSleepFunc func(sleepSeconds int)
 		log                  *log.Logger
-		fs                   ReadDirFileFS
+		fs                   fs.ReadFileFS
 	}
 
 	// Datastore interface can be used to access and persist data
 	Datastore struct {
 		db          database
-		fs          ReadDirFileFS
+		fs          fs.ReadFileFS
 		ph          passwordHasher
 		sportTypes  SportTypeMap
 		playerTypes PlayerTypeMap
@@ -45,7 +46,7 @@ type (
 )
 
 // NewDatastore creates a new sqlDatastore
-func NewDatastore(dataSourceName string, log *log.Logger, fs ReadDirFileFS) (*Datastore, error) {
+func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Datastore, error) {
 	cfg := datastoreConfig{
 		driverName:     "postgres",
 		dataSourceName: dataSourceName,
@@ -58,8 +59,8 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs ReadDirFileFS) (*Da
 			}
 			time.Sleep(d) // BLOCKING
 		},
-		log:               log,
-		fs:                fs,
+		log: log,
+		fs:  fs,
 	}
 	return newDatastore(cfg)
 }

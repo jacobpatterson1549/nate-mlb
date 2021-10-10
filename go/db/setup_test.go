@@ -3,109 +3,78 @@ package db
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"io/fs"
 	"reflect"
 	"testing"
+	"testing/fstest"
 )
 
-type mockDirEntry struct {
-	NameFunc  func() string
-	IsDirFunc func() bool
-	TypeFunc  func() fs.FileMode
-	InfoFunc  func() (fs.FileInfo, error)
-}
-
-func (m mockDirEntry) Name() string {
-	return m.NameFunc()
-}
-func (m mockDirEntry) IsDir() bool {
-	return m.IsDirFunc()
-}
-func (m mockDirEntry) Type() fs.FileMode {
-	return m.TypeFunc()
-}
-func (m mockDirEntry) Info() (fs.FileInfo, error) {
-	return m.InfoFunc()
-}
-
-type mockFS struct {
-	OpenFunc     func(name string) (fs.File, error)
-	ReadFileFunc func(name string) ([]byte, error)
-	ReadDirFunc  func(name string) ([]fs.DirEntry, error)
-}
-
-func (m mockFS) Open(name string) (fs.File, error) {
-	return m.OpenFunc(name)
-}
-func (m mockFS) ReadFile(name string) ([]byte, error) {
-	return m.ReadFileFunc(name)
-}
-func (m mockFS) ReadDir(name string) ([]fs.DirEntry, error) {
-	return m.ReadDirFunc(name)
-}
-
-var setupTablesAndFunctionsTests = []struct {
-	getSetupTableQueriesErr    error
-	getSetupFunctionQueriesErr error
-	beginErr                   error
-	execErr                    error
-	rollbackErr                error
-	commitErr                  error
-}{
-	{}, // happy path
-	{
-		getSetupTableQueriesErr: errors.New("getSetupTableQueries error"),
-	},
-	{
-		getSetupFunctionQueriesErr: errors.New("getSetupFunctionQueries error"),
-	},
-	{
-		beginErr: errors.New("begin error"),
-	},
-	{
-		execErr: errors.New("exec error"),
-	},
-	{
-		execErr:     errors.New("exec error"),
-		rollbackErr: errors.New("rollback error"),
-	},
-	{
-		commitErr: errors.New("commit error"),
-	},
+var mockValidFS = fstest.MapFS{
+	"sql/setup/users.pgsql":         &fstest.MapFile{Data: []byte("a")},
+	"sql/setup/sport_types.pgsql":   &fstest.MapFile{Data: []byte("b")},
+	"sql/setup/stats.pgsql":         &fstest.MapFile{Data: []byte("c")},
+	"sql/setup/friends.pgsql":       &fstest.MapFile{Data: []byte("d")},
+	"sql/setup/player_types.pgsql":  &fstest.MapFile{Data: []byte("e")},
+	"sql/setup/players.pgsql":       &fstest.MapFile{Data: []byte("f")},
+	"sql/functions/add/DUMMY.pgsql": &fstest.MapFile{Data: []byte("g")},
 }
 
 func TestSetupTablesAndFunctions(t *testing.T) {
+	setupTablesAndFunctionsTests := []struct {
+		fs          fs.ReadFileFS
+		beginErr    error
+		execErr     error
+		rollbackErr error
+		commitErr   error
+		wantOk      bool
+	}{
+		{ // happy path
+			fs:     mockValidFS,
+			wantOk: true,
+		},
+		{ // getSetupTableQueries error
+			fs: fstest.MapFS{
+				"sql/functions/add/DUMMY.pgsql": &fstest.MapFile{Data: []byte("g")},
+			},
+		},
+		{ //  getSetupFunctionQueries error
+			fs: fstest.MapFS{
+				"sql/setup/users.pgsql":        &fstest.MapFile{Data: []byte("a")},
+				"sql/setup/sport_types.pgsql":  &fstest.MapFile{Data: []byte("b")},
+				"sql/setup/stats.pgsql":        &fstest.MapFile{Data: []byte("c")},
+				"sql/setup/friends.pgsql":      &fstest.MapFile{Data: []byte("d")},
+				"sql/setup/player_types.pgsql": &fstest.MapFile{Data: []byte("e")},
+				"sql/setup/players.pgsql":      &fstest.MapFile{Data: []byte("f")},
+			},
+		},
+		{
+			fs:       mockValidFS,
+			beginErr: errors.New("begin error"),
+		},
+		{
+			fs:      mockValidFS,
+			execErr: errors.New("exec error"),
+		},
+		{
+			fs:          mockValidFS,
+			execErr:     errors.New("exec error"),
+			rollbackErr: errors.New("rollback error"),
+		},
+		{
+			fs:        mockValidFS,
+			commitErr: errors.New("commit error"),
+		},
+	}
 	for i, test := range setupTablesAndFunctionsTests {
-		readFileFunc := func(filename string) ([]byte, error) {
-			if test.getSetupTableQueriesErr != nil {
-				return nil, test.getSetupTableQueriesErr
-			}
-			return []byte("1;2;3;4;5;6;7"), nil
-		}
-		readDirFunc := func(dirname string) ([]fs.DirEntry, error) {
-			if test.getSetupFunctionQueriesErr != nil {
-				return nil, test.getSetupFunctionQueriesErr
-			}
-			dirEntries := make([]fs.DirEntry, 11)
-			for i := range dirEntries {
-				dirEntries[i] = mockDirEntry{
-					NameFunc: func() string {
-						return fmt.Sprintf("mock_file_%d", i)
-					},
-				}
-			}
-			return dirEntries, nil
-		}
 		commitCalled := false
 		rollbackCalled := false
-		execFuncCount := 0
+		execFuncQueries := ""
 		tx := mockTransaction{
 			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 				if test.execErr != nil {
 					return nil, test.execErr
 				}
-				execFuncCount++
+				execFuncQueries += query
 				return mockResult{
 					RowsAffectedFunc: func() (int64, error) {
 						return 1, nil
@@ -129,55 +98,18 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 				return tx, nil
 			},
 		}
-		fs := mockFS{
-			ReadFileFunc: readFileFunc,
-			ReadDirFunc:  readDirFunc,
-		}
 		ds := Datastore{
 			db: db,
-			fs: fs,
+			fs: test.fs,
 		}
 		gotErr := ds.SetupTablesAndFunctions()
 		switch {
-		case gotErr != nil:
-			switch {
-			case test.getSetupTableQueriesErr != nil:
-				if !errors.Is(gotErr, test.getSetupTableQueriesErr) {
-					t.Errorf("Test %v: wanted: %v, got: %v", i, test.getSetupTableQueriesErr, gotErr)
-				}
-			case test.getSetupFunctionQueriesErr != nil:
-				if !errors.Is(gotErr, test.getSetupFunctionQueriesErr) {
-					t.Errorf("Test %v: wanted: %v, got: %v", i, test.getSetupFunctionQueriesErr, gotErr)
-				}
-			case test.beginErr != nil:
-				if !errors.Is(gotErr, test.beginErr) {
-					t.Errorf("Test %v: wanted: %v, got: %v", i, test.beginErr, gotErr)
-				}
-			case test.execErr != nil:
-				switch {
-				case test.rollbackErr == nil && !errors.Is(gotErr, test.execErr):
-					t.Errorf("Test %v: wanted: %v, got: %v", i, test.execErr, gotErr)
-				case test.rollbackErr != nil:
-					if !errors.Is(gotErr, test.rollbackErr) {
-						t.Errorf("Test %v: wanted: %v, got: %v", i, test.rollbackErr, gotErr)
-					}
-					if !rollbackCalled {
-						t.Errorf("Test %v: rollback not called", i)
-					}
-				}
-			case test.commitErr != nil:
-				if !errors.Is(gotErr, test.commitErr) {
-					t.Errorf("Test %v: wanted: %v, got: %v", i, test.commitErr, gotErr)
-				}
-				if !commitCalled {
-					t.Errorf("Test %v: commit not called", i)
-				}
-				if rollbackCalled {
-					t.Errorf("Test %v: rollback called", i)
-				}
-			default:
-				t.Errorf("Test %v: unexpected error: %v", i, gotErr)
+		case !test.wantOk:
+			if gotErr == nil {
+				t.Errorf("Test %v: wanted error", i)
 			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unwanted error: %v", i, gotErr)
 		default:
 			if !commitCalled {
 				t.Errorf("Test %v: commit not called", i)
@@ -185,43 +117,32 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 			if rollbackCalled {
 				t.Errorf("Test %v: rollback called", i)
 			}
-			// 6 setup files, each with 7 queries
-			// 5 function folders, each with 11 files
-			wantFunctionCount := 6*7 + 5*11
-			if wantFunctionCount != execFuncCount { // this will need to be updated every time additional setup query types are added
-				t.Errorf("Test %v: wanted %v functions to be executed, got %v", i, wantFunctionCount, execFuncCount)
+			// 6 setup files, (a-f)
+			// 1 function file (g)
+			wantFuncQueries := "abcdefg"
+			if wantFuncQueries != execFuncQueries { // this will need to be updated every time additional setup query types are added
+				t.Errorf("Test %v: wanted %v queries, got %v", i, wantFuncQueries, execFuncQueries)
 			}
 		}
 	}
 }
 
-func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
-	wantErr := errors.New("readFile error")
-	readFileFunc := func(filename string) ([]byte, error) {
-		return nil, wantErr
-	}
-	readDirFunc := func(dirname string) ([]fs.DirEntry, error) {
-		dirEntries := make([]fs.DirEntry, 11)
-		for i := range dirEntries {
-			dirEntries[i] = mockDirEntry{
-				NameFunc: func() string {
-					return fmt.Sprintf("mock_file_%d", i)
-				},
-			}
-		}
-		return dirEntries, nil
-	}
-	ds := Datastore{
-		fs: mockFS{
-			ReadFileFunc: readFileFunc,
-			ReadDirFunc:  readDirFunc,
-		},
-	}
-	_, gotErr := ds.getSetupFunctionQueries()
-	if gotErr == nil || !errors.Is(gotErr, wantErr) {
-		t.Errorf("want %v, got: %v", wantErr, gotErr)
-	}
-}
+// TODO: DELETEME
+// func TestGetSetupFunctionQueries_fileReadErr(t *testing.T) {
+// 	wantErr := errors.New("readFile error")
+// 	readFileFunc := func(filename string) ([]byte, error) {
+// 		return nil, wantErr
+// 	}
+// 	ds := Datastore{
+// 		fs: mockFS{
+// 			ReadFileFunc: readFileFunc,
+// 		},
+// 	}
+// 	_, gotErr := ds.getSetupFunctionQueries()
+// 	if gotErr == nil || !errors.Is(gotErr, wantErr) {
+// 		t.Errorf("want %v, got: %v", wantErr, gotErr)
+// 	}
+// }
 
 func TestLimitPlayerTypes(t *testing.T) {
 	limitPlayerTypesTests := []struct {

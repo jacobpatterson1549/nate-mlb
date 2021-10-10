@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-// ReadDirFileFS is a filesystem that can read directories and files.
-type ReadDirFileFS interface {
-	fs.ReadDirFS
-	fs.ReadFileFS
-}
-
 func (ds Datastore) getSetupTableQueries() ([]string, error) {
 	var queries []string
 	// order of setup files matters - some queries reference others
@@ -30,20 +24,22 @@ func (ds Datastore) getSetupTableQueries() ([]string, error) {
 
 func (ds Datastore) getSetupFunctionQueries() ([]string, error) {
 	var queries []string
-	functionDirTypes := []string{"add", "clr", "del", "get", "set"}
-	for _, functionDirType := range functionDirTypes {
-		functionDir := fmt.Sprintf("sql/functions/%s", functionDirType)
-		functionFileInfos, err := ds.fs.ReadDir(functionDir)
+	walkDirFunc := func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return nil, err
+			return err
 		}
-		for _, functionFileInfo := range functionFileInfos {
-			b, err := ds.fs.ReadFile(fmt.Sprintf("%s/%s", functionDir, functionFileInfo.Name()))
-			if err != nil {
-				return nil, err
-			}
-			queries = append(queries, string(b))
+		if d.IsDir() {
+			return nil
 		}
+		b, err := ds.fs.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("reading sql function: %w", err)
+		}
+		queries = append(queries, string(b))
+		return nil
+	}
+	if err := fs.WalkDir(ds.fs, "sql/functions", walkDirFunc); err != nil {
+		return nil, fmt.Errorf("reading sql functions: %w", err)
 	}
 	return queries, nil
 }

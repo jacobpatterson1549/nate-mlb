@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -281,26 +282,30 @@ func init() {
 }
 
 var newDatastoreTests = []struct {
-	newDatabaseErr             error
-	setupTablesAndFunctionsErr error
-	getSportTypesErr           error
-	getPlayerTypesErr          error
-	wantErr                    bool
+	fs                fs.ReadFileFS
+	newDatabaseErr    error
+	getSportTypesErr  error
+	getPlayerTypesErr error
+	wantErr           bool
 }{
-	{}, // happy path
+	{ // happy path
+		fs: mockValidFS,
+	},
 	{
 		newDatabaseErr: errors.New("newSQLDatabase error"),
 		wantErr:        true,
 	},
 	{
-		setupTablesAndFunctionsErr: errors.New("SetupTablesAndFunctions error"),
-		wantErr:                    true,
+		fs:      fstest.MapFS{}, //"SetupTablesAndFunctions error")
+		wantErr: true,
 	},
 	{
+		fs:               mockValidFS,
 		getSportTypesErr: errors.New("GetSportTypes error"),
 		wantErr:          true,
 	},
 	{
+		fs:                mockValidFS,
 		getPlayerTypesErr: errors.New("GetPlayerTypes error"),
 		wantErr:           true,
 	},
@@ -309,15 +314,8 @@ var newDatastoreTests = []struct {
 func TestNewDatastore(t *testing.T) {
 	for i, test := range newDatastoreTests {
 		cfg := datastoreConfig{
-			driverName: "TestNewDatastore",
-			fs: mockFS{
-				ReadFileFunc: func(filename string) ([]byte, error) {
-					return nil, test.setupTablesAndFunctionsErr
-				},
-				ReadDirFunc: func(dirname string) ([]fs.DirEntry, error) {
-					return nil, test.setupTablesAndFunctionsErr
-				},
-			},
+			driverName:           "TestNewDatastore",
+			fs:                   test.fs,
 			pingFailureSleepFunc: func(sleepSeconds int) { /* NOOP */ },
 			log:                  log.New(ioutil.Discard, "test", log.LstdFlags),
 		}
