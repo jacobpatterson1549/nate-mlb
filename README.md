@@ -9,13 +9,15 @@ Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 [![Go Report Card](https://goreportcard.com/badge/github.com/jacobpatterson1549/nate-mlb)](https://goreportcard.com/report/github.com/jacobpatterson1549/nate-mlb)
 [![GoDoc](https://godoc.org/github.com/jacobpatterson1549/nate-mlb?status.svg)](https://godoc.org/github.com/jacobpatterson1549/nate-mlb)
 
+## Screenshot
+![nate-mlb screenshot](screenshot.png)
+
 ## Dependencies
 New dependencies are automatically added to [go.mod](go.mod) when the project is built.
 * [pq](https://github.com/lib/pq) (PostgreSQL Driver)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
-
 
 ## Installation
 
