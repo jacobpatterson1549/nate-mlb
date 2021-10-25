@@ -17,7 +17,7 @@ func (ds Datastore) getSetupTableQueries() ([]string, error) {
 			return nil, err
 		}
 		setupQueries := strings.Split(string(b), ";")
-		queries = append(queries, setupQueries...)
+		queries = concat(queries, setupQueries)
 	}
 	return queries, nil
 }
@@ -54,7 +54,7 @@ func (ds Datastore) SetupTablesAndFunctions() error {
 	if err != nil {
 		return err
 	}
-	queries := append(setupTableQueries, setupFunctionQueries...)
+	queries := concat(setupTableQueries, setupFunctionQueries)
 	tx, err := ds.db.Begin()
 	if err != nil {
 		return fmt.Errorf("starting database setup: %w", err)
@@ -114,4 +114,11 @@ func (ds *Datastore) LimitPlayerTypes(playerTypesCsv string) error {
 		}
 	}
 	return nil
+}
+
+// concat joins the slices, returning a new slice.
+func concat(a, b []string) []string {
+	c := make([]string, len(a)+len(b))
+	copy(c[copy(c, a):], b)
+	return c
 }
