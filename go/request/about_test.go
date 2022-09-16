@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-type setDeplomentFromGithubRepoDeploymentsTest struct {
+type setDeploymentFromGithubRepoDeploymentsTest struct {
 	environment string
 	grds        []GithubRepoDeployment
 	want        *Deployment
 }
 
-var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDeploymentsTest{
+var setDeploymentFromGithubRepoDeploymentsTests = []setDeploymentFromGithubRepoDeploymentsTest{
 	{
 		// expect empty deployment when there are no deployments
 	},
@@ -58,8 +58,8 @@ var setDeplomentFromGithubRepoDeploymentsTests = []setDeplomentFromGithubRepoDep
 	},
 }
 
-func TestSetDeplomentFromGithubRepoDeployments(t *testing.T) {
-	for i, test := range setDeplomentFromGithubRepoDeploymentsTests {
+func TestSetDeploymentFromGithubRepoDeployments(t *testing.T) {
+	for i, test := range setDeploymentFromGithubRepoDeploymentsTests {
 		grds := githubRepoDeployments(test.grds)
 		got := grds.previousDeployment(test.environment)
 		if !reflect.DeepEqual(test.want, got) {

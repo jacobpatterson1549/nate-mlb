@@ -42,7 +42,7 @@ type (
 		PlayerID     db.SourceID        `json:"player_id,string"`
 	}
 
-	// MlbPlayerBirthDate contains information about a players birthdate including if it is missing
+	// MlbPlayerBirthDate contains information about a players birth date including if it is missing
 	MlbPlayerBirthDate struct {
 		time    time.Time
 		missing bool

@@ -20,7 +20,7 @@ type (
 		Teams map[db.SourceID]NflTeam `json:"nflTeams"`
 	}
 
-	// NflTeam contains information about an NFL team for a specifc year
+	// NflTeam contains information about an NFL team for a specific year
 	NflTeam struct {
 		Name   string `json:"fullName"`
 		Record string `json:"record"`

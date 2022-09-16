@@ -150,8 +150,8 @@ func (nflPlayer NflPlayer) stats() (NflPlayerStats, error) {
 	if err != nil {
 		return nflPlayerStats, fmt.Errorf("could not unmarshal season stats by year: %w", err)
 	}
-	for _, nflplayerStats := range statsYears {
-		return nflplayerStats, nil
+	for _, nflPlayerStats := range statsYears {
+		return nflPlayerStats, nil
 	}
 	return nflPlayerStats, fmt.Errorf("no season stats")
 }

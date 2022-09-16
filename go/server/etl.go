@@ -163,7 +163,7 @@ func (es *EtlStats) setStat(stat db.Stat) error {
 	var scoreCategories []request.ScoreCategory
 	err := json.Unmarshal([]byte(*stat.EtlJSON), &scoreCategories)
 	if err != nil {
-		return fmt.Errorf("unmarshalling ScoreCategories from Stat etlJSON: %w", err)
+		return fmt.Errorf("decoding ScoreCategories from Stat etlJSON: %w", err)
 	}
 	es.etlTime = *stat.EtlTimestamp
 	es.scoreCategories = scoreCategories

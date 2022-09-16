@@ -62,8 +62,8 @@ func TestGetSportTypes(t *testing.T) {
 				},
 				sportTypeQueryRow{
 					ID:   3,
-					Name: "mockRugbyname",
-					URL:  "mockRugbyurl",
+					Name: "mockRugbyName",
+					URL:  "mockRugbyUrl",
 				},
 			},
 			wantErr: true,

@@ -40,7 +40,7 @@ func TestGetPlayerTypes(t *testing.T) {
 		{ // happy path
 			rows: []interface{}{
 				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
-				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHittenScoreType"},
+				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHitterScoreType"},
 				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
 				playerTypeQueryRow{4, 2, "mockNflTeamName", "mocNflTeamDescription", "mockNflTeamScoreType"},
 				playerTypeQueryRow{6, 2, "mockNflMiscName", "mockNflMiscDescription", "mockNflMiscType"}, // (should be loaded as displayOrder=5 because the db presents it before PlayerTypeNflQB)
@@ -58,7 +58,7 @@ func TestGetPlayerTypes(t *testing.T) {
 		{ // no nflMisc sportType
 			rows: []interface{}{
 				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
-				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHittenScoreType"},
+				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHitterScoreType"},
 				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
 				playerTypeQueryRow{4, 2, "mockNflTeamName", "mocNflTeamDescription", "mockNflTeamScoreType"},
 				playerTypeQueryRow{5, 2, "mockNflQBName", "mockNflQBDescription", "mockNflQBScoreType"},

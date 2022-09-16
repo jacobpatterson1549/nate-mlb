@@ -364,7 +364,7 @@ func TestUpdatePlayers(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{ // bad playertype
+		{ // bad playerType
 			form: map[string][]string{
 				"player-7-display-order": {"1"},
 				"player-7-player-type":   {"low"},

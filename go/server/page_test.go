@@ -153,10 +153,10 @@ func TestTabGetName(t *testing.T) {
 		{
 			tab: StatsTab{
 				ScoreCategory: request.ScoreCategory{
-					Name: "Lacross",
+					Name: "Lacrosse",
 				},
 			},
-			want: "Lacross",
+			want: "Lacrosse",
 		},
 	}
 	for i, test := range getNameTests {
