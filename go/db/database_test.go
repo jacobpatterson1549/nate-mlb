@@ -171,7 +171,7 @@ func mockScan(dest, src interface{}) error {
 			*d = PlayerType(s)
 			return nil
 		case *ID:
-			*d = ID(s)
+			*d = ID("s")
 			return nil
 		}
 	case string:

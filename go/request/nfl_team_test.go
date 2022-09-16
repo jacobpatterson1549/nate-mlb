@@ -23,11 +23,11 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 			wantErr:   true, // bad wins
 		},
 		{
-			friends: []db.Friend{{ID: 7, DisplayOrder: 1, Name: "Anthony"}},
+			friends: []db.Friend{{ID: "7", DisplayOrder: 1, Name: "Anthony"}},
 			players: []db.Player{
-				{ID: 4, SourceID: 30, FriendID: 7, DisplayOrder: 1}, // Seattle Seahawks 10
-				{ID: 1, SourceID: 20, FriendID: 7, DisplayOrder: 3}, // Minnesota Vikings 8
-				{ID: 3, SourceID: 29, FriendID: 7, DisplayOrder: 2}, // San Francisco 49er 4
+				{ID: "4", SourceID: 30, FriendID: "7", DisplayOrder: 1}, // Seattle Seahawks 10
+				{ID: "1", SourceID: 20, FriendID: "7", DisplayOrder: 3}, // Minnesota Vikings 8
+				{ID: "3", SourceID: 29, FriendID: "7", DisplayOrder: 2}, // San Francisco 49er 4
 			},
 			teamsJSON: `{"nflTeams":{
 				"20":{"fullName":"Minnesota Vikings","record":"8-7-1"},
@@ -37,11 +37,11 @@ func TestNflTeamRequestScoreCategory(t *testing.T) {
 				PlayerType: db.PlayerTypeNflTeam,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 7, Name: "Anthony", Score: 22,
+						DisplayOrder: 1, ID: "7", Name: "Anthony", Score: 22,
 						PlayerScores: []PlayerScore{
-							{ID: 4, Name: "Seattle Seahawks", Score: 10, DisplayOrder: 1, SourceID: 30},
-							{ID: 3, Name: "San Francisco 49ers", Score: 4, DisplayOrder: 2, SourceID: 29},
-							{ID: 1, Name: "Minnesota Vikings", Score: 8, DisplayOrder: 3, SourceID: 20},
+							{ID: "4", Name: "Seattle Seahawks", Score: 10, DisplayOrder: 1, SourceID: 30},
+							{ID: "3", Name: "San Francisco 49ers", Score: 4, DisplayOrder: 2, SourceID: 29},
+							{ID: "1", Name: "Minnesota Vikings", Score: 8, DisplayOrder: 3, SourceID: 20},
 						},
 					},
 				},

@@ -155,11 +155,7 @@ func verifyUserPassword(ds adminDatastore, r *http.Request) error {
 func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Player, error) {
 	var player db.Player
 
-	IDI, err := strconv.Atoi(id)
-	if err != nil {
-		return player, fmt.Errorf("converting player id '%v' to number: %w", id, err)
-	}
-	player.ID = db.ID(IDI)
+	player.ID = db.ID(id)
 
 	displayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {
@@ -182,11 +178,7 @@ func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Pl
 	player.SourceID = db.SourceID(sourceIDI)
 
 	friendID := r.FormValue(fmt.Sprintf("player-%s-friend-id", id))
-	friendIDI, err := strconv.Atoi(friendID)
-	if err != nil {
-		return player, fmt.Errorf("converting player friend id '%v' to number: %w", friendID, err)
-	}
-	player.FriendID = db.ID(friendIDI)
+	player.FriendID = db.ID(friendID)
 
 	return player, nil
 }
@@ -194,11 +186,7 @@ func getPlayer(st db.SportType, r *http.Request, id, displayOrder string) (db.Pl
 func getFriend(r *http.Request, id, displayOrder string) (db.Friend, error) {
 	var friend db.Friend
 
-	friendIDI, err := strconv.Atoi(id)
-	if err != nil {
-		return friend, fmt.Errorf("converting friend id '%v' to number: %w", id, err)
-	}
-	friend.ID = db.ID(friendIDI)
+	friend.ID = db.ID(id)
 
 	friendDisplayOrderI, err := strconv.Atoi(displayOrder)
 	if err != nil {

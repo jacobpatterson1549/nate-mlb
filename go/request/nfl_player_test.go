@@ -19,9 +19,9 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 	}{
 		{
 			pt:      db.PlayerTypeNflQB,
-			friends: []db.Friend{{ID: 2, DisplayOrder: 1, Name: "Carl"}},
+			friends: []db.Friend{{ID: "2", DisplayOrder: 1, Name: "Carl"}},
 			players: []db.Player{
-				{ID: 3, SourceID: 2532975, FriendID: 2, DisplayOrder: 1}, // Russell Wilson 6
+				{ID: "3", SourceID: 2532975, FriendID: "2", DisplayOrder: 1}, // Russell Wilson 6
 			},
 			playersJSON: `{"games":{"102020":{"players":{
 				"2532975":{"playerId":"2532975","name":"Russell Wilson","position":"QB","stats":{"season":{"2018":{"1":"16","6":"35"}}}}
@@ -30,9 +30,9 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 				PlayerType: db.PlayerTypeNflQB,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 2, Name: "Carl", Score: 35,
+						DisplayOrder: 1, ID: "2", Name: "Carl", Score: 35,
 						PlayerScores: []PlayerScore{
-							{ID: 3, Name: "Russell Wilson", Score: 35, DisplayOrder: 1, SourceID: 2532975},
+							{ID: "3", Name: "Russell Wilson", Score: 35, DisplayOrder: 1, SourceID: 2532975},
 						},
 					},
 				},
@@ -40,11 +40,11 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:      db.PlayerTypeNflMisc,
-			friends: []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Dave"}},
+			friends: []db.Friend{{ID: "8", DisplayOrder: 1, Name: "Dave"}},
 			players: []db.Player{
-				{ID: 1, SourceID: 2540258, FriendID: 8, DisplayOrder: 3}, // Travis Kelce 1
-				{ID: 7, SourceID: 2552475, FriendID: 8, DisplayOrder: 1}, // Todd Gurley 1
-				{ID: 6, SourceID: 2495454, FriendID: 8, DisplayOrder: 2}, // Julio Jones 3
+				{ID: "1", SourceID: 2540258, FriendID: "8", DisplayOrder: 3}, // Travis Kelce 1
+				{ID: "7", SourceID: 2552475, FriendID: "8", DisplayOrder: 1}, // Todd Gurley 1
+				{ID: "6", SourceID: 2495454, FriendID: "8", DisplayOrder: 2}, // Julio Jones 3
 			},
 			playersJSON: `{"games":{"102020":{"players":{
 				"2495454":{"playerId":"2495454","name":"Julio Jones","position":"WR","stats":{"season":{"2018":{"22":"8"}}}},
@@ -55,11 +55,11 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 				PlayerType: db.PlayerTypeNflMisc,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 8, Name: "Dave", Score: 27,
+						DisplayOrder: 1, ID: "8", Name: "Dave", Score: 27,
 						PlayerScores: []PlayerScore{
-							{ID: 7, Name: "Todd Gurley", Score: 17, DisplayOrder: 1, SourceID: 2552475},
-							{ID: 6, Name: "Julio Jones", Score: 8, DisplayOrder: 2, SourceID: 2495454},
-							{ID: 1, Name: "Travis Kelce", Score: 10, DisplayOrder: 3, SourceID: 2540258},
+							{ID: "7", Name: "Todd Gurley", Score: 17, DisplayOrder: 1, SourceID: 2552475},
+							{ID: "6", Name: "Julio Jones", Score: 8, DisplayOrder: 2, SourceID: 2495454},
+							{ID: "1", Name: "Travis Kelce", Score: 10, DisplayOrder: 3, SourceID: 2540258},
 						},
 					},
 				},
@@ -67,13 +67,13 @@ func TestNflPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{ // no players
 			pt:          db.PlayerTypeNflMisc,
-			friends:     []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Dave"}},
+			friends:     []db.Friend{{ID: "8", DisplayOrder: 1, Name: "Dave"}},
 			playersJSON: `[]`,
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeNflMisc,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 8, Name: "Dave", Score: 0,
+						DisplayOrder: 1, ID: "8", Name: "Dave", Score: 0,
 						PlayerScores: []PlayerScore{},
 					},
 				},

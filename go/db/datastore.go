@@ -12,7 +12,7 @@ import (
 
 type (
 	// ID is used to identify an item in the database or a relation to another noun's id
-	ID int
+	ID string
 
 	readSQLFunction struct {
 		name string
@@ -180,4 +180,16 @@ func (f writeSQLFunction) sql() string {
 		argIndexes[i] = fmt.Sprintf("$%d", i+1)
 	}
 	return fmt.Sprintf("SELECT %s(%s)", f.name, strings.Join(argIndexes, ", "))
+}
+
+func (id *ID) Scan(src interface{}) error {
+	switch t := src.(type) {
+	case int, int64:
+		*id = ID(fmt.Sprint(src))
+	case string:
+		*id = ID(src.(string))
+	default:
+		return fmt.Errorf("unsupported Scan, storing %v in %T", t, id)
+	}
+	return nil
 }

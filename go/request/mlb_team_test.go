@@ -16,11 +16,11 @@ func TestMlbTeamRequestScoreCategory(t *testing.T) {
 		want      ScoreCategory
 	}{
 		{
-			friends: []db.Friend{{ID: 3, DisplayOrder: 1, Name: "Elias"}},
+			friends: []db.Friend{{ID: "3", DisplayOrder: 1, Name: "Elias"}},
 			players: []db.Player{
-				{ID: 5, SourceID: 133, FriendID: 3, DisplayOrder: 2}, // Oakland Athletics 102
-				{ID: 8, SourceID: 136, FriendID: 3, DisplayOrder: 1}, // Seattle Mariners 116
-				{ID: 9, SourceID: 112, FriendID: 3, DisplayOrder: 3}, // Chicago Cubs 88
+				{ID: "5", SourceID: 133, FriendID: "3", DisplayOrder: 2}, // Oakland Athletics 102
+				{ID: "8", SourceID: 136, FriendID: "3", DisplayOrder: 1}, // Seattle Mariners 116
+				{ID: "9", SourceID: 112, FriendID: "3", DisplayOrder: 3}, // Chicago Cubs 88
 			},
 			teamsJSON: `{"records":[
 				{"teamRecords":[
@@ -32,11 +32,11 @@ func TestMlbTeamRequestScoreCategory(t *testing.T) {
 				PlayerType: db.PlayerTypeMlbTeam,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 3, Name: "Elias", Score: 306,
+						DisplayOrder: 1, ID: "3", Name: "Elias", Score: 306,
 						PlayerScores: []PlayerScore{
-							{ID: 8, Name: "Seattle Mariners", Score: 116, DisplayOrder: 1, SourceID: 136},
-							{ID: 5, Name: "Oakland Athletics", Score: 102, DisplayOrder: 2, SourceID: 133},
-							{ID: 9, Name: "Chicago Cubs", Score: 88, DisplayOrder: 3, SourceID: 112},
+							{ID: "8", Name: "Seattle Mariners", Score: 116, DisplayOrder: 1, SourceID: 136},
+							{ID: "5", Name: "Oakland Athletics", Score: 102, DisplayOrder: 2, SourceID: 133},
+							{ID: "9", Name: "Chicago Cubs", Score: 88, DisplayOrder: 3, SourceID: 112},
 						},
 					},
 				},

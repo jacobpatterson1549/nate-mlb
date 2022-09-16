@@ -402,3 +402,56 @@ func TestNewDatastore(t *testing.T) {
 		}
 	}
 }
+
+func TestIDScan(t *testing.T) {
+	// unsupported Scan, storing driver.Value type int64 into type *db.ID"
+	tests := []struct {
+		src     interface{}
+		wantErr bool
+		want    ID
+	}{
+		{
+			src:  123,
+			want: ID("123"),
+		},
+		{
+			src:  int64(123),
+			want: ID("123"),
+		},
+		{
+			src:  "123",
+			want: ID("123"),
+		},
+		{
+			src:  "",
+			want: ID(""),
+		},
+		{
+			src:  "1234567890123456789012345678901234567890",
+			want: ID("1234567890123456789012345678901234567890"),
+		},
+		{
+			src:     true,
+			wantErr: true,
+		},
+	}
+	for i, test := range tests {
+		var got ID
+		gotErr := got.Scan(test.src)
+		switch {
+		case test.wantErr:
+			if gotErr == nil {
+				t.Errorf("Test %v: wanted error", i)
+			}
+		case gotErr != nil:
+			t.Errorf("Test %v: unwanted error: %v", i, gotErr)
+		case test.want != got:
+			t.Errorf("Test %v: wanted %q, got %q", i, test.want, got)
+		}
+	}
+	// t.Run("int", func(t *testing.T) {
+	// 	src := 123
+	// 	var got ID
+	// 	got.Scan(&src)
+	// })
+}

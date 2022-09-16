@@ -66,38 +66,38 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		{
 			pt: db.PlayerTypeMlbHitter,
 			friends: []db.Friend{
-				{ID: 1, DisplayOrder: 2, Name: "Bobby"},
-				{ID: 2, DisplayOrder: 1, Name: "Charles"},
+				{ID: "1", DisplayOrder: 2, Name: "Bobby"},
+				{ID: "2", DisplayOrder: 1, Name: "Charles"},
 			},
 			players: []db.Player{
-				{ID: 1, SourceID: 547180, FriendID: 1, DisplayOrder: 1}, // Bryce Harper 31
-				{ID: 2, SourceID: 545361, FriendID: 1, DisplayOrder: 3}, // Mike Trout 45
-				{ID: 3, SourceID: 547180, FriendID: 2, DisplayOrder: 1}, // Bryce Harper 31
-				{ID: 4, SourceID: 429665, FriendID: 1, DisplayOrder: 2}, // Edwin Encarnacion 34
+				{ID: "1", SourceID: 547180, FriendID: "1", DisplayOrder: 1}, // Bryce Harper 31
+				{ID: "2", SourceID: 545361, FriendID: "1", DisplayOrder: 3}, // Mike Trout 45
+				{ID: "3", SourceID: 547180, FriendID: "2", DisplayOrder: 1}, // Bryce Harper 31
+				{ID: "4", SourceID: 429665, FriendID: "1", DisplayOrder: 2}, // Edwin Encarnacion 34
 			},
 			playerNamesJSON: `{"People":[
 				{"id":545361,"fullName":"Mike Trout"},
 				{"id":429665,"fullName":"Edwin Encarnacion"},
 				{"id":547180,"fullName":"Bryce Harper"}]}`,
 			playerStatsJSONs: map[db.ID]string{
-				547180: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":31}}]}]}`,
-				545361: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":45}}]}]}`,
-				429665: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":34}}]}]}`,
+				"547180": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":31}}]}]}`,
+				"545361": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":45}}]}]}`,
+				"429665": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":34}}]}]}`,
 			},
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeMlbHitter,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 2, Name: "Charles", Score: 31,
+						DisplayOrder: 1, ID: "2", Name: "Charles", Score: 31,
 						PlayerScores: []PlayerScore{
-							{ID: 3, Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180}},
+							{ID: "3", Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180}},
 					},
 					{
-						DisplayOrder: 2, ID: 1, Name: "Bobby", Score: 79, // only sum top two scores
+						DisplayOrder: 2, ID: "1", Name: "Bobby", Score: 79, // only sum top two scores
 						PlayerScores: []PlayerScore{
-							{ID: 1, Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180},
-							{ID: 4, Name: "Edwin Encarnacion", Score: 34, DisplayOrder: 2, SourceID: 429665},
-							{ID: 2, Name: "Mike Trout", Score: 45, DisplayOrder: 3, SourceID: 545361},
+							{ID: "1", Name: "Bryce Harper", Score: 31, DisplayOrder: 1, SourceID: 547180},
+							{ID: "4", Name: "Edwin Encarnacion", Score: 34, DisplayOrder: 2, SourceID: 429665},
+							{ID: "2", Name: "Mike Trout", Score: 45, DisplayOrder: 3, SourceID: 545361},
 						},
 					},
 				},
@@ -105,29 +105,29 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:               db.PlayerTypeMlbPitcher,
-			friends:          []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
-			players:          []db.Player{{ID: 7, SourceID: 605483, FriendID: 8, DisplayOrder: 1}}, // Blake Snell 6
+			friends:          []db.Friend{{ID: "8", DisplayOrder: 1, Name: "Brandon"}},
+			players:          []db.Player{{ID: "7", SourceID: 605483, FriendID: "8", DisplayOrder: 1}}, // Blake Snell 6
 			playerNamesJSON:  `{"People":[{"id":605483,"fullName":"Blake Snell"}]}`,
-			playerStatsJSONs: map[db.ID]string{605483: `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`},
+			playerStatsJSONs: map[db.ID]string{"605483": `{"stats":[{"group":{"displayName":"pitching"},"splits":[{"stat":{"wins":6}}]}]}`},
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeMlbPitcher,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 6,
+						DisplayOrder: 1, ID: "8", Name: "Brandon", Score: 6,
 						PlayerScores: []PlayerScore{
-							{ID: 7, Name: "Blake Snell", Score: 6, DisplayOrder: 1, SourceID: 605483}},
+							{ID: "7", Name: "Blake Snell", Score: 6, DisplayOrder: 1, SourceID: 605483}},
 					},
 				},
 			},
 		},
 		{ // no players
 			pt:      db.PlayerTypeMlbPitcher,
-			friends: []db.Friend{{ID: 8, DisplayOrder: 1, Name: "Brandon"}},
+			friends: []db.Friend{{ID: "8", DisplayOrder: 1, Name: "Brandon"}},
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeMlbPitcher,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 8, Name: "Brandon", Score: 0,
+						DisplayOrder: 1, ID: "8", Name: "Brandon", Score: 0,
 						PlayerScores: []PlayerScore{},
 					},
 				},
@@ -135,50 +135,50 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 		},
 		{
 			pt:               db.PlayerTypeMlbHitter,
-			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
+			players:          []db.Player{{ID: "7", SourceID: 592450, FriendID: "9", DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON:  `{"People":[]}`,
-			playerStatsJSONs: map[db.ID]string{592450: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
+			playerStatsJSONs: map[db.ID]string{"592450": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
 			wantErr:          true, // incorrect number of names
 		},
 		{
 			pt:               db.PlayerTypeNflQB,
-			players:          []db.Player{{ID: 9, SourceID: 2532975, FriendID: 6, DisplayOrder: 1}}, // Russell Wilson 0
+			players:          []db.Player{{ID: "9", SourceID: 2532975, FriendID: "6", DisplayOrder: 1}}, // Russell Wilson 0
 			playerNamesJSON:  `{"People":[{"id":2532975,"fullName":"Russell Wilson"}]}`,
-			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":0}}]}]}`},
+			playerStatsJSONs: map[db.ID]string{"2532975": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":0}}]}]}`},
 			wantErr:          true, // incorrect playerType for MlbPlayerStats.getStat(pt)
 		},
 		{
 			pt:               db.PlayerTypeMlbHitter,
-			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
-			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
+			players:          []db.Player{{ID: "7", SourceID: 592450, FriendID: "9", DisplayOrder: 1}}, // Aaron Judge 24
+			playerStatsJSONs: map[db.ID]string{"2532975": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
 			wantErr:          true, // no playerNamesJSON
 		},
 		{
 			pt:               db.PlayerTypeMlbHitter,
-			players:          []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
+			players:          []db.Player{{ID: "7", SourceID: 592450, FriendID: "9", DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON:  `Aaron Judge`,
-			playerStatsJSONs: map[db.ID]string{2532975: `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
+			playerStatsJSONs: map[db.ID]string{"2532975": `{"stats":[{"group":{"displayName":"hitting"},"splits":[{"stat":{"homeRuns":24}}]}]}`},
 			wantErr:          true, // bad playerNamesJSON
 		},
 		{
 			pt:              db.PlayerTypeMlbHitter,
-			players:         []db.Player{{ID: 7, SourceID: 592450, FriendID: 9, DisplayOrder: 1}}, // Aaron Judge 24
+			players:         []db.Player{{ID: "7", SourceID: 592450, FriendID: "9", DisplayOrder: 1}}, // Aaron Judge 24
 			playerNamesJSON: `{"People":[{"id":592450,"fullName":"Aaron Judge"}]}`,
 			wantErr:         true, // no playerStatsJSON
 		},
 		{
 			pt:               db.PlayerTypeMlbPitcher,
-			friends:          []db.Friend{{ID: 4, DisplayOrder: 1, Name: "Cameron"}},
-			players:          []db.Player{{ID: 2, SourceID: 622663, FriendID: 4, DisplayOrder: 1}}, // Luis Severino 0
+			friends:          []db.Friend{{ID: "4", DisplayOrder: 1, Name: "Cameron"}},
+			players:          []db.Player{{ID: "2", SourceID: 622663, FriendID: "4", DisplayOrder: 1}}, // Luis Severino 0
 			playerNamesJSON:  `{"People":[{"id":622663,"fullName":"Luis Severino"}]}`,
-			playerStatsJSONs: map[db.ID]string{622663: `{"stats":[]}`}, // no stats
+			playerStatsJSONs: map[db.ID]string{"622663": `{"stats":[]}`}, // no stats
 			want: ScoreCategory{
 				PlayerType: db.PlayerTypeMlbPitcher,
 				FriendScores: []FriendScore{
 					{
-						DisplayOrder: 1, ID: 4, Name: "Cameron", Score: 0,
+						DisplayOrder: 1, ID: "4", Name: "Cameron", Score: 0,
 						PlayerScores: []PlayerScore{
-							{ID: 2, Name: "Luis Severino", Score: 0, DisplayOrder: 1, SourceID: 622663}},
+							{ID: "2", Name: "Luis Severino", Score: 0, DisplayOrder: 1, SourceID: 622663}},
 					},
 				},
 			},
@@ -190,7 +190,7 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 				return test.playerNamesJSON
 			}
 			for playerSourceID, playerStatsJSON := range test.playerStatsJSONs {
-				if strings.Contains(uri, fmt.Sprintf("%d/stats?", playerSourceID)) {
+				if strings.Contains(uri, fmt.Sprintf("%v/stats?", playerSourceID)) {
 					return playerStatsJSON
 				}
 			}

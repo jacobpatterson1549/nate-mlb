@@ -241,12 +241,18 @@ func TestUpdateFriends(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{ // bad friendId (too large)
+		{ // bad friendId (large string is ok)
 			form: map[string][]string{
 				"friend-1234567890123456789012345678901234567890-display-order": {"1"},
 				"friend-1234567890123456789012345678901234567890-name":          {"bart"},
 			},
-			wantErr: true,
+			wantSaveFriends: []db.Friend{
+				{
+					ID:           "1234567890123456789012345678901234567890",
+					DisplayOrder: 1,
+					Name:         "bart",
+				},
+			},
 		},
 		{ // happy path
 			form: map[string][]string{
@@ -257,12 +263,12 @@ func TestUpdateFriends(t *testing.T) {
 			},
 			wantSaveFriends: []db.Friend{
 				{
-					ID:           7,
+					ID:           "007",
 					DisplayOrder: 1,
 					Name:         "alf",
 				},
 				{
-					ID:           8,
+					ID:           "8",
 					DisplayOrder: 2,
 					Name:         "bart",
 				},
@@ -337,23 +343,39 @@ func TestUpdatePlayers(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{ // bad playerId (too large)
+		{ // large playerId is ok
 			form: map[string][]string{
 				"player-1234567890123456789012345678901234567890-display-order": {"1"},
 				"player-1234567890123456789012345678901234567890-player-type":   {"3"},
 				"player-1234567890123456789012345678901234567890-friend-id":     {"9"},
 				"player-1234567890123456789012345678901234567890-source-id":     {"8"},
 			},
-			wantErr: true,
+			wantSavePlayers: []db.Player{
+				{
+					ID:           "1234567890123456789012345678901234567890",
+					DisplayOrder: 1,
+					PlayerType:   3,
+					SourceID:     8,
+					FriendID:     "9",
+				},
+			},
 		},
-		{ // bad friendId
+		{ // string friendId is ok
 			form: map[string][]string{
 				"player-7-display-order": {"1"},
 				"player-7-player-type":   {"3"},
 				"player-7-friend-id":     {"9x7"},
 				"player-7-source-id":     {"8"},
 			},
-			wantErr: true,
+			wantSavePlayers: []db.Player{
+				{
+					ID:           "7",
+					DisplayOrder: 1,
+					PlayerType:   3,
+					SourceID:     8,
+					FriendID:     "9x7",
+				},
+			},
 		},
 		{ // bad sourceId
 			form: map[string][]string{
@@ -386,18 +408,18 @@ func TestUpdatePlayers(t *testing.T) {
 			},
 			wantSavePlayers: []db.Player{
 				{
-					ID:           7,
+					ID:           "7",
 					DisplayOrder: 1,
 					PlayerType:   2,
 					SourceID:     47,
-					FriendID:     6,
+					FriendID:     "6",
 				},
 				{
-					ID:           6,
+					ID:           "6",
 					DisplayOrder: 2,
 					PlayerType:   1,
 					SourceID:     8000,
-					FriendID:     4,
+					FriendID:     "4",
 				},
 			},
 		},

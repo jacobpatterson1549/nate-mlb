@@ -26,7 +26,7 @@ func TestGetFriends(t *testing.T) {
 			rowsSportType:    2,
 			rows: []interface{}{
 				Friend{
-					ID:           1,
+					ID:           "1",
 					DisplayOrder: 1,
 					Name:         "arnold",
 				},
@@ -37,34 +37,34 @@ func TestGetFriends(t *testing.T) {
 			rowsSportType:    3,
 			rows: []interface{}{
 				Friend{
-					ID:           1,
+					ID:           "1",
 					DisplayOrder: 1,
 					Name:         "alfred",
 				},
 				Friend{
-					ID:           6,
+					ID:           "6",
 					DisplayOrder: 3,
 					Name:         "aaron",
 				},
 				Friend{
-					ID:           4,
+					ID:           "4",
 					DisplayOrder: 2,
 					Name:         "earl",
 				},
 			},
 			wantSlice: []Friend{
 				{
-					ID:           1,
+					ID:           "1",
 					DisplayOrder: 1,
 					Name:         "alfred",
 				},
 				{
-					ID:           6,
+					ID:           "6",
 					DisplayOrder: 3,
 					Name:         "aaron",
 				},
 				{
-					ID:           4,
+					ID:           "4",
 					DisplayOrder: 2,
 					Name:         "earl",
 				},
@@ -141,7 +141,7 @@ func TestSaveFriends(t *testing.T) {
 			st: 9,
 			futureFriends: []Friend{
 				{
-					ID:           8,
+					ID:           "8",
 					DisplayOrder: 2,
 					Name:         "bobby",
 				},
@@ -150,43 +150,43 @@ func TestSaveFriends(t *testing.T) {
 					Name:         "new alice",
 				},
 				{
-					ID:           7,
+					ID:           "7",
 					DisplayOrder: 3,
 					Name:         "curt",
 				},
 				{
-					ID:           5,
+					ID:           "5",
 					DisplayOrder: 4,
 					Name:         "jeb",
 				},
 			},
 			previousFriends: []interface{}{
 				Friend{
-					ID:           1,
+					ID:           "1",
 					DisplayOrder: 1,
 					Name:         "alfred",
 				},
 				Friend{
-					ID:           8,
+					ID:           "8",
 					DisplayOrder: 3,
 					Name:         "bob",
 				},
 				Friend{
-					ID:           7,
+					ID:           "7",
 					DisplayOrder: 2,
 					Name:         "curt",
 				},
 				Friend{
-					ID:           5,
+					ID:           "5",
 					DisplayOrder: 4,
 					Name:         "jeb",
 				},
 			},
 			wantQueryArgs: [][]interface{}{
-				{ID(1)}, // alfred
+				{ID("1")}, // alfred
 				{1, "new alice", SportType(9)},
-				{2, "bobby", ID(8)},
-				{3, "curt", ID(7)},
+				{2, "bobby", ID("8")},
+				{3, "curt", ID("7")},
 			},
 		},
 		{
