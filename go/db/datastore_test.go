@@ -335,9 +335,7 @@ func TestNewDatastore(t *testing.T) {
 									return io.EOF
 								}
 								src := srcRows[i]
-								for j := 0; j < len(src); j++ {
-									dest[j] = src[j]
-								}
+								copy(dest, src)
 								i++
 								return nil
 							},
