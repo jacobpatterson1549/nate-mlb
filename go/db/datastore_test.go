@@ -245,6 +245,7 @@ func init() {
 }
 
 var newDatastoreTests = []struct {
+	sqlDriverName     string
 	fs                fs.ReadFileFS
 	newDatabaseErr    error
 	getSportTypesErr  error
@@ -252,37 +253,38 @@ var newDatastoreTests = []struct {
 	wantErr           bool
 }{
 	{ // happy path
-		fs: mockValidFS,
+		sqlDriverName: "TestNewDatastore",
+		fs:            mockValidFS,
 	},
 	{
+		sqlDriverName:  "bad driver name",
 		newDatabaseErr: errors.New("newSQLDatabase error"),
 		wantErr:        true,
 	},
 	{
-		fs:      fstest.MapFS{}, //"SetupTablesAndFunctions error")
-		wantErr: true,
+		sqlDriverName: "TestNewDatastore",
+		fs:            fstest.MapFS{}, //"SetupTablesAndFunctions error")
+		wantErr:       true,
 	},
 	{
+		sqlDriverName:    "TestNewDatastore",
 		fs:               mockValidFS,
 		getSportTypesErr: errors.New("GetSportTypes error"),
 		wantErr:          true,
 	},
 	{
+		sqlDriverName:     "TestNewDatastore",
 		fs:                mockValidFS,
 		getPlayerTypesErr: errors.New("GetPlayerTypes error"),
 		wantErr:           true,
 	},
 }
 
-func TestNewDatastore(t *testing.T) {
+func TestNewSQLDatastore(t *testing.T) {
 	for i, test := range newDatastoreTests {
 		cfg := datastoreConfig{
-			driverName: "TestNewDatastore",
-			fs:         test.fs,
-			log:        log.New(io.Discard, "test", log.LstdFlags),
-		}
-		if test.newDatabaseErr != nil {
-			cfg.driverName = "bad driver name"
+			fs:  test.fs,
+			log: log.New(io.Discard, "test", log.LstdFlags),
 		}
 		mockDriverConn := mockDriverConn{
 			PrepareFunc: func(query string) (driver.Stmt, error) {
@@ -361,7 +363,17 @@ func TestNewDatastore(t *testing.T) {
 				return mockDriverConn, nil
 			}
 		}
-		ds, err := cfg.new()
+		db, err := newSQLDatabase(test.sqlDriverName, cfg.dataSourceName)
+		switch {
+		case test.newDatabaseErr != nil:
+			if err == nil {
+				t.Fatalf("Test %v: wanted error creating database", i)
+			}
+			return
+		case err != nil:
+			t.Fatalf("Test %v: unwanted error creating database: %v", i, err)
+		}
+		ds, err := cfg.newDatastore(db)
 		switch {
 		case test.wantErr:
 			if err == nil {

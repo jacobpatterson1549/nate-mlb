@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -25,8 +26,7 @@ type (
 		args []interface{}
 	}
 
-	datastoreConfig struct {
-		driverName     string
+		datastoreConfig struct {
 		dataSourceName string
 		ph             passwordHasher
 		log            *log.Logger
@@ -47,20 +47,40 @@ type (
 // NewDatastore creates a new sqlDatastore
 func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Datastore, error) {
 	cfg := datastoreConfig{
-		driverName:     "postgres",
 		dataSourceName: dataSourceName,
 		ph:             bcryptPasswordHasher{},
 		log:            log,
 		fs:             fs,
 	}
-	return cfg.new()
-}
-
-func (cfg datastoreConfig) new() (*Datastore, error) {
-	db, err := newSQLDatabase(cfg.driverName, cfg.dataSourceName)
+	db, err := cfg.newDatabase()
 	if err != nil {
 		return nil, err
 	}
+	return cfg.newDatastore(db)
+}
+
+// newDatabase creates a database from the dataSourceName in the config
+func (cfg datastoreConfig) newDatabase() (database, error) {
+	url, err := url.Parse(cfg.dataSourceName)
+	if err != nil {
+		return nil, fmt.Errorf("parsing data source: %w", err)
+	}
+	var db database
+	switch url.Scheme {
+	case "postgres":
+		db, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
+	case "firestore":
+		projectID := url.Host
+		db, err = newFirestoreDatabase(projectID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+// tewDataStore creates a datastore using the database
+func (cfg datastoreConfig) newDatastore(db database) (*Datastore, error) {
 
 	ds := Datastore{
 		db:  db,
@@ -69,7 +89,7 @@ func (cfg datastoreConfig) new() (*Datastore, error) {
 		log: cfg.log,
 	}
 
-	if err = ds.SetupTablesAndFunctions(); err != nil {
+	if err := ds.SetupTablesAndFunctions(); err != nil {
 		return nil, err
 	}
 
