@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -12,7 +12,7 @@ import (
 
 func TestStartupFuncs_initialCap(t *testing.T) {
 	mainFlags := new(mainFlags)
-	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+	log := log.New(io.Discard, "test", log.LstdFlags)
 	startupFuncs := startupFuncs(mainFlags, log)
 	if len(startupFuncs) != cap(startupFuncs) {
 		t.Errorf("expected length of startupFuncs (%v) to equal capacity (%v) when no environment variables/flags are set", len(startupFuncs), cap(startupFuncs))
@@ -21,7 +21,7 @@ func TestStartupFuncs_initialCap(t *testing.T) {
 
 func TestStartupFuncs_optionalFlags(t *testing.T) {
 	mainFlags := new(mainFlags)
-	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+	log := log.New(io.Discard, "test", log.LstdFlags)
 	startupFuncsDefault := startupFuncs(mainFlags, log)
 	mainFlags.playerTypesCsv = "1"
 	mainFlags.adminPassword = "test_password17"

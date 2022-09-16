@@ -2,7 +2,6 @@ package server
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -120,7 +119,7 @@ func TestNew(t *testing.T) {
 			},
 		}
 		logRequestURIs := false
-		log := log.New(ioutil.Discard, "test", log.LstdFlags)
+		log := log.New(io.Discard, "test", log.LstdFlags)
 		htmlFS := fstest.MapFS{}
 		jsFS := fstest.MapFS{}
 		staticFS := fstest.MapFS{}
@@ -226,7 +225,7 @@ func TestServerHandlers(t *testing.T) {
 				},
 			},
 		}
-		log := log.New(ioutil.Discard, "test", log.LstdFlags)
+		log := log.New(io.Discard, "test", log.LstdFlags)
 		htmlFS := fstest.MapFS{
 			"html/main/main.html": &fstest.MapFile{
 				Data: []byte(

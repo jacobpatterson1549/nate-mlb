@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -231,7 +230,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 func TestNewRequesters(t *testing.T) {
 	c := NewCache(0)
 	logRequestURIs := false
-	log := log.New(ioutil.Discard, "test", log.LstdFlags)
+	log := log.New(io.Discard, "test", log.LstdFlags)
 	httpClient := mockHTTPClient{
 		DoFunc: func(r *http.Request) (*http.Response, error) {
 			return nil, nil

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"reflect"
 	"strings"
@@ -280,7 +279,7 @@ func TestNewDatastore(t *testing.T) {
 		cfg := datastoreConfig{
 			driverName: "TestNewDatastore",
 			fs:         test.fs,
-			log:        log.New(ioutil.Discard, "test", log.LstdFlags),
+			log:        log.New(io.Discard, "test", log.LstdFlags),
 		}
 		if test.newDatabaseErr != nil {
 			cfg.driverName = "bad driver name"

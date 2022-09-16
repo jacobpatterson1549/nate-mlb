@@ -4,7 +4,7 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -104,7 +104,7 @@ func (r *httpRequester) bytes(uri string) ([]byte, error) {
 	}
 
 	defer response.Body.Close()
-	b, err := ioutil.ReadAll(response.Body)
+	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading body of %v: %w", uri, err)
 	}
