@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION set_friend(display_order INT, name VARCHAR, id INT) RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION set_friend(display_order INT, name VARCHAR, id INT, sport_type_id INT) RETURNS BOOLEAN
 AS $$
 WITH updated AS (
 UPDATE friends AS f

@@ -183,10 +183,10 @@ func TestSaveFriends(t *testing.T) {
 				},
 			},
 			wantQueryArgs: [][]interface{}{
-				{ID("1")}, // alfred
+				{ID("1"), SportType(9)}, // alfred
 				{1, "new alice", SportType(9)},
-				{2, "bobby", ID("8")},
-				{3, "curt", ID("7")},
+				{2, "bobby", ID("8"), SportType(9)},
+				{3, "curt", ID("7"), SportType(9)},
 			},
 		},
 		{

@@ -60,14 +60,14 @@ func (ds Datastore) SaveFriends(st SportType, futureFriends []Friend) error {
 
 	queries := make([]writeSQLFunction, 0, len(insertFriends)+len(updateFriends)+len(previousFriends))
 	for deleteFriendID := range previousFriends {
-		queries = append(queries, newWriteSQLFunction("del_friend", deleteFriendID))
+		queries = append(queries, newWriteSQLFunction("del_friend", deleteFriendID, st))
 	}
 	for _, insertFriend := range insertFriends {
 		// [friends are added for the active year]
 		queries = append(queries, newWriteSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st))
 	}
 	for _, updateFriend := range updateFriends {
-		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID))
+		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID, st))
 	}
 	return ds.executeInTransaction(queries)
 }

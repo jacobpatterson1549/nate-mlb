@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION set_player(display_order INT, id INT) RETURNS BOOLEAN
+CREATE OR REPLACE FUNCTION set_player(display_order INT, id INT, sport_type_id INT) RETURNS BOOLEAN
 AS $$
 WITH updated AS (
 UPDATE players AS p

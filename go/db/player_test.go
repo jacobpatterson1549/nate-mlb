@@ -219,10 +219,10 @@ func TestSavePlayers(t *testing.T) {
 				},
 			},
 			wantQueryArgs: [][]interface{}{
-				{ID("14")},
-				{1, PlayerType(3), SourceID(477), ID("4")},
-				{2, ID("29")},
-				{1, ID("97")},
+				{ID("14"), SportType(3)},
+				{1, PlayerType(3), SourceID(477), ID("4"), SportType(3)},
+				{2, ID("29"), SportType(3)},
+				{1, ID("97"), SportType(3)},
 			},
 		},
 		{

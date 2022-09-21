@@ -70,13 +70,13 @@ func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player) error {
 
 	queries := make([]writeSQLFunction, 0, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
 	for deleteID := range previousPlayers {
-		queries = append(queries, newWriteSQLFunction("del_player", deleteID))
+		queries = append(queries, newWriteSQLFunction("del_player", deleteID, st))
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID))
+		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st))
 	}
 	for _, updatePlayer := range updatePlayers {
-		queries = append(queries, newWriteSQLFunction("set_player", updatePlayer.DisplayOrder, updatePlayer.ID))
+		queries = append(queries, newWriteSQLFunction("set_player", updatePlayer.DisplayOrder, updatePlayer.ID, st))
 	}
 	return ds.executeInTransaction(queries)
 }
