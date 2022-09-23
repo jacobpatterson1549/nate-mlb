@@ -69,9 +69,9 @@ func (cfg datastoreConfig) newDatabase() (database, error) {
 	switch url.Scheme {
 	case "postgres":
 		db, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
-	case "firestore":
-		projectID := url.Host
-		db, err = newFirestoreDatabase(projectID)
+	// case "firestore":
+	// 	projectID := url.Host
+	// 	db, err = newFirestoreDatabase(projectID)
 	}
 	if err != nil {
 		return nil, err
