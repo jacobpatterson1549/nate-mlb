@@ -40,7 +40,7 @@ func TestGetUserPassword(t *testing.T) {
 		},
 	}
 	for i, test := range getUserPasswordTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				QueryRowFunc: func(query string, args ...interface{}) row {
 					return mockRow{
@@ -54,7 +54,7 @@ func TestGetUserPassword(t *testing.T) {
 						},
 					}
 				},
-			},
+			}},
 		}
 		gotPassword, gotErr := ds.getUserPassword(test.username)
 		switch {
@@ -110,7 +110,7 @@ func userExecuteHelperTest(t *testing.T, testFunc func(Datastore, string, Passwo
 		},
 	}
 	for i, test := range userExecuteTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 					if test.execErr != nil {
@@ -122,7 +122,7 @@ func userExecuteHelperTest(t *testing.T, testFunc func(Datastore, string, Passwo
 						},
 					}, nil
 				},
-			},
+			}},
 			ph: mockPasswordHasher{
 				hashFunc: func(p Password) (string, error) {
 					if test.hashErr != nil {
@@ -173,7 +173,7 @@ func TestIsCorrectUserPassword(t *testing.T) {
 	}
 	for i, test := range isCorrectUserPasswordTests {
 		ds := Datastore{
-			db: mockDatabase{
+			db: &sqlDB{db: mockDatabase{
 				QueryRowFunc: func(query string, args ...interface{}) row {
 					return mockRow{
 						ScanFunc: func(dest ...interface{}) error {
@@ -189,7 +189,7 @@ func TestIsCorrectUserPassword(t *testing.T) {
 						},
 					}
 				},
-			},
+			}},
 			ph: mockPasswordHasher{
 				isCorrectFunc: func(p Password, hashedPassword string) (bool, error) {
 					return test.passwordHandlerIsCorrectBool, test.passwordHandlerIsCorrectErr
@@ -245,7 +245,7 @@ func TestSetAdminPassword(t *testing.T) {
 	}
 	for i, test := range setAdminPasswordTests {
 		ds := Datastore{
-			db: mockDatabase{
+			db: &sqlDB{db: mockDatabase{
 				QueryRowFunc: func(query string, args ...interface{}) row {
 					return mockRow{
 						ScanFunc: func(dest ...interface{}) error {
@@ -276,7 +276,7 @@ func TestSetAdminPassword(t *testing.T) {
 						return nil, fmt.Errorf("Unknown exec query: %v", query)
 					}
 				},
-			},
+			}},
 			ph: mockPasswordHasher{
 				hashFunc: func(p Password) (string, error) {
 					return string(p) + "-hashed!", nil

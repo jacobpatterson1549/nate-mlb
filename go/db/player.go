@@ -20,8 +20,12 @@ type (
 
 // GetPlayers gets the players for the active year for a SportType
 func (ds Datastore) GetPlayers(st SportType) ([]Player, error) {
+	return ds.db.GetPlayers(st)
+}
+
+func (d sqlDB) GetPlayers(st SportType) ([]Player, error) {
 	sqlFunction := newReadSQLFunction("get_players", []string{"id", "player_type_id", "source_id", "friend_id", "display_order"}, st)
-	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading players: %w", err)
 	}
@@ -68,15 +72,30 @@ func (ds Datastore) SavePlayers(st SportType, futurePlayers []Player) error {
 		delete(previousPlayers, player.ID)
 	}
 
-	queries := make([]writeSQLFunction, 0, len(insertPlayers)+len(updatePlayers)+len(previousPlayers))
+	t, err := ds.db.begin()
+	if err != nil {
+		return err
+	}
 	for deleteID := range previousPlayers {
-		queries = append(queries, newWriteSQLFunction("del_player", deleteID, st))
+		t.DelPlayer(st, deleteID)
 	}
 	for _, insertPlayer := range insertPlayers {
-		queries = append(queries, newWriteSQLFunction("add_player", insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID, st))
+		t.AddPlayer(st, insertPlayer.DisplayOrder, insertPlayer.PlayerType, insertPlayer.SourceID, insertPlayer.FriendID)
 	}
 	for _, updatePlayer := range updatePlayers {
-		queries = append(queries, newWriteSQLFunction("set_player", updatePlayer.DisplayOrder, updatePlayer.ID, st))
+		t.SetPlayer(st, updatePlayer.ID, updatePlayer.DisplayOrder)
 	}
-	return ds.executeInTransaction(queries)
+	return t.execute()
+}
+
+func (t *sqlTX) DelPlayer(st SportType, id ID) {
+	t.queries = append(t.queries, newWriteSQLFunction("del_player", id, st))
+}
+
+func (t *sqlTX) AddPlayer(st SportType, displayOrder int, pt PlayerType, sourceID SourceID, friendID ID) {
+	t.queries = append(t.queries, newWriteSQLFunction("add_player", displayOrder, pt, sourceID, friendID, st))
+}
+
+func (t *sqlTX) SetPlayer(st SportType, id ID, displayOrder int) {
+	t.queries = append(t.queries, newWriteSQLFunction("set_player", displayOrder, id, st))
 }

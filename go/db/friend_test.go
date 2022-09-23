@@ -89,7 +89,7 @@ func TestGetFriends(t *testing.T) {
 	}
 	for i, test := range getFriendsTests {
 		ds := Datastore{
-			db: mockDatabase{
+			db: &sqlDB{db: mockDatabase{
 				QueryFunc: func(query string, args ...interface{}) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
@@ -99,7 +99,7 @@ func TestGetFriends(t *testing.T) {
 					}
 					return newMockRows(test.rows), nil
 				},
-			},
+			}},
 		}
 		gotSlice, gotErr := ds.GetFriends(test.requestSportType)
 		switch {
@@ -210,7 +210,7 @@ func TestSaveFriends(t *testing.T) {
 			}
 		}
 		ds := Datastore{
-			db: mockDatabase{
+			db: &sqlDB{db: mockDatabase{
 				QueryFunc: func(query string, args ...interface{}) (rows, error) {
 					if len(args) != 1 || !reflect.DeepEqual(test.st, args[0]) {
 						t.Errorf("Test %v: wanted to get friends for SportType %v, but got %v", i, test.st, args)
@@ -218,7 +218,7 @@ func TestSaveFriends(t *testing.T) {
 					return newMockRows(test.previousFriends), test.getFriendsErr
 				},
 				BeginFunc: newMockBeginFunc(test.executeInTransactionErr, executeInTransactionFunc),
-			},
+			}},
 		}
 		wantErr := test.getFriendsErr != nil || test.executeInTransactionErr != nil
 		gotErr := ds.SaveFriends(test.st, test.futureFriends)

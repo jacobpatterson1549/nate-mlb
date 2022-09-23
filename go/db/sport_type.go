@@ -27,6 +27,17 @@ const (
 
 // GetSportTypes returns the SportTypes from the database
 func (ds Datastore) GetSportTypes() (SportTypeMap, error) {
+	sportTypes, err := ds.db.GetSportTypes()
+	if err != nil {
+		return nil, err
+	}
+	if len(sportTypes) != 2 {
+		return nil, fmt.Errorf("did not load expected SportTypes: %v", sportTypes)
+	}
+	return sportTypes, nil
+}
+
+func (ds sqlDB) GetSportTypes() (SportTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
 	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
@@ -57,10 +68,6 @@ func (ds Datastore) GetSportTypes() (SportTypeMap, error) {
 			return nil, fmt.Errorf("unknown SportType id: %v", id)
 		}
 		displayOrder++
-	}
-
-	if len(sportTypes) != 2 {
-		return nil, fmt.Errorf("did not load expected SportTypes: %v", sportTypes)
 	}
 	return sportTypes, nil
 }

@@ -33,8 +33,19 @@ const (
 
 // GetPlayerTypes loads the PlayerTypes from the database
 func (ds Datastore) GetPlayerTypes() (PlayerTypeMap, error) {
+	playerTypes, err := ds.db.GetPlayerTypes()
+	if err != nil {
+		return nil, err
+	}
+	if len(playerTypes) != 6 {
+		return nil, fmt.Errorf("did not load expected PlayerTypes: %v", playerTypes)
+	}
+	return playerTypes, nil
+}
+
+func (d sqlDB) GetPlayerTypes() (PlayerTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_player_types", []string{"id", "sport_type_id", "name", "description", "score_type"})
-	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading playerTypes: %w", err)
 	}
@@ -69,9 +80,6 @@ func (ds Datastore) GetPlayerTypes() (PlayerTypeMap, error) {
 			return nil, fmt.Errorf("unknown PlayerType id: %v", id)
 		}
 		displayOrder++
-	}
-	if len(playerTypes) != 6 {
-		return nil, fmt.Errorf("did not load expected PlayerTypes: %v", playerTypes)
 	}
 	return playerTypes, nil
 }

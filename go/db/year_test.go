@@ -95,7 +95,7 @@ var getYearsTests = []struct {
 
 func TestGetYears(t *testing.T) {
 	for i, test := range getYearsTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				QueryFunc: func(query string, args ...interface{}) (rows, error) {
 					if test.queryErr != nil {
@@ -107,7 +107,7 @@ func TestGetYears(t *testing.T) {
 					return newMockRows(test.rows), nil
 				},
 			},
-		}
+		}}
 		gotSlice, gotErr := ds.GetYears(test.requestSportType)
 		switch {
 		case test.wantErr:
@@ -211,7 +211,7 @@ func TestSaveYears(t *testing.T) {
 				}
 			}
 		}
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				QueryFunc: func(query string, args ...interface{}) (rows, error) {
 					if len(args) != 1 || !reflect.DeepEqual(test.st, args[0]) {
@@ -221,7 +221,7 @@ func TestSaveYears(t *testing.T) {
 				},
 				BeginFunc: newMockBeginFunc(test.executeInTransactionErr, executeInTransactionFunc),
 			},
-		}
+		}}
 		wantErr := test.wantErr || test.getYearsErr != nil || test.executeInTransactionErr != nil
 		gotErr := ds.SaveYears(test.st, test.futureYears)
 		hadErr := gotErr != nil

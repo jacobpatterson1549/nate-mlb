@@ -90,19 +90,15 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		db := mockDatabase{
+		d := sqlDB{db: mockDatabase{
 			BeginFunc: func() (transaction, error) {
 				if test.beginErr != nil {
 					return nil, test.beginErr
 				}
 				return tx, nil
 			},
-		}
-		ds := Datastore{
-			db: db,
-			fs: test.fs,
-		}
-		gotErr := ds.SetupTablesAndFunctions()
+		}}
+		gotErr := d.SetupTablesAndFunctions(test.fs)
 		switch {
 		case !test.wantOk:
 			if gotErr == nil {

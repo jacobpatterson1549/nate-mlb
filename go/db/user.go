@@ -23,8 +23,12 @@ var whitespaceRE = regexp.MustCompile(`\s`)
 
 // getUserPassword gets the password for the specified user
 func (ds Datastore) getUserPassword(username string) (string, error) {
+	return ds.db.GetUserPassword(username)
+}
+
+func (d sqlDB) GetUserPassword(username string) (string, error) {
 	sqlFunction := newReadSQLFunction("get_user_password", []string{"password"}, username)
-	row := ds.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
+	row := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	var password string
 	err := row.Scan(&password)
 	if err != nil {
@@ -42,8 +46,12 @@ func (ds Datastore) SetUserPassword(username string, p Password) error {
 	if err != nil {
 		return err
 	}
+	return ds.db.SetUserPassword(username, hashedPassword)
+}
+
+func (d *sqlDB) SetUserPassword(username, hashedPassword string) error {
 	sqlFunction := newWriteSQLFunction("set_user_password", username, hashedPassword)
-	result, err := ds.db.Exec(sqlFunction.sql(), sqlFunction.args...)
+	result, err := d.db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("setting user password: %w", err)
 	}
@@ -59,8 +67,12 @@ func (ds Datastore) AddUser(username string, p Password) error {
 	if err != nil {
 		return err
 	}
+	return ds.db.AddUser(username, hashedPassword)
+}
+
+func (d *sqlDB) AddUser(username, hashedPassword string) error {
 	sqlFunction := newWriteSQLFunction("add_user", username, hashedPassword)
-	result, err := ds.db.Exec(sqlFunction.sql(), sqlFunction.args...)
+	result, err := d.db.Exec(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return fmt.Errorf("adding user: %w", err)
 	}
@@ -84,11 +96,15 @@ func (ds Datastore) SetAdminPassword(p Password) error {
 	switch {
 	case err == nil: // user exists
 		return ds.SetUserPassword(username, p)
-	case errors.Is(err, sql.ErrNoRows): // user does not exist
+	case ds.db.IsNotExist(err):
 		return ds.AddUser(username, p)
 	default: // problem checking if user exists
 		return err
 	}
+}
+
+func (d sqlDB) IsNotExist(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }
 
 func (p Password) validate() error {

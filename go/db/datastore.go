@@ -35,12 +35,42 @@ type (
 
 	// Datastore interface can be used to access and persist data
 	Datastore struct {
-		db          database
-		fs          fs.ReadFileFS
+		db          db
 		ph          passwordHasher
 		sportTypes  SportTypeMap
 		playerTypes PlayerTypeMap
 		log         *log.Logger
+	}
+
+	db interface {
+		begin() (dbTX, error) // returning the dbTX interface is smelly
+		GetSportTypes() (SportTypeMap, error)
+		GetPlayerTypes() (PlayerTypeMap, error)
+		GetYears(st SportType) ([]Year, error)
+		GetStat(st SportType) (*Stat, error)
+		SetStat(stat Stat) error
+		ClrStat(st SportType) error
+		GetFriends(st SportType) ([]Friend, error)
+		GetPlayers(st SportType) ([]Player, error)
+		GetUserPassword(username string) (string, error)
+		SetUserPassword(username, hashedPassword string) error
+		AddUser(username, hashedPassword string) error
+		// IsNotExist is used by the datastore to determine if a query failed because data does not exist.
+		IsNotExist(err error) bool
+	}
+
+	dbTX interface {
+		execute() error
+		AddYear(st SportType, year int)
+		DelYear(st SportType, year int)
+		SetYearActive(st SportType, year int)
+		ClrYearActive(st SportType)
+		AddFriend(st SportType, displayOrder int, name string)
+		SetFriend(st SportType, id ID, displayOrder int, name string)
+		DelFriend(st SportType, id ID)
+		AddPlayer(st SportType, displayOrder int, pt PlayerType, sourceID SourceID, friendID ID)
+		SetPlayer(st SportType, id ID, displayOrder int)
+		DelPlayer(st SportType, id ID)
 	}
 )
 
@@ -60,15 +90,18 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Da
 }
 
 // newDatabase creates a database from the dataSourceName in the config
-func (cfg datastoreConfig) newDatabase() (database, error) {
+func (cfg datastoreConfig) newDatabase() (db, error) {
 	url, err := url.Parse(cfg.dataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("parsing data source: %w", err)
 	}
-	var db database
+	var db db
 	switch url.Scheme {
 	case "postgres":
 		db, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
+	case "firestore":
+		projectID := url.Host
+		db, err = newFirestoreDB(projectID)
 	}
 	if err != nil {
 		return nil, err
@@ -77,17 +110,18 @@ func (cfg datastoreConfig) newDatabase() (database, error) {
 }
 
 // tewDataStore creates a datastore using the database
-func (cfg datastoreConfig) newDatastore(db database) (*Datastore, error) {
+func (cfg datastoreConfig) newDatastore(db db) (*Datastore, error) {
 
 	ds := Datastore{
 		db:  db,
-		fs:  cfg.fs,
 		ph:  cfg.ph,
 		log: cfg.log,
 	}
 
-	if err := ds.SetupTablesAndFunctions(); err != nil {
-		return nil, err
+	if d, ok := db.(*sqlDB); ok {
+		if err := d.SetupTablesAndFunctions(cfg.fs); err != nil {
+			return nil, err
+		}
 	}
 
 	sportTypes, err := ds.GetSportTypes()
@@ -120,14 +154,11 @@ func (ds Datastore) PlayerTypes() PlayerTypeMap {
 	return ds.playerTypes
 }
 
-func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {
-	tx, err := ds.db.Begin()
-	if err != nil {
-		return err
-	}
+func (t *sqlTX) execute() error {
 	var result sql.Result
-	for _, sqlFunction := range queries {
-		result, err = tx.Exec(sqlFunction.sql(), sqlFunction.args...)
+	var err error
+	for _, sqlFunction := range t.queries {
+		result, err = t.tx.Exec(sqlFunction.sql(), sqlFunction.args...)
 		if err == nil {
 			err = expectSingleRowAffected(result)
 		}
@@ -139,12 +170,12 @@ func (ds Datastore) executeInTransaction(queries []writeSQLFunction) error {
 	switch {
 	case err != nil:
 		err = fmt.Errorf("saving: %w", err)
-		rollbackErr := tx.Rollback()
+		rollbackErr := t.tx.Rollback()
 		if rollbackErr != nil {
 			err = fmt.Errorf("%v and ROLLBACK ERROR: %w", err, rollbackErr)
 		}
-	case len(queries) > 0:
-		err = tx.Commit()
+	case len(t.queries) > 0:
+		err = t.tx.Commit()
 		if err != nil {
 			err = fmt.Errorf("committing transaction to save: %w", err)
 		}

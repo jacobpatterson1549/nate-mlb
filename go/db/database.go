@@ -33,14 +33,28 @@ type (
 		Commit() error
 		Rollback() error
 	}
+
+	sqlDB struct {
+		db database
+	}
+
+	sqlTX struct {
+		tx      transaction
+		queries []writeSQLFunction
+	}
 )
 
-func newSQLDatabase(driverName, dataSourceName string) (database, error) {
+func newSQLDatabase(driverName, dataSourceName string) (*sqlDB, error) {
 	sqlDb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("opening database %v", err)
 	}
-	return sqlDatabase{db: sqlDb}, nil
+	d := sqlDB{
+		db: sqlDatabase{
+			db: sqlDb,
+		},
+	}
+	return &d, nil
 }
 
 func (s sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
@@ -54,4 +68,15 @@ func (s sqlDatabase) Exec(query string, args ...interface{}) (sql.Result, error)
 }
 func (s sqlDatabase) Begin() (transaction, error) {
 	return s.db.Begin()
+}
+
+func (d *sqlDB) begin() (dbTX, error) {
+	tx, err := d.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+	t := sqlTX{
+		tx: tx,
+	}
+	return &t, nil
 }

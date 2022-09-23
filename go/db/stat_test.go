@@ -49,7 +49,7 @@ var (
 
 func TestGetStat(t *testing.T) {
 	for i, test := range getStatTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				QueryRowFunc: func(query string, args ...interface{}) row {
 					return mockRow{
@@ -67,7 +67,7 @@ func TestGetStat(t *testing.T) {
 					}
 				},
 			},
-		}
+		}}
 		gotStat, gotErr := ds.GetStat(test.requestSportType)
 		switch {
 		case test.wantErr:
@@ -118,7 +118,7 @@ func TestSetStat(t *testing.T) {
 		},
 	}
 	for i, test := range setStatTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 					if test.execError != nil {
@@ -131,7 +131,7 @@ func TestSetStat(t *testing.T) {
 					}, nil
 				},
 			},
-		}
+		}}
 		gotErr := ds.SetStat(test.stat)
 		switch {
 		case test.wantErr:
@@ -160,13 +160,13 @@ func TestClearStat(t *testing.T) {
 		},
 	}
 	for i, test := range clearStatTests {
-		ds := Datastore{
+		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
 				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
 					return nil, test.execError
 				},
 			},
-		}
+		}}
 		gotErr := ds.ClearStat(test.st)
 		switch {
 		case test.wantErr:

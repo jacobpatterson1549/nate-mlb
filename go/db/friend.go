@@ -13,8 +13,12 @@ type Friend struct {
 
 // GetFriends gets the friends for the active year for a SportType
 func (ds Datastore) GetFriends(st SportType) ([]Friend, error) {
+	return ds.db.GetFriends(st)
+}
+
+func (d sqlDB) GetFriends(st SportType) ([]Friend, error) {
 	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
-	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading friends: %w", err)
 	}
@@ -58,16 +62,31 @@ func (ds Datastore) SaveFriends(st SportType, futureFriends []Friend) error {
 		delete(previousFriends, friend.ID)
 	}
 
-	queries := make([]writeSQLFunction, 0, len(insertFriends)+len(updateFriends)+len(previousFriends))
+	t, err := ds.db.begin()
+	if err != nil {
+		return err
+	}
 	for deleteFriendID := range previousFriends {
-		queries = append(queries, newWriteSQLFunction("del_friend", deleteFriendID, st))
+		t.DelFriend(st, deleteFriendID)
 	}
 	for _, insertFriend := range insertFriends {
-		// [friends are added for the active year]
-		queries = append(queries, newWriteSQLFunction("add_friend", insertFriend.DisplayOrder, insertFriend.Name, st))
+		t.AddFriend(st, insertFriend.DisplayOrder, insertFriend.Name)
 	}
 	for _, updateFriend := range updateFriends {
-		queries = append(queries, newWriteSQLFunction("set_friend", updateFriend.DisplayOrder, updateFriend.Name, updateFriend.ID, st))
+		t.SetFriend(st, updateFriend.ID, updateFriend.DisplayOrder, updateFriend.Name)
 	}
-	return ds.executeInTransaction(queries)
+	return t.execute()
+}
+
+func (t *sqlTX) DelFriend(st SportType, id ID) {
+	t.queries = append(t.queries, newWriteSQLFunction("del_friend", id, st))
+}
+
+func (t *sqlTX) AddFriend(st SportType, displayOrder int, name string) {
+	// [friends are added for the active year]
+	t.queries = append(t.queries, newWriteSQLFunction("add_friend", displayOrder, name, st))
+}
+
+func (t *sqlTX) SetFriend(st SportType, id ID, displayOrder int, name string) {
+	t.queries = append(t.queries, newWriteSQLFunction("set_friend", displayOrder, name, id, st))
 }

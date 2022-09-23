@@ -341,11 +341,11 @@ func TestSQLDatabaseMethods(t *testing.T) {
 		pingCalled++
 		return mockDriverConn, nil
 	}
-	db, err := newSQLDatabase("TestSQLDatabaseMethods", "mockDataSourceName")
+	d, err := newSQLDatabase("TestSQLDatabaseMethods", "mockDataSourceName")
 	if err != nil {
 		t.Fatal("unexpected error:", err)
 	}
-	if db == nil {
+	if d == nil {
 		t.Fatal("expected database to not be nil after Init() called, but was")
 	}
 	methodTests := []struct {
@@ -356,22 +356,22 @@ func TestSQLDatabaseMethods(t *testing.T) {
 		{
 			methodName: "queryCalled",
 			count:      &queryCalled,
-			method:     func() { db.Query("query_sql") },
+			method:     func() { d.db.Query("query_sql") },
 		},
 		{
 			methodName: "queryRowCalled",
 			count:      &queryRowCalled,
-			method:     func() { db.QueryRow("query_row_sql") },
+			method:     func() { d.db.QueryRow("query_row_sql") },
 		},
 		{
 			methodName: "execCalled",
 			count:      &execCalled,
-			method:     func() { db.Exec("exec_sql") },
+			method:     func() { d.db.Exec("exec_sql") },
 		},
 		{
 			methodName: "beginTransactionCalled",
 			count:      &beginTransactionCalled,
-			method:     func() { db.Begin() },
+			method:     func() { d.db.Begin() },
 		},
 	}
 	for _, call := range methodTests {

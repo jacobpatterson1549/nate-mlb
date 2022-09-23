@@ -26,7 +26,7 @@ type (
 
 var (
 	playerDisplayOrderRE = regexp.MustCompile("^player-([0-9]+)-display-order$")
-	friendDisplayOrderRE = regexp.MustCompile("^friend-([0-9]+)-display-order$")
+	friendDisplayOrderRE = regexp.MustCompile("^friend-(.+)-display-order$")
 )
 
 func handleAdminPostRequest(ds adminDatastore, c adminCache, st db.SportType, r *http.Request) error {

@@ -71,14 +71,14 @@ func TestGetSportTypes(t *testing.T) {
 	}
 	for i, test := range getSportTypesTests {
 		ds := Datastore{
-			db: mockDatabase{
+			db: &sqlDB{db: mockDatabase{
 				QueryFunc: func(query string, args ...interface{}) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
 					}
 					return newMockRows(test.rows), nil
 				},
-			},
+			}},
 		}
 		gotSportTypes, gotErr := ds.GetSportTypes()
 		switch {

@@ -12,8 +12,12 @@ type Year struct {
 
 // GetYears gets years for a SportType
 func (ds Datastore) GetYears(st SportType) ([]Year, error) {
+	return ds.db.GetYears(st)
+}
+
+func (d sqlDB) GetYears(st SportType) ([]Year, error) {
 	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
-	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading years: %w", err)
 	}
@@ -69,17 +73,36 @@ func (ds Datastore) SaveYears(st SportType, futureYears []Year) error {
 		delete(previousYearsMap, year.Value)
 	}
 
-	queries := make([]writeSQLFunction, 0, len(insertYears)+len(previousYearsMap)+2)
+	t, err := ds.db.begin()
+	if err != nil {
+		return err
+	}
 	// do this first to ensure one row is affected, in the case that the active row is deleted
-	queries = append(queries, newWriteSQLFunction("clr_year_active", st))
+	t.ClrYearActive(st)
 	for deleteYear := range previousYearsMap {
-		queries = append(queries, newWriteSQLFunction("del_year", st, deleteYear))
+		t.DelYear(st, deleteYear)
 	}
 	for _, insertYear := range insertYears {
-		queries = append(queries, newWriteSQLFunction("add_year", st, insertYear))
+		t.AddYear(st, insertYear)
 	}
 	if activeYearPresent {
-		queries = append(queries, newWriteSQLFunction("set_year_active", st, activeYear))
+		t.SetYearActive(st, activeYear)
 	}
-	return ds.executeInTransaction(queries)
+	return t.execute()
+}
+
+func (t *sqlTX) ClrYearActive(st SportType) {
+	t.queries = append(t.queries, newWriteSQLFunction("clr_year_active", st))
+}
+
+func (t *sqlTX) DelYear(st SportType, deleteYear int) {
+	t.queries = append(t.queries, newWriteSQLFunction("del_year", st, deleteYear))
+}
+
+func (t *sqlTX) AddYear(st SportType, insertYear int) {
+	t.queries = append(t.queries, newWriteSQLFunction("add_year", st, insertYear))
+}
+
+func (t *sqlTX) SetYearActive(st SportType, activeYear int) {
+	t.queries = append(t.queries, newWriteSQLFunction("set_year_active", st, activeYear))
 }

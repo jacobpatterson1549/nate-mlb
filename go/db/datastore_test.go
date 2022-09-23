@@ -55,7 +55,6 @@ func TestPlayerTypes(t *testing.T) {
 
 var executeInTransactionTests = []struct {
 	queries     []writeSQLFunction
-	beginErr    error
 	execErr     error
 	rollbackErr error
 	commitErr   error
@@ -67,9 +66,6 @@ var executeInTransactionTests = []struct {
 			newWriteSQLFunction("query2"),
 			newWriteSQLFunction("query3"),
 		},
-	},
-	{
-		beginErr: errors.New("begin error"),
 	},
 	{
 		queries: []writeSQLFunction{
@@ -92,7 +88,7 @@ var executeInTransactionTests = []struct {
 	},
 }
 
-func TestExecuteInTransaction(t *testing.T) {
+func TestSqlTXExecute(t *testing.T) {
 	for i, test := range executeInTransactionTests {
 		commitCalled := false
 		rollbackCalled := false
@@ -116,24 +112,15 @@ func TestExecuteInTransaction(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		db := mockDatabase{
-			BeginFunc: func() (transaction, error) {
-				if test.beginErr != nil {
-					return nil, test.beginErr
-				}
-				return tx, nil
-			},
+		sqlTX := sqlTX{
+			tx:      tx,
+			queries: test.queries,
 		}
-		ds := Datastore{db: db}
-		gotErr := ds.executeInTransaction(test.queries)
+		gotErr := sqlTX.execute()
 		switch {
 		case gotErr == nil:
-			if test.beginErr != nil || test.execErr != nil || test.commitErr != nil {
+			if test.execErr != nil || test.commitErr != nil {
 				t.Errorf("Test %v: did not cause an error, but should have", i)
-			}
-		case test.beginErr != nil:
-			if !errors.Is(gotErr, test.beginErr) {
-				t.Errorf("Test %v: wanted error during begin, but got: %v", i, gotErr)
 			}
 		case test.execErr != nil:
 			if test.rollbackErr == nil && !errors.Is(gotErr, test.execErr) {
@@ -152,7 +139,7 @@ func TestExecuteInTransaction(t *testing.T) {
 		}
 		// commit/rollback checks
 		switch {
-		case gotErr != nil && test.beginErr == nil && test.commitErr == nil:
+		case gotErr != nil && test.commitErr == nil:
 			if !rollbackCalled {
 				t.Errorf("Test %v: expected rollback", i)
 			}
