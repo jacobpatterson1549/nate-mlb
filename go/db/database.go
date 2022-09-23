@@ -15,7 +15,6 @@ type (
 	}
 
 	database interface {
-		Ping() error
 		Query(query string, args ...interface{}) (rows, error)
 		QueryRow(query string, args ...interface{}) row
 		Exec(query string, args ...interface{}) (sql.Result, error)
@@ -44,9 +43,6 @@ func newSQLDatabase(driverName, dataSourceName string) (database, error) {
 	return sqlDatabase{db: sqlDb}, nil
 }
 
-func (s sqlDatabase) Ping() error {
-	return s.db.Ping()
-}
 func (s sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
 	return s.db.Query(query, args...)
 }

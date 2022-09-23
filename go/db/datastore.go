@@ -26,7 +26,7 @@ type (
 		args []interface{}
 	}
 
-		datastoreConfig struct {
+	datastoreConfig struct {
 		dataSourceName string
 		ph             passwordHasher
 		log            *log.Logger
@@ -69,9 +69,9 @@ func (cfg datastoreConfig) newDatabase() (database, error) {
 	switch url.Scheme {
 	case "postgres":
 		db, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
-	// case "firestore":
-	// 	projectID := url.Host
-	// 	db, err = newFirestoreDatabase(projectID)
+		// case "firestore":
+		// 	projectID := url.Host
+		// 	db, err = newFirestoreDatabase(projectID)
 	}
 	if err != nil {
 		return nil, err
@@ -106,11 +106,6 @@ func (cfg datastoreConfig) newDatastore(db database) (*Datastore, error) {
 	ds.playerTypes = playerTypes
 
 	return &ds, nil
-}
-
-// Ping ensures the database connection is active and returns an error if not
-func (ds Datastore) Ping() error {
-	return ds.db.Ping()
 }
 
 // GetUtcTime retrieves the current UTC time

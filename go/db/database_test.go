@@ -12,7 +12,6 @@ import (
 type (
 	// mockDatabase implements the database interface
 	mockDatabase struct {
-		PingFunc     func() error
 		QueryFunc    func(query string, args ...interface{}) (rows, error)
 		QueryRowFunc func(query string, args ...interface{}) row
 		ExecFunc     func(query string, args ...interface{}) (sql.Result, error)
@@ -69,9 +68,6 @@ type (
 	}
 )
 
-func (m mockDatabase) Ping() error {
-	return m.PingFunc()
-}
 func (m mockDatabase) Query(query string, args ...interface{}) (rows, error) {
 	return m.QueryFunc(query, args...)
 }
@@ -357,11 +353,6 @@ func TestSQLDatabaseMethods(t *testing.T) {
 		count      *int
 		method     func()
 	}{
-		{
-			methodName: "pingCalled",
-			count:      &pingCalled,
-			method:     func() { db.Ping() },
-		},
 		{
 			methodName: "queryCalled",
 			count:      &queryCalled,

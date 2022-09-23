@@ -15,31 +15,6 @@ import (
 	"time"
 )
 
-func TestPing(t *testing.T) {
-	pingTests := []struct {
-		pingErr error
-	}{
-		{},
-		{
-			pingErr: fmt.Errorf("Ping error"),
-		},
-	}
-	for i, test := range pingTests {
-		ds := Datastore{
-			db: mockDatabase{
-				PingFunc: func() error {
-					return test.pingErr
-				},
-			},
-		}
-		wantErr := test.pingErr
-		gotErr := ds.Ping()
-		if wantErr != gotErr {
-			t.Errorf("Test %v: wanted %v, got %v", i, wantErr, gotErr)
-		}
-	}
-}
-
 func TestGetUtcTime(t *testing.T) {
 	ds := Datastore{}
 	got := ds.GetUtcTime()
