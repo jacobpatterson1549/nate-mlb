@@ -12,7 +12,7 @@ type (
 		SportType    SportType
 		Year         int
 		EtlTimestamp *time.Time
-		EtlJSON      *[]byte
+		EtlJSON      string
 	}
 )
 

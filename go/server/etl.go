@@ -51,7 +51,7 @@ func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.Play
 	es.sportTypeName = ds.SportTypes()[st].Name
 	es.sportType = st
 	es.year = stat.Year
-	if stat.EtlTimestamp == nil || stat.EtlJSON == nil || stat.EtlTimestamp.Before(es.etlRefreshTime) {
+	if stat.EtlTimestamp == nil || len(stat.EtlJSON) == 0 || stat.EtlTimestamp.Before(es.etlRefreshTime) {
 		scoreCategories, err := getScoreCategories(st, ds, es.year, scoreCategorizers)
 		if err != nil {
 			return es, err
@@ -60,7 +60,7 @@ func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.Play
 		if err != nil {
 			return es, fmt.Errorf("converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
 		}
-		stat.EtlJSON = &etlJSON
+		stat.EtlJSON = string(etlJSON)
 		stat.EtlTimestamp = &currentTime
 		err = ds.SetStat(*stat)
 		if err != nil {
@@ -157,11 +157,11 @@ func previousMidnight(t time.Time) time.Time {
 
 // setStat sets the etlTime and scoreCategories (etlJson) from the Stat
 func (es *EtlStats) setStat(stat db.Stat) error {
-	if stat.EtlJSON == nil {
+	if len(stat.EtlJSON) == 0 {
 		return fmt.Errorf("stat has no etlJSON: %v", stat)
 	}
 	var scoreCategories []request.ScoreCategory
-	err := json.Unmarshal([]byte(*stat.EtlJSON), &scoreCategories)
+	err := json.Unmarshal([]byte(stat.EtlJSON), &scoreCategories)
 	if err != nil {
 		return fmt.Errorf("decoding ScoreCategories from Stat etlJSON: %w", err)
 	}

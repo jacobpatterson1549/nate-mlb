@@ -534,8 +534,7 @@ func (d *firestoreDB) GetStat(st SportType) (*Stat, error) {
 		}
 		stat.Year = y
 		stat.SportType = st
-		b := []byte(fs.EtlJSON)
-		stat.EtlJSON = &b
+		stat.EtlJSON = fs.EtlJSON
 		stat.EtlTimestamp = fs.EtlTimestamp
 		return nil
 	}); err != nil {
@@ -550,7 +549,7 @@ func (d *firestoreDB) SetStat(stat Stat) error {
 		return fmt.Errorf("no active year to set stat for")
 	}
 	m := map[string]interface{}{
-		firestoreFieldEtlJSON:      string(*stat.EtlJSON),
+		firestoreFieldEtlJSON:      stat.EtlJSON,
 		firestoreFieldEtlTimestamp: stat.EtlTimestamp,
 	}
 	if err := withFirestoreTimeoutContext(func(ctx context.Context) error {
@@ -567,7 +566,6 @@ func (d *firestoreDB) SetStat(stat Stat) error {
 func (d *firestoreDB) ClrStat(st SportType) error {
 	stat := Stat{
 		SportType: st,
-		EtlJSON:   &[]byte{}, // TODO: yuck (make it a string)
 	}
 	if err := d.SetStat(stat); err != nil {
 		return fmt.Errorf("clear stat: %w", err)

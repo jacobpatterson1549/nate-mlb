@@ -170,7 +170,7 @@ func TestSetStat(t *testing.T) {
 	time1 := time.Date(2019, time.October, 17, 15, 41, 42, 0, time.UTC)
 	setStatTests := []struct {
 		statEtlTimestamp time.Time
-		statEtlJSON      []byte
+		statEtlJSON      string
 		wantErr          bool
 		want             EtlStats
 	}{
@@ -178,12 +178,12 @@ func TestSetStat(t *testing.T) {
 			wantErr: true,
 		},
 		{ // bad EtlJSON
-			statEtlJSON: []byte(`bad encoding`),
+			statEtlJSON: `bad encoding`,
 			wantErr:     true,
 		},
 		{ // happy path
 			statEtlTimestamp: time1,
-			statEtlJSON:      []byte(`[{"Name":"something"},{"Name":"misc","Description":"?"}]`),
+			statEtlJSON:      `[{"Name":"something"},{"Name":"misc","Description":"?"}]`,
 			want: EtlStats{
 				etlTime: time1,
 				scoreCategories: []request.ScoreCategory{
@@ -199,7 +199,7 @@ func TestSetStat(t *testing.T) {
 			EtlTimestamp: &test.statEtlTimestamp,
 		}
 		if len(test.statEtlJSON) > 0 {
-			stat.EtlJSON = &test.statEtlJSON
+			stat.EtlJSON = test.statEtlJSON
 		}
 		gotErr := es.setStat(stat)
 		switch {

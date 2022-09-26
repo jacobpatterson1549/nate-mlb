@@ -32,7 +32,7 @@ var (
 			row: struct {
 				Year         int
 				EtlTimestamp *time.Time
-				EtlJSON      *[]byte
+				EtlJSON      string
 			}{
 				Year:         2019,
 				EtlTimestamp: &testTime,
@@ -41,7 +41,7 @@ var (
 				SportType:    8,
 				Year:         2019,
 				EtlTimestamp: &testTime,
-				EtlJSON:      nil,
+				EtlJSON:      "",
 			},
 		},
 	}
