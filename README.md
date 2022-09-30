@@ -3,7 +3,7 @@ A web server which compares MLB baseball scores and NFL football scores.
 
 Built with the [Go](https://github.com/golang/go) programming language.
 
-Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
+Runs on a [Firestore](https://firebase.google.com/docs/firestore) or [PostgreSQL](https://github.com/postgres/postgres) database.
 
 [![Docker Image CI](https://github.com/jacobpatterson1549/nate-mlb/actions/workflows/docker-image.yml/badge.svg)](https://github.com/jacobpatterson1549/nate-mlb/actions/workflows/docker-image.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jacobpatterson1549/nate-mlb)](https://goreportcard.com/report/github.com/jacobpatterson1549/nate-mlb)
@@ -15,6 +15,7 @@ Runs on a [PostgreSQL](https://github.com/postgres/postgres) database.
 ## Dependencies
 New dependencies are automatically added to [go.mod](go.mod) when the project is built.
 * [pq](https://github.com/lib/pq) (PostgreSQL Driver)
+* [firestore](cloud.google.com/go/firestore) (Firestore Driver)
 * [bcrypt](https://github.com/golang/crypto) (password encryption)
 * [Bootstrap](https://github.com/twbs/bootstrap) (css, html widgets)
 * [Font-Awesome](https://github.com/FortAwesome/Font-Awesome) (icons on about page)
@@ -22,7 +23,7 @@ New dependencies are automatically added to [go.mod](go.mod) when the project is
 ## Installation
 
 ### Docker
-Launching the application with [Docker](https://www.docker.com) requires minimal configuration. 
+Launching the application with [Docker](https://www.docker.com) requires minimal configuration and runs a Postgres database locally.
 1. Install [docker-compose](https://github.com/docker/compose)
 1. Set environment variables in a `.env` file in project root (next to Dockerfile).  The ports are mapped from the container to the docker host. Sample:
 ```
@@ -39,7 +40,11 @@ APPLICATION_NAME=nate-mlb
 ### Run locally
 
 #### Database
-The server expects to use PostgreSQL database.  See [Database Setup](sql/README.md) for instructions on creating the database.
+The server expects to use a PostgreSQL or Firestore database.
+
+* **Firestore**: The `DATABASE_URL` environment parameter should be set to something like `firestore://PROJECT_ID`, where PROJECT_ID is the name of the Google project the database is tied to.   The computer running the application must be authenticated for the project.  This should not be a problem when running on the Google Cloud, but personal computers must be authenticated with `gcloud auth application-default login`.  No other configuration should be needed.
+
+* **Postgres**: See [Database Setup](sql/README.md) for instructions on creating a PostgresQL database.
 
 #### Set environment variables
 The following environment variables should be set or provided:
