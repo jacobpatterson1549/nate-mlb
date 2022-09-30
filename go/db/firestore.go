@@ -18,7 +18,6 @@ type (
 		sportTypeActiveYears map[SportType]int
 		sportTypesByName     map[string]SportType
 		sportTypeMap         SportTypeMap
-		playerTypeMap        PlayerTypeMap
 	}
 
 	firestoreTX struct {
@@ -352,12 +351,7 @@ func (d *firestoreDB) initActiveYears(ctx context.Context, doc *firestore.Docume
 }
 
 func (d *firestoreDB) GetPlayerTypes() (PlayerTypeMap, error) {
-	d.loadPlayerTypeMap()
-	return d.playerTypeMap, nil
-}
-
-func (d *firestoreDB) loadPlayerTypeMap() {
-	d.playerTypeMap = PlayerTypeMap{
+	m := PlayerTypeMap{
 		PlayerTypeMlbTeam: PlayerTypeInfo{
 			SportType:    SportTypeMlb,
 			Name:         "Teams",
@@ -401,6 +395,7 @@ func (d *firestoreDB) loadPlayerTypeMap() {
 			DisplayOrder: 6,
 		},
 	}
+	return m, nil
 }
 
 func (d *firestoreDB) GetYears(st SportType) ([]Year, error) {
