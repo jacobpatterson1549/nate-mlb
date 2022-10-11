@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -25,12 +26,16 @@ func (d sqlDB) GetStat(st SportType) (*Stat, error) {
 	stat := Stat{SportType: st}
 	sqlFunction := newReadSQLFunction("get_stat", []string{"year", "etl_timestamp", "etl_json"}, st)
 	row := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
-	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &stat.EtlJSON)
+	var etlJSON sql.NullString
+	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &etlJSON)
 	if err != nil {
 		if d.IsNotExist(err) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("getting stats: %w", err)
+	}
+	if etlJSON.Valid {
+		stat.EtlJSON = etlJSON.String
 	}
 	return &stat, nil
 }

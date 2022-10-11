@@ -175,6 +175,10 @@ func mockScan(dest, src interface{}) error {
 		case *string:
 			*d = s
 			return nil
+		case *sql.NullString:
+			d.Valid = true
+			d.String = s
+			return nil
 		}
 	case ID:
 		switch d := dest.(type) {
@@ -204,6 +208,14 @@ func mockScan(dest, src interface{}) error {
 		switch d := dest.(type) {
 		case **[]byte:
 			*d = s
+			return nil
+		}
+	case *sql.NullString:
+		switch d := dest.(type) {
+		case *sql.NullString:
+			if s != nil {
+				*d = *s
+			}
 			return nil
 		}
 	}

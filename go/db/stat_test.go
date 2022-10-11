@@ -44,6 +44,65 @@ var (
 				EtlJSON:      "",
 			},
 		},
+		{ // happy path (NULL etl JSON)
+			requestSportType: 8,
+			rowSportType:     8,
+			row: struct {
+				Year         int
+				EtlTimestamp *time.Time
+				EtlJSON      *sql.NullString
+			}{
+				Year:         2019,
+				EtlTimestamp: &testTime,
+			},
+			wantStat: &Stat{
+				SportType:    8,
+				Year:         2019,
+				EtlTimestamp: &testTime,
+				EtlJSON:      "",
+			},
+		},
+		{ // happy path (valid etl JSON)
+			requestSportType: 8,
+			rowSportType:     8,
+			row: struct {
+				Year         int
+				EtlTimestamp *time.Time
+				EtlJSON      string
+			}{
+				Year:         2019,
+				EtlTimestamp: &testTime,
+				EtlJSON:      "[42]",
+			},
+			wantStat: &Stat{
+				SportType:    8,
+				Year:         2019,
+				EtlTimestamp: &testTime,
+				EtlJSON:      "[42]",
+			},
+		},
+		{ // happy path (valid etl JSON)
+			requestSportType: 8,
+			rowSportType:     8,
+			row: struct {
+				Year         int
+				EtlTimestamp *time.Time
+				EtlJSON      *sql.NullString
+			}{
+				Year:         2019,
+				EtlTimestamp: &testTime,
+				EtlJSON: &sql.NullString{
+					String: "[42]",
+					Valid:  true,
+				},
+			},
+			wantStat: &Stat{
+				SportType:    8,
+				Year:         2019,
+				EtlTimestamp: &testTime,
+				EtlJSON:      "[42]",
+			},
+		},
 	}
 )
 
