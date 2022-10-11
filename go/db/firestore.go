@@ -14,10 +14,9 @@ import (
 
 type (
 	firestoreDB struct {
-		client               *firestore.Client
-		sportTypeActiveYears map[SportType]int
-		sportTypesByName     map[string]SportType
-		sportTypeMap         SportTypeMap
+		client       *firestore.Client
+		activeYears  map[SportType]int
+		sportTypeMap SportTypeMap
 	}
 
 	firestoreTX struct {
@@ -243,7 +242,7 @@ func (d *firestoreDB) yearsCollection(st SportType) *firestore.CollectionRef {
 }
 
 func (d *firestoreDB) activeYearDoc(st SportType) (_ *firestore.DocumentRef, ok bool) {
-	activeYear, ok := d.sportTypeActiveYears[st]
+	activeYear, ok := d.activeYears[st]
 	if !ok {
 		return nil, false
 	}
@@ -270,18 +269,19 @@ func (d *firestoreDB) playersCollection(st SportType) (_ *firestore.CollectionRe
 // ----- BEGIN QUERY/ SINGLE-EXEC FUNCTIONS -----
 
 func (d *firestoreDB) GetSportTypes() (SportTypeMap, error) {
-	d.loadSportTypeMap()
-	if err := d.loadSportTypesByName(); err != nil {
+	d.sportTypeMap = d.getSportTypes()
+	sportTypesByName, err := d.loadSportTypesByName()
+	if err != nil {
 		return nil, err
 	}
-	if err := d.loadActiveYears(); err != nil {
+	if err := d.loadActiveYears(sportTypesByName); err != nil {
 		return nil, err
 	}
 	return d.sportTypeMap, nil
 }
 
-func (d *firestoreDB) loadSportTypeMap() {
-	d.sportTypeMap = SportTypeMap{
+func (d firestoreDB) getSportTypes() SportTypeMap {
+	return SportTypeMap{
 		SportTypeMlb: SportTypeInfo{
 			Name: "MLB",
 			URL:  "mlb",
@@ -293,45 +293,32 @@ func (d *firestoreDB) loadSportTypeMap() {
 	}
 }
 
-func (d *firestoreDB) loadSportTypesByName() error {
-	d.sportTypesByName = make(map[string]SportType, len(d.sportTypeMap))
+func (d firestoreDB) loadSportTypesByName() (map[string]SportType, error) {
+	sportTypesByName := make(map[string]SportType, len(d.sportTypeMap))
 	for st, sti := range d.sportTypeMap {
-		d.sportTypesByName[sti.Name] = st
+		sportTypesByName[sti.Name] = st
 	}
-	if len(d.sportTypeMap) != len(d.sportTypesByName) {
-		return fmt.Errorf("wanted sport types to have unique names: %v", d.sportTypeMap)
+	if len(d.sportTypeMap) != len(sportTypesByName) {
+		return nil, fmt.Errorf("wanted sport types to have unique names: %v", d.sportTypeMap)
 	}
-	return nil
+	return sportTypesByName, nil
 }
 
-func (d *firestoreDB) loadActiveYears() error {
+func (d *firestoreDB) loadActiveYears(sportTypesByName map[string]SportType) error {
 	doc := d.activeYearsDocument()
 	if err := withFirestoreTimeoutContext(func(ctx context.Context) error {
 		snap, err := doc.Get(ctx)
 		if err != nil {
 			if d.IsNotExist(err) {
-				return d.initActiveYears(ctx, doc)
+				return d.initActiveYears(ctx, doc, sportTypesByName)
 			}
 			return err
 		}
-		data := snap.Data()
-		d.sportTypeActiveYears = make(map[SportType]int, len(data))
-		for name, year := range data {
-			st, ok := d.sportTypesByName[name]
-			if !ok {
-				return fmt.Errorf("unknown sport type name: %v", name)
-			}
-			if year != nil {
-				switch y := year.(type) {
-				case int64:
-					d.sportTypeActiveYears[st] = int(y)
-				case int:
-					d.sportTypeActiveYears[st] = y
-				default:
-					return fmt.Errorf("invalid active sport type year: %v", year)
-				}
-			}
+		activeYears, err := d.getActiveYears(snap, sportTypesByName)
+		if err != nil {
+			return err
 		}
+		d.activeYears = activeYears
 		return nil
 	}); err != nil {
 		return fmt.Errorf("loading active years for sport types: % w", err)
@@ -339,9 +326,31 @@ func (d *firestoreDB) loadActiveYears() error {
 	return nil
 }
 
-func (d *firestoreDB) initActiveYears(ctx context.Context, doc *firestore.DocumentRef) error {
-	data := make(map[string]interface{}, len(d.sportTypesByName))
-	for stName := range d.sportTypesByName {
+func (firestoreDB) getActiveYears(snap *firestore.DocumentSnapshot, sportTypesByName map[string]SportType) (map[SportType]int, error) {
+	data := snap.Data()
+	activeYears := make(map[SportType]int, len(data))
+	for name, year := range data {
+		st, ok := sportTypesByName[name]
+		if !ok {
+			return nil, fmt.Errorf("unknown sport type name: %v", name)
+		}
+		if year != nil {
+			switch y := year.(type) {
+			case int64:
+				activeYears[st] = int(y)
+			case int:
+				activeYears[st] = y
+			default:
+				return nil, fmt.Errorf("invalid active sport type year: %v", year)
+			}
+		}
+	}
+	return activeYears, nil
+}
+
+func (d *firestoreDB) initActiveYears(ctx context.Context, doc *firestore.DocumentRef, sportTypesByName map[string]SportType) error {
+	data := make(map[string]interface{}, len(sportTypesByName))
+	for stName := range sportTypesByName {
 		data[stName] = nil
 	}
 	if _, err := doc.Create(ctx, data); err != nil {
@@ -409,17 +418,11 @@ func (d *firestoreDB) GetYears(st SportType) ([]Year, error) {
 			}
 			return err
 		}
-		for _, snap := range snaps {
-			i, err := strconv.Atoi(snap.Ref.ID)
-			if err != nil {
-				return fmt.Errorf("invalid year: %w", err)
-			}
-			y := Year{Value: i}
-			if d.sportTypeActiveYears[st] == y.Value {
-				y.Active = true
-			}
-			years = append(years, y)
+		years2, err := d.getYears(snaps, st)
+		if err != nil {
+			return err
 		}
+		years = years2
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("get years: % w", err)
@@ -427,6 +430,22 @@ func (d *firestoreDB) GetYears(st SportType) ([]Year, error) {
 	sort.Slice(years, func(i, j int) bool {
 		return years[i].Value < years[j].Value
 	})
+	return years, nil
+}
+
+func (d firestoreDB) getYears(snaps []*firestore.DocumentSnapshot, st SportType) ([]Year, error) {
+	var years []Year
+	for _, snap := range snaps {
+		i, err := strconv.Atoi(snap.Ref.ID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid year: %w", err)
+		}
+		y := Year{Value: i}
+		if d.activeYears[st] == y.Value {
+			y.Active = true
+		}
+		years = append(years, y)
+	}
 	return years, nil
 }
 
@@ -441,18 +460,11 @@ func (d *firestoreDB) GetFriends(st SportType) ([]Friend, error) {
 		if err != nil {
 			return err
 		}
-		var ff firestoreFriend
-		for _, snap := range snaps {
-			if err := snap.DataTo(&ff); err != nil {
-				return err
-			}
-			f := Friend{
-				ID:           ID(snap.Ref.ID),
-				Name:         snap.Ref.ID,
-				DisplayOrder: ff.DisplayOrder,
-			}
-			friends = append(friends, f)
+		friends2, err := d.getFriends(snaps)
+		if err != nil {
+			return err
 		}
+		friends = friends2
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("get friends: % w", err)
@@ -460,6 +472,23 @@ func (d *firestoreDB) GetFriends(st SportType) ([]Friend, error) {
 	sort.Slice(friends, func(i, j int) bool {
 		return friends[i].Name < friends[j].Name
 	})
+	return friends, nil
+}
+
+func (firestoreDB) getFriends(snaps []*firestore.DocumentSnapshot) ([]Friend, error) {
+	var friends []Friend
+	for _, snap := range snaps {
+		var ff firestoreFriend
+		if err := snap.DataTo(&ff); err != nil {
+			return nil, err
+		}
+		f := Friend{
+			ID:           ID(snap.Ref.ID),
+			Name:         snap.Ref.ID,
+			DisplayOrder: ff.DisplayOrder,
+		}
+		friends = append(friends, f)
+	}
 	return friends, nil
 }
 
@@ -474,24 +503,11 @@ func (d *firestoreDB) GetPlayers(st SportType) ([]Player, error) {
 		if err != nil {
 			return err
 		}
-		var fp firestorePlayer
-		for _, snap := range snaps {
-			if err := snap.DataTo(&fp); err != nil {
-				return err
-			}
-			sourceID, err := strconv.Atoi(snap.Ref.ID)
-			if err != nil {
-				return err
-			}
-			p := Player{
-				ID:           ID(snap.Ref.ID),
-				PlayerType:   PlayerType(fp.PlayerType),
-				FriendID:     fp.FriendID,
-				DisplayOrder: fp.DisplayOrder,
-				SourceID:     SourceID(sourceID),
-			}
-			players = append(players, p)
+		players2, err := d.getPlayers(snaps)
+		if err != nil {
+			return err
 		}
+		players = players2
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("get players: % w", err)
@@ -505,6 +521,29 @@ func (d *firestoreDB) GetPlayers(st SportType) ([]Player, error) {
 		}
 		return players[i].DisplayOrder < players[j].DisplayOrder
 	})
+	return players, nil
+}
+
+func (firestoreDB) getPlayers(snaps []*firestore.DocumentSnapshot) ([]Player, error) {
+	var players []Player
+	for _, snap := range snaps {
+		var fp firestorePlayer
+		if err := snap.DataTo(&fp); err != nil {
+			return nil, err
+		}
+		sourceID, err := strconv.Atoi(snap.Ref.ID)
+		if err != nil {
+			return nil, err
+		}
+		p := Player{
+			ID:           ID(snap.Ref.ID),
+			PlayerType:   PlayerType(fp.PlayerType),
+			FriendID:     fp.FriendID,
+			DisplayOrder: fp.DisplayOrder,
+			SourceID:     SourceID(sourceID),
+		}
+		players = append(players, p)
+	}
 	return players, nil
 }
 
@@ -644,7 +683,7 @@ func (t *firestoreTX) DelYear(st SportType, year int) {
 }
 
 func (t *firestoreTX) SetYearActive(st SportType, year int) {
-	t.db.sportTypeActiveYears[st] = year
+	t.db.activeYears[st] = year
 	doc := t.db.activeYearsDocument()
 	sportTypeName := t.db.sportTypeMap[st].Name
 	data := map[string]interface{}{
@@ -660,10 +699,10 @@ func (t *firestoreTX) SetYearActive(st SportType, year int) {
 }
 
 func (t *firestoreTX) ClrYearActive(st SportType) {
-	if _, ok := t.db.sportTypeActiveYears[st]; !ok {
+	if _, ok := t.db.activeYears[st]; !ok {
 		return
 	}
-	delete(t.db.sportTypeActiveYears, st)
+	delete(t.db.activeYears, st)
 	doc := t.db.activeYearsDocument()
 	sportTypeName := t.db.sportTypeMap[st].Name
 	data := map[string]interface{}{
