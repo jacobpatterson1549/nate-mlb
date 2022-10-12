@@ -64,8 +64,8 @@ const (
 	add firestoreTransactionOperationClass = iota + 1
 	set
 	del
-	delPlayersWithFriendID = iota + 1
-	setPlayersWithFriendID
+	delPlayers firestoreFriendChangeClass = iota + 1
+	setPlayers
 	adminUsername              = "admin"
 	firestoreContextTimeout    = 5 * time.Second
 	firestoreFieldDisplayOrder = "display_order"
@@ -166,11 +166,11 @@ func (fc *firestoreFriendChange) updatePlayers(ctx context.Context, tx *firestor
 			continue
 		}
 		switch fc.class {
-		case delPlayersWithFriendID:
+		case delPlayers:
 			if err := tx.Delete(doc); err != nil {
 				return err
 			}
-		case setPlayersWithFriendID:
+		case setPlayers:
 			updates := []firestore.Update{
 				{
 					Path:  firestoreFieldFriendID,
@@ -766,7 +766,7 @@ func (t *firestoreTX) SetFriend(st SportType, id ID, displayOrder int, name stri
 			doc:   doc2,
 			data:  data,
 			fc: &firestoreFriendChange{
-				class:       setPlayersWithFriendID,
+				class:       setPlayers,
 				sportType:   st,
 				oldFriendID: id,
 				newFriendID: ID(name),
@@ -789,7 +789,7 @@ func (t *firestoreTX) DelFriend(st SportType, id ID) {
 		class: del,
 		doc:   doc,
 		fc: &firestoreFriendChange{
-			class:       delPlayersWithFriendID,
+			class:       delPlayers,
 			sportType:   st,
 			oldFriendID: id,
 		},
