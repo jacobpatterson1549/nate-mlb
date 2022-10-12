@@ -69,13 +69,11 @@ const (
 	adminUsername              = "admin"
 	firestoreContextTimeout    = 5 * time.Second
 	firestoreFieldDisplayOrder = "display_order"
-	firestoreFieldSportType    = "sport_type"
 	firestoreFieldPlayerType   = "player_type"
 	firestoreFieldFriendID     = "friend_id"
 	firestoreFieldEtlTimestamp = "etl_timestamp"
 	firestoreFieldEtlJSON      = "etl_json"
 	firestoreFieldPassword     = "admin_password"
-	firestoreFieldActiveYear   = "__active__"
 )
 
 func newFirestoreDB(projectID string) (*firestoreDB, error) {
