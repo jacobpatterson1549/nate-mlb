@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/firestore v1.11.0
 	github.com/lib/pq v1.10.9
 	golang.org/x/crypto v0.11.0
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.56.3
 )
 
 require (
