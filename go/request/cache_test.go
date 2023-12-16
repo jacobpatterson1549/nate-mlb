@@ -19,7 +19,7 @@ func TestNewCacheTooSmall(t *testing.T) {
 func TestContainsNo(t *testing.T) {
 	cache := NewCache(5)
 	uri := "uri"
-	got := cache.contains(uri)
+	_, got := cache.get(uri)
 	want := false
 	if want != got {
 		t.Errorf("wanted %v to not be in the cache, but it was", uri)
@@ -30,7 +30,7 @@ func TestContainsZero(t *testing.T) {
 	cache := NewCache(0)
 	uri := "uri"
 	cache.add(uri, nil)
-	got := cache.contains(uri)
+	_, got := cache.get(uri)
 	want := false
 	if want != got {
 		t.Errorf("wanted %v to not be in the cache, but it was", uri)
@@ -41,7 +41,7 @@ func TestContainsYes(t *testing.T) {
 	cache := NewCache(5)
 	uri := "uri"
 	cache.add(uri, nil)
-	got := cache.contains(uri)
+	_, got := cache.get(uri)
 	want := true
 	if want != got {
 		t.Errorf("wanted %v to be in the cache, but it was not", uri)
@@ -57,7 +57,7 @@ func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 		j := strconv.Itoa(i)
 		cache.add(j, []byte(j))
 	}
-	got := cache.contains(uri)
+	_, got := cache.get(uri)
 	want := false
 	if want != got {
 		t.Errorf("wanted %v to not be in the cache after it should be forgotten, but it was", uri)
@@ -84,7 +84,7 @@ func TestClear(t *testing.T) {
 	uri := "uri"
 	cache.add(uri, nil)
 	cache.Clear()
-	got := cache.contains(uri)
+	_, got := cache.get(uri)
 	want := false
 	if want != got {
 		t.Errorf("wanted cache to not contain uri %v after clearing, but it was present", uri)
