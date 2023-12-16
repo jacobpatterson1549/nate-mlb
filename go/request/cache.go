@@ -27,11 +27,6 @@ func NewCache(queueSize int) Cache {
 	}
 }
 
-func (c *Cache) contains(uri string) bool {
-	_, ok := c.requestValues[uri]
-	return ok
-}
-
 func (c *Cache) add(uri string, value []byte) {
 	if c.index >= len(c.requestURIs) {
 		return
