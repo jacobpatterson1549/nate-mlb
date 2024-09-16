@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"regexp"
 )
 
 // Friend contains the name of the person in the pool.
@@ -10,6 +11,8 @@ type Friend struct {
 	DisplayOrder int
 	Name         string
 }
+
+var friendNameRE = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`) // duplicated in friends.html
 
 // GetFriends gets the friends for the active year for a SportType
 func (ds Datastore) GetFriends(st SportType) ([]Friend, error) {
@@ -65,6 +68,12 @@ func (ds Datastore) SaveFriends(st SportType, futureFriends []Friend) error {
 	t, err := ds.db.begin()
 	if err != nil {
 		return err
+	}
+	for _, f := range append(updateFriends, insertFriends...) {
+		if !friendNameRE.MatchString(f.Name) {
+			return fmt.Errorf("invalid friend name '%v'"+
+				"- can only contain, digits, hyphens, or underscores", f.Name)
+		}
 	}
 	for deleteFriendID := range previousFriends {
 		t.DelFriend(st, deleteFriendID)
