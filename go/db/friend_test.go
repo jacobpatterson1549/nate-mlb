@@ -135,6 +135,7 @@ func TestSaveFriends(t *testing.T) {
 		getFriendsErr           error
 		executeInTransactionErr error
 		wantQueryArgs           [][]interface{}
+		wantValidationError     bool
 	}{
 		{},
 		{ // happy path
@@ -147,7 +148,7 @@ func TestSaveFriends(t *testing.T) {
 				},
 				{
 					DisplayOrder: 1,
-					Name:         "new alice",
+					Name:         "new-alice",
 				},
 				{
 					ID:           "7",
@@ -184,10 +185,24 @@ func TestSaveFriends(t *testing.T) {
 			},
 			wantQueryArgs: [][]interface{}{
 				{ID("1"), SportType(9)}, // alfred
-				{1, "new alice", SportType(9)},
+				{1, "new-alice", SportType(9)},
 				{2, "bobby", ID("8"), SportType(9)},
 				{3, "curt", ID("7"), SportType(9)},
 			},
+		},
+		{
+			st: 9,
+			futureFriends: []Friend{
+				{
+					DisplayOrder: 2,
+					Name:         "no spaces allowed in name",
+				},
+				{
+					DisplayOrder: 1,
+					Name:         "no+special!chars",
+				},
+			},
+			wantValidationError: true,
 		},
 		{
 			getFriendsErr: errors.New("getFriends error"),
@@ -220,7 +235,7 @@ func TestSaveFriends(t *testing.T) {
 				BeginFunc: newMockBeginFunc(test.executeInTransactionErr, executeInTransactionFunc),
 			}},
 		}
-		wantErr := test.getFriendsErr != nil || test.executeInTransactionErr != nil
+		wantErr := test.getFriendsErr != nil || test.executeInTransactionErr != nil || test.wantValidationError
 		gotErr := ds.SaveFriends(test.st, test.futureFriends)
 		hadErr := gotErr != nil
 		if wantErr != hadErr {
@@ -231,6 +246,8 @@ func TestSaveFriends(t *testing.T) {
 			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.getFriendsErr, gotErr)
 		case test.executeInTransactionErr != nil && !errors.Is(gotErr, test.executeInTransactionErr):
 			t.Errorf("Test %v: wanted error to be %v, got %v", i, test.executeInTransactionErr, gotErr)
+		case test.wantValidationError && !hadErr:
+			t.Errorf("Test %v: wanted error validating friends", i)
 		}
 	}
 }
