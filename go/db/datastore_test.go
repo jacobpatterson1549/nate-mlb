@@ -286,7 +286,7 @@ func TestNewSQLDatastore(t *testing.T) {
 						default:
 							queryErr = fmt.Errorf("unknown query: %v", query)
 						}
-						i := 0
+						j := 0
 						return mockDriverRows{
 							CloseFunc: func() error {
 								return nil
@@ -295,12 +295,12 @@ func TestNewSQLDatastore(t *testing.T) {
 								return columns
 							},
 							NextFunc: func(dest []driver.Value) error {
-								if i == len(srcRows) {
+								if j == len(srcRows) {
 									return io.EOF
 								}
-								src := srcRows[i]
+								src := srcRows[j]
 								copy(dest, src)
-								i++
+								j++
 								return nil
 							},
 						}, queryErr
