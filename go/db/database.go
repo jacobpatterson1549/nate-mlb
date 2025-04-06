@@ -45,13 +45,13 @@ type (
 )
 
 func newSQLDatabase(driverName, dataSourceName string) (*sqlDB, error) {
-	sqlDb, err := sql.Open(driverName, dataSourceName)
+	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("opening database %v", err)
 	}
 	d := sqlDB{
 		db: sqlDatabase{
-			db: sqlDb,
+			db: db,
 		},
 	}
 	return &d, nil

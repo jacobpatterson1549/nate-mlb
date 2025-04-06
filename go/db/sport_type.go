@@ -37,9 +37,9 @@ func (ds Datastore) GetSportTypes() (SportTypeMap, error) {
 	return sportTypes, nil
 }
 
-func (ds sqlDB) GetSportTypes() (SportTypeMap, error) {
+func (d sqlDB) GetSportTypes() (SportTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
-	rows, err := ds.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading sportTypes: %w", err)
 	}
