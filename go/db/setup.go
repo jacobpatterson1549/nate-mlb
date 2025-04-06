@@ -60,14 +60,13 @@ func (d sqlDB) SetupTablesAndFunctions(fsys fs.ReadFileFS) error {
 		return fmt.Errorf("starting database setup: %w", err)
 	}
 	for _, sql := range queries {
-		_, err := tx.Exec(sql)
-		if err != nil {
-			err = fmt.Errorf("setting: %w\nquery: %v", err, strings.TrimSpace(sql))
+		if _, err2 := tx.Exec(sql); err2 != nil {
+			err2 = fmt.Errorf("setting: %w\nquery: %v", err2, strings.TrimSpace(sql))
 			rollbackErr := tx.Rollback()
 			if rollbackErr != nil {
-				err = fmt.Errorf("%v, ROLLBACK ERROR: %w", err, rollbackErr)
+				err2 = fmt.Errorf("%v, ROLLBACK ERROR: %w", err, rollbackErr)
 			}
-			return err
+			return err2
 		}
 	}
 	err = tx.Commit()

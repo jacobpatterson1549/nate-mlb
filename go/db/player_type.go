@@ -45,11 +45,11 @@ func (ds Datastore) GetPlayerTypes() (PlayerTypeMap, error) {
 
 func (d sqlDB) GetPlayerTypes() (PlayerTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_player_types", []string{"id", "sport_type_id", "name", "description", "score_type"})
-	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rs, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading playerTypes: %w", err)
 	}
-	defer rows.Close()
+	defer rs.Close()
 
 	var (
 		id          PlayerType
@@ -60,8 +60,8 @@ func (d sqlDB) GetPlayerTypes() (PlayerTypeMap, error) {
 	)
 	playerTypes := make(map[PlayerType]PlayerTypeInfo)
 	displayOrder := 0
-	for rows.Next() {
-		err = rows.Scan(&id, &sportType, &name, &description, &scoreType)
+	for rs.Next() {
+		err = rs.Scan(&id, &sportType, &name, &description, &scoreType)
 		if err != nil {
 			return nil, fmt.Errorf("reading player type: %w", err)
 		}

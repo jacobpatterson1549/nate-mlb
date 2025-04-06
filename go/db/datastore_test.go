@@ -112,11 +112,11 @@ func TestSqlTXExecute(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		sqlTX := sqlTX{
+		sTX := sqlTX{
 			tx:      tx,
 			queries: test.queries,
 		}
-		gotErr := sqlTX.execute()
+		gotErr := sTX.execute()
 		switch {
 		case gotErr == nil:
 			if test.execErr != nil || test.commitErr != nil {
@@ -248,7 +248,7 @@ func TestNewSQLDatastore(t *testing.T) {
 			fs:  test.fs,
 			log: log.New(io.Discard, "test", log.LstdFlags),
 		}
-		mockDriverConn := mockDriverConn{
+		mockDC := mockDriverConn{
 			PrepareFunc: func(query string) (driver.Stmt, error) {
 				return mockDriverStmt{
 					CloseFunc: func() error {
@@ -320,9 +320,9 @@ func TestNewSQLDatastore(t *testing.T) {
 			pingAttempt++
 			switch {
 			case test.newDatabaseErr != nil:
-				return mockDriverConn, test.newDatabaseErr
+				return mockDC, test.newDatabaseErr
 			default:
-				return mockDriverConn, nil
+				return mockDC, nil
 			}
 		}
 		db, err := newSQLDatabase(test.sqlDriverName, cfg.dataSourceName)

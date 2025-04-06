@@ -39,11 +39,11 @@ func (ds Datastore) GetSportTypes() (SportTypeMap, error) {
 
 func (d sqlDB) GetSportTypes() (SportTypeMap, error) {
 	sqlFunction := newReadSQLFunction("get_sport_types", []string{"id", "name", "url"})
-	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rs, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading sportTypes: %w", err)
 	}
-	defer rows.Close()
+	defer rs.Close()
 
 	var (
 		id   SportType
@@ -52,8 +52,8 @@ func (d sqlDB) GetSportTypes() (SportTypeMap, error) {
 	)
 	sportTypes := make(map[SportType]SportTypeInfo)
 	displayOrder := 0
-	for rows.Next() {
-		err = rows.Scan(&id, &name, &url)
+	for rs.Next() {
+		err = rs.Scan(&id, &name, &url)
 		if err != nil {
 			return nil, fmt.Errorf("reading SportType: %w", err)
 		}
