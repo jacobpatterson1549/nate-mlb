@@ -197,8 +197,8 @@ func TestMlbPlayerRequestScoreCategory(t *testing.T) {
 			return "" // will cause json unmarshal error
 		}
 		r := newMockHTTPRequester(jsonFunc)
-		mlbPlayerRequester := mlbPlayerRequester{requester: r}
-		got, err := mlbPlayerRequester.RequestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
+		mlbPlayerR := mlbPlayerRequester{requester: r}
+		got, err := mlbPlayerR.RequestScoreCategory(test.pt, db.PlayerTypeInfo{}, 2019, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {

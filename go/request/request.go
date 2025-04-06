@@ -37,32 +37,32 @@ func NewRequesters(httpClient HTTPClient, c Cache, nflAppKey, environment string
 		logRequestURIs: logRequestURIs,
 		log:            log,
 	}
-	nflRequester := nflRequester{
+	nflR := nflRequester{
 		appKey:    nflAppKey,
 		requester: &r,
 	}
 
-	mlbTeamRequester := mlbTeamRequester{requester: &r}
-	mlbPlayerScoreCategorizer := mlbPlayerRequester{requester: &r}
-	mlbPlayerSearcher := mlbPlayerSearcher{requester: &r}
-	nflTeamRequester := nflTeamRequester{requester: &nflRequester}
-	nflPlayerRequester := nflPlayerRequester{requester: &nflRequester}
+	mlbTeamR := mlbTeamRequester{requester: &r}
+	mlbPlayerR := mlbPlayerRequester{requester: &r}
+	mlbPlayerS := mlbPlayerSearcher{requester: &r}
+	nflTeamR := nflTeamRequester{requester: &nflR}
+	nflPlayerR := nflPlayerRequester{requester: &nflR}
 
 	scoreCategorizers := make(map[db.PlayerType]ScoreCategorizer)
-	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamRequester
-	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerScoreCategorizer
-	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerScoreCategorizer
-	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamRequester
-	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerRequester
-	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerRequester
+	scoreCategorizers[db.PlayerTypeMlbTeam] = &mlbTeamR
+	scoreCategorizers[db.PlayerTypeMlbHitter] = &mlbPlayerR
+	scoreCategorizers[db.PlayerTypeMlbPitcher] = &mlbPlayerR
+	scoreCategorizers[db.PlayerTypeNflTeam] = &nflTeamR
+	scoreCategorizers[db.PlayerTypeNflQB] = &nflPlayerR
+	scoreCategorizers[db.PlayerTypeNflMisc] = &nflPlayerR
 
 	searchers := make(map[db.PlayerType]Searcher)
-	searchers[db.PlayerTypeMlbTeam] = &mlbTeamRequester
-	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerSearcher
-	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerSearcher
-	searchers[db.PlayerTypeNflTeam] = &nflTeamRequester
-	searchers[db.PlayerTypeNflQB] = &nflPlayerRequester
-	searchers[db.PlayerTypeNflMisc] = &nflPlayerRequester
+	searchers[db.PlayerTypeMlbTeam] = &mlbTeamR
+	searchers[db.PlayerTypeMlbHitter] = &mlbPlayerS
+	searchers[db.PlayerTypeMlbPitcher] = &mlbPlayerS
+	searchers[db.PlayerTypeNflTeam] = &nflTeamR
+	searchers[db.PlayerTypeNflQB] = &nflPlayerR
+	searchers[db.PlayerTypeNflMisc] = &nflPlayerR
 
 	aboutRequester := AboutRequester{environment: environment, requester: &r}
 
