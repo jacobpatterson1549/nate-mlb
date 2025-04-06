@@ -313,7 +313,7 @@ func (s Server) handleExport(st db.SportType, w http.ResponseWriter, r *http.Req
 	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", s.DisplayName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	if err := exportToCsv(es, s.DisplayName, w); err != nil {
+	if err := exportToCsv(*es, s.DisplayName, w); err != nil {
 		s.handleError(w, err)
 	}
 }
@@ -345,8 +345,8 @@ func (s Server) parseTemplate(w http.ResponseWriter, p Page) (*template.Template
 		return nil, fmt.Errorf("reading js filenames: %w", err)
 	}
 	for _, jsFilename := range jsFilenames {
-		t2, err := template.ParseFS(s.JavascriptFS, jsFilename)
-		if err != nil {
+		t2, err2 := template.ParseFS(s.JavascriptFS, jsFilename)
+		if err2 != nil {
 			return nil, fmt.Errorf("loading template js file: %v: %w", jsFilename, err)
 		}
 		t.AddParseTree(jsFilename, t2.Tree)
