@@ -127,7 +127,7 @@ func startupFuncs(mainFlags *mainFlags, log *log.Logger) []func() error {
 			DisplayName:  mainFlags.applicationName,
 			NflAppKey:    mainFlags.nflAppKey,
 			Port:         mainFlags.port,
-			HtmlFS:       htmlFS,
+			HTMLFS:       htmlFS,
 			JavascriptFS: jsFS,
 			StaticFS:     staticFS,
 		}

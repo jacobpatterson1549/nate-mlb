@@ -28,9 +28,9 @@ func (ds Datastore) getUserPassword(username string) (string, error) {
 
 func (d sqlDB) GetUserPassword(username string) (string, error) {
 	sqlFunction := newReadSQLFunction("get_user_password", []string{"password"}, username)
-	row := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
+	r := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	var password string
-	err := row.Scan(&password)
+	err := r.Scan(&password)
 	if err != nil {
 		return password, fmt.Errorf("getting password for user %v: %w", username, err)
 	}

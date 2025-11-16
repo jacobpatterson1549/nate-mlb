@@ -557,12 +557,12 @@ func (d *firestoreDB) GetStat(st SportType) (*Stat, error) {
 			return err
 		}
 		var fs firestoreStat
-		if err := snap.DataTo(&fs); err != nil {
-			return err
+		if err2 := snap.DataTo(&fs); err2 != nil {
+			return err2
 		}
-		y, err := strconv.Atoi(snap.Ref.ID)
-		if err != nil {
-			return err
+		y, err2 := strconv.Atoi(snap.Ref.ID)
+		if err2 != nil {
+			return err2
 		}
 		stat.Year = y
 		stat.SportType = st

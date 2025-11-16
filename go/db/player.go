@@ -25,17 +25,17 @@ func (ds Datastore) GetPlayers(st SportType) ([]Player, error) {
 
 func (d sqlDB) GetPlayers(st SportType) ([]Player, error) {
 	sqlFunction := newReadSQLFunction("get_players", []string{"id", "player_type_id", "source_id", "friend_id", "display_order"}, st)
-	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rs, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading players: %w", err)
 	}
-	defer rows.Close()
+	defer rs.Close()
 
 	var players []Player
 	i := 0
-	for rows.Next() {
+	for rs.Next() {
 		players = append(players, Player{})
-		err = rows.Scan(&players[i].ID, &players[i].PlayerType, &players[i].SourceID, &players[i].FriendID, &players[i].DisplayOrder)
+		err = rs.Scan(&players[i].ID, &players[i].PlayerType, &players[i].SourceID, &players[i].FriendID, &players[i].DisplayOrder)
 		if err != nil {
 			return nil, fmt.Errorf("reading player: %w", err)
 		}

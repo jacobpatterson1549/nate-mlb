@@ -320,7 +320,7 @@ func init() {
 }
 func TestSQLDatabaseMethods(t *testing.T) {
 	var pingCalled, queryCalled, queryRowCalled, execCalled, beginTransactionCalled int
-	mockDriverConn := mockDriverConn{
+	mockDC := mockDriverConn{
 		PrepareFunc: func(query string) (driver.Stmt, error) {
 			return mockDriverStmt{
 				CloseFunc: func() error {
@@ -351,7 +351,7 @@ func TestSQLDatabaseMethods(t *testing.T) {
 	}
 	testSQLDatabaseMethodsDriver.OpenFunc = func(name string) (driver.Conn, error) {
 		pingCalled++
-		return mockDriverConn, nil
+		return mockDC, nil
 	}
 	d, err := newSQLDatabase("TestSQLDatabaseMethods", "mockDataSourceName")
 	if err != nil {

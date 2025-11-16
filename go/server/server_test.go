@@ -129,7 +129,7 @@ func TestNew(t *testing.T) {
 			Port:           test.port,
 			NflAppKey:      "dummyNflAppKey",
 			LogRequestURIs: logRequestURIs,
-			HtmlFS:         htmlFS,
+			HTMLFS:         htmlFS,
 			JavascriptFS:   jsFS,
 			StaticFS:       staticFS,
 		}
@@ -158,9 +158,9 @@ func TestNew(t *testing.T) {
 			t.Errorf("Test %v: wanted log %v, got %v", i, &log, &s.log)
 		case s.ds == nil:
 			t.Errorf("Test %v: data store not set", i)
-		case !reflect.DeepEqual(htmlFS, s.HtmlFS):
-			t.Errorf("Test %v: wanted html fs %v, got %v", i, &htmlFS, &s.HtmlFS)
-		case !reflect.DeepEqual(jsFS, s.HtmlFS):
+		case !reflect.DeepEqual(htmlFS, s.HTMLFS):
+			t.Errorf("Test %v: wanted html fs %v, got %v", i, &htmlFS, &s.HTMLFS)
+		case !reflect.DeepEqual(jsFS, s.HTMLFS):
 			t.Errorf("Test %v: wanted js fs %v, got %v", i, &jsFS, &s.JavascriptFS)
 		case !reflect.DeepEqual(staticFS, s.StaticFS):
 			t.Errorf("Test %v: wanted static fs %v, got %v", i, &staticFS, &s.StaticFS)
@@ -257,7 +257,7 @@ func TestServerHandlers(t *testing.T) {
 		}
 		s := Server{
 			Config: Config{
-				HtmlFS:       htmlFS,
+				HTMLFS:       htmlFS,
 				JavascriptFS: jsFS,
 				StaticFS:     staticFS,
 			},

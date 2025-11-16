@@ -39,36 +39,48 @@ type (
 )
 
 // getEtlStats retrieves, calculates, and caches the player stats
-func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) (EtlStats, error) {
+func getEtlStats(st db.SportType, ds etlDatastore, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) (*EtlStats, error) {
 	currentTime := ds.GetUtcTime()
 	es := EtlStats{
 		etlRefreshTime: previousMidnight(currentTime),
 	}
 	stat, err := ds.GetStat(st)
-	if err != nil || stat == nil {
-		return es, err
+	if err != nil {
+		return nil, err
+	}
+	if stat == nil {
+		return &es, nil
 	}
 	es.sportTypeName = ds.SportTypes()[st].Name
 	es.sportType = st
 	es.year = stat.Year
-	if stat.EtlTimestamp == nil || len(stat.EtlJSON) == 0 || stat.EtlTimestamp.Before(es.etlRefreshTime) {
-		scoreCategories, err := getScoreCategories(st, ds, es.year, scoreCategorizers)
+	if err := updateStat(stat, st, ds, scoreCategorizers, es.etlRefreshTime, currentTime); err != nil {
+		return nil, err
+	}
+	if err := es.setStat(*stat); err != nil {
+		return nil, err
+	}
+	return &es, nil
+}
+
+func updateStat(stat *db.Stat, st db.SportType, ds etlDatastore, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer, etlRefreshTime, currentTime time.Time) error {
+	if stat.EtlTimestamp == nil || len(stat.EtlJSON) == 0 || stat.EtlTimestamp.Before(etlRefreshTime) {
+		scoreCategories, err := getScoreCategories(st, ds, stat.Year, scoreCategorizers)
 		if err != nil {
-			return es, err
+			return err
 		}
 		etlJSON, err := json.Marshal(scoreCategories)
 		if err != nil {
-			return es, fmt.Errorf("converting stats to json for sportType %v, year %v: %w", es.sportType, es.year, err)
+			return fmt.Errorf("converting stats to json for sportType %v, year %v: %w", st, stat.Year, err)
 		}
 		stat.EtlJSON = string(etlJSON)
 		stat.EtlTimestamp = &currentTime
 		err = ds.SetStat(*stat)
 		if err != nil {
-			return es, err
+			return err
 		}
 	}
-	err = es.setStat(*stat)
-	return es, err
+	return nil
 }
 
 func getScoreCategories(st db.SportType, ds etlDatastore, year int, scoreCategorizers map[db.PlayerType]request.ScoreCategorizer) ([]request.ScoreCategory, error) {

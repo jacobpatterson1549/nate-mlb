@@ -82,11 +82,11 @@ func NewDatastore(dataSourceName string, log *log.Logger, fs fs.ReadFileFS) (*Da
 		log:            log,
 		fs:             fs,
 	}
-	db, err := cfg.newDatabase()
+	d, err := cfg.newDatabase()
 	if err != nil {
 		return nil, err
 	}
-	return cfg.newDatastore(db)
+	return cfg.newDatastore(d)
 }
 
 // newDatabase creates a database from the dataSourceName in the config
@@ -95,18 +95,18 @@ func (cfg datastoreConfig) newDatabase() (db, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parsing data source: %w", err)
 	}
-	var db db
+	var d db
 	switch url.Scheme {
 	case "postgres":
-		db, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
+		d, err = newSQLDatabase(url.Scheme, cfg.dataSourceName)
 	case "firestore":
 		projectID := url.Host
-		db, err = newFirestoreDB(projectID)
+		d, err = newFirestoreDB(projectID)
 	}
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return d, nil
 }
 
 // tewDataStore creates a datastore using the database

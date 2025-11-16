@@ -51,8 +51,8 @@ func TestMlbTeamRequestScoreCategory(t *testing.T) {
 			return test.teamsJSON
 		}
 		r := newMockHTTPRequester(jsonFunc)
-		mlbTeamRequester := mlbTeamRequester{requester: r}
-		got, err := mlbTeamRequester.RequestScoreCategory(db.PlayerTypeMlbTeam, db.PlayerTypeInfo{}, 2001, test.friends, test.players)
+		mlbTeamR := mlbTeamRequester{requester: r}
+		got, err := mlbTeamR.RequestScoreCategory(db.PlayerTypeMlbTeam, db.PlayerTypeInfo{}, 2001, test.friends, test.players)
 		switch {
 		case test.wantErr:
 			if err == nil {
@@ -96,8 +96,8 @@ func TestMlbTeamPlayerSearchResults(t *testing.T) {
 			return test.teamsJSON
 		}
 		r := newMockHTTPRequester(jsonFunc)
-		mlbTeamRequester := mlbTeamRequester{requester: r}
-		got, err := mlbTeamRequester.Search(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
+		mlbTeamR := mlbTeamRequester{requester: r}
+		got, err := mlbTeamR.Search(db.PlayerTypeMlbTeam, 2019, test.playerNamePrefix, true)
 		switch {
 		case test.wantErr:
 			if err == nil {

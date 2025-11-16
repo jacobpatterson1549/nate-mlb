@@ -75,10 +75,10 @@ func (r *mlbPlayerRequester) RequestScoreCategory(pt db.PlayerType, ptInfo db.Pl
 			select {
 			case err := <-quit:
 				return scoreCategory, err
-			case playerName := <-playerNamesCh:
-				playerNames[playerName.sourceID] = playerName.name
-			case playerStat := <-playerStatsCh:
-				playerStats[playerStat.sourceID] = playerStat.stat
+			case pn := <-playerNamesCh:
+				playerNames[pn.sourceID] = pn.name
+			case ps := <-playerStatsCh:
+				playerStats[ps.sourceID] = ps.stat
 			}
 			i++
 			if i == len(sourceIDs)*2 {

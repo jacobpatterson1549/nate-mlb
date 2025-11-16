@@ -21,17 +21,17 @@ func (ds Datastore) GetFriends(st SportType) ([]Friend, error) {
 
 func (d sqlDB) GetFriends(st SportType) ([]Friend, error) {
 	sqlFunction := newReadSQLFunction("get_friends", []string{"id", "display_order", "name"}, st)
-	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rs, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading friends: %w", err)
 	}
-	defer rows.Close()
+	defer rs.Close()
 
 	var friends []Friend
 	i := 0
-	for rows.Next() {
+	for rs.Next() {
 		friends = append(friends, Friend{})
-		err = rows.Scan(&friends[i].ID, &friends[i].DisplayOrder, &friends[i].Name)
+		err = rs.Scan(&friends[i].ID, &friends[i].DisplayOrder, &friends[i].Name)
 		if err != nil {
 			return nil, fmt.Errorf("reading friend: %w", err)
 		}

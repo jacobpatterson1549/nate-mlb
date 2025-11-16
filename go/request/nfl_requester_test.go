@@ -22,11 +22,11 @@ func TestStructPointerFromURI(t *testing.T) {
 			}
 			return ""
 		}
-		requester := newMockHTTPRequester(jsonFunc)
-		nflRequester := nflRequester{
+		r := newMockHTTPRequester(jsonFunc)
+		nflR := nflRequester{
 			appKey:    "XYZ",
-			requester: requester,
+			requester: r,
 		}
-		nflRequester.structPointerFromURI(providedURI, nil)
+		nflR.structPointerFromURI(providedURI, nil)
 	}
 }

@@ -1,8 +1,10 @@
 <table class="card-table table">
     <caption class="d-none">Player scores for {{.Name}}</caption>
     <thead class="d-none">
-        <th scope="col">Player Name</th>
-        <th scope="col">Score</th>
+        <tr>
+            <th scope="col">Player Name</th>
+            <th scope="col">Score</th>
+        </tr>
     </thead>
     <tbody>
         {{ range .PlayerScores -}}
@@ -14,7 +16,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td>
+            <td colspan="2">
                 <h4 class="text-danger">{{.ScoreType}}: {{.Score}}</h4>
             </td>
         </tr>

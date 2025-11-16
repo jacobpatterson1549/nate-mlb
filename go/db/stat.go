@@ -25,9 +25,9 @@ func (ds Datastore) GetStat(st SportType) (*Stat, error) {
 func (d sqlDB) GetStat(st SportType) (*Stat, error) {
 	stat := Stat{SportType: st}
 	sqlFunction := newReadSQLFunction("get_stat", []string{"year", "etl_timestamp", "etl_json"}, st)
-	row := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
+	r := d.db.QueryRow(sqlFunction.sql(), sqlFunction.args...)
 	var etlJSON sql.NullString
-	err := row.Scan(&stat.Year, &stat.EtlTimestamp, &etlJSON)
+	err := r.Scan(&stat.Year, &stat.EtlTimestamp, &etlJSON)
 	if err != nil {
 		if d.IsNotExist(err) {
 			return nil, nil

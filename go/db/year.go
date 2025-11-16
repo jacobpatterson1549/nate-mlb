@@ -17,19 +17,19 @@ func (ds Datastore) GetYears(st SportType) ([]Year, error) {
 
 func (d sqlDB) GetYears(st SportType) ([]Year, error) {
 	sqlFunction := newReadSQLFunction("get_years", []string{"year", "active"}, st)
-	rows, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
+	rs, err := d.db.Query(sqlFunction.sql(), sqlFunction.args...)
 	if err != nil {
 		return nil, fmt.Errorf("reading years: %w", err)
 	}
-	defer rows.Close()
+	defer rs.Close()
 
 	var years []Year
 	activeYearFound := false
 	var active bool
 	i := 0
-	for rows.Next() {
+	for rs.Next() {
 		years = append(years, Year{})
-		err = rows.Scan(&years[i].Value, &active)
+		err = rs.Scan(&years[i].Value, &active)
 		if err != nil {
 			return years, fmt.Errorf("reading year: %w", err)
 		}

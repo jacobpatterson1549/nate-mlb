@@ -25,7 +25,7 @@ type (
 		Port           string
 		NflAppKey      string
 		LogRequestURIs bool
-		HtmlFS         fs.FS
+		HTMLFS         fs.FS
 		JavascriptFS   fs.FS
 		StaticFS       fs.FS
 	}
@@ -100,7 +100,7 @@ func (cfg Config) validate() error {
 		return fmt.Errorf("invalid port number: %s", cfg.Port)
 	}
 	switch {
-	case cfg.HtmlFS == nil:
+	case cfg.HTMLFS == nil:
 		return fmt.Errorf("html filesystem required")
 	case cfg.JavascriptFS == nil:
 		return fmt.Errorf("javascript filesystem required")
@@ -313,7 +313,7 @@ func (s Server) handleExport(st db.SportType, w http.ResponseWriter, r *http.Req
 	fileName := fmt.Sprintf("%s_%s-%d_%s.csv", s.DisplayName, es.sportTypeName, es.year, asOfDate)
 	contentDisposition := fmt.Sprintf(`attachment; filename="%s"`, fileName)
 	w.Header().Set("Content-Disposition", contentDisposition)
-	if err := exportToCsv(es, s.DisplayName, w); err != nil {
+	if err := exportToCsv(*es, s.DisplayName, w); err != nil {
 		s.handleError(w, err)
 	}
 }
@@ -332,11 +332,11 @@ func (s Server) renderTemplate(w http.ResponseWriter, p Page) {
 
 func (s Server) parseTemplate(w http.ResponseWriter, p Page) (*template.Template, error) {
 	t := template.New("main.html")
-	_, err := t.ParseFS(s.HtmlFS, "html/main/*.html")
+	_, err := t.ParseFS(s.HTMLFS, "html/main/*.html")
 	if err != nil {
 		return nil, fmt.Errorf("loading template main files: %w", err)
 	}
-	_, err = t.ParseFS(s.HtmlFS, p.htmlFolderNameGlob())
+	_, err = t.ParseFS(s.HTMLFS, p.htmlFolderNameGlob())
 	if err != nil {
 		return nil, fmt.Errorf("loading template page files: %w", err)
 	}
@@ -345,14 +345,11 @@ func (s Server) parseTemplate(w http.ResponseWriter, p Page) (*template.Template
 		return nil, fmt.Errorf("reading js filenames: %w", err)
 	}
 	for _, jsFilename := range jsFilenames {
-		t2, err := template.ParseFS(s.JavascriptFS, jsFilename)
-		if err != nil {
+		t2, err2 := template.ParseFS(s.JavascriptFS, jsFilename)
+		if err2 != nil {
 			return nil, fmt.Errorf("loading template js file: %v: %w", jsFilename, err)
 		}
 		t.AddParseTree(jsFilename, t2.Tree)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("loading template js files: %w", err)
 	}
 	if _, err = t.ParseFS(s.StaticFS, "static/main.css"); err != nil {
 		return nil, fmt.Errorf("loading template css file: %w", err)

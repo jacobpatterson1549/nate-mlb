@@ -112,11 +112,11 @@ func TestSqlTXExecute(t *testing.T) {
 				return test.rollbackErr
 			},
 		}
-		sqlTX := sqlTX{
+		sTX := sqlTX{
 			tx:      tx,
 			queries: test.queries,
 		}
-		gotErr := sqlTX.execute()
+		gotErr := sTX.execute()
 		switch {
 		case gotErr == nil:
 			if test.execErr != nil || test.commitErr != nil {
@@ -248,7 +248,7 @@ func TestNewSQLDatastore(t *testing.T) {
 			fs:  test.fs,
 			log: log.New(io.Discard, "test", log.LstdFlags),
 		}
-		mockDriverConn := mockDriverConn{
+		mockDC := mockDriverConn{
 			PrepareFunc: func(query string) (driver.Stmt, error) {
 				return mockDriverStmt{
 					CloseFunc: func() error {
@@ -286,7 +286,7 @@ func TestNewSQLDatastore(t *testing.T) {
 						default:
 							queryErr = fmt.Errorf("unknown query: %v", query)
 						}
-						i := 0
+						j := 0
 						return mockDriverRows{
 							CloseFunc: func() error {
 								return nil
@@ -295,12 +295,12 @@ func TestNewSQLDatastore(t *testing.T) {
 								return columns
 							},
 							NextFunc: func(dest []driver.Value) error {
-								if i == len(srcRows) {
+								if j == len(srcRows) {
 									return io.EOF
 								}
-								src := srcRows[i]
+								src := srcRows[j]
 								copy(dest, src)
-								i++
+								j++
 								return nil
 							},
 						}, queryErr
@@ -320,9 +320,9 @@ func TestNewSQLDatastore(t *testing.T) {
 			pingAttempt++
 			switch {
 			case test.newDatabaseErr != nil:
-				return mockDriverConn, test.newDatabaseErr
+				return mockDC, test.newDatabaseErr
 			default:
-				return mockDriverConn, nil
+				return mockDC, nil
 			}
 		}
 		db, err := newSQLDatabase(test.sqlDriverName, cfg.dataSourceName)

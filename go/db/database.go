@@ -11,7 +11,6 @@ type (
 	// (https://github.com/EndFirstCorp/onedb)
 	sqlDatabase struct {
 		db *sql.DB
-		database
 	}
 
 	database interface {
@@ -44,14 +43,16 @@ type (
 	}
 )
 
+var _ database = new(sqlDatabase)
+
 func newSQLDatabase(driverName, dataSourceName string) (*sqlDB, error) {
-	sqlDb, err := sql.Open(driverName, dataSourceName)
+	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, fmt.Errorf("opening database %v", err)
 	}
 	d := sqlDB{
 		db: sqlDatabase{
-			db: sqlDb,
+			db: db,
 		},
 	}
 	return &d, nil
