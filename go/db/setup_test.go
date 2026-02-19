@@ -70,7 +70,7 @@ func TestSetupTablesAndFunctions(t *testing.T) {
 		rollbackCalled := false
 		execFuncQueries := ""
 		tx := mockTransaction{
-			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+			ExecFunc: func(query string, args ...any) (sql.Result, error) {
 				if test.execErr != nil {
 					return nil, test.execErr
 				}

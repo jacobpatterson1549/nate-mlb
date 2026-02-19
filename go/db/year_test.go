@@ -11,7 +11,7 @@ var getYearsTests = []struct {
 	requestSportType SportType
 	rowsSportType    SportType
 	queryErr         error
-	rows             []interface{}
+	rows             []any
 	wantSlice        []Year
 	wantErr          bool
 }{
@@ -23,7 +23,7 @@ var getYearsTests = []struct {
 	{ // incorrect sportType
 		requestSportType: 1,
 		rowsSportType:    2,
-		rows: []interface{}{
+		rows: []any{
 			Year{
 				Value:  2019,
 				Active: true,
@@ -33,7 +33,7 @@ var getYearsTests = []struct {
 	{ // happy path
 		requestSportType: 3,
 		rowsSportType:    3,
-		rows: []interface{}{
+		rows: []any{
 			Year{
 				Value:  2017,
 				Active: false,
@@ -65,7 +65,7 @@ var getYearsTests = []struct {
 	{ // multiple active
 		requestSportType: 1,
 		rowsSportType:    1,
-		rows: []interface{}{
+		rows: []any{
 			Year{
 				Value:  2020,
 				Active: true,
@@ -80,7 +80,7 @@ var getYearsTests = []struct {
 	{ // scan error
 		requestSportType: 1,
 		rowsSportType:    1,
-		rows: []interface{}{
+		rows: []any{
 			struct {
 				Value  string
 				Active int
@@ -97,12 +97,12 @@ func TestGetYears(t *testing.T) {
 	for i, test := range getYearsTests {
 		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
 					}
 					if test.requestSportType != test.rowsSportType {
-						return newMockRows([]interface{}{}), nil
+						return newMockRows([]any{}), nil
 					}
 					return newMockRows(test.rows), nil
 				},
@@ -137,7 +137,7 @@ func TestGetYears(t *testing.T) {
 var saveYearsTests = []struct {
 	st                      SportType
 	futureYears             []Year
-	previousYears           []interface{}
+	previousYears           []any
 	getYearsErr             error
 	executeInTransactionErr error
 	wantErr                 bool
@@ -159,7 +159,7 @@ var saveYearsTests = []struct {
 				Active: false,
 			},
 		},
-		previousYears: []interface{}{
+		previousYears: []any{
 			Year{
 				Value:  2017,
 				Active: false,
@@ -213,7 +213,7 @@ func TestSaveYears(t *testing.T) {
 		}
 		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if len(args) != 1 || !reflect.DeepEqual(test.st, args[0]) {
 						t.Errorf("Test %v: wanted to get friends for SportType %v, but got %v", i, test.st, args)
 					}

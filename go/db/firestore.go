@@ -28,7 +28,7 @@ type (
 		name  string
 		class firestoreTransactionOperationClass
 		doc   *firestore.DocumentRef
-		data  map[string]interface{}
+		data  map[string]any
 		fc    *firestoreFriendChange
 	}
 	firestoreTransactionOperationClass int
@@ -347,7 +347,7 @@ func (firestoreDB) getActiveYears(snap *firestore.DocumentSnapshot, sportTypesBy
 }
 
 func (d *firestoreDB) initActiveYears(ctx context.Context, doc *firestore.DocumentRef, sportTypesByName map[string]SportType) error {
-	data := make(map[string]interface{}, len(sportTypesByName))
+	data := make(map[string]any, len(sportTypesByName))
 	for stName := range sportTypesByName {
 		data[stName] = nil
 	}
@@ -580,7 +580,7 @@ func (d *firestoreDB) SetStat(stat Stat) error {
 	if !ok {
 		return fmt.Errorf("no active year to set stat for")
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		firestoreFieldEtlJSON:      stat.EtlJSON,
 		firestoreFieldEtlTimestamp: stat.EtlTimestamp,
 	}
@@ -630,7 +630,7 @@ func (d *firestoreDB) SetUserPassword(username, hashedPassword string) error {
 	if username != adminUsername {
 		return fmt.Errorf("cannot set username for %q", username)
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		firestoreFieldPassword: hashedPassword,
 	}
 	doc := d.rootDocument()
@@ -658,7 +658,7 @@ func (t *firestoreTX) AddYear(st SportType, year int) {
 	c := t.db.yearsCollection(st)
 	y := strconv.Itoa(year)
 	doc := c.Doc(y)
-	data := map[string]interface{}{} // firestore does not like nil data
+	data := map[string]any{} // firestore does not like nil data
 	op := firestoreTransactionOperation{
 		name:  "add year",
 		class: add,
@@ -684,7 +684,7 @@ func (t *firestoreTX) SetYearActive(st SportType, year int) {
 	t.db.activeYears[st] = year
 	doc := t.db.activeYearsDocument()
 	sportTypeName := t.db.sportTypeMap[st].Name
-	data := map[string]interface{}{
+	data := map[string]any{
 		sportTypeName: year,
 	}
 	op := firestoreTransactionOperation{
@@ -703,7 +703,7 @@ func (t *firestoreTX) ClrYearActive(st SportType) {
 	delete(t.db.activeYears, st)
 	doc := t.db.activeYearsDocument()
 	sportTypeName := t.db.sportTypeMap[st].Name
-	data := map[string]interface{}{
+	data := map[string]any{
 		sportTypeName: nil,
 	}
 	op := firestoreTransactionOperation{
@@ -721,7 +721,7 @@ func (t *firestoreTX) AddFriend(st SportType, displayOrder int, name string) {
 		return
 	}
 	doc := c.Doc(name)
-	data := map[string]interface{}{
+	data := map[string]any{
 		firestoreFieldDisplayOrder: displayOrder,
 	}
 	op := firestoreTransactionOperation{
@@ -740,7 +740,7 @@ func (t *firestoreTX) SetFriend(st SportType, id ID, displayOrder int, name stri
 	}
 	path := string(id)
 	doc := c.Doc(path)
-	data := map[string]interface{}{
+	data := map[string]any{
 		firestoreFieldDisplayOrder: displayOrder,
 	}
 	if id == ID(name) {
@@ -804,7 +804,7 @@ func (t *firestoreTX) AddPlayer(st SportType, displayOrder int, pt PlayerType, s
 	}
 	path := strconv.Itoa(int(sourceID))
 	doc := c.Doc(path)
-	data := map[string]interface{}{
+	data := map[string]any{
 		firestoreFieldDisplayOrder: displayOrder,
 		firestoreFieldPlayerType:   pt,
 		firestoreFieldFriendID:     friendID,
@@ -825,7 +825,7 @@ func (t *firestoreTX) SetPlayer(st SportType, id ID, displayOrder int) {
 	}
 	path := string(id)
 	doc := c.Doc(path)
-	data := map[string]interface{}{
+	data := map[string]any{
 		firestoreFieldDisplayOrder: displayOrder,
 	}
 	op := firestoreTransactionOperation{

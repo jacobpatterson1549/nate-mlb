@@ -12,7 +12,7 @@ func TestGetFriends(t *testing.T) {
 		requestSportType SportType
 		rowsSportType    SportType
 		queryErr         error
-		rows             []interface{}
+		rows             []any
 		wantSlice        []Friend
 		wantErr          bool
 	}{
@@ -24,7 +24,7 @@ func TestGetFriends(t *testing.T) {
 		{ // incorrect sportType
 			requestSportType: 1,
 			rowsSportType:    2,
-			rows: []interface{}{
+			rows: []any{
 				Friend{
 					ID:           "1",
 					DisplayOrder: 1,
@@ -35,7 +35,7 @@ func TestGetFriends(t *testing.T) {
 		{ // happy path
 			requestSportType: 3,
 			rowsSportType:    3,
-			rows: []interface{}{
+			rows: []any{
 				Friend{
 					ID:           "1",
 					DisplayOrder: 1,
@@ -73,7 +73,7 @@ func TestGetFriends(t *testing.T) {
 		{ // scan error
 			requestSportType: 1,
 			rowsSportType:    1,
-			rows: []interface{}{
+			rows: []any{
 				struct {
 					ID           string
 					DisplayOrder int
@@ -90,12 +90,12 @@ func TestGetFriends(t *testing.T) {
 	for i, test := range getFriendsTests {
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
 					}
 					if test.requestSportType != test.rowsSportType {
-						return newMockRows([]interface{}{}), nil
+						return newMockRows([]any{}), nil
 					}
 					return newMockRows(test.rows), nil
 				},
@@ -131,10 +131,10 @@ func TestSaveFriends(t *testing.T) {
 	saveFriendsTests := []struct {
 		st                      SportType
 		futureFriends           []Friend
-		previousFriends         []interface{}
+		previousFriends         []any
 		getFriendsErr           error
 		executeInTransactionErr error
-		wantQueryArgs           [][]interface{}
+		wantQueryArgs           [][]any
 		wantValidationError     bool
 	}{
 		{},
@@ -161,7 +161,7 @@ func TestSaveFriends(t *testing.T) {
 					Name:         "jeb",
 				},
 			},
-			previousFriends: []interface{}{
+			previousFriends: []any{
 				Friend{
 					ID:           "1",
 					DisplayOrder: 1,
@@ -183,7 +183,7 @@ func TestSaveFriends(t *testing.T) {
 					Name:         "jeb",
 				},
 			},
-			wantQueryArgs: [][]interface{}{
+			wantQueryArgs: [][]any{
 				{ID("1"), SportType(9)}, // alfred
 				{1, "new-alice", SportType(9)},
 				{2, "bobby", ID("8"), SportType(9)},
@@ -226,7 +226,7 @@ func TestSaveFriends(t *testing.T) {
 		}
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if len(args) != 1 || !reflect.DeepEqual(test.st, args[0]) {
 						t.Errorf("Test %v: wanted to get friends for SportType %v, but got %v", i, test.st, args)
 					}

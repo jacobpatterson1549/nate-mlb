@@ -12,24 +12,24 @@ import (
 type (
 	// mockDatabase implements the database interface
 	mockDatabase struct {
-		QueryFunc    func(query string, args ...interface{}) (rows, error)
-		QueryRowFunc func(query string, args ...interface{}) row
-		ExecFunc     func(query string, args ...interface{}) (sql.Result, error)
+		QueryFunc    func(query string, args ...any) (rows, error)
+		QueryRowFunc func(query string, args ...any) row
+		ExecFunc     func(query string, args ...any) (sql.Result, error)
 		BeginFunc    func() (transaction, error)
 	}
 	// mockRow implements the row interface
 	mockRow struct {
-		ScanFunc func(dest ...interface{}) error
+		ScanFunc func(dest ...any) error
 	}
 	// mockRows implements the rows interface
 	mockRows struct {
 		CloseFunc func() error
 		NextFunc  func() bool
-		ScanFunc  func(dest ...interface{}) error
+		ScanFunc  func(dest ...any) error
 	}
 	// mockTransaction implements the transaction interface
 	mockTransaction struct {
-		ExecFunc     func(query string, args ...interface{}) (sql.Result, error)
+		ExecFunc     func(query string, args ...any) (sql.Result, error)
 		CommitFunc   func() error
 		RollbackFunc func() error
 	}
@@ -68,19 +68,19 @@ type (
 	}
 )
 
-func (m mockDatabase) Query(query string, args ...interface{}) (rows, error) {
+func (m mockDatabase) Query(query string, args ...any) (rows, error) {
 	return m.QueryFunc(query, args...)
 }
-func (m mockDatabase) QueryRow(query string, args ...interface{}) row {
+func (m mockDatabase) QueryRow(query string, args ...any) row {
 	return m.QueryRowFunc(query, args...)
 }
-func (m mockDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (m mockDatabase) Exec(query string, args ...any) (sql.Result, error) {
 	return m.ExecFunc(query, args...)
 }
 func (m mockDatabase) Begin() (transaction, error) {
 	return m.BeginFunc()
 }
-func (m mockRow) Scan(dest ...interface{}) error {
+func (m mockRow) Scan(dest ...any) error {
 	return m.ScanFunc(dest...)
 }
 func (m mockRows) Close() error {
@@ -89,10 +89,10 @@ func (m mockRows) Close() error {
 func (m mockRows) Next() bool {
 	return m.NextFunc()
 }
-func (m mockRows) Scan(dest ...interface{}) error {
+func (m mockRows) Scan(dest ...any) error {
 	return m.ScanFunc(dest...)
 }
-func (m mockTransaction) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (m mockTransaction) Exec(query string, args ...any) (sql.Result, error) {
 	return m.ExecFunc(query, args...)
 }
 func (m mockTransaction) Commit() error {
@@ -147,7 +147,7 @@ func (m mockDriverRows) Next(dest []driver.Value) error {
 	return m.NextFunc(dest)
 }
 
-func mockScan(dest, src interface{}) error {
+func mockScan(dest, src any) error {
 	switch s := src.(type) {
 	case bool:
 		switch d := dest.(type) {
@@ -222,7 +222,7 @@ func mockScan(dest, src interface{}) error {
 	return fmt.Errorf("expected %T for destination of scan, but was %T", dest, src)
 }
 
-func newMockRows(src []interface{}) rows {
+func newMockRows(src []any) rows {
 	closed := false
 	rowI := -1
 	return mockRows{
@@ -237,7 +237,7 @@ func newMockRows(src []interface{}) rows {
 			rowI++
 			return rowI < len(src)
 		},
-		ScanFunc: func(dest ...interface{}) error {
+		ScanFunc: func(dest ...any) error {
 			switch {
 			case closed:
 				return fmt.Errorf("already closed")
@@ -251,14 +251,14 @@ func newMockRows(src []interface{}) rows {
 	}
 }
 
-func mockRowScanFunc(src interface{}, dest ...interface{}) error {
+func mockRowScanFunc(src any, dest ...any) error {
 	s := reflect.ValueOf(&src).Elem().Elem()
 	dI := len(dest)
 	sI := s.NumField()
 	if dI != sI {
 		return fmt.Errorf("dest has %v fields, yet src has %v", dI, sI)
 	}
-	for i := 0; i < dI; i++ {
+	for i := range dI {
 		f := s.Field(i)
 		sI := f.Interface()
 		if err := mockScan(dest[i], sI); err != nil {
@@ -277,7 +277,7 @@ func newMockBeginFunc(beginErr error, commitValidator func(queries []writeSQLFun
 			},
 		}
 		return mockTransaction{
-			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+			ExecFunc: func(query string, args ...any) (sql.Result, error) {
 				queries = append(queries, writeSQLFunction{name: query, args: args})
 				return r, nil
 			},

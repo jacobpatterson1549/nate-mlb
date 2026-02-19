@@ -53,7 +53,7 @@ func TestContainsNoAfterManyOtherAdds(t *testing.T) {
 	cache := NewCache(cacheSize)
 	uri := "uri"
 	cache.add(uri, nil)
-	for i := 0; i < cacheSize; i++ {
+	for i := range cacheSize {
 		j := strconv.Itoa(i)
 		cache.add(j, []byte(j))
 	}

@@ -16,7 +16,7 @@ func TestGetPlayerTypes(t *testing.T) {
 	}
 	getPlayerTypesTests := []struct {
 		queryErr        error
-		rows            []interface{}
+		rows            []any
 		wantPlayerTypes PlayerTypeMap
 		wantErr         bool
 	}{
@@ -28,7 +28,7 @@ func TestGetPlayerTypes(t *testing.T) {
 			wantErr: true,
 		},
 		{ // scan error (too few fields)
-			rows: []interface{}{
+			rows: []any{
 				struct {
 					ID int
 				}{
@@ -38,7 +38,7 @@ func TestGetPlayerTypes(t *testing.T) {
 			wantErr: true,
 		},
 		{ // happy path
-			rows: []interface{}{
+			rows: []any{
 				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
 				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHitterScoreType"},
 				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
@@ -56,7 +56,7 @@ func TestGetPlayerTypes(t *testing.T) {
 			},
 		},
 		{ // no nflMisc sportType
-			rows: []interface{}{
+			rows: []any{
 				playerTypeQueryRow{1, 1, "mockMlbTeamName", "mockMlbTeamDescription", "mockMlbTeamScoreType"},
 				playerTypeQueryRow{2, 1, "mockMlbHitterName", "mockMlbHitterDescription", "mockMlbHitterScoreType"},
 				playerTypeQueryRow{3, 1, "mockMlbPitcherName", "mockMlbPitcherDescription", "mockMlbPitcherScoreType"},
@@ -70,7 +70,7 @@ func TestGetPlayerTypes(t *testing.T) {
 	for i, test := range getPlayerTypesTests {
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
 					}

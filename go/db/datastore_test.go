@@ -93,7 +93,7 @@ func TestSqlTXExecute(t *testing.T) {
 		commitCalled := false
 		rollbackCalled := false
 		tx := mockTransaction{
-			ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+			ExecFunc: func(query string, args ...any) (sql.Result, error) {
 				if test.execErr != nil {
 					return nil, test.execErr
 				}
@@ -380,7 +380,7 @@ func TestNewSQLDatastore(t *testing.T) {
 func TestIDScan(t *testing.T) {
 	// unsupported Scan, storing driver.Value type int64 into type *db.ID"
 	tests := []struct {
-		src     interface{}
+		src     any
 		wantErr bool
 		want    ID
 	}{

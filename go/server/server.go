@@ -258,18 +258,18 @@ func (s Server) handleAdminPage(st db.SportType, w http.ResponseWriter, r *http.
 		s.handleError(w, err)
 		return
 	}
-	scoreCategoriesData := make([]interface{}, len(es.scoreCategories))
+	scoreCategoriesData := make([]any, len(es.scoreCategories))
 	for i, sc := range es.scoreCategories {
 		scoreCategoriesData[i] = sc
 	}
-	var friendsData []interface{}
+	var friendsData []any
 	if len(es.scoreCategories) > 0 {
-		friendsData = make([]interface{}, len(es.scoreCategories[0].FriendScores))
+		friendsData = make([]any, len(es.scoreCategories[0].FriendScores))
 		for i, fs := range es.scoreCategories[0].FriendScores {
 			friendsData[i] = fs
 		}
 	}
-	yearsData := make([]interface{}, len(years))
+	yearsData := make([]any, len(years))
 	for i, year := range years {
 		yearsData[i] = year
 	}
