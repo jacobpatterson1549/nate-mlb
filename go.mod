@@ -1,6 +1,6 @@
 module github.com/jacobpatterson1549/nate-mlb
 
-go 1.26.0
+go 1.27
 
 require (
 	cloud.google.com/go/firestore v1.25.0
