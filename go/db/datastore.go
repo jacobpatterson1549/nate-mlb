@@ -18,12 +18,12 @@ type (
 	readSQLFunction struct {
 		name string
 		cols []string
-		args []interface{}
+		args []any
 	}
 
 	writeSQLFunction struct {
 		name string
-		args []interface{}
+		args []any
 	}
 
 	datastoreConfig struct {
@@ -194,7 +194,7 @@ func expectSingleRowAffected(r sql.Result) error {
 	return nil
 }
 
-func newReadSQLFunction(name string, cols []string, args ...interface{}) readSQLFunction {
+func newReadSQLFunction(name string, cols []string, args ...any) readSQLFunction {
 	return readSQLFunction{
 		name: name,
 		cols: cols,
@@ -202,7 +202,7 @@ func newReadSQLFunction(name string, cols []string, args ...interface{}) readSQL
 	}
 }
 
-func newWriteSQLFunction(name string, args ...interface{}) writeSQLFunction {
+func newWriteSQLFunction(name string, args ...any) writeSQLFunction {
 	return writeSQLFunction{
 		name: name,
 		args: args,
@@ -225,7 +225,7 @@ func (f writeSQLFunction) sql() string {
 	return fmt.Sprintf("SELECT %s(%s)", f.name, strings.Join(argIndexes, ", "))
 }
 
-func (id *ID) Scan(src interface{}) error {
+func (id *ID) Scan(src any) error {
 	switch t := src.(type) {
 	case int, int64:
 		*id = ID(fmt.Sprint(src))

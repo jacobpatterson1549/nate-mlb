@@ -2,6 +2,7 @@ package request
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strconv"
 	"strings"
@@ -83,9 +84,7 @@ func (r *nflTeamRequester) requestNflTeams(year int) (map[db.SourceID]NflTeam, e
 		return nil, err
 	}
 	nflTeams := make(map[db.SourceID]NflTeam)
-	for nflTeamID, nflTeam := range nflSchedule.Teams {
-		nflTeams[nflTeamID] = nflTeam
-	}
+	maps.Copy(nflTeams, nflSchedule.Teams)
 	return nflTeams, nil
 }
 

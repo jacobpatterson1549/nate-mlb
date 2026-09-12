@@ -13,7 +13,7 @@ import (
 
 type (
 	requester interface {
-		structPointerFromURI(uri string, v interface{}) error
+		structPointerFromURI(uri string, v any) error
 	}
 
 	// HTTPClient makes HTTP requests
@@ -69,7 +69,7 @@ func NewRequesters(httpClient HTTPClient, c Cache, nflAppKey, environment string
 	return scoreCategorizers, searchers, aboutRequester
 }
 
-func (r *httpRequester) structPointerFromURI(uri string, v interface{}) error {
+func (r *httpRequester) structPointerFromURI(uri string, v any) error {
 	b, ok := r.cache.get(uri)
 	if !ok {
 		var err error

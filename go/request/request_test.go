@@ -16,7 +16,7 @@ import (
 
 type (
 	mockRequester struct {
-		structPointerFromURIFunc func(uri string, v interface{}) error
+		structPointerFromURIFunc func(uri string, v any) error
 	}
 
 	mockHTTPClient struct {
@@ -24,7 +24,7 @@ type (
 	}
 )
 
-func (r *mockRequester) structPointerFromURI(uri string, v interface{}) error {
+func (r *mockRequester) structPointerFromURI(uri string, v any) error {
 	return r.structPointerFromURIFunc(uri, v)
 }
 
@@ -57,7 +57,7 @@ func TestStructPointerFromUri(t *testing.T) {
 		uri        string
 		returnJSON string
 		wantError  bool
-		want       interface{}
+		want       any
 	}{
 		{
 			returnJSON: `"valid json string"`,
@@ -77,7 +77,7 @@ func TestStructPointerFromUri(t *testing.T) {
 			return test.returnJSON
 		}
 		r := newMockHTTPRequester(jsonFunc)
-		var got interface{}
+		var got any
 		err := r.structPointerFromURI(test.uri, &got)
 		switch {
 		case test.wantError:
@@ -126,7 +126,7 @@ func TestStructPointerFromUri_requesterError(t *testing.T) {
 			},
 		},
 	}
-	var got interface{}
+	var got any
 	err := r.structPointerFromURI("uri", &got)
 	if err == nil || !errors.Is(err, doErr) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)
@@ -220,7 +220,7 @@ func TestStructPointerFromUri_readBytesError(t *testing.T) {
 			},
 		},
 	}
-	var got interface{}
+	var got any
 	err := r.structPointerFromURI("uri", &got)
 	if err == nil || !errors.Is(err, readErr) {
 		t.Errorf("expected request to fail, but did not or got wrong error: %v", err)

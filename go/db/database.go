@@ -14,13 +14,13 @@ type (
 	}
 
 	database interface {
-		Query(query string, args ...interface{}) (rows, error)
-		QueryRow(query string, args ...interface{}) row
-		Exec(query string, args ...interface{}) (sql.Result, error)
+		Query(query string, args ...any) (rows, error)
+		QueryRow(query string, args ...any) row
+		Exec(query string, args ...any) (sql.Result, error)
 		Begin() (transaction, error)
 	}
 	row interface {
-		Scan(dest ...interface{}) error
+		Scan(dest ...any) error
 	}
 	rows interface {
 		Close() error
@@ -28,7 +28,7 @@ type (
 		row // Scan method
 	}
 	transaction interface {
-		Exec(query string, args ...interface{}) (sql.Result, error)
+		Exec(query string, args ...any) (sql.Result, error)
 		Commit() error
 		Rollback() error
 	}
@@ -58,13 +58,13 @@ func newSQLDatabase(driverName, dataSourceName string) (*sqlDB, error) {
 	return &d, nil
 }
 
-func (s sqlDatabase) Query(query string, args ...interface{}) (rows, error) {
+func (s sqlDatabase) Query(query string, args ...any) (rows, error) {
 	return s.db.Query(query, args...)
 }
-func (s sqlDatabase) QueryRow(query string, args ...interface{}) row {
+func (s sqlDatabase) QueryRow(query string, args ...any) row {
 	return s.db.QueryRow(query, args...)
 }
-func (s sqlDatabase) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (s sqlDatabase) Exec(query string, args ...any) (sql.Result, error) {
 	return s.db.Exec(query, args...)
 }
 func (s sqlDatabase) Begin() (transaction, error) {

@@ -40,7 +40,7 @@ type (
 	AdminTab struct {
 		Name   string
 		Action string
-		Data   []interface{} // each template knows what data to expect
+		Data   []any // each template knows what data to expect
 	}
 
 	// SportEntry contains the url and name of a SportType

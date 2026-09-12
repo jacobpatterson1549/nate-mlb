@@ -10,7 +10,7 @@ type nflRequester struct {
 	requester requester
 }
 
-func (n nflRequester) structPointerFromURI(uri string, v interface{}) error {
+func (n nflRequester) structPointerFromURI(uri string, v any) error {
 	if len(uri) > 0 && uri[0] != '/' {
 		uri = "/" + uri
 	}

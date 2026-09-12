@@ -42,9 +42,9 @@ func TestGetUserPassword(t *testing.T) {
 	for i, test := range getUserPasswordTests {
 		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
-				QueryRowFunc: func(query string, args ...interface{}) row {
+				QueryRowFunc: func(query string, args ...any) row {
 					return mockRow{
-						ScanFunc: func(dest ...interface{}) error {
+						ScanFunc: func(dest ...any) error {
 							switch {
 							case test.queryRowErr != nil:
 								return test.queryRowErr
@@ -112,7 +112,7 @@ func userExecuteHelperTest(t *testing.T, testFunc func(Datastore, string, Passwo
 	for i, test := range userExecuteTests {
 		ds := Datastore{db: &sqlDB{
 			db: mockDatabase{
-				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				ExecFunc: func(query string, args ...any) (sql.Result, error) {
 					if test.execErr != nil {
 						return nil, test.execErr
 					}
@@ -174,9 +174,9 @@ func TestIsCorrectUserPassword(t *testing.T) {
 	for i, test := range isCorrectUserPasswordTests {
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryRowFunc: func(query string, args ...interface{}) row {
+				QueryRowFunc: func(query string, args ...any) row {
 					return mockRow{
-						ScanFunc: func(dest ...interface{}) error {
+						ScanFunc: func(dest ...any) error {
 							if test.getUserPasswordFuncErr != nil {
 								return test.getUserPasswordFuncErr
 							}
@@ -246,9 +246,9 @@ func TestSetAdminPassword(t *testing.T) {
 	for i, test := range setAdminPasswordTests {
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryRowFunc: func(query string, args ...interface{}) row {
+				QueryRowFunc: func(query string, args ...any) row {
 					return mockRow{
-						ScanFunc: func(dest ...interface{}) error {
+						ScanFunc: func(dest ...any) error {
 							if test.getUserPasswordFuncErr != nil {
 								return test.getUserPasswordFuncErr
 							}
@@ -261,7 +261,7 @@ func TestSetAdminPassword(t *testing.T) {
 						},
 					}
 				},
-				ExecFunc: func(query string, args ...interface{}) (sql.Result, error) {
+				ExecFunc: func(query string, args ...any) (sql.Result, error) {
 					r := mockResult{
 						RowsAffectedFunc: func() (int64, error) {
 							return 1, nil

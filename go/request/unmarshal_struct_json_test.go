@@ -11,8 +11,8 @@ import (
 func TestUnmarshalStructJson(t *testing.T) {
 	unmarshalStructJSONTests := []struct {
 		interfaceJSON string
-		got           interface{}
-		want          interface{}
+		got           any
+		want          any
 	}{
 		{
 			interfaceJSON: `{"ref":"f370c06649a740542504b7ecb18031908f394fe8","updated_at":"2019-08-29T17:29:35Z"}`,

@@ -14,7 +14,7 @@ func TestGetSportTypes(t *testing.T) {
 	}
 	getSportTypesTests := []struct {
 		queryErr       error
-		rows           []interface{}
+		rows           []any
 		wantErr        bool
 		wantSportTypes SportTypeMap
 	}{
@@ -26,7 +26,7 @@ func TestGetSportTypes(t *testing.T) {
 			wantErr: true,
 		},
 		{ // scan error
-			rows: []interface{}{
+			rows: []any{
 				struct {
 					ID   string
 					Name string
@@ -40,7 +40,7 @@ func TestGetSportTypes(t *testing.T) {
 			wantErr: true,
 		},
 		{ // happy path
-			rows: []interface{}{
+			rows: []any{
 				sportTypeQueryRow{
 					ID:   1,
 					Name: "mockMlbName",
@@ -54,7 +54,7 @@ func TestGetSportTypes(t *testing.T) {
 			},
 		},
 		{ // no nfl sportType
-			rows: []interface{}{
+			rows: []any{
 				sportTypeQueryRow{
 					ID:   1,
 					Name: "mockMlbName",
@@ -72,7 +72,7 @@ func TestGetSportTypes(t *testing.T) {
 	for i, test := range getSportTypesTests {
 		ds := Datastore{
 			db: &sqlDB{db: mockDatabase{
-				QueryFunc: func(query string, args ...interface{}) (rows, error) {
+				QueryFunc: func(query string, args ...any) (rows, error) {
 					if test.queryErr != nil {
 						return nil, test.queryErr
 					}
